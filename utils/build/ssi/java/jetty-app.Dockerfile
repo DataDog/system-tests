@@ -3,7 +3,7 @@ ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE}
 
-RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.4.56.v20240826/jetty-distribution-9.4.56.v20240826.tar.gz
+RUN wget https://static.datadoghq.com/assets/dd-repo-tools/mirror/02f5f9c4f6b4be0e5b2640d4b5a21e2838d68143ef96c540c2ba39885b60cb62/jetty-distribution-9.4.56.v20240826.tar.gz
 RUN tar -xvf jetty-distribution-9.4.56.v20240826.tar.gz
 
 RUN mkdir -p jetty-classpath

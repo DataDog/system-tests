@@ -4,6 +4,7 @@ import akka.stream.Materializer
 import akka.stream.javadsl.Sink
 import akka.util.ByteString
 import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.DDTags
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
 import play.api.libs.json.{JsValue, Json, Writes}
@@ -35,7 +36,8 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val span = tracer.buildSpan("test-span").start
     span.setTag("test-tag", "my value")
     withSpan(span) {
-      Results.Ok("Hello world!")
+      Results.Ok("Hello world!\n")
+        .as("text/plain; charset=UTF-8")
     }
   }
 
@@ -121,6 +123,12 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   }
 
 
+  def inferredProxySpanCreation(status_code: Option[Int]) = Action { request =>
+    println("Received an API Gateway request:")
+    request.headers.headers.foreach { case (name, value) => println(s"$name: $value") }
+    Results.Status(status_code.getOrElse(200))("ok")
+  }
+
   def tagValue(value: String, code: Int) = Action { request =>
     handleTagValue(value, code, request.queryString, None)
   }
@@ -157,7 +165,12 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       case AnyContentAsFormUrlEncoded(data) =>
         Results.Ok(data.toString())
       case AnyContentAsMultipartFormData(mpfd) =>
-        Results.Ok(mpfd.dataParts.toString())
+        val sb = new StringBuilder()
+        mpfd.dataParts.foreach { case (_, values) => values.foreach(sb.append) }
+        mpfd.files.foreach { file =>
+          sb.append(new String(java.nio.file.Files.readAllBytes(file.ref.path)))
+        }
+        Results.Ok(sb.toString())
       case AnyContentAsJson(data) =>
         Results.Ok(Json.stringify(data))
       case AnyContentAsXml(data) =>
@@ -171,8 +184,25 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     }
   }
 
-  def distantCall(url: String) = Action.async {
-    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+  def traceManualKeepDrop(decision: String) = Action.async {
+    if (decision != "keep" && decision != "drop") {
+      Future.successful(Results.BadRequest("decision must be keep or drop"))
+    } else {
+      val span = GlobalTracer.get().activeSpan()
+      if (span != null) {
+        span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
+      }
+      // Call downstream so that tests can assert on the sampling decision that gets propagated
+      makeDistantCall("http://localhost:7777/", "GET")
+    }
+  }
+
+  def distantCall(url: String, method: String) = Action.async {
+    makeDistantCall(url, method)
+  }
+
+  private def makeDistantCall(url: String, method: String): Future[Result] = {
+    val remoteReq: WSRequest = ws.url(url).withMethod(method)
 
     // we need to break the abstraction to be able to get to the request headers
     val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()

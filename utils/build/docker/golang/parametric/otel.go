@@ -218,7 +218,7 @@ func (s *apmClientServer) otelSpanContextHandler(w http.ResponseWriter, r *http.
 	sc := sctx.span.SpanContext()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(&OtelSpanContextReturn{
-		SpanId:     sc.SpanID().String(),
+		SpanId:     func() uint64 { id := sc.SpanID(); return binary.BigEndian.Uint64(id[:]) }(),
 		TraceId:    sc.TraceID().String(),
 		TraceFlags: sc.TraceFlags().String(),
 		TraceState: sc.TraceState().String(),

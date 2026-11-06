@@ -9,7 +9,7 @@
       "return": {
         "arguments": {
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
@@ -20,7 +20,7 @@
           "message": "500 INTERNAL_SERVER_ERROR \"Simple exception\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplaySimple",
               "lineNumber": 13
             },
             {
@@ -43,12 +43,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplaySimple",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplaySimple",
         "lineNumber": 13
       },
       {

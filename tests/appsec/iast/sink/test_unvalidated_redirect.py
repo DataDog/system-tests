@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, missing_feature, rfc, weblog
+from utils import context, features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
@@ -37,12 +37,12 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     secure_endpoint = "/iast/unvalidated_redirect/test_secure_redirect"
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
+    allow_redirects = False
+    expected_secure_status_codes = (302, 307)
 
     def test_insecure(self):
         super().test_insecure()
 
-    # there is probably an issue with how system test handles redirection
-    # it's suspicious that three deifferent languages have the same issue
     def test_secure(self):
         super().test_secure()
 
@@ -58,9 +58,6 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
-    @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
-    @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
     def test_secure(self):
         return super().test_secure()
 
@@ -73,8 +70,11 @@ class TestUnvalidatedRedirect_StackTrace:
     """Validate stack trace generation"""
 
     def setup_stack_trace(self):
-        self.r = weblog.post(
-            "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
+        self.r = weblog.request(
+            "POST",
+            "/iast/unvalidated_redirect/test_insecure_redirect",
+            data={"location": "http://dummy.location.com"},
+            allow_redirects=False,
         )
 
     def test_stack_trace(self):
@@ -105,8 +105,11 @@ class TestUnvalidatedRedirect_ExtendedLocation:
     vulnerability_type = "UNVALIDATED_REDIRECT"
 
     def setup_extended_location_data(self):
-        self.r = weblog.post(
-            "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
+        self.r = weblog.request(
+            "POST",
+            "/iast/unvalidated_redirect/test_insecure_redirect",
+            data={"location": "http://dummy.location.com"},
+            allow_redirects=False,
         )
 
     def test_extended_location_data(self):

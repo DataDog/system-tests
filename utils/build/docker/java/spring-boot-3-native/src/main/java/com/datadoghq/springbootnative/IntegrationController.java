@@ -1,7 +1,5 @@
 package com.datadoghq.springbootnative;
 
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,11 +14,6 @@ import java.sql.Statement;
 public class IntegrationController {
     @RequestMapping("/trace/sql")
     String traceSQL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         // NOTE: see README.md for setting up the docker image to quickly test this
 
         String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
@@ -45,11 +38,6 @@ public class IntegrationController {
 
     @RequestMapping("/trace/http")
     String traceHTTP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         try {
             URL server = new URL("http://example.com");
             HttpURLConnection connection = (HttpURLConnection)server.openConnection();

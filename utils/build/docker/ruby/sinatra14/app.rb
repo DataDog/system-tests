@@ -4,6 +4,8 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday_middleware'
+require 'pg'
 
 begin
   require 'datadog/auto_instrument'
@@ -13,6 +15,7 @@ end
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
 
   c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
@@ -29,7 +32,7 @@ else
 end
 
 get '/' do
-  'Hello, world!'
+  "Hello world!\n"
 end
 
 get '/healthcheck' do
@@ -37,7 +40,6 @@ get '/healthcheck' do
 
   gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
   version = gemspec.version.to_s
-  version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
   {
     status: 'ok',
     library: {
@@ -48,6 +50,10 @@ get '/healthcheck' do
 end
 
 post '/' do
+  'Hello, world!'
+end
+
+get '/waf' do
   'Hello, world!'
 end
 
@@ -122,6 +128,35 @@ get '/status' do
   status code
 
   'Ok'
+end
+
+get '/trace/manual_keep_drop' do
+  decision = request.params['decision']
+  halt 400, 'decision must be keep or drop' unless %w[keep drop].include?(decision)
+
+  trace = Datadog::Tracing.active_trace
+  decision == 'keep' ? trace.keep! : trace.reject!
+
+  content_type :json
+
+  # Call downstream so that tests can assert on the sampling decision that gets propagated
+  url = 'http://localhost:7777/'
+  uri = URI(url)
+  downstream_request = nil
+  response = nil
+
+  Net::HTTP.start(uri.host, uri.port) do |http|
+    downstream_request = Net::HTTP::Get.new(uri)
+
+    response = http.request(downstream_request)
+  end
+
+  {
+    "url": url,
+    "status_code": response.code.to_i,
+    "request_headers": downstream_request.each_header.to_h,
+    "response_headers": response.each_header.to_h
+  }.to_json
 end
 
 get '/make_distant_call' do
@@ -273,6 +308,18 @@ get '/api_security/sampling/:status' do
   'OK'
 end
 
+get '/api_security/multi-params-in-segment/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id' do
+  'OK'
+end
+
 ssrf_handler = lambda do
   url = URI.parse(request.params['domain'])
   url = "http://#{url}" unless url.scheme
@@ -330,6 +377,32 @@ end
 end
 Sinatra::Application.send(:route, 'TRACE', '/external_request') { external_request_handler }
 
+get '/external_request/redirect' do
+  total_redirects = request.params['totalRedirects'] || '0'
+
+  headers = {}
+  request.params.each do |key, value|
+    next if key == 'totalRedirects'
+    headers[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+  end
+
+  url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+  conn = Faraday.new do |f|
+    f.use FaradayMiddleware::FollowRedirects, limit: 10
+    f.adapter Faraday.default_adapter
+  end
+  downstream_response = conn.get(url, nil, headers)
+
+  content_type :json
+  {
+    status: downstream_response.status,
+    headers: downstream_response.headers.to_h
+  }.to_json
+rescue => e
+  content_type :json
+  {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}.to_json
+end
+
 get '/flush' do
   # NOTE: If anything needs to be flushed here before the test suite ends,
   #       this is the place to do it.
@@ -362,4 +435,51 @@ get '/flush' do
   end
 
   'OK'
+end
+
+get '/inferred-proxy/span-creation' do
+  content_type :text
+  status (params['status_code'] || 200).to_i
+  'ok'
+end
+
+$dbm_spy_installed = false
+
+def _install_dbm_sql_spy
+  return if $dbm_spy_installed
+  $dbm_spy_installed = true
+  begin
+    require 'datadog/tracing/contrib/propagation/sql_comment'
+    mod = Datadog::Tracing::Contrib::Propagation::SqlComment
+    original = mod.method(:prepend_comment)
+    mod.define_singleton_method(:prepend_comment) do |sql, *args|
+      result = original.call(sql, *args)
+      Thread.current[:_dd_captured_dbm_sql] = result
+      result
+    end
+  rescue => e
+    warn "DBM spy installation failed: #{e.message}"
+  end
+end
+
+_install_dbm_sql_spy
+
+get '/stub_dbm' do
+  content_type :json
+  integration = params['integration']
+  if integration == 'pg'
+    conn = PG.connect(
+      host: 'postgres', port: 5433,
+      dbname: 'system_tests_dbname',
+      user: 'system_tests_user',
+      password: 'system_tests'
+    )
+    conn.exec('SELECT version()')
+    conn.close
+    captured = Thread.current[:_dd_captured_dbm_sql]
+    { status: 'ok', dbm_comment: captured }.to_json
+  else
+    status 406
+    { status: 'error', message: "Integration #{integration} not supported" }.to_json
+  end
 end

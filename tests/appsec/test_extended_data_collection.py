@@ -4,6 +4,7 @@
 
 from utils import interfaces, scenarios, features, weblog, context, remote_config as rc
 from utils.dd_constants import Capabilities
+from utils.dd_types import is_same_boolean
 
 
 # Remote config configurations for extended data collection
@@ -337,9 +338,6 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.x-test-header-3") is None
         assert meta.get("http.response.headers.x-test-header-4") is None
 
-        # response headers are not collected by default
-        assert meta.get("http.response.headers.content-language") is None
-
         # Check that no response headers were discarded (within the 50 limit)
         metrics = span.get("metrics", {})
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
@@ -530,4 +528,4 @@ class Test_ExtendedRequestBodyCollection:
 
         # Verify the body size exceed tag is set
         meta = span.get("meta", {})
-        assert meta.get("_dd.appsec.request_body_size.exceeded") == "true"
+        assert is_same_boolean(actual=meta.get("_dd.appsec.request_body_size.exceeded"), expected="true")

@@ -13,6 +13,7 @@ import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -39,7 +40,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import io.vertx.ext.web.FileUpload;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -69,13 +75,16 @@ public class Main {
         Router router = Router.router(vertx);
 
         router.get("/")
-                .produces("text/plain")
                 .handler(ctx -> {
                     var tracer = GlobalTracer.get();
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello World!");
+                        ctx.response()
+                                .setStatusCode(200)
+                                .putHeader("Content-Type", "text/plain")
+                                .putHeader("Content-Length", "13")
+                                .end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
@@ -140,6 +149,11 @@ public class Main {
             ctx.pathParams().toString();
             ctx.response().end("Hello world!");
         });
+        router.getWithRegex("/resource_renaming(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("ok");
+        });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")
@@ -164,6 +178,17 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");
@@ -352,6 +377,22 @@ public class Main {
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
                 });
+        router.get("/inferred-proxy/span-creation")
+                .handler(ctx -> {
+                    String statusCodeParam = ctx.request().getParam("status_code");
+                    int statusCode = 200;
+                    if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                        try {
+                            statusCode = Integer.parseInt(statusCodeParam);
+                        } catch (NumberFormatException e) {
+                            statusCode = 400;
+                        }
+                    }
+                    System.out.println("Received an API Gateway request:");
+                    ctx.request().headers().forEach(header ->
+                        System.out.println(header.getKey() + ": " + header.getValue()));
+                    ctx.response().setStatusCode(statusCode).end("ok");
+                });
         router.get("/set_cookie")
                 .handler(ctx -> {
                     String name = ctx.request().getParam("name");
@@ -364,8 +405,20 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
-        router.get("/make_distant_call").handler(ctx -> {
-            String url = ctx.request().getParam("url");
+        router.get("/trace/manual_keep_drop").handler(ctx -> {
+            String decision = ctx.request().getParam("decision");
+            if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                ctx.response().setStatusCode(400).end("decision must be keep or drop");
+                return;
+            }
+
+            final Span span = GlobalTracer.get().activeSpan();
+            if (span != null) {
+                span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+            }
+
+            // Call downstream so that tests can assert on the sampling decision that gets propagated
+            String url = "http://localhost:7777/";
             JsonObject requestHeaders = new JsonObject();
 
             OkHttpClient client = new OkHttpClient.Builder()
@@ -384,6 +437,56 @@ public class Main {
             Request request = new Request.Builder()
                     .url(url)
                     .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ctx.response().setStatusCode(500).end(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    JsonObject responseHeaders = new JsonObject();
+                    Headers headers = response.headers();
+                    for (String name : headers.names()) {
+                        responseHeaders.put(name, headers.get(name));
+                    }
+
+                    JsonObject result = new JsonObject();
+                    result.put("url", url);
+                    result.put("status_code", response.code());
+                    result.put("request_headers", requestHeaders);
+                    result.put("response_headers", responseHeaders);
+
+                    ctx.response().end(result.encodePrettily());
+                }
+            });
+        });
+        router.get("/make_distant_call").handler(ctx -> {
+            String url = ctx.request().getParam("url");
+            String method = Optional.ofNullable(ctx.request().getParam("method")).orElse("GET");
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            RequestBody requestBody = ("GET".equals(method) || "HEAD".equals(method))
+                    ? null
+                    : RequestBody.create(null, new byte[0]);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .method(method, requestBody)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {

@@ -1,0 +1,108 @@
+---
+name: Nightly
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - "main"
+  schedule:
+    - cron: '00 03 * * *'
+
+jobs:
+  nightly:
+    strategy:
+      matrix:
+        library:
+          - cpp
+          - cpp_httpd
+          - dotnet
+          - golang
+          - java
+          - java_lambda
+          - nodejs
+          - php
+          - python
+          - python_lambda
+          - nodejs_lambda
+          - ruby
+          - cpp_nginx
+        version:
+          - prod
+        include:
+          - library: rust
+            version: dev
+      fail-fast: false
+    uses: ./.github/workflows/system-tests.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      scenarios_groups: tracer_release
+      library: ${{ matrix.library }}
+      parametric_job_count: 8
+      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
+      push_to_test_optimization: true
+
+  test_activation:
+    name: Test activation
+    runs-on: ubuntu-latest
+    if: (success() || failure()) && github.event_name == 'schedule'
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      id-token: write
+      pull-requests: write
+    needs:
+      - nightly
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          repository: DataDog/system-tests
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/download_artifact
+        with:
+          merge-multiple: false
+          pattern: logs_*
+          path: data
+
+      - uses: DataDog/system-tests/.github/actions/install_runner@main
+
+      - name: Install additional dependencies
+        shell: bash
+        run: |
+          source venv/bin/activate
+          python -m pip install --upgrade pip ruamel.yaml requests tqdm pygtrie
+
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80  # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.test-activation-github
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          repository: DataDog/commit-headless
+          ref: action/v3.3.0
+          path: .commit-headless
+
+      - name: Run nightly activation
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+        shell: bash
+        run: |
+          source venv/bin/activate
+          python utils/ci/github/nightly.py activate \
+            --reports-dir data \
+            --commit-headless .commit-headless/dist/commit-headless-linux-amd64 \
+            --repository "${{ github.repository }}" \
+            --server-url "${{ github.server_url }}" \
+            --run-id "${{ github.run_id }}"

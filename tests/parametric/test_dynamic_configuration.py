@@ -1,17 +1,18 @@
 """Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
 import json
+import time
+import uuid
 from pathlib import Path
 from typing import Any
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils import (
     context,
     features,
-    irrelevant,
-    missing_feature,
+    remote_config,
     rfc,
     scenarios,
 )
@@ -26,6 +27,7 @@ from utils.docker_fixtures.spec.trace import (
 )
 from utils.manifest._internal.types import SemverRange
 from .conftest import APMLibrary
+from .utils import _mapped_telemetry_name
 
 parametrize = pytest.mark.parametrize
 
@@ -41,9 +43,14 @@ DEFAULT_ENVVARS = {
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+    # This suite validates RC capabilities; Feature Flagging RC is explicit opt-in.
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
     # Disable CSS which is enabled by default on Go
     "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
+
+# Max polling loops (~4s at 0.01s/loop) when waiting for RC-related responses.
+_RC_WAIT_LOOPS = 400
 
 
 def send_and_wait_trace(
@@ -168,33 +175,136 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> None:
-    if not config_id:
-        config_id = str(hash(json.dumps(config)))
+def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
+    """Whether the library reads its APM_TRACING settings from the env-var-keyed `sdk_config`
+    field rather than the legacy `lib_config` object.
 
-    config["id"] = str(config_id)
-    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=config)
+    Resolve this *before* anything that clears the recorded requests: reading the capabilities
+    waits for the next remote config request, and one recorded in the middle of an update would
+    be taken for the acknowledgement of that update.
+
+    `wait_for_rc_capabilities` raises when it sees no capability at all, which is what a library
+    that does not poll remote config (tracing disabled by DD_TRACE_ENABLED, for instance) looks
+    like; the shared helper turns that into the `lib_config` default.
+    """
+    return remote_config.resolve_sdk_configuration_support(
+        lambda: test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS), library_name=context.library.name
+    )
 
 
-def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
-    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
+def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
+    """Assert that the tracer advertises the capability to remotely configure one setting.
+
+    A tracer that has moved to the unified SDK_CONFIGURATION contract may advertise that bit in
+    place of a per-setting capability. Since libdatadog gives the same bit a different meaning,
+    the shared resolver also uses the library identity when legacy capabilities remain present.
+    """
+    seen_capabilities = test_agent.wait_for_rc_capabilities(wait_loops)
+    if capability in seen_capabilities:
+        return
+
+    assert remote_config.resolve_sdk_configuration_contract(seen_capabilities, library_name=context.library.name), (
+        f"RemoteConfig capability missing: neither {capability.name} nor the SDK_CONFIGURATION "
+        f"contract that replaces it; seen: {seen_capabilities}"
+    )
+
+
+def _set_rc(
+    test_agent: TestAgentAPI,
+    config: dict[str, Any],
+    config_id: str | int | None = None,
+) -> str:
+    # Use a unique ID when not passed to avoid matching stale ACKs from prior updates
+    # that used the same hash (identical payloads). hash(config) would repeat for identical
+    # payloads and recreate the stale-ACK race, especially when tests reuse config_id.
+    resolved_id: str = str(config_id) if config_id is not None else str(uuid.uuid4())
+    config["id"] = resolved_id
+    use_sdk_config = uses_sdk_configuration(test_agent)
+    if "sdk_config" in config:
+        assert use_sdk_config, "Cannot send an sdk_config payload to a library using the legacy lib_config contract"
+        payload = config
+    else:
+        payload = remote_config.to_sdk_config_payload(config) if use_sdk_config else config
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=payload)
+
+    return resolved_id
+
+
+def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
+    rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
     return rc_config
 
 
-def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
-    """Helper to create an RC configuration with the given settings and wait for it to be applied.
+def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[str, Any]:
+    """Build an RC config carrying settings that have no legacy lib_config equivalent.
 
-    It is assumed that the configuration is successfully applied.
+    sdk_config carries generic env-var-keyed entries so a tracer can apply them via the single
+    SDK_CONFIGURATION capability instead of bespoke per-setting parsing.
     """
-    rc_config = _create_rc_config(config_overrides)
+    rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
+    del rc_config["lib_config"]
+    rc_config["sdk_config"] = {
+        "service_name": TEST_SERVICE,
+        "env": TEST_ENV,
+        "config": sdk_config_overrides,
+    }
+    return rc_config
 
-    _set_rc(test_agent, rc_config, config_id)
 
-    # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_name: str, expected_value: str) -> None:
+    """Assert the tracer reports apm_telemetry_name as applied with origin "remote_config".
+
+    apm_telemetry_name is resolved to the tracer's actual reported key(s) via utils.py's
+    cross-language name mapping (e.g. "trace_header_tags" -> "DD_TRACE_HEADER_TAGS", or a
+    language-specific alias).
+    """
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    names = _mapped_telemetry_name(apm_telemetry_name)
+    for name in names:
+        actual = test_agent.get_telemetry_config_by_origin(
+            configuration_by_name, name, "remote_config", return_value_only=True
+        )
+        if actual is not None:
+            assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
+            return
+    raise AssertionError(
+        f"No telemetry configuration with origin 'remote_config' found for any of {names}. If this "
+        f"tracer reports {apm_telemetry_name!r} under a different key, add/fix its "
+        "utils.py telemetry_name_mapping entry."
+    )
+
+
+def set_and_wait_rc(
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+    config_overrides: dict[str, Any],
+    config_id: str | int | None = None,
+) -> dict[str, Any]:
+    """Set an RC config, wait for the agent ACK, then drain the tracer.
+
+    The drain closes the race between the agent ACK and the tracer applying the
+    config. config_id filtering matches only the ACK we just triggered.
+    """
+    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    # Resolve the payload shape before clearing, not in _set_rc below: it waits for the next RC
+    # request, and one recorded between the clear and the update would be the stale ACK the clear
+    # is there to discard, which wait_for_rc_apply_state would then take for the new one.
+    uses_sdk_configuration(test_agent)
+    if config_id is not None:
+        # Reuse case: discard stale ACKs from prior updates at the same path
+        test_agent.clear()
+    used_config_id: str = _set_rc(test_agent, rc_config, config_id)
+    rc_state = test_agent.wait_for_rc_apply_state(
+        "APM_TRACING",
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        clear=True,
+        config_id=used_config_id,
+    )
+    # No-op (returns None) on tracers without the apply endpoint yet.
+    test_library.flush_remote_config()
+    return rc_state
 
 
 def assert_sampling_rate(trace: list[dict], rate: float):
@@ -284,7 +394,7 @@ class TestDynamicConfigTracingEnabled:
     def test_capability_tracing_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the tracing enabled capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_ENABLED})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_ENABLED)
 
     @parametrize(
         "library_env",
@@ -341,6 +451,207 @@ class TestDynamicConfigTracingEnabled:
         )
 
 
+_SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, Any, str]] = [
+    ("trace_sample_rate", "tracing_sampling_rate", Capabilities.APM_TRACING_SAMPLE_RATE, 0.5, "0.5"),
+    ("logs_injection_enabled", "log_injection_enabled", Capabilities.APM_TRACING_LOGS_INJECTION, True, "true"),
+    (
+        "trace_header_tags",
+        "tracing_header_tags",
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        [{"header": "X-Test-Header", "tag_name": "test-tag"}],
+        "X-Test-Header:test-tag",
+    ),
+    (
+        "trace_tags",
+        "tracing_tags",
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        ["sdk_config_tag:sdk_config_value"],
+        "sdk_config_tag:sdk_config_value",
+    ),
+    (
+        "data_streams_enabled",
+        "data_streams_enabled",
+        Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
+        True,
+        "true",
+    ),
+    (
+        "dynamic_instrumentation_enabled",
+        "dynamic_instrumentation_enabled",
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        True,
+        "true",
+    ),
+    (
+        "tracing_sampling_rules",
+        "tracing_sampling_rules",
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        [{"sample_rate": 0.5}],
+        '[{"sample_rate": 0.5}]',
+    ),
+    (
+        "code_origin_enabled",
+        "code_origin_enabled",
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        True,
+        "true",
+    ),
+    (
+        "exception_replay_enabled",
+        "exception_replay_enabled",
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        True,
+        "true",
+    ),
+    (
+        "live_debugging_enabled",
+        "live_debugging_enabled",
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        True,
+        "true",
+    ),
+]
+
+# Frozen snapshot of capabilities.yml. capabilities.yml is expected to drift as tracers migrate
+# settings to sdk_config and drop their old APM_TRACING_* bits, so reading it live here would
+# erode this test's coverage over time instead of preserving it.
+_LEGACY_CAPABILITY_SNAPSHOT: dict[str, frozenset[Capabilities]] = {
+    "java": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "nodejs": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "dotnet": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "golang": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "cpp": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+        }
+    ),
+    "python": frozenset(),
+    "php": frozenset(),
+    "ruby": frozenset(),
+}
+
+
+@scenarios.parametric
+@features.dynamic_configuration
+class Test_DynamicConfigSdkConfiguration:
+    """Coverage for the generic sdk_config RC delivery path.
+
+    sdk_config carries settings as generic env-var-keyed entries, applied via the single
+    SDK_CONFIGURATION capability instead of custom per-setting parsing. These tests confirm a
+    tracer that declares SDK_CONFIGURATION consumes sdk_config with no regression in behavior
+    compared to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
+
+    test_sdk_config_tracing_enabled_matches_lib_config asserts real behavior (tracing actually
+    stops) for DD_TRACE_ENABLED. test_sdk_config_field_is_applied then layers a shallower
+    telemetry-only check on top for every other field. Together they give regression confidence
+    without a custom behavioral assertion per setting.
+    """
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_sdk_configuration(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Ensure the RC request contains the sdk_config capability."""
+        assert test_library.is_alive(), "library container is not alive"
+        test_agent.assert_rc_capabilities({Capabilities.SDK_CONFIGURATION})
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_sdk_config_tracing_enabled_matches_lib_config(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """DD_TRACE_ENABLED delivered via sdk_config stops tracing, same as tracing_enabled via lib_config."""
+        with test_library, test_library.dd_start_span("allowed"):
+            pass
+        test_agent.wait_for_num_traces(num=1, clear=True)
+
+        _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
+        test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+
+        with test_library, test_library.dd_start_span("disabled"):
+            pass
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_sdk_config_profiling_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """DD_PROFILING_ENABLED delivered via sdk_config is applied.
+
+        Consistent with the existing static DD_PROFILING_ENABLED coverage in
+        test_config_consistency.py, this uses the tracer's reported telemetry config as a proxy
+        for "the setting was applied" rather than asserting real profiling activity.
+        """
+        with test_library:
+            _set_rc(test_agent, _create_sdk_config_rc_config({"DD_PROFILING_ENABLED": "true"}))
+            test_agent.wait_for_telemetry_event("app-client-configuration-change")
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
+            _assert_telemetry_config_applied(test_agent, "profiling_enabled", "true")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_sdk_config_field_is_applied(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
+        the same way when delivered via sdk_config instead.
+        """
+        legacy_capabilities = _LEGACY_CAPABILITY_SNAPSHOT.get(test_library.lang, frozenset())
+        applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in legacy_capabilities]
+        if not applicable:
+            pytest.skip(f"Nothing to test: {test_library.lang} doesn't support any APM_TRACING_* capability bits")
+
+        with test_library:
+            for apm_telemetry_name, lib_config_key, _capability, value, expected_value in applicable:
+                _set_rc(test_agent, _create_rc_config({lib_config_key: value}))
+                test_agent.wait_for_telemetry_event("app-client-configuration-change")
+                test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
+                _assert_telemetry_config_applied(test_agent, apm_telemetry_name, expected_value)
+                # Clear only after reading the config we just asserted on, so the next
+                # field's wait_for_rc_apply_state can't match this iteration's stale ACK.
+                test_agent.clear()
+
+
 def reverse_case(s: str) -> str:
     return "".join([char.lower() if char.isupper() else char.upper() for char in s])
 
@@ -378,7 +689,7 @@ class TestDynamicConfigV1:
         configuration has been applied by the tracer.
         """
         assert test_library.is_alive(), "library container is not alive"
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
@@ -395,12 +706,12 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -427,7 +738,7 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        rc_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        rc_state = set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
@@ -438,6 +749,7 @@ class TestDynamicConfigV1:
         # and then create a new trace to assert the configuration has been applied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": 0.6},
             config_id=config_id,
         )
@@ -447,6 +759,7 @@ class TestDynamicConfigV1:
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": None},
             config_id=config_id,
         )
@@ -475,6 +788,7 @@ class TestDynamicConfigV1:
         # apply to env_service spans but should apply to all others.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": rc_sampling_rule_rate},
         )
 
@@ -484,16 +798,12 @@ class TestDynamicConfigV1:
         assert_sampling_rate(trace, rc_sampling_rule_rate)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @missing_feature(
-        context.library in ("cpp", "golang"),
-        reason="Tracer doesn't support automatic logs injection",
-    )
     @parametrize(
         "library_env",
         [
@@ -508,7 +818,7 @@ class TestDynamicConfigV1:
         There is no way (at the time of writing) to check the logs produced by the library.
         """
         assert test_library.is_alive(), "library container is not alive"
-        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        cfg_state = set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         assert cfg_state["apply_state"] == 2
 
 
@@ -682,6 +992,7 @@ class TestDynamicConfigV2:
         # Ensure local tags are overridden and RC tags applied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]},
         )
         with (
@@ -694,7 +1005,7 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
-        set_and_wait_rc(test_agent, config_overrides={})
+        set_and_wait_rc(test_agent, test_library, config_overrides={})
         with (
             test_library,
             test_library.dd_start_span("test") as span,
@@ -708,29 +1019,25 @@ class TestDynamicConfigV2:
     def test_capability_tracing_sampling_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rate capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_SAMPLE_RATE)
 
-    @irrelevant(
-        context.library in ("cpp", "golang"),
-        reason="Tracer doesn't support automatic logs injection",
-    )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the logs injection capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_LOGS_INJECTION)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the http header tags capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_HTTP_HEADER_TAGS})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_HTTP_HEADER_TAGS)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_custom_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the custom tags capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_CUSTOM_TAGS})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_CUSTOM_TAGS)
 
 
 @scenarios.parametric
@@ -741,7 +1048,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_SAMPLE_RULES, wait_loops=_RC_WAIT_LOOPS)
 
     @parametrize(
         "library_env",
@@ -775,6 +1082,7 @@ class TestDynamicConfigSamplingRules:
         # Create a remote config entry with two rules at different sample rates.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
@@ -808,7 +1116,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
@@ -830,6 +1138,7 @@ class TestDynamicConfigSamplingRules:
 
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
                 "tracing_sampling_rules": [
@@ -860,7 +1169,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -904,6 +1213,7 @@ class TestDynamicConfigSamplingRules:
         # Create a remote config entry with two rules at different sample rates.
         rc_state = set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
                 "tracing_sampling_rules": [
@@ -975,6 +1285,7 @@ class TestDynamicConfigSamplingRules:
         # RC config using dynamic sampling
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_id=config_id,
             config_overrides={
                 "dynamic_sampling_enabled": "true",
@@ -997,13 +1308,23 @@ class TestDynamicConfigSamplingRules:
         )
 
         # A span with non-matching tags. Adaptive rate should apply.
-        trace = get_sampled_trace(
-            test_library,
-            test_agent,
-            service=TEST_SERVICE,
-            name="op_name",
-            tags=[("tag-a", "NOT-tag-a-val")],
-        )
+        # Retry: RC ACK can precede full application of new rules (same as test_remote_sampling_rules_retention).
+        max_propagation_retries: int = 30
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
+            trace = get_sampled_trace(
+                test_library,
+                test_agent,
+                service=TEST_SERVICE,
+                name="op_name",
+                tags=[("tag-a", "NOT-tag-a-val")],
+            )
+            if find_first_span_in_trace_payload(trace)["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(
+                rc_sampling_adaptive_rate
+            ):
+                break
+            time.sleep(0.1)
+        assert trace is not None
         assert_sampling_rate(trace, rc_sampling_adaptive_rate)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
         span = find_first_span_in_trace_payload(trace)
@@ -1013,40 +1334,55 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""
-        rc_state = set_and_wait_rc(
+        old_rate: float = 0.5
+        new_rate: float = 0.1
+        max_propagation_retries: int = 30
+
+        rc_state: dict = set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
                         "service": "svc*",
                         "resource": "*",
-                        "sample_rate": 0.5,
+                        "sample_rate": old_rate,
                         "provenance": "customer",
                     }
                 ],
             },
         )
 
-        # Keep a reference on the RC config ID
         config_id = rc_state["id"]
 
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_id=config_id,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
                         "service": "foo*",
                         "resource": "*",
-                        "sample_rate": 0.1,
+                        "sample_rate": new_rate,
                         "provenance": "customer",
                     }
                 ],
             },
         )
 
-        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
-        assert_sampling_rate(trace, 0.1)
+        # Python's set_and_wait_rc already drained RC, so the new rules are live now.
+        # Other tracers use the ACK-only path, where the ACK can precede the sampler
+        # applying the rules; retry until they implement the apply endpoint.
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
+            trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
+            span: Span = find_first_span_in_trace_payload(trace)
+            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(new_rate):
+                break
+            time.sleep(0.1)
+        assert trace is not None
+        assert_sampling_rate(trace, new_rate)
 
         trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
-        assert_sampling_rate(trace, 1)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)

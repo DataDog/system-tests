@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, features
+from utils import context, interfaces, features
 import itertools
 import re
 from re import Pattern
@@ -16,7 +16,6 @@ def matches_any(patterns: list[Pattern], string: str):
 class Test_NoExceptions:
     """No unexpected exceptions or errors."""
 
-    @irrelevant(context.library != "dotnet", reason="only for .NET")
     def test_dotnet(self):
         """There is not exception in dotnet-tracer-managed log files"""
         interfaces.library_dotnet_managed.assert_absence(
@@ -27,7 +26,6 @@ class Test_NoExceptions:
             ],
         )
 
-    @irrelevant(context.library != "java", reason="only for Java")
     def test_java_logs(self):
         """Test Java logs for unexpected errors."""
         disallowed_patterns = [
@@ -78,7 +76,6 @@ class Test_NoExceptions:
         logs = [log for log in logs if not matches_any(compiled_allowed_paterns, log)]
         assert not logs
 
-    @irrelevant(context.library != "java", reason="only for Java")
     def test_java_telemetry_logs(self):
         """Test Java telemetry logs for unexpected errors."""
         allowed_patterns = [
@@ -95,7 +92,7 @@ class Test_NoExceptions:
             # APPSEC-56111:
             allowed_patterns.append(re.escape("Failed to determine dependency for uri {}"))
         if context.weblog_variant in ("vertx3", "vertx4"):
-            # AIDM-583:
+            # AIDM-583: fixed in dd-trace-java#11268, remove this once that fix is in a released version
             allowed_patterns.append(
                 re.escape(
                     "Failed to handle exception in instrumentation for io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder"

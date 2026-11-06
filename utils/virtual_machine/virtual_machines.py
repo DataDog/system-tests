@@ -3,7 +3,15 @@ import os
 import json
 import hashlib
 
+import paramiko
+from retry import retry
+
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
+
+# The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).
+_MAX_CACHE_NAME_LENGTH = 120
+# Paramiko stops an SSH login after 30 seconds by default. A busy VM can take longer.
+_SSH_TIMEOUT_SECONDS = 60
 
 
 class AWSInfraConfig:
@@ -37,6 +45,8 @@ class _VagrantConfig:
 
 
 class _KrunVmConfig:
+    stdin: str | None
+
     def __init__(self, oci_image_name: str) -> None:
         self.oci_image_name = oci_image_name
         # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
@@ -71,17 +81,27 @@ class _SSHConfig:
     def set_pkey(self, pkey: str):
         self.pkey = pkey
 
-    def get_ssh_connection(self):
-        import paramiko
-
+    @retry(delay=5, tries=5)
+    def get_ssh_connection(self) -> paramiko.SSHClient:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
+        connect_kwargs = {
+            "timeout": _SSH_TIMEOUT_SECONDS,
+            "banner_timeout": _SSH_TIMEOUT_SECONDS,
+            "auth_timeout": _SSH_TIMEOUT_SECONDS,
+        }
         if self.pkey_path is not None:
             if self.pkey is None:
                 self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
-            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
+            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey, **connect_kwargs)
         else:
-            ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
+            ssh.connect(
+                self.hostname,
+                port=self.port,
+                username=self.username,
+                key_filename=self.key_filename,
+                **connect_kwargs,
+            )
         return ssh
 
 
@@ -98,7 +118,6 @@ class _VirtualMachine:
         os_cpu: str,
         *,
         default_vm: bool = True,
-        **kwargs,
     ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
@@ -114,6 +133,8 @@ class _VirtualMachine:
         self.tested_components = {}
         self.deffault_open_port: int = 5985
         self.agent_env: dict[str, str] | None = None
+        # When set, the provision points the agent to this URL instead of the real Datadog backend
+        self.agent_backend_url: str | None = None
         self.app_env: dict[str, str] | None = None
         self.default_vm: bool = default_vm
         self._deployed_weblog: _DeployedWeblog | None = None
@@ -139,10 +160,16 @@ class _VirtualMachine:
         self._check_provsion_install_error()
         return self.ssh_config.get_ssh_connection()
 
+    def get_ssh_connection_for_log_download(self):
+        """SSH for log extraction after a failed provision (skips provision_install_error guard)."""
+        if not self.ssh_config.hostname:
+            raise ValueError("IP not found - cannot download logs from VM")
+        return self.ssh_config.get_ssh_connection()
+
     def get_ip(self):
         self._check_provsion_install_error()
         if not self.ssh_config.hostname:
-            raise Exception("IP not found")
+            raise ValueError("IP not found")
         return self.ssh_config.hostname
 
     def _check_provsion_install_error(self):
@@ -159,6 +186,9 @@ class _VirtualMachine:
 
     def add_agent_env(self, agent_env: dict[str, str]):
         self.agent_env = agent_env
+
+    def set_agent_backend_url(self, url: str):
+        self.agent_backend_url = url
 
     def add_app_env(self, app_env: dict[str, str]):
         self.app_env = app_env
@@ -188,7 +218,7 @@ class _VirtualMachine:
 
         full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
 
-        if len(full_cache_name) >= 120:
+        if len(full_cache_name) >= _MAX_CACHE_NAME_LENGTH:
             # There is a limit of 128 characters for the AMI name. 119 + 9 characters added by the aws
             # for now encoding provision_name is enough to keep the name short
             provision_name = hashlib.shake_128(self.get_provision().provision_name.encode("utf-8")).hexdigest(4)
@@ -222,9 +252,15 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
+        # host, container, alpine, or multicontainer. The installer uses this to
+        # choose host injection or host+docker injection.
+        deployed_app_type = self.get_deployed_weblog().app_type
+        if deployed_app_type is not None:
+            command_env["DD_APP_TYPE"] = deployed_app_type
         # Scenario custom environment: agent and app env variables
         command_env["DD_AGENT_ENV"] = ""
         command_env["DD_APP_ENV"] = ""
+        command_env["DD_AGENT_BACKEND_URL"] = self.agent_backend_url or ""
         if self.agent_env:
             agent_env_values = ""
             for key, value in self.agent_env.items():
@@ -265,7 +301,7 @@ class _VirtualMachine:
         return vms_by_runtime, vms_by_runtime_ids
 
 
-def load_virtual_machines(provider_id: str):
+def load_virtual_machines(provider_id: str) -> list[_VirtualMachine]:
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         data = json.load(file)
 

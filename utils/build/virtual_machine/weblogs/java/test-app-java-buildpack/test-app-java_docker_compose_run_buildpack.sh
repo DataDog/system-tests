@@ -3,6 +3,8 @@
 
 set -e
 
+readonly AGENT_LOCK="agent.lock"
+
 # Function to retry commands up to 3 times
 retry_command() {
     local max_attempts=3
@@ -52,8 +54,22 @@ retry_command "sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImage
 
 echo "**************** RUN SERVICES*****************" 
 if [ -f docker-compose-agent-prod.yml ]; then
-    # Agent may be installed in a different way
-    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
+    set -a
+    # shellcheck source=/dev/null
+    . "./${AGENT_LOCK}"
+    set +a
+
+    # Agent may be installed in a different way. Pull with retries before compose
+    # up so GCR rate limits / timeouts do not fail the provision on the first attempt.
+    bash "$(dirname "$0")/pull_agent_image.sh"
+    # Run with "sh": no arrays. The override is created by the provision when the agent must send its payloads
+    # to the mocked backend
+    AGENT_COMPOSE_FILES="-f docker-compose-agent-prod.yml"
+    if [ -f docker-compose-agent-mocked-backend.yml ]; then
+        AGENT_COMPOSE_FILES="${AGENT_COMPOSE_FILES} -f docker-compose-agent-mocked-backend.yml"
+    fi
+    # shellcheck disable=SC2086
+    sudo -E docker-compose ${AGENT_COMPOSE_FILES} up -d --remove-orphans datadog
     sleep 30
 fi
 #Env variables set on the scenario definition. Write to file and load  
@@ -71,7 +87,7 @@ echo "**************** RUNNING DOCKER SERVICES *****************"
 sudo docker-compose ps
 if [ -f docker-compose-agent-prod.yml ]; then
     echo "**************** DATADOG AGENT OUTPUT ********************"
-    sudo docker-compose -f docker-compose-agent-prod.yml logs datadog
+    sudo -E docker-compose -f docker-compose-agent-prod.yml logs datadog
 fi
 echo "**************** WEBLOG APP OUTPUT********************"
 sudo docker-compose logs

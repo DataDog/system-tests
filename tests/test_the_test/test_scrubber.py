@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import pytest
+from utils import pytest
 from utils import scenarios, missing_feature, logger
 
 
@@ -80,6 +80,28 @@ def test_file_writer_scrubber(write_mode: str, read_mode: str, file_extension: s
 
     for secret in secrets:
         assert secret not in data
+
+
+@scenarios.test_the_test
+def test_binary_file_writer_scrubber_preserves_size() -> None:
+    secret_name = "BINARY_SECRET"
+    secret = "datad0g"
+    content = f"/var/log/{secret} {secret}_preload_hook".encode()
+    log_file = f"{scenarios.test_the_test.host_log_folder}/binary_size.log"
+
+    os.environ[secret_name] = secret
+    try:
+        with open(log_file, "wb") as f:
+            written = f.write(content)
+    finally:
+        del os.environ[secret_name]
+
+    with open(log_file, "rb") as f:
+        data = f.read()
+
+    assert written == len(content)
+    assert len(data) == len(content)
+    assert secret.encode() not in data
 
 
 @scenarios.test_the_test

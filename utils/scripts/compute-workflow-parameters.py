@@ -3,6 +3,7 @@ import json
 import secrets
 import sys
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
@@ -38,6 +39,7 @@ class CiData:
         excluded_scenarios: str,
         weblogs: str,
         parametric_job_count: int,
+        parametric_workers: int,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
@@ -91,9 +93,22 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map["parametric"]) > 0
+            "workers": parametric_workers,
+            "enable": len(scenario_map.get("parametric", [])) > 0
             and "otel" not in library
-            and library not in ("cpp_nginx", "cpp_httpd", "python_lambda", "envoy", "haproxy"),
+            and library
+            not in (
+                "c",
+                "cpp_nginx",
+                "cpp_kong",
+                "cpp_httpd",
+                "java_lambda",
+                "nodejs_lambda",
+                "python_lambda",
+                "ruby_lambda",
+                "envoy",
+                "haproxy",
+            ),
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
@@ -178,13 +193,13 @@ class CiData:
     @staticmethod
     def _get_workflow_map(
         *, scenario_names: list[str], excluded_scenario_names: list[str], scenario_group_names: list[str]
-    ) -> dict:
+    ) -> dict[str, list[Scenario]]:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
         """
 
-        result: dict[str, list[str]] = {}
+        result: dict[str, list[Scenario]] = {}
 
         # clean inputs
         scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
@@ -213,11 +228,11 @@ class CiData:
                 continue
 
             if scenario.name in scenario_names:
-                result[scenario.github_workflow].append(scenario.name)
+                result[scenario.github_workflow].append(scenario)
             else:
                 for group in scenario_group_names:
                     if all_scenarios_groups[group] in scenario.scenario_groups:
-                        result[scenario.github_workflow].append(scenario.name)
+                        result[scenario.github_workflow].append(scenario)
                         break
 
         return result
@@ -229,26 +244,7 @@ if __name__ == "__main__":
         "library",
         type=str,
         help="One of the supported Datadog library",
-        choices=[
-            "cpp_httpd",
-            "cpp_nginx",
-            "cpp",
-            "dotnet",
-            "golang",
-            "java_otel",
-            "java",
-            "nodejs_otel",
-            "nodejs",
-            "otel_collector",
-            "php",
-            "python_lambda",
-            "python_otel",
-            "python",
-            "ruby",
-            "rust",
-            "envoy",
-            "haproxy",
-        ],
+        choices=sorted(COMPONENT_GROUPS.all),
     )
 
     parser.add_argument(
@@ -284,6 +280,9 @@ if __name__ == "__main__":
 
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
+    parser.add_argument(
+        "--parametric-workers", type=int, help="Maximum number of pytest-xdist workers per parametric job", default=4
+    )
 
     # Misc
     parser.add_argument(
@@ -308,6 +307,7 @@ if __name__ == "__main__":
         excluded_scenarios=args.excluded_scenarios,
         weblogs=args.weblogs,
         parametric_job_count=args.parametric_job_count,
+        parametric_workers=args.parametric_workers,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",

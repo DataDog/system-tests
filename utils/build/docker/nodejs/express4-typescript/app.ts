@@ -1,10 +1,13 @@
 'use strict'
 
 import { Request, Response } from "express";
+import type { Client } from '@openfeature/server-sdk'
 import http from 'http';
 
 const tracer = require('dd-trace').init();
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext');
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
@@ -34,7 +37,8 @@ di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
-  res.send('Hello\n');
+  res.set('Content-Type', 'text/plain');
+  res.send('Hello world!\n');
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
@@ -145,20 +149,48 @@ app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
 });
 
+app.get("/trace/manual_keep_drop", (req: Request, res: Response) => {
+  const decision = req.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop');
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true);
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response: http.IncomingMessage) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: request.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error: Error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
+});
+
 app.get("/make_distant_call", (req: Request, res: Response) => {
   const url = req.query.url
   console.log(url)
 
   const parsedUrl = new URL(url as string)
+  const method = String(req.query.method || 'GET')
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response: http.IncomingMessage) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response: http.IncomingMessage) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -188,6 +220,24 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
 
   request.end()
 })
+
+app.get("/security/thread_context_sharing", (req: Request, res: Response) => {
+  const path = req.query.path;
+  if (typeof path !== "string" || path === "") {
+    res.status(400).send("missing path query parameter");
+    return;
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  require("fs").writeFileSync(path, "thread context sharing");
+
+  const context = tracer.scope().active().context();
+  res.json({
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  });
+});
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
@@ -355,6 +405,9 @@ app.get('/flush', (req: Request, res: Response) => {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []
@@ -410,7 +463,183 @@ app.get('/set_cookie', (req: Request, res: Response) => {
   res.send('OK')
 })
 
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (req: Request, res: Response, downstreamPath?: string) {
+  const status = req.query.status || '200'
+  const urlExtra = req.query.url_extra || ''
+
+  const headers: any = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
+  for (const [key, value] of Object.entries(req.query)) {
+    if (queryParamsExcludedFromHeaders.has(key)) continue
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (req.body && Object.keys(req.body).length > 0) {
+    body = JSON.stringify(req.body)
+    headers['Content-Type'] = req.headers['content-type'] || 'application/json'
+  }
+
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path,
+    method: req.method,
+    headers
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
+      const payload = JSON.parse(responseBody)
+      res.status(200).json({
+        status: response.statusCode,
+        payload,
+        headers: response.headers
+      })
+    })
+  })
+
+  if (body) {
+    request.write(body)
+  }
+
+  request.end()
+}
+
+app.all('/external_request', (req: Request, res: Response) => {
+  forwardExternalRequest(req, res)
+})
+
+app.all('/external_request/body_limit/:failureReason', (req: Request, res: Response) => {
+  const { failureReason } = req.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    res.status(404).json({ error: 'unknown failure reason' })
+    return
+  }
+
+  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
+})
+
+app.get('/external_request/redirect', (req: Request, res: Response) => {
+  const headers: any = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = req.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path: string) => {
+    const options = {
+      hostname: 'internal_server',
+      port: 8089,
+      path,
+      method: 'GET',
+      headers
+    }
+
+    const request = http.request(options, (response: http.IncomingMessage) => {
+      if (response.statusCode === 302 && response.headers.location) {
+        // Follow the redirect
+        followRedirect(response.headers.location)
+      } else {
+        // Final response
+        response.on('end', () => {
+          res.status(200).send('OK')
+        })
+        }
+        response.resume()
+    })
+
+    request.end()
+  }
+
+  // Start the redirect chain
+  followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+})
+
 require('./rasp')(app)
+
+let openFeatureClient: Client | null = null
+let openFeatureClientPromise: Promise<Client> | null = null
+
+async function getOpenFeatureClient (): Promise<Client | null> {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch((error: unknown) => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
+}
+
+app.post('/ffe', async (req: Request, res: Response) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
+
+    if (!client) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await client.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await client.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await client.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await client.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+      }
+    }
+
+    return res.status(200).json({ value, count: keys.length })
+  } catch (error: any) {
+    console.error('[FFE] Error:', error)
+    return res.status(500).json({ error: error.message })
+  }
+})
 
 const startServer = () => {
   return new Promise((resolve) => {

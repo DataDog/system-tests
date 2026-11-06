@@ -1,6 +1,7 @@
 formatter:
     type: basic
     include_document_start: true
+    retain_line_breaks_single: true
     indent: 2
     pad_line_comments: 2
     eof_newline: true

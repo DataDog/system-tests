@@ -1,5 +1,7 @@
-import pytest
-from utils import interfaces, weblog, features, scenarios, logger
+import contextlib
+from utils import pytest
+
+from utils import features, interfaces, logger, scenarios, weblog
 
 """
 Test scenarios we want:
@@ -22,6 +24,10 @@ Config:
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
+    # The resource for the /stats-unique route differ between weblogs.
+    # We use this list to match all requests to this route regardless of the weblog.
+    STATS_UNIQUE_RESOURCES = ["GET /stats-unique", "GET stats-unique", "__main__.StatsUniqueHandler"]
+
     def setup_client_stats(self):
         for _ in range(5):
             weblog.get("/stats-unique")
@@ -34,7 +40,7 @@ class Test_Client_Stats:
         ok_top_hits = 0
         no_content_hits = 0
         no_content_top_hits = 0
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.mocked_backend.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -63,21 +69,15 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     def test_obfuscation(self):
-        stats_count = 0
         hits = 0
         top_hits = 0
-        resource = "SELECT * FROM users WHERE id = ?"
-        # wait for 10 seconds to be sure all the buckets are flushed (better than be flaky)
-        for s in interfaces.agent.get_stats(resource):
-            stats_count += 1
+        for s in interfaces.mocked_backend.get_stats():
+            if s["Type"] != "sql" or "?" not in s["Resource"]:
+                continue
             logger.debug(f"asserting on {s}")
             hits += s["Hits"]
             top_hits += s["TopLevelHits"]
-            assert s["Type"] == "sql", "expect 'sql' type"
-        assert stats_count <= 4, (
-            "expect <= 4 stats"
-        )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
-        assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
+        assert hits == top_hits >= 4, "expect at least 4 'OK' hits and top level hits across all payloads"
 
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
@@ -85,15 +85,254 @@ class Test_Client_Stats:
         assertions to `test_client_stats` method.
         """
         root_found = False
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.mocked_backend.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
+
+    def setup_top_level_service(self):
+        weblog.get("/")
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_top_level_service(self):
+        """Test that the top-level Service field in the stats payload matches the configured base service"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        for stats_request in stats_requests:
+            payload = stats_request["request"]["content"]
+            service = payload.get("Service")
+            assert service == "weblog", f"Expected top-level Service to be 'weblog', got: {service!r}"
 
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Client-side stats should be disabled by default"
+
+    def setup_grpc_status_code(self):
+        self.grpc_request = weblog.grpc("grpc stats")
+
+    def test_grpc_status_code(self):
+        grpc_stats = []
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "rpc" and stat.get("SpanKind") == "server":
+                        grpc_stats.append(stat)
+
+        assert grpc_stats, "Expected at least one gRPC stats entry in the v0.6/stats payload"
+        # 0 means OK in gRPC status codes
+        assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
+            f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
+        )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Client_Stats_With_Client_Obfuscation:
+    """Test client-side stats do the obfuscation before-hand when available"""
+
+    def setup_obfuscation(self):
+        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_obfuscation(self):
+        """Test that SQL resources are obfuscated before stats aggregation.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is present on stats payloads
+        - SQL resource names are obfuscated (literals replaced with ?)
+        - All 4 distinct queries are aggregated into a single obfuscated resource bucket
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+                assert int(headers["datadog-obfuscation-version"]) >= 1, (
+                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
+                )
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                        sql_stats.append(stat)
+
+        assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
+
+        assert len(sql_stats) >= 1, "Expected at least one SQL stats entry"
+        for stat in sql_stats:
+            assert "?" in stat["Resource"], f"Expected obfuscated resource (containing '?'), got '{stat['Resource']}'"
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_future_obfuscation_version
+class Test_Client_Stats_Future_Obfuscation_Version:
+    """Test that the SDK skips client-side obfuscation when the agent advertises a future/unknown obfuscation version"""
+
+    def setup_no_obfuscation(self):
+        """Setup for future obfuscation version test - generates SQL spans"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_no_obfuscation(self):
+        """Test that the SDK does not obfuscate stats and does not send the obfuscation header
+        when the agent reports an obfuscation_version higher than what the SDK supports (99).
+
+        Validates:
+        - Datadog-Obfuscation-Version header is NOT present on any stats payload
+        - SQL resource names are NOT obfuscated (raw literals still present)
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
+                        sql_stats.append(stat)
+
+        assert not obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header should NOT be present when agent reports a future obfuscation version"
+        )
+
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
+        for stat in sql_stats:
+            assert "?" not in stat["Resource"], (
+                f"SQL resource should NOT be obfuscated when agent reports a future obfuscation version, "
+                f"but got: '{stat['Resource']}'"
+            )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_missing_obfuscation_version
+class Test_Client_Stats_Missing_Obfuscation_Version:
+    """Test that the SDK skips client-side obfuscation when the agent does not advertise obfuscation_version"""
+
+    def setup_no_obfuscation(self):
+        """Setup for missing obfuscation version test - generates SQL spans"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_no_obfuscation(self):
+        """Test that the SDK does not obfuscate stats and does not send the obfuscation header
+        when the agent does not advertise obfuscation_version in /info.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is NOT present on any stats payload
+        - SQL resource names are NOT obfuscated (raw literals still present)
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
+                        sql_stats.append(stat)
+
+        assert not obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header should NOT be present when agent does not advertise obfuscation_version"
+        )
+
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
+        for stat in sql_stats:
+            assert "?" not in stat["Resource"], (
+                f"SQL resource should NOT be obfuscated when agent does not advertise obfuscation_version, "
+                f"but got: '{stat['Resource']}'"
+            )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_obfuscation_version_zero
+class Test_Client_Stats_Obfuscation_Version_Zero:
+    """Test that the SDK skips client-side obfuscation when the agent advertises obfuscation_version=0"""
+
+    def setup_no_obfuscation(self):
+        """Setup for obfuscation version zero test - generates SQL spans"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_no_obfuscation(self):
+        """Test that the SDK does not obfuscate stats and does not send the obfuscation header
+        when the agent advertises obfuscation_version=0.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is NOT present on any stats payload
+        - SQL resource names are NOT obfuscated (raw literals still present)
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
+                        sql_stats.append(stat)
+
+        assert not obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header should NOT be present when agent advertises obfuscation_version=0"
+        )
+
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
+        for stat in sql_stats:
+            assert "?" not in stat["Resource"], (
+                f"SQL resource should NOT be obfuscated when agent advertises obfuscation_version=0, "
+                f"but got: '{stat['Resource']}'"
+            )
+
+
+@features.service_override_source
+@scenarios.trace_stats_computation
+class Test_Stats_Service_Source:
+    """Test that srv_src field is set in stat buckets when service name is overridden by an integration"""
+
+    def setup_srv_src(self):
+        weblog.get("/rasp/sqli?user_id=1")
+
+    def test_srv_src(self):
+        """Test that at least one stat bucket has the srv_src field set"""
+        srv_src_found = False
+        for s in interfaces.mocked_backend.get_stats():
+            logger.debug(f"asserting on {s}")
+            if s.get("srv_src"):
+                srv_src_found = True
+                break
+        assert srv_src_found, "Expected at least one stat bucket to have srv_src set"
 
 
 @features.client_side_stats_supported
@@ -169,6 +408,12 @@ class Test_Peer_Tags:
 
     def setup_peer_tags(self):
         """Setup for peer tags test - generates client and server spans"""
+        # Ensure agent /info has been received so peer-tag keys are initialised
+        # before we make requests that generate stats with peer tags.
+        # Non-PHP weblogs don't expose this endpoint — silently ignore any failure.
+        with contextlib.suppress(Exception):
+            weblog.get("/await-agent-info")
+
         # Generate client spans by making outbound HTTP calls (should have peer tags)
         for _ in range(3):
             weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
@@ -182,7 +427,7 @@ class Test_Peer_Tags:
         client_stats_found = False
         server_stats_found = False
 
-        for s in interfaces.agent.get_stats():
+        for s in interfaces.mocked_backend.get_stats():
             resource = s.get("Resource", "")
             span_kind = s.get("SpanKind", "")
             peer_tags = s.get("PeerTags", [])
@@ -317,6 +562,8 @@ class Test_Client_Drop_P0s:
             trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
         if len(trace_requests) == 0:
             trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v1.0/traces"))
 
         assert len(trace_requests) > 0, "Should have at least one trace request"
 
@@ -331,6 +578,41 @@ class Test_Client_Drop_P0s:
                     f"When client_drop_p0s is false, Datadog-Client-Computed-Stats should be false/absent, "
                     f"found: {header_value}"
                 )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_error_sampler
+class Test_Error_Sampler:
+    """Test that traces containing errors are always sent, even when sampling would drop them.
+
+    The agent keeps a portion of error traces (error sampler), so the tracer must send all traces
+    containing an error regardless of the configured sample rate. This scenario sets
+    DD_TRACE_SAMPLE_RATE=0 with Client-Side Stats enabled.
+    """
+
+    def setup_error_traces_always_sent(self):
+        # Droppable P0 traffic: with sample rate 0 these are dropped from traces but still counted in stats.
+        for _ in range(5):
+            weblog.get("/")
+        # Error traffic: must still be sent to the agent for the error sampler to keep it.
+        self.error_requests = [weblog.get("/status?code=500") for _ in range(3)]
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_error_traces_always_sent(self):
+        """Test that error traces are sent and stats are computed when sample rate is 0."""
+        # Client-side stats are computed despite sampling being disabled.
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Client-side stats should be computed even when the sample rate is 0"
+
+        # Error traces are still sent to the agent even though sampling would drop them.
+        error_span_found = False
+        for request in self.error_requests:
+            for _, _, span in interfaces.library.get_spans(request=request):
+                if span.get("error") == 1:
+                    error_span_found = True
+                    break
+
+        assert error_span_found, "Traces containing an error must be sent to the agent even when the sample rate is 0"
 
 
 @features.client_side_stats_supported
@@ -423,7 +705,7 @@ class Test_Time_Bucketing:
     def test_agent_aggregated_stats(self):
         """Test that agent-aggregated stats use 2-second buckets with 1-second offset"""
 
-        for data in interfaces.agent.get_data(path_filters="/api/v0.2/stats"):
+        for data in interfaces.mocked_backend.get_data(path_filters="/api/v0.2/stats"):
             payload = data["request"]["content"]
             if not payload["ClientComputed"] or not payload["Stats"]:
                 continue

@@ -1,4 +1,4 @@
-package com.datadoghq.system_tests.springboot;
+package com.datadoghq.system_tests.springboot.debugger;
 
 public class Pii  extends PiiBase {
     public String _2fa = VALUE;

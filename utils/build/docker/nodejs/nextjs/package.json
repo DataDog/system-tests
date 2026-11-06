@@ -4,20 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next experimental-compile",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@openfeature/core": "^1.9.0",
+    "@openfeature/server-sdk": "~1.19.0",
+    "@opentelemetry/api": "^1.9.0",
     "axios": "^1.5.1",
-    "next": "latest",
+    "next": "^14.0.4",
     "pg": "^8.12.0",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@vercel/nft": "^1.10.2",
     "eslint": "latest",
-    "eslint-config-next": "latest",
+    "eslint-config-next": "^14.0.4",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-mocha": "^10.2.0"
   }

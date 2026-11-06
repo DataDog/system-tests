@@ -33,7 +33,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
 
 # install dd-trace-dotnet (must be done before setting LD_PRELOAD)
 COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -42,7 +42,9 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER='{846F5F1C-F9AE-4B07-969E-05C26BC060D8}'
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
-ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
+# LD_PRELOAD for continuous profiler: the ApiWrapper.x64.so is x86_64-only
+# and crashes immediately on ARM.  Set it conditionally via an entrypoint
+# wrapper so the image works on both architectures.
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
@@ -59,4 +61,10 @@ COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
 
+# Conditionally set LD_PRELOAD at runtime — the x64 ApiWrapper .so does not
+# exist on ARM and would crash the container if set unconditionally.
+COPY utils/build/docker/dotnet/parametric/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["./ApmTestApi"]

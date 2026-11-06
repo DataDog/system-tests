@@ -8,6 +8,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.DDTags
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
 import com.datadoghq.system_tests.iast.utils.Utils
@@ -29,6 +30,9 @@ import scala.xml.{Elem, XML}
 import datadog.appsec.api.user.User.setUser
 
 import scala.jdk.CollectionConverters._
+import akka.stream.scaladsl._
+import akka.util.ByteString
+import scala.concurrent.duration._
 
 object AppSecRoutes {
 
@@ -46,7 +50,7 @@ object AppSecRoutes {
         val span = tracer.buildSpan("test-span").start
         span.setTag("test-tag", "my value")
         withSpan(span) {
-          complete("Hello world!")
+          complete(HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Hello world!\n"))
         }
       }
     } ~
@@ -158,6 +162,17 @@ object AppSecRoutes {
           complete("Hello world!")
         } ~
           post {
+            entity(as[Multipart.FormData]) { formData =>
+              val contentFuture = formData.toStrict(20.seconds).flatMap { strict =>
+                strict.parts
+                  .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
+                  .runFold(ByteString.empty)(_ ++ _)
+                  .map(_.utf8String)
+              }
+              onSuccess(contentFuture) { content =>
+                complete(content)
+              }
+            } ~
             formFieldMultiMap { fields: Map[String, List[String]] =>
               complete(fields.toString)
             } ~
@@ -182,10 +197,26 @@ object AppSecRoutes {
           complete(remaining.toString())
         }
       } ~
+      path("trace" / "manual_keep_drop") {
+        get {
+          parameter("decision") { decision =>
+            if (decision != "keep" && decision != "drop") {
+              complete(StatusCodes.BadRequest, "decision must be keep or drop")
+            } else {
+              val span = GlobalTracer.get().activeSpan()
+              if (span != null) {
+                span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
+              }
+              // Call downstream so that tests can assert on the sampling decision that gets propagated
+              complete(StatusCodes.OK, makeDistantCall("http://localhost:7777/", "GET"))(Marshaller.futureMarshaller(jsonMarshaller))
+            }
+          }
+        }
+      } ~
       path("make_distant_call") {
         get {
-          parameter("url") { url =>
-            complete(StatusCodes.OK, makeDistantCall(url))(Marshaller.futureMarshaller(jsonMarshaller))
+          parameters("url", "method".withDefault("GET")) { (url, method) =>
+            complete(StatusCodes.OK, makeDistantCall(url, method))(Marshaller.futureMarshaller(jsonMarshaller))
           }
         }
       } ~
@@ -334,8 +365,9 @@ object AppSecRoutes {
                                   response_headers: Map[String, String]
                                 )
 
-  private def makeDistantCall(url: String): Future[DistantCallResponse] = {
-    val request = HttpRequest(uri = url)
+  private def makeDistantCall(url: String, method: String): Future[DistantCallResponse] = {
+    val httpMethod = HttpMethods.getForKey(method).getOrElse(HttpMethod.custom(method))
+    val request = HttpRequest(method = httpMethod, uri = url)
     val requestHeaders = request.headers.map(h => (h.name(), h.value())).toMap
 
     Http().singleRequest(request).map { response =>

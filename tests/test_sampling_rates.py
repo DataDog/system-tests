@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 
 """Those are the constants used by the sampling algorithm in all the tracers
 
@@ -21,7 +22,7 @@ SAMPLING_KNUTH_FACTOR = 1111111111111111111
 MAX_UINT64 = 2**64 - 1
 
 
-def get_trace_request_path(root_span: dict) -> str | None:
+def get_trace_request_path(root_span: DataDogLibrarySpan) -> str | None:
     if root_span.get("type") != "web":
         return None
 
@@ -36,9 +37,14 @@ def get_trace_request_path(root_span: dict) -> str | None:
 def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
     path_to_logfile = {}
 
-    for data, span in interfaces.library.get_root_spans():
+    # get_root_spans() yields nothing when no root span was collected. Report that explicitly instead
+    # of letting it surface as "every path is missing" below.
+    root_spans = list(interfaces.library.get_root_spans())
+    assert root_spans, "Expected at least one root span"
+
+    for trace, span in root_spans:
         path = get_trace_request_path(span)
-        path_to_logfile[path] = data["log_filename"]
+        path_to_logfile[path] = trace.data["log_filename"]
 
     has_error = False
     for path in paths:
@@ -52,7 +58,7 @@ def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
         raise ValueError("Some path has not been transmitted")
 
 
-def priority_should_be_kept(sampling_priority: SamplingPriority):
+def priority_should_be_kept(sampling_priority: int | SamplingPriority):
     """Returns if a given sampling priority means its trace has to be kept.
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
@@ -114,25 +120,24 @@ class Test_SamplingRates:
         # test sampling
         sampled_count = {True: 0, False: 0}
 
-        for data, root_span in interfaces.library.get_root_spans():
-            metrics = root_span["metrics"]
-            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
-            sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
+        for trace, root_span in interfaces.library.get_root_spans():
+            sampling_priority = root_span.get_sampling_priority()
+            assert sampling_priority is not None, f"_sampling_priority_v1 is missing in {trace.log_filename}"
+            sampled_count[priority_should_be_kept(sampling_priority)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
-        confidence_interval = 4 * (
-            trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
-        ) ** (1 / 2)
+        # Kept count ~ Binomial(n, p), std_dev = sqrt(n * p * (1 - p)). The tolerance band spans
+        # std_devs standard deviations: wide enough a correct tracer virtually never fails on noise.
+        std_devs = 5
+        std_dev = (trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)) ** (1 / 2)
+        tolerance = std_devs * std_dev
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
-        if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
+        if not expectation - tolerance <= sampled_count[True] <= expectation + tolerance:
             raise ValueError(
-                f"Sampling rate is set to {context.tracer_sampling_rate}, "
-                f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True] / trace_count}, "
-                f"which is outside of the confidence interval of +-{confidence_interval}\n"
-                "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
+                f"Sampling rate {context.tracer_sampling_rate}: expected ~{expectation}/{trace_count} kept, "
+                f"got {sampled_count[True]}/{trace_count}, outside the +-{tolerance} ({std_devs} std_dev) band. "
+                "Probabilistic; rerun, and if it repeats the sampling rate is off."
             )
 
 
@@ -143,22 +148,21 @@ class Test_SamplingDecisions:
 
     def setup_sampling_decision(self):
         # Generate enough traces to have a high chance to catch sampling problems
-        for _ in range(30):
-            weblog.get(f"/sample_rate_route/{next(request_id_gen)}")
+        self.requests = [weblog.get(f"/sample_rate_route/{next(request_id_gen)}") for _ in range(30)]
 
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(datum: dict, root_span: dict):
-            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+        def validator(trace: DataDogLibraryTrace, root_span: DataDogLibrarySpan):
+            sampling_priority = root_span.get_sampling_priority()
             if sampling_priority is None:
                 raise ValueError(
-                    f"Message: {datum['log_filename']}:"
+                    f"Message: {trace.log_filename}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 
             sampling_decision = priority_should_be_kept(sampling_priority)
-            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, trace.trace_id_as_int)
             if sampling_decision != expected_decision:
                 if sampling_decision and root_span["meta"].get("_dd.p.dm") == "-5":
                     # If the decision maker is set to -5, it means that the trace has been sampled due
@@ -171,8 +175,17 @@ class Test_SamplingDecisions:
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
-        for data, span in interfaces.library.get_root_spans():
-            validator(data, span)
+        # get_root_spans() yields nothing when no root span was collected, so the validator below
+        # would never run without this guard
+        root_spans = [
+            (trace, root_span)
+            for request in self.requests
+            for trace, root_span in interfaces.library.get_root_spans(request=request)
+        ]
+        assert root_spans, "Expected at least one root span"
+
+        for trace, root_span in root_spans:
+            validator(trace, root_span)
 
 
 @scenarios.sampling
@@ -193,26 +206,28 @@ class Test_SamplingDecisionAdded:
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
         traces = {trace["parent_id"]: trace for trace in self.traces}
+        parent_ids = set(traces.keys())
         spans = []
 
-        def validator(data: dict):
-            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
+        for data, trace in interfaces.library.get_traces():
+            for span in trace:
+                if span.get("parent_id") not in parent_ids:
+                    continue
+
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
-                assert span["trace_id"] == expected_trace_id, (
+                assert trace.trace_id_equals(expected_trace_id), (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
                 )
 
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_priority = span.get_sampling_priority()
 
                 assert sampling_priority is not None, (
                     f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
                 )
-
-        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         if len(spans) != len(traces):
             raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
@@ -319,7 +334,7 @@ class Test_SampleRateFunction:
             for data, _, span in interfaces.library.get_spans(request=req):
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_priority = span.get_sampling_priority()
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
                 assert sampling_priority is not None, (

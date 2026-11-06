@@ -1,3 +1,5 @@
+use datadog_opentelemetry::configuration::Config;
+use datadog_opentelemetry::log::LevelFilter;
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
 
@@ -97,12 +99,31 @@ pub struct SpanSetBaggageArgs {
     pub value: String,
 }
 
+// --- SpanAddLinkArgs ---
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpanAddLinkArgs {
+    pub span_id: u64,
+    pub parent_id: u64,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+// --- SpanAddEventArgs ---
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpanAddEventArgs {
+    pub span_id: u64,
+    pub name: String,
+    /// Unix time in nanoseconds.
+    pub timestamp: u64,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
 // --- SpanSetMetaArgs ---
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SpanSetMetaArgs {
     pub span_id: u64,
     pub key: String,
-    pub value: String,
+    /// The client sends a string, a bool, a (possibly nested) list of strings, or `null`.
+    pub value: serde_json::Value,
 }
 
 // --- SpanSetMetricArgs ---
@@ -110,7 +131,16 @@ pub struct SpanSetMetaArgs {
 pub struct SpanSetMetricArgs {
     pub span_id: u64,
     pub key: String,
-    pub value: f64,
+    pub value: MetricValue,
+}
+
+/// The client sends a number, a list of integers, or `null` (remove the metric).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum MetricValue {
+    Number(f64),
+    IntArray(Vec<i64>),
+    Null,
 }
 
 // --- ManualSamplingArgs ---
@@ -162,6 +192,114 @@ impl StartSpanResult {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FlushResult {
     pub success: bool,
+}
+
+/// Body for `GET /trace/config` — matches Python `TraceConfigReturn` (`config` key).
+#[derive(Debug, Serialize)]
+pub struct TraceConfigResponse {
+    pub config: ConfigResult,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ConfigResult {
+    pub dd_service: Option<String>,
+    pub dd_log_level: Option<String>,
+    pub dd_trace_sample_rate: Option<String>,
+    pub dd_trace_enabled: Option<String>,
+    pub dd_runtime_metrics_enabled: Option<String>,
+    pub dd_metrics_otel_interval: Option<String>,
+    pub otel_metrics_initialized: Option<String>,
+    pub otel_exporter_otlp_metrics_timeout_ms: Option<String>,
+    pub otel_exporter_otlp_logs_timeout_ms: Option<String>,
+    pub dd_tags: Option<String>,
+    pub dd_trace_propagation_style: Option<String>,
+    pub dd_trace_debug: Option<String>,
+    pub dd_trace_otel_enabled: Option<String>,
+    pub dd_trace_sample_ignore_parent: Option<String>,
+    pub dd_env: Option<String>,
+    pub dd_version: Option<String>,
+    pub dd_trace_agent_url: Option<String>,
+    pub dd_trace_rate_limit: Option<String>,
+    pub dd_dogstatsd_host: Option<String>,
+    pub dd_dogstatsd_port: Option<String>,
+    pub dd_logs_injection: Option<String>,
+    pub dd_profiling_enabled: Option<String>,
+    pub dd_data_streams_enabled: Option<String>,
+}
+
+fn format_global_tags(config: &Config) -> String {
+    config
+        .global_tags()
+        .map(|(k, v)| format!("{k}:{v}"))
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn format_trace_propagation_extract(config: &Config) -> String {
+    // Fall back to the global style, mirroring dd-trace-rs's get_extractors.
+    config
+        .trace_propagation_style_extract()
+        .or_else(|| config.trace_propagation_style())
+        .map(|styles| {
+            styles
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(",")
+        })
+        .unwrap_or_default()
+}
+
+fn bool_str(on: bool) -> String {
+    if on {
+        "true".to_string()
+    } else {
+        "false".to_string()
+    }
+}
+
+impl From<Config> for ConfigResult {
+    fn from(config: Config) -> Self {
+        let dd_trace_debug = matches!(*config.log_level_filter(), LevelFilter::Debug);
+
+        Self {
+            dd_service: Some(config.service().to_string()),
+            dd_log_level: Some(config.log_level_filter().to_string().to_lowercase()),
+            // Unset means the default of 1.0, as in the other SDKs.
+            dd_trace_sample_rate: Some(config.trace_sample_rate().unwrap_or(1.0).to_string()),
+            dd_trace_enabled: Some(bool_str(config.enabled())),
+            // dd-trace-rs has no runtime metrics; OTel metrics are a separate setting.
+            dd_runtime_metrics_enabled: None,
+            dd_metrics_otel_interval: Some(config.metric_export_interval().to_string()),
+            otel_metrics_initialized: Some(bool_str(config.metrics_otel_enabled())),
+            otel_exporter_otlp_metrics_timeout_ms: Some(
+                std::num::NonZeroU32::new(config.otlp_metrics_timeout())
+                    .map_or(config.otlp_timeout(), std::num::NonZeroU32::get)
+                    .to_string(),
+            ),
+            otel_exporter_otlp_logs_timeout_ms: Some(
+                std::num::NonZeroU32::new(config.otlp_logs_timeout())
+                    .map_or(config.otlp_timeout(), std::num::NonZeroU32::get)
+                    .to_string(),
+            ),
+            dd_tags: Some(format_global_tags(&config)),
+            dd_trace_propagation_style: Some(format_trace_propagation_extract(&config)),
+            dd_trace_debug: Some(bool_str(dd_trace_debug)),
+            // dd-trace-rs is built on the OTel API, so it is always on.
+            dd_trace_otel_enabled: Some(bool_str(true)),
+            dd_trace_sample_ignore_parent: None,
+            dd_env: config.env().map(str::to_string),
+            dd_version: config.version().map(str::to_string),
+            dd_trace_agent_url: Some(config.trace_agent_url().to_string()),
+            dd_trace_rate_limit: Some(config.trace_rate_limit().to_string()),
+            dd_dogstatsd_host: Some(config.dogstatsd_agent_host().to_string()),
+            dd_dogstatsd_port: Some(config.dogstatsd_agent_port().to_string()),
+            // Not supported by dd-trace-rs.
+            dd_logs_injection: None,
+            dd_profiling_enabled: None,
+            dd_data_streams_enabled: None,
+        }
+    }
 }
 
 // Custom serialization: as [["key", "value"], ...]

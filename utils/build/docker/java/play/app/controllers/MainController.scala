@@ -15,4 +15,8 @@ class MainController @Inject()(cc: MessagesControllerComponents, ws: WSClient, m
     Results.Status(200)("OK!\n")
       .as("text/plain; charset=utf-8")
   }
+
+  def resourceRenaming(path: String) = Action { request =>
+    Ok("ok")
+  }
 }

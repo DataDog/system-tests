@@ -6,7 +6,7 @@ libraries.
 Manual keep sampling should take precedence over any other sampling decision.
 """
 
-import pytest
+from utils import pytest
 from utils import features, rfc, scenarios
 from utils.dd_constants import SamplingMechanism
 from utils.dd_constants import SamplingPriority

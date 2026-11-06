@@ -3,9 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, logger
-from utils.dd_constants import TraceAgentPayloadFormat
-from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils import features, interfaces, scenarios, slow, weblog
+from utils.dd_types import DataDogSpanLink
 
 
 @scenarios.trace_propagation_style_w3c
@@ -30,11 +29,7 @@ class Test_DistributedHttp:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
 
@@ -59,21 +54,21 @@ class Test_Span_Links_From_Conflicting_Contexts:
     def test_span_links_from_conflicting_contexts(self):
         trace = [
             span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
+            if len(span.get_span_links()) != 0
+            and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 1
         span = trace[0]
-        links = _retrieve_span_links(span)
+        links = span.get_span_links()
         assert len(links) == 1
         link1 = links[0]
-        assert link1["trace_id"] == 2
-        assert link1["span_id"] == 987654321
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link1["trace_id_high"] == 1229782938247303441
+        assert link1.trace_id_low == 2
+        assert link1.span_id == 987654321
+        assert link1.attributes == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        assert link1.trace_id_high == 1229782938247303441
 
     """Datadog and tracecontext headers, trace-id does match, Datadog is primary
     context we want to make sure there's no span link since they match"""
@@ -94,8 +89,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 1
+            if len(span.get_span_links()) != 0
+            and span.trace_id_equals(1)
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
@@ -121,8 +116,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 5
+            if len(span.get_span_links()) != 0
+            and span.trace_id_equals(5)
             and span["parent_id"] == 987654324  # Only fetch the trace that is related to the header extractions
         ]
 
@@ -131,11 +126,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
 
@@ -155,29 +146,24 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            if len(span.get_span_links()) != 0
+            and span.trace_id_equals(2)
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
-        span_links = _retrieve_span_links(span)
+        span_links = span.get_span_links()
         assert len(span_links) == 2
         link1 = span_links[0]
-        assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
+        assert link1.data["flags"] == 1 | DataDogSpanLink.TRACECONTEXT_FLAGS_SET
 
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""
 
@@ -196,53 +182,19 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            if len(span.get_span_links()) != 0
+            and span.trace_id_equals(2)
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
-        links = _retrieve_span_links(span)
+        links = span.get_span_links()
         assert len(links) == 1
         link1 = links[0]
-        assert link1.get("tracestate") is None
-
-
-def _retrieve_span_links(span: dict):
-    if span.get("span_links") is not None:
-        return span["span_links"]
-
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | 1 << 31
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
-    return None
-
-
-# The Datadog specific tracecontext flags to mark flags are set
-TRACECONTEXT_FLAGS_SET = 1 << 31
+        assert link1.data.get("tracestate") is None
 
 
 @scenarios.default
@@ -261,20 +213,18 @@ class Test_Synthetics_APM_Datadog:
 
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = list(interfaces.agent.get_traces(self.r))
+        traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567890")
-        spans = list(interfaces.agent.get_spans(self.r))
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567890
+        spans = list(interfaces.mocked_backend.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
-        assert meta[ORIGIN] == "synthetics"
-        assert metrics[SAMPLING_PRIORITY_KEY] == 1
+        assert span.get_span_origin() == "synthetics"
+        assert span.get_sampling_priority() == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -289,30 +239,15 @@ class Test_Synthetics_APM_Datadog:
 
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = list(interfaces.agent.get_traces(self.r))
+        traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567891")
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567891
 
-        spans = list(interfaces.agent.get_spans(self.r))
+        spans = list(interfaces.mocked_backend.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
-        assert meta[ORIGIN] == "synthetics-browser"
-        assert metrics[SAMPLING_PRIORITY_KEY] == 1
-
-    @staticmethod
-    def assert_trace_id_equals(trace: dict, trace_format: TraceAgentPayloadFormat, expected_trace_id: str) -> None:
-        if trace_format == TraceAgentPayloadFormat.legacy:
-            actual_trace_id = str(trace["spans"][0]["traceID"])
-            assert expected_trace_id == actual_trace_id
-        elif trace_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            actual_trace_id = str(trace["traceID"])
-            # In efficient trace payload format, traceID is in hex format
-            actual_trace_id = str(int(actual_trace_id, 16))
-            assert actual_trace_id == expected_trace_id
-        else:
-            raise ValueError(f"Unknown span format: {trace_format}")
+        assert span.get_span_origin() == "synthetics-browser"
+        assert span.get_sampling_priority() == 1

@@ -1,13 +1,20 @@
 import copy
 import json
 import os
+import warnings
 from pathlib import Path
 import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
+from utils import interfaces
 from utils.onboarding.debug_vm import download_vm_logs
+from utils.virtual_machine.ssh_reverse_tunnel import SSHReverseTunnel
+from utils.virtual_machine.ami_candidate import candidate_result_state
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from .core import Scenario
+from ._core import Scenario, scenario_groups, ScenarioGroup
+
+# Port the SSH reverse tunnel binds on the VM loopback to expose the mocked backend
+_MOCKED_BACKEND_VM_PORT = 4901
 
 
 class _VirtualMachineScenario(Scenario):
@@ -19,13 +26,18 @@ class _VirtualMachineScenario(Scenario):
         *,
         github_workflow: str,
         doc: str,
-        vm_provision=None,
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
+        vm_provision: str | None = None,
+        agent_env: dict | None = None,
+        app_env: dict | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
+        # When True, the agent on the VM sends its payloads to the mocked backend (running in the pytest
+        # process, reached through an SSH reverse tunnel) instead of the real Datadog backend
+        self.mocked_backend_enabled = mocked_backend
+        self._mocked_backend_tunnel: SSHReverseTunnel | None = None
         self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
@@ -56,13 +68,44 @@ class _VirtualMachineScenario(Scenario):
         if (
             not apm_library_version or apm_library_version == "0.0.0"
         ) and self.vm_provider.vm.provision_install_error is None:
-            logger.stdout("❌ No datadog-apm-library found ❌ ")
-            logger.stdout("This is not a valid scenario")
-            logger.stdout("Please, check the log file for more details")
-            logger.stdout(f"Log file: {self.host_log_folder}/tests.log")
-            pytest.exit("No datadog-apm-library found", returncode=3)
+            logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
+            logger.stdout("Review the agent + SSI installation provision.")
+            logger.stdout(f"Log file: {self.host_log_folder}/{self.virtual_machine.name}.log")
+            event_sender = getattr(self.vm_provider, "datadog_event_sender", None)
+            if event_sender is not None:
+                try:
+                    event_sender.send_event_to_datadog(
+                        f"[E2E] Stack {self.vm_provider.stack_name} : SSI installer finished without tracer library",
+                        "SSI installer finished without installing the tracer library. "
+                        "Review the agent + SSI installation provision.",
+                        [
+                            "operation:up",
+                            "result:fail",
+                            "failure:ssi_installer_finished_without_library",
+                            f"stack:{self.vm_provider.stack_name}",
+                        ],
+                    )
+                except Exception as error:
+                    logger.warning("Could not send the SSI installer Datadog event: %s", error)
+            pytest.exit(
+                "SSI installer finished without installing the tracer library. "
+                "Review the agent + SSI installation provision.",
+                returncode=3,
+            )
 
     def configure(self, config: pytest.Config):
+        # pytest shows every warning during pytest_configure. Pulumi and the
+        # assertion rewriter are imported here, and only for AWS SSI scenarios.
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^aws\.ec2/getvpciam",
+            category=DeprecationWarning,
+        )
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^ast\.(?:Str|NameConstant) is deprecated",
+            category=DeprecationWarning,
+        )
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
@@ -103,9 +146,20 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine.add_agent_env(self.agent_env)
         self.virtual_machine.add_app_env(self.app_env)
 
+        if self.mocked_backend_enabled:
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=False)
+            # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
+            # provision configures the agent with it before starting the weblog, no agent restart needed later
+            self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{_MOCKED_BACKEND_VM_PORT}")
+            # The agent install script and the agent itself refuse to run without an API key, the mock ignores it
+            if not self.virtual_machine.datadog_config.dd_api_key:
+                self.virtual_machine.datadog_config.dd_api_key = "0" * 32
+
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
             self.warmups.append(self.vm_provider.stack_up)
+            if self.mocked_backend_enabled:
+                self.warmups.append(self._setup_mocked_backend)
 
             self.warmups.append(self.fill_context)
 
@@ -126,8 +180,32 @@ class _VirtualMachineScenario(Scenario):
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
         assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
-        assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-        assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+        if not self.mocked_backend_enabled:
+            assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
+            assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+
+    def _setup_mocked_backend(self) -> None:
+        """Start the mocked backend and expose it on the VM through an SSH reverse tunnel. The agent was
+        already pointed to the tunnel URL during the provision.
+        """
+        if self.virtual_machine.provision_install_error is not None:
+            logger.info("VM provisioning failed, skipping the mocked backend setup")
+            return
+
+        logger.terminal.write_sep("=", "Starting mocked backend", bold=True)
+        interfaces.mocked_backend.start_mocked_backend()
+        self._mocked_backend_tunnel = SSHReverseTunnel(
+            self.virtual_machine,
+            remote_port=_MOCKED_BACKEND_VM_PORT,
+            local_port=interfaces.mocked_backend.mocked_backend_port,
+        )
+        self._mocked_backend_tunnel.start()
+
+    def _teardown_mocked_backend(self) -> None:
+        if self._mocked_backend_tunnel is not None:
+            self._mocked_backend_tunnel.stop()
+            self._mocked_backend_tunnel = None
+        interfaces.mocked_backend.stop_mocked_backend()
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:
@@ -153,17 +231,31 @@ class _VirtualMachineScenario(Scenario):
                 # different version
                 del self.components[key]
 
-    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:
+        if self.vm_provider is not None:
+            outcomes = [
+                value
+                for item in session.items
+                for key, value in item.user_properties
+                if key == "dd_tags[systest.case.outcome]"
+            ]
+            provision_failed = self.vm_provider.vm.provision_install_error is not None
+            self.vm_provider.promote_booted_candidate(
+                candidate_result_state(exitstatus, provision_failed=provision_failed, test_outcomes=outcomes)
+            )
         self.close_targets()
 
     def close_targets(self):
         if self.is_main_worker:
-            # Extract logs from the VM before destroy
-            download_vm_logs(
-                vm=self.virtual_machine,
-                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
-                local_base_logs_folder=self.host_log_folder,
-            )
+            try:
+                # Extract logs from the VM before destroy
+                download_vm_logs(
+                    vm=self.virtual_machine,
+                    remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
+                    local_base_logs_folder=self.host_log_folder,
+                )
+            finally:
+                self._teardown_mocked_backend()
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 
@@ -224,16 +316,18 @@ class _VirtualMachineScenario(Scenario):
                 json.dump(new_result, f, indent=2)
 
 
-class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+class _InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
         self,
-        name,
-        doc,
-        vm_provision="installer-auto-inject",
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
-        github_workflow=None,
+        name: str,
+        doc: str,
+        vm_provision: str = "installer-auto-inject",
+        agent_env: dict | None = None,
+        app_env: dict | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        github_workflow: str | None = None,
+        *,
+        mocked_backend: bool = True,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -251,4 +345,191 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
+            mocked_backend=mocked_backend,
+        )
+
+
+# Single Step Instrumentation scenarios (HOST and CONTAINER)
+class SimpleInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_INSTALLER_AUTO_INJECTION",
+            "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+            scenario_groups=[scenario_groups.simple_onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class MultiInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "MULTI_INSTALLER_AUTO_INJECTION",
+            "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class InstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "INSTALLER_AUTO_INJECTION",
+            doc="Installer auto injection scenario",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class InstallerNotSupportedAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
+            "Onboarding host Single Step Instrumentation scenario for not supported languages",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class ChaosInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CHAOS_INSTALLER_AUTO_INJECTION",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario. "
+                "Machines with previous ld.so.preload entries. Perform chaos testing"
+            ),
+            vm_provision="auto-inject-ld-preload",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_PROFILING",
+            "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+            "stable config (application_monitoring.yaml)",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario using agent "
+                "auto install script with profiling activating by the installation process"
+            ),
+            vm_provision="host-auto-inject-install-script",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+            "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class SimpleAutoInjectionAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_APPSEC",
+            "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+            "stable config (application_monitoring.yaml)",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario using agent "
+                "auto install script with Appsec activated by the installation process"
+            ),
+            vm_provision="host-auto-inject-install-script",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+            "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+            "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
+            vm_provision="host-auto-inject-install-script",
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
+            "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class LocalAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
+            doc=(
+                "To be executed locally with krunvm. Installs all the software fron agent installation script, "
+                "and the replace the apm-library with the uploaded tar file from binaries"
+            ),
+            vm_provision="local-auto-inject-install-script",
+            scenario_groups=[],
+            # krunvm VMs are not reachable through SSH, so the reverse tunnel to the mocked backend can't be opened
+            mocked_backend=False,
+            github_workflow="aws_ssi",
         )

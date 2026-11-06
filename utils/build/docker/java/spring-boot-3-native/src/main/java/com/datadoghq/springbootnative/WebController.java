@@ -3,6 +3,9 @@ package com.datadoghq.springbootnative;
 import static datadog.appsec.api.user.User.setUser;
 
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,8 +41,11 @@ public class WebController {
   private static final Logger logger = LoggerFactory.getLogger(App.class);
 
   @RequestMapping("/")
-  String home() {
-    return "Hello World!";
+  ResponseEntity<String> home() {
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_PLAIN)
+        .contentLength(13)
+        .body("Hello world!\n");
   }
 
   @RequestMapping("/healthcheck")
@@ -171,31 +177,43 @@ public class WebController {
     return "OK";
   }
 
-  @RequestMapping("/make_distant_call")
-  DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
-    URL urlObject = new URL(url);
+  @RequestMapping("/trace/manual_keep_drop")
+  ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
+    if (!"keep".equals(decision) && !"drop".equals(decision)) {
+      return ResponseEntity.badRequest().body("decision must be keep or drop");
+    }
 
-    HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-    con.setRequestMethod("GET");
+    final Span span = GlobalTracer.get().activeSpan();
+    if (span != null) {
+      span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+    }
+
+    // Call downstream so that tests can assert on the sampling decision that gets propagated
+    return ResponseEntity.ok(make_distant_call("http://localhost:7777/", "GET"));
+  }
+
+  @RequestMapping("/make_distant_call")
+  DistantCallResponse make_distant_call(
+      @RequestParam String url,
+      @RequestParam(defaultValue = "GET") String method) throws Exception {
+    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+        .uri(java.net.URI.create(url))
+        .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+        .build();
+    java.net.http.HttpResponse<Void> response = java.net.http.HttpClient.newHttpClient().send(
+        request,
+        java.net.http.HttpResponse.BodyHandlers.discarding());
 
     // Save request headers
     HashMap<String, String> request_headers = new HashMap<String, String>();
-    for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-      if (header.getKey() == null) {
-        continue;
-      }
-
+    for (Map.Entry<String, List<String>> header: request.headers().map().entrySet()) {
       request_headers.put(header.getKey(), header.getValue().get(0));
     }
 
     // Save response headers and status code
-    int status_code = con.getResponseCode();
+    int status_code = response.statusCode();
     HashMap<String, String> response_headers = new HashMap<String, String>();
-    for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-        if (header.getKey() == null) {
-          continue;
-        }
-
+    for (Map.Entry<String, List<String>> header: response.headers().map().entrySet()) {
       response_headers.put(header.getKey(), header.getValue().get(0));
     }
 

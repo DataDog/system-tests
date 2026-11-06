@@ -10,8 +10,64 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
-from utils.dd_constants import TraceAgentPayloadFormat
+from utils import features, logger, scenarios, slow
+from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
+
+
+def get_span_meta(span: dict, span_format: AgentTraceFormat) -> dict[str, str]:
+    """Returns the meta dictionary of a span according to its format"""
+    if span_format == AgentTraceFormat.legacy:
+        return span["meta"]
+
+    if span_format == AgentTraceFormat.efficient_trace_payload_format:
+        # in the new format, metrics and meta are joined in attributes
+        return span["attributes"]
+
+    raise ValueError(f"Unknown span format: {span_format}")
+
+
+def set_span_attrs(span: dict, span_format: AgentTraceFormat, meta: dict[str, str]) -> None:
+    """Overwrites the span attributes of a span according to its format.
+    For legacy spans this means only the meta dictionary,
+    for efficient spans this means the entire attributes dictionary.
+    """
+    if span_format == AgentTraceFormat.legacy:
+        span["meta"] = meta
+
+    elif span_format == AgentTraceFormat.efficient_trace_payload_format:
+        span["attributes"] = meta
+    else:
+        raise ValueError(f"Unknown span format: {span_format}")
+
+
+def normalize_approval_data(data: object) -> object:
+    """Makes approval data comparable across trace payload formats.
+
+    When the trace agent converts an incoming v0.4 payload to v1, it stamps the span with a
+    ``_dd.convertedv1`` provenance marker and carries the v0.4 string-only ``meta`` values through
+    as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
+    relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
+    comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
+
+    The ``_dd.sdk.otlp_export`` tag describes trace export routing, and the ``_dd.appsec.normalized_route``
+    tag describes the API Security route, not exception replay. Their presence varies across tracer
+    versions, so exclude them from both sides of the approval comparison too.
+    """
+    if isinstance(data, dict):
+        return {
+            key: normalize_approval_data(value)
+            for key, value in data.items()
+            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export", "_dd.appsec.normalized_route"}
+        }
+
+    if isinstance(data, list):
+        return [normalize_approval_data(item) for item in data]
+
+    # bool must be checked before int, as bool is a subclass of int
+    if isinstance(data, bool):
+        return "true" if data else "false"
+
+    return data
 
 
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
@@ -26,21 +82,19 @@ _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 _max_retries = 2
 _timeout_first = 5
 _timeout_next = 30
+_python_capture_timeout = 2
 
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@slow
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: list[dict] = []
     spans: dict = {}
 
     ############ setup ############
     def _setup(self, request_path: str, exception_message: str):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
@@ -50,10 +104,29 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_snapshot_received(exception_message, timeout)
+            snapshot_found = self.wait_for_all_snapshots(exception_message, timeout)
             timeout = _timeout_next
 
             retries += 1
+
+    def _send_request_until_captured(self, request_path: str, exception_message: str, timeout: int) -> bool:
+        """Send a weblog request and wait for the snapshot of the exception it raises."""
+        if self.get_tracer()["language"] != "python":
+            self.send_weblog_request(request_path, reset=False)
+            return self.wait_for_all_snapshots(exception_message, timeout)
+
+        # The Python tracer rate limits exception captures to 1/s, with a jitter that can
+        # refill as little as half the budget per elapsed second, so a request sent right
+        # after a capture may be skipped. Resend the request until its snapshot shows up.
+        # This cannot produce duplicates, as the tracer captures the same exception at most
+        # once per hour, and rate-limited requests do not count towards that limit.
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            self.send_weblog_request(request_path, reset=False)
+            if self.wait_for_all_snapshots(exception_message, _python_capture_timeout):
+                return True
+
+        return False
 
     ############ assert ############
     def _assert(self, test_name: str, expected_exception_messages: list[str]):
@@ -88,35 +161,33 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return [snapshot for _, snapshot in filtered_contents]
 
-        def __filter_spans_by_snapshot_id(snapshots: list[dict]) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
+        def __filter_spans_by_snapshot_id(snapshots: list[dict]) -> dict[str, DataDogAgentSpan]:
             filtered_spans = {}
 
             for snapshot in snapshots:
                 snapshot_id = snapshot["id"]
                 for spans in self.probe_spans.values():
-                    for span, span_format in spans:
+                    for span in spans:
                         snapshot_ids_in_span = {
-                            key: value
-                            for key, value in interfaces.agent.get_span_meta(span, span_format).items()
-                            if key.endswith("snapshot_id")
+                            key: value for key, value in span.meta.items() if key.endswith("snapshot_id")
                         }.values()
 
                         if snapshot_id in snapshot_ids_in_span:
-                            filtered_spans[snapshot_id] = (span, span_format)
+                            filtered_spans[snapshot_id] = span
                             break
 
             return filtered_spans
 
-        def __filter_spans_by_span_id(contents: list[dict]) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
+        def __filter_spans_by_span_id(contents: list[dict]) -> dict[str, DataDogAgentSpan]:
             filtered_spans = {}
             for content in contents:
                 span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
                 snapshot_id = content["debugger"]["snapshot"]["id"]
 
                 for spans_list in self.probe_spans.values():
-                    for span, span_format in spans_list:
+                    for span in spans_list:
                         if span.get("spanID") == span_id:
-                            filtered_spans[snapshot_id] = (span, span_format)
+                            filtered_spans[snapshot_id] = span
                             break
 
             return filtered_spans
@@ -206,22 +277,51 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_dotnet(key: str, value: dict | list | str, parent: dict):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
+            elif key == "exceptionHash":
+                # The hash format differs between tracer versions, so approvals can't pin its value.
+                return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
+                # Clip is old; truncated:true is new (dd-trace-dotnet #9272). Drop it so
+                # approvals match tracers with and without the flag.
+                value.pop("truncated", None)
                 return value
+            elif key == "staticFields" and isinstance(value, dict):
+
+                def is_empty_result_static_field(field_name: str, field_value: object) -> bool:
+                    return (
+                        field_name == "Empty"
+                        and isinstance(field_value, dict)
+                        and field_value.get("type") == "EmptyResult"
+                        and set(field_value).issubset({"type", "notCapturedReason"})
+                        and field_value.get("notCapturedReason") in (None, "typeInitializer")
+                    )
+
+                scrubbed_static_fields = {
+                    field_name: __scrub(field_value)
+                    for field_name, field_value in value.items()
+                    if not is_empty_result_static_field(field_name, field_value)
+                }
+                return scrubbed_static_fields or None
             elif key == "function":
                 assert isinstance(value, str)
                 if "lambda_" in value:
                     value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
-                if re.search(r"<[^>]+>", value):
+                if re.search(r"<[^>]+>", value) and not value.endswith("<scrubbed>"):
                     value = re.sub(r"(.*>)(.*)", r"\1<scrubbed>", value)
                 return value
             elif key in ["stacktrace", "stack"]:
                 scrubbed = []
                 assert isinstance(value, list)
                 for entry in value:
+                    function = entry.get("function")
+                    if function is None:
+                        if entry != {"<runtime>": "<scrubbed>"}:
+                            scrubbed.append(__scrub(entry))
+                        continue
+
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
-                    if entry["function"].startswith(("Microsoft", "System", "Unknown")):
+                    if function.startswith(("Microsoft", "System", "Unknown")):
                         continue
 
                     scrubbed.append(__scrub(entry))
@@ -259,12 +359,34 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_none(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             return __scrub(value)
 
+        def __normalize_php_fields(data: dict | list | str) -> dict | list | str:
+            if isinstance(data, list):
+                return [__normalize_php_fields(item) for item in data]
+            if isinstance(data, dict):
+                result = {}
+                for k, v in data.items():
+                    normalized_v = __normalize_php_fields(v)
+                    if k in ("fields", "locals", "arguments") and isinstance(normalized_v, dict):
+                        normalized_v = dict(sorted(normalized_v.items()))
+                    result[k] = normalized_v
+                return result
+            return data
+
+        def __scrub_php(key: str, value: dict | list, parent: dict):  # noqa: ARG001
+            if key == "_SERVER" and isinstance(value, dict):
+                return {k: v for k, v in value.items() if k != "entries"}
+            if key in ("fields", "locals", "arguments") and isinstance(value, dict):
+                return dict(sorted(__scrub_dict(value).items()))
+            return __scrub(value)
+
         if self.get_tracer()["language"] == "java":
             scrub_language = __scrub_java
         elif self.get_tracer()["language"] == "dotnet":
             scrub_language = __scrub_dotnet
         elif self.get_tracer()["language"] == "python":
             scrub_language = __scrub_python
+        elif self.get_tracer()["language"] == "php":
+            scrub_language = __scrub_php
         else:
             scrub_language = __scrub_none
 
@@ -275,6 +397,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self._write_approval(snapshots, test_name, "snapshots_expected")
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
+            if self.get_tracer()["language"] == "dotnet" and not _SKIP_SCRUB:
+                expected_snapshots = [__scrub_dict(snapshot) for snapshot in expected_snapshots]  # type: ignore[assignment]
+            if self.get_tracer()["language"] == "php":
+                expected_snapshots = __normalize_php_fields(expected_snapshots)  # type: ignore[assignment]
             assert expected_snapshots == snapshots
             assert all("exceptionId" in snapshot for snapshot in snapshots), (
                 "One or more snapshots don't have 'exceptionId' field"
@@ -288,27 +414,38 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self.snapshots = snapshots
         __approve(snapshots)
 
-    def _validate_spans(self, test_name: str, spans: dict[str, tuple[dict, TraceAgentPayloadFormat]]):
+    def _validate_spans(self, test_name: str, spans: dict[str, DataDogAgentSpan]):
         def __scrub(
-            data: dict[str, tuple[dict, TraceAgentPayloadFormat]],
-        ) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
-            scrubbed_spans: list[tuple[dict, TraceAgentPayloadFormat]] = []
+            data: dict[str, DataDogAgentSpan],
+        ) -> dict[str, tuple[dict, AgentTraceFormat]]:
+            scrubbed_spans: list[tuple[dict, AgentTraceFormat]] = []
             for value in data.values():
                 logger.debug(f"Value: {value}")
-                span_original, span_format = value
+                span_original, span_format = value.raw_span, value.trace.format
                 span = copy.deepcopy(span_original)
                 for scrub_key in ("traceID", "spanID", "parentID", "start", "duration", "metrics"):
                     if scrub_key in span:
                         span[scrub_key] = "<scrubbed>"
 
                 keys_to_remove = []
-                span_meta = interfaces.agent.get_span_meta(span, span_format)
+                span_meta = get_span_meta(span, span_format)
                 for meta_key, meta_value in span_meta.items():
-                    if meta_key in {
+                    if meta_key.startswith("_dd.appsec.s."):
+                        # API Security samples schemas per (route, method, status) on a time window, so
+                        # which request of the test carries them is not deterministic
+                        keys_to_remove.append(meta_key)
+                    elif meta_key in {
+                        "_dd.convertedv1",  # trace agent marker, only set when it converts v0.4 -> v1
                         "_dd.appsec.fp.http.endpoint",
                         "_dd.appsec.fp.http.header",
                         "_dd.appsec.fp.http.network",
                         "_dd.appsec.fp.session",
+                        "_dd.svc_src",
+                        "_dd.tags.process",  # varies by PHP SAPI (apache vs fpm)
+                        "_dd.p.dm",  # trace sampling decision, varies by tracer version
+                        "_dd.p.ksr",  # keep sample rate, not present in all versions
+                        "_dd.p.tid",  # high trace ID bits, not present in all versions
+                        "http.response.headers.content-length",  # not emitted by all tracer versions
                     }:
                         keys_to_remove.append(meta_key)
                     elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
@@ -320,53 +457,57 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     }:
                         span_meta[meta_key] = "<scrubbed>"
                     elif meta_key == "error.stack":
-                        span_meta[meta_key] = meta_value[:128] + "<scrubbed>"
+                        stack = meta_value[:128]
+                        if self.get_tracer()["language"] == "php":
+                            stack = re.sub(r"\.php\(\d+\)", ".php(<scrubbed>)", stack)
+                        span_meta[meta_key] = stack + "<scrubbed>"
+                    elif meta_key == "http.url":
+                        span_meta[meta_key] = meta_value.replace("http://docker", "http://localhost")
                     elif type(meta_value) in (float, int):
                         keys_to_remove.append(meta_key)
 
                 for k in keys_to_remove:
                     span_meta.pop(k, None)
-                interfaces.agent.set_span_attrs(span, span_format, dict(sorted(span_meta.items())))
+                set_span_attrs(span, span_format, dict(sorted(span_meta.items())))
                 scrubbed_spans.append((span, span_format))
 
-            sorted_spans = sorted(
-                scrubbed_spans, key=lambda x: interfaces.agent.get_span_meta(x[0], x[1])["error.type"]
-            )
+            sorted_spans = sorted(scrubbed_spans, key=lambda x: get_span_meta(x[0], x[1])["error.type"])
 
-            sorted_scrubbed_spans: dict[str, tuple[dict, TraceAgentPayloadFormat]] = {}
+            sorted_scrubbed_spans: dict[str, tuple[dict, AgentTraceFormat]] = {}
             # Assign scrubbed spans with unique snapshot labels
             for span_number, (span, span_format) in enumerate(sorted_spans):
                 sorted_scrubbed_spans[f"snapshot_{span_number}"] = (dict(sorted(span.items())), span_format)
 
             return sorted_scrubbed_spans
 
-        def __approve(spans: dict[str, tuple[dict, TraceAgentPayloadFormat]]):
+        def __approve(spans: dict[str, tuple[dict, AgentTraceFormat]]):
             # Determine the payload format from spans to select the correct expected file
             # All spans in a test run should have the same format
             span_formats = {span_format for _, (_, span_format) in spans.items()}
-            is_v1_format = TraceAgentPayloadFormat.efficient_trace_payload_format in span_formats
+            is_v1_format = AgentTraceFormat.efficient_trace_payload_format in span_formats
 
             # Use different suffixes based on payload format
             expected_suffix = "spans_expected_v1" if is_v1_format else "spans_expected"
 
             self._write_approval(spans, test_name, "spans_received")
 
-            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
-                self._write_approval(spans, test_name, expected_suffix)
-
-            expected = self._read_approval(test_name, expected_suffix)
-
             # Normalize spans for comparison based on format:
             # - JSON serializes tuples as lists, so convert in-memory tuples to lists
             # - Legacy expected files don't include format, so extract just span dicts for comparison
+            normalized_for_approval: dict
             if is_v1_format:
-                # V1 format: convert tuples to lists for comparison (matches JSON serialization)
-                normalized_spans_v1 = {key: [span, str(fmt)] for key, (span, fmt) in spans.items()}
-                assert expected == normalized_spans_v1
+                normalized_for_approval = {key: [span, str(fmt)] for key, (span, fmt) in spans.items()}
             else:
-                # Legacy format: expected files contain just span dicts without format tuple
-                normalized_spans_legacy = {key: span for key, (span, _) in spans.items()}
-                assert expected == normalized_spans_legacy
+                normalized_for_approval = {key: span for key, (span, _) in spans.items()}
+
+            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
+                self._write_approval(normalized_for_approval, test_name, expected_suffix)
+
+            expected = self._read_approval(test_name, expected_suffix)
+
+            # Normalize both sides so already-recorded approvals stay valid whether or not the
+            # trace agent converts v0.4 payloads to v1 (see normalize_approval_data).
+            assert normalize_approval_data(expected) == normalize_approval_data(normalized_for_approval)
 
             missing_keys_dict = {}
 
@@ -374,7 +515,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 missing_keys = []
 
                 # Use the interface helper to get meta/attributes based on format
-                span_meta = interfaces.agent.get_span_meta(span, span_format)
+                span_meta = get_span_meta(span, span_format)
 
                 if "_dd.debug.error.exception_hash" not in span_meta:
                     missing_keys.append("_dd.debug.error.exception_hash")
@@ -392,11 +533,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
         assert spans, "Spans not found"
 
-        if not _SKIP_SCRUB:
-            spans = __scrub(spans)
+        if _SKIP_SCRUB:
+            self.spans = {key: (span.raw_span, span.trace.format) for key, span in spans.items()}
+        else:
+            self.spans = __scrub(spans)
 
-        self.spans = spans
-        __approve(spans)
+        __approve(self.spans)
 
     def _validate_recursion_snapshots(self, snapshots: list[dict], limit: int):
         assert len(snapshots) == limit + 1, (
@@ -407,7 +549,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         helper_method = "exceptionReplayRecursionHelper"
 
         def get_frames(snapshot: dict) -> list[dict]:
-            if self.get_tracer()["language"] in ["java", "dotnet"]:
+            if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
                     return [{"function": method}]
@@ -449,8 +591,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         found_expected_reason = False
         actual_reasons = []
 
-        for span, span_format in spans_with_no_capture_reason:
-            meta = interfaces.agent.get_span_meta(span, span_format)
+        for span in spans_with_no_capture_reason:
+            meta = span.meta
             actual_reason = meta["_dd.debug.error.no_capture_reason"]
             actual_reasons.append(actual_reason)
 
@@ -535,10 +677,17 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 9)
 
+    def setup_exception_replay_recursion_20_entry_frame(self):
+        self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
+
+    def test_exception_replay_recursion_20_entry_frame(self):
+        self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
+        # The outermost user frame is captured on top of DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES frames
+        self._validate_recursion_snapshots(self.snapshots, 10)
+
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
-    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
     def test_exception_replay_recursion_inlined(self):
         self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -552,7 +701,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ Rock Paper Scissors ############
     def setup_exception_replay_rockpaperscissors(self):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
@@ -567,11 +716,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     continue
 
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
-                self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_snapshot_received(shape, timeout)
-                if self.get_tracer()["language"] == "python":
-                    time.sleep(1)
+                shapes[shape] = self._send_request_until_captured(f"/exceptionreplay/rps?shape={shape}", shape, timeout)
 
                 timeout = _timeout_next
 
@@ -610,7 +756,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_outofmemory(self):
         self._setup_no_capture_exception("outofmemory")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_outofmemory(self):
         self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
 
@@ -618,7 +764,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_stackoverflow(self):
         self._setup_no_capture_exception("stackoverflow")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_stackoverflow(self):
         self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
 
@@ -626,6 +772,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_firsthit(self):
         self._setup_no_capture_exception("firsthit")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_firsthit(self):
         self._test_no_capture_exception("firsthit", "FirstOccurrence")

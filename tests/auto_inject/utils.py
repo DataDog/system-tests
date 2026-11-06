@@ -1,26 +1,75 @@
 import time
+import paramiko
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context, logger
 from threading import Timer
 
 
+_NODEJS_V6_MAJOR = 6
+_NODEJS_V6_MINIMUM_RUNTIME_MAJOR = 22
+_NODEJS_PRE_V6_MINIMUM_RUNTIME_MAJOR = 18
+_NODEJS_MULTICONTAINER_WEBLOG = "test-app-nodejs-multicontainer"
+
+
+def _unsupported_nodejs_multicontainer_runtime(runtime_version: str | None) -> bool:
+    if (
+        context.library != "nodejs"
+        or context.weblog_variant != _NODEJS_MULTICONTAINER_WEBLOG
+        or not runtime_version
+        or runtime_version == "latest"
+    ):
+        return False
+
+    try:
+        runtime_major = int(runtime_version.split(".", maxsplit=1)[0])
+    except ValueError:
+        return False
+
+    min_runtime_major = (
+        _NODEJS_V6_MINIMUM_RUNTIME_MAJOR
+        if context.library.version.major >= _NODEJS_V6_MAJOR
+        else _NODEJS_PRE_V6_MINIMUM_RUNTIME_MAJOR
+    )
+
+    return runtime_major < min_runtime_major
+
+
 class AutoInjectBaseTest:
     def _test_install(
-        self, virtual_machine, *, profile: bool = False, appsec: bool = False, origin_detection: bool = False
+        self,
+        virtual_machine: _VirtualMachine,
+        *,
+        profile: bool = False,
+        appsec: bool = False,
+        origin_detection: bool = False,
     ):
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
+            tested_supported_runtime = False
             for app in virtual_machine.get_deployed_weblog().multicontainer_apps:
                 vm_context_url = (
                     f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
                 )
+
+                if _unsupported_nodejs_multicontainer_runtime(app.runtime_version):
+                    logger.info(
+                        "Skipping unsupported multicontainer app runtime [%s] for library [%s]",
+                        app.runtime_version,
+                        context.library,
+                    )
+                    continue
+
                 self._check_install(
                     virtual_machine, vm_context_url, profile=profile, appsec=appsec, origin_detection=origin_detection
                 )
+                tested_supported_runtime = True
+
+            assert tested_supported_runtime, "No supported multicontainer app found to test"
 
         else:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
@@ -30,8 +79,8 @@ class AutoInjectBaseTest:
 
     def _check_install(
         self,
-        virtual_machine,
-        vm_context_url,
+        virtual_machine: _VirtualMachine,
+        vm_context_url: str,
         *,
         profile: bool = False,
         appsec: bool = False,
@@ -74,7 +123,7 @@ class AutoInjectBaseTest:
             self._log_trace_debug_message(e, request_uuid)
             raise
 
-    def _appsec_validator(self, _, trace_data):
+    def _appsec_validator(self, _: str, trace_data: dict):
         """Validator for Appsec traces that checks if the trace contains an Appsec event."""
         root_id = trace_data["trace"]["root_id"]
         root_span = trace_data["trace"]["spans"][root_id]
@@ -89,13 +138,19 @@ class AutoInjectBaseTest:
             )
             return False
 
-        if "appsec.event" not in meta or meta["appsec.event"] != "true":
-            logger.error("expected 'appsec.event' to be true in trace meta but found %s", meta.get("appsec.event"))
-            return False
+        # Check for v0.4 protocol, which exposes the AppSec event marker directly in span metadata.
+        if meta.get("appsec.event") == "true":
+            return True
 
-        return True
+        # Check for v1 protocol, which exposes either the event payload or flattened trigger fields.
+        appsec_payload = meta.get("_dd.appsec.json")
+        if (appsec_payload and appsec_payload.get("triggers")) or meta.get("appsec.triggers.rule.id"):
+            return True
 
-    def _container_tags_validator(self, _, trace_data):
+        logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
+        return False
+
+    def _container_tags_validator(self, _: str, trace_data: dict):
         root_id = trace_data["trace"]["root_id"]
         root_span = trace_data["trace"]["spans"][root_id]
 
@@ -120,14 +175,14 @@ class AutoInjectBaseTest:
             f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
         )
 
-    def close_channel(self, channel) -> None:
+    def close_channel(self, channel: paramiko.Channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
         except Exception as e:
             logger.error(f"Error closing the channel: {e}")
 
-    def execute_command(self, virtual_machine, command) -> str:
+    def execute_command(self, virtual_machine: _VirtualMachine, command: str) -> str:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
@@ -158,7 +213,12 @@ class AutoInjectBaseTest:
             return command_output
 
     def _test_uninstall_commands(
-        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        self,
+        virtual_machine: _VirtualMachine,
+        stop_weblog_command: str,
+        start_weblog_command: str,
+        uninstall_command: str,
+        install_command: str,
     ):
         """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
@@ -221,7 +281,7 @@ class AutoInjectBaseTest:
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
-    def _test_uninstall(self, virtual_machine):
+    def _test_uninstall(self, virtual_machine: _VirtualMachine):
         header = "----------------------------------------------------------------------"
         vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
@@ -230,7 +290,7 @@ class AutoInjectBaseTest:
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
             if context.library.name in ["ruby", "python", "dotnet"]:
-                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+                start_weblog_command = virtual_machine.get_provision().weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             # On older Docker versions, the network recreation can hang. The solution is to restart Docker.
@@ -243,7 +303,7 @@ class AutoInjectBaseTest:
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
 
-    def _test_no_world_writeable(self, virtual_machine):
+    def _test_no_world_writeable(self, virtual_machine: _VirtualMachine):
         """Checks that there are no world writeable files in /opt/datadog-packages/datadog-apm*"""
         logger = vm_logger(context.scenario.host_log_folder, virtual_machine.name)
         logger.info(

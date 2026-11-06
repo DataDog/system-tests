@@ -4,7 +4,6 @@ class InternalController < ApplicationController
   def healthcheck
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
-    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
 
     render json: {status: 'ok', library: {name: 'ruby', version: version}}
   end
@@ -38,6 +37,17 @@ class InternalController < ApplicationController
     if open_feature = Datadog.send(:components)&.open_feature
       worker = open_feature.instance_variable_get(:@worker)
       worker.send(:send_events, *worker.dequeue)
+    end
+
+    # Flush OTel metrics
+    begin
+      if defined?(::OpenTelemetry)
+        meter_provider = ::OpenTelemetry.meter_provider
+        meter_provider.force_flush if meter_provider.respond_to?(:force_flush)
+      end
+    rescue => e
+      Rails.logger.error("Failed to flush OTel metrics: #{e.class}: #{e}\n#{e.backtrace.join("\n")}")
+      raise
     end
 
     render plain: 'OK'

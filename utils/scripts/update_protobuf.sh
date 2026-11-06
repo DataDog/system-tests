@@ -38,7 +38,7 @@ mkdir -p "$GOPATH/src/github.com/DataDog"
 mkdir -p "$GOPATH/src/github.com/gogo"
 git_clone_or_update https://github.com/gogo/protobuf.git "$GOPATH/src/github.com/gogo/protobuf"
 git_clone_or_update https://github.com/DataDog/datadog-agent.git "$GOPATH/src/github.com/DataDog/datadog-agent"
-git_clone_or_update https://git@github.com/DataDog/agent-payload.git "$GOPATH/src/github.com/DataDog/agent-payload"
+git_clone_or_update https://github.com/DataDog/agent-payload.git "$GOPATH/src/github.com/DataDog/agent-payload"
 
 # Remove gogo references to avoid getting RegisterExtension, which is not supported in Python.
 sed -e 's~ \[(gogo.*\]~~g' \
@@ -68,5 +68,11 @@ protoc \
     -I "$ROOT_DIR" \
     --descriptor_set_out="$ROOT_DIR/utils/proxy/_decoders/remoteconfig.descriptor" \
     "$ROOT_DIR/utils/proxy/_decoders/remoteconfig.proto"
+
+protoc \
+    --include_imports \
+    -I "$ROOT_DIR" \
+    --descriptor_set_out="$ROOT_DIR/utils/proxy/_decoders/metrics_v3.descriptor" \
+    "$ROOT_DIR/utils/proxy/_decoders/metrics_v3.proto"
 
 echo "Success"

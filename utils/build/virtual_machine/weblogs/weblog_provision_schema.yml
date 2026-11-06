@@ -1,6 +1,6 @@
 # YAML Schema for Weblog Provision Files
 # This schema validates the structure of provision_*.yml files in utils/build/virtual_machine/weblogs/[lang]/
-# Based on documentation: docs/scenarios/onboarding_provision_section.md (Weblog Provision Structure section)
+# Based on documentation: docs/understand/scenarios/onboarding_provision_section.md (Weblog Provision Structure section)
 
 $schema: http://json-schema.org/draft-07/schema#
 type: object
@@ -159,4 +159,6 @@ examples:
           copy_files:
             - name: "copy-container-run-script"
               local_path: "utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh"
+            - name: "copy-pull-agent-image-script"
+              local_path: "utils/build/virtual_machine/weblogs/common/pull_agent_image.sh"
           remote-command: "sh create_and_run_app_container.sh" 

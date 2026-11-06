@@ -4,32 +4,33 @@ from pathlib import Path
 
 from utils import interfaces
 from utils._context.component_version import Version
-from utils._context.containers import OpenTelemetryCollectorContainer
+from utils._context.containers import OpenTelemetryCollectorContainer, PostgresContainer
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
 
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
+    postgres_container: PostgresContainer
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "OTEL_COLLECTOR",
             github_workflow="endtoend",
             doc="TODO",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
-            include_postgres_db=True,
-            use_proxy=use_proxy,
-            mocked_backend=mocked_backend,
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
+            use_proxy=True,
         )
+
+        self.postgres_container = PostgresContainer()
+        self._containers.append(self.postgres_container)
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
-                "DD_API_KEY": "0123",
+                "DD_API_KEY": FakeDatadogKey.OTEL_COLLECTOR,
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
@@ -45,18 +46,12 @@ class OtelCollectorScenario(DockerScenario):
                 },
             },
         )
-        self._required_containers.append(self.collector_container)
+        self._containers.append(self.collector_container)
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
 
-        if not self.proxy_container.mocked_backend:
-            interfaces.backend.configure(self.host_log_folder, replay=self.replay)
-
-            if "DD_API_KEY" not in os.environ:
-                pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")
-
-            self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
+        self.collector_container.depends_on.append(self.postgres_container)
 
         postgres_image = self.postgres_container.image.name
         image_parts = postgres_image.split(":")
@@ -70,10 +65,6 @@ class OtelCollectorScenario(DockerScenario):
         self.otel_collector_version = Version(self.collector_container.image.labels["org.opencontainers.image.version"])
 
         self.components["otel_collector"] = self.otel_collector_version
-        # Extract version from image name
-        image_name = self.postgres_container.image.name
-        postgres_version = image_name.split(":", 1)[1] if ":" in image_name else "unknown"
-        self.components["postgresql"] = postgres_version
 
         self.warmups.append(self._print_otel_collector_version)
 
@@ -123,7 +114,3 @@ class OtelCollectorScenario(DockerScenario):
             self.collector_container.stop()
 
         interfaces.otel_collector.check_deserialization_errors()
-
-    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
-        self.test_schemas(session, interfaces.otel_collector, [])
-        super().pytest_sessionfinish(session, exitstatus)

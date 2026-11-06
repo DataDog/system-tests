@@ -1,0 +1,823 @@
+{
+  "sketches": [
+    {
+      "metric": "runtime.python.cpu.ctx_switch.voluntary",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 33.0,
+          "max": 106.0,
+          "avg": 69.5,
+          "sum": 139.0,
+          "k": [
+            1564,
+            1639
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 11.0,
+          "max": 12.0,
+          "avg": 11.5,
+          "sum": 23.0,
+          "k": [
+            1493,
+            1498
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.cpu.time.sys",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 52,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 0.06999999999999998,
+          "max": 0.16,
+          "avg": 0.11499999999999999,
+          "sum": 0.22999999999999998,
+          "k": [
+            1166,
+            1220
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.010000000000000009,
+          "max": 0.010000000000000009,
+          "avg": 0.010000000000000009,
+          "sum": 0.020000000000000018,
+          "k": [
+            1041
+          ],
+          "n": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.count.gen1",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 3.0,
+          "max": 5.0,
+          "avg": 4.0,
+          "sum": 8.0,
+          "k": [
+            1409,
+            1442
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 4.0,
+          "max": 5.0,
+          "avg": 4.5,
+          "sum": 9.0,
+          "k": [
+            1427,
+            1442
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.collections.gen0",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 33.0,
+          "max": 142.0,
+          "avg": 87.5,
+          "sum": 175.0,
+          "k": [
+            1564,
+            1658
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.5,
+          "sum": 1.0,
+          "k": [
+            0,
+            1338
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.cpu.time.user",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 52,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 0.51,
+          "max": 1.4200000000000002,
+          "avg": 0.9650000000000001,
+          "sum": 1.9300000000000002,
+          "k": [
+            1295,
+            1361
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.030000000000000027,
+          "max": 0.040000000000000036,
+          "avg": 0.03500000000000003,
+          "sum": 0.07000000000000006,
+          "k": [
+            1112,
+            1130
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.cpu.percent",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 52,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 5.797168453070031,
+          "max": 16.663158085810224,
+          "avg": 11.230163269440128,
+          "sum": 22.460326538880256,
+          "k": [
+            1451,
+            1519
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.39994913118990943,
+          "max": 0.49993548337587035,
+          "avg": 0.44994230728288986,
+          "sum": 0.8998846145657797,
+          "k": [
+            1279,
+            1293
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.cpu.ctx_switch.involuntary",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 11.0,
+          "max": 18.0,
+          "avg": 14.5,
+          "sum": 29.0,
+          "k": [
+            1493,
+            1524
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.5,
+          "sum": 1.0,
+          "k": [
+            0,
+            1338
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.pause.time",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 24702670.0,
+          "max": 203002630.0,
+          "avg": 113852650.0,
+          "sum": 227705300.0,
+          "k": [
+            2436,
+            2572
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 504153.0,
+          "avg": 252076.5,
+          "sum": 504153.0,
+          "k": [
+            0,
+            2185
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.pause.max",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 4793966.0,
+          "max": 89312921.0,
+          "avg": 47053443.5,
+          "sum": 94106887.0,
+          "k": [
+            2330,
+            2519
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 504153.0,
+          "avg": 252076.5,
+          "sum": 504153.0,
+          "k": [
+            0,
+            2185
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.thread_count",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 9.0,
+          "max": 11.0,
+          "avg": 10.0,
+          "sum": 20.0,
+          "k": [
+            1480,
+            1493
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 8.0,
+          "max": 11.0,
+          "avg": 9.5,
+          "sum": 19.0,
+          "k": [
+            1472,
+            1493
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.collections.gen1",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 3.0,
+          "max": 13.0,
+          "avg": 8.0,
+          "sum": 16.0,
+          "k": [
+            1409,
+            1503
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "sum": 0.0,
+          "k": [
+            0
+          ],
+          "n": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.count.gen2",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 7.0,
+          "max": 9.0,
+          "avg": 8.0,
+          "sum": 16.0,
+          "k": [
+            1464,
+            1480
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 7.0,
+          "max": 9.0,
+          "avg": 8.0,
+          "sum": 16.0,
+          "k": [
+            1464,
+            1480
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.collections.gen2",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.5,
+          "sum": 1.0,
+          "k": [
+            0,
+            1338
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "sum": 0.0,
+          "k": [
+            0
+          ],
+          "n": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.gc.count.gen0",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 479.0,
+          "max": 1155.0,
+          "avg": 817.0,
+          "sum": 1634.0,
+          "k": [
+            1736,
+            1793
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 415.0,
+          "max": 680.0,
+          "avg": 547.5,
+          "sum": 1095.0,
+          "k": [
+            1727,
+            1759
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "metric": "runtime.python.mem.rss",
+      "tags": [
+        "entrypoint.name:gunicorn",
+        "entrypoint.type:script",
+        "entrypoint.workdir:app",
+        "env:system-tests",
+        "key1:val1",
+        "key2:val2",
+        "lang:python",
+        "lang_interpreter:CPython",
+        "lang_version:3.14.8",
+        "service:weblog",
+        "svc.user:true",
+        "tracer_version:4.17.0rc1",
+        "version:1.0.0"
+      ],
+      "type": 20,
+      "interval": 0,
+      "numPoints": 2,
+      "dogsketches": [
+        {
+          "ts": "1793134840",
+          "cnt": "2",
+          "min": 93052928.0,
+          "max": 170340352.0,
+          "avg": 131696640.0,
+          "sum": 263393280.0,
+          "k": [
+            2521,
+            2560
+          ],
+          "n": [
+            1,
+            1
+          ]
+        },
+        {
+          "ts": "1793134850",
+          "cnt": "2",
+          "min": 93061120.0,
+          "max": 172711936.0,
+          "avg": 132886528.0,
+          "sum": 265773056.0,
+          "k": [
+            2521,
+            2561
+          ],
+          "n": [
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

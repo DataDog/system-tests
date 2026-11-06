@@ -519,8 +519,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-001"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.creation",
             "key_path": [
@@ -625,8 +631,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-002"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.success",
             "key_path": [
@@ -695,8 +707,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-003"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.failure",
             "key_path": [
@@ -783,8 +801,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-004"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.cancellation",
             "key_path": [
@@ -819,6 +843,50 @@
             "address": "server.business_logic.payment.cancellation",
             "key_path": [
               "livemode"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "llm-001-000",
+      "name": "LLM call",
+      "tags": {
+        "type": "llm.event",
+        "category": "business_logic",
+        "module": "business_logic"
+      },
+      "min_version": "1.25.0",
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.business_logic.llm.event",
+                "key_path": [
+                  "provider"
+                ]
+              }
+            ]
+          },
+          "operator": "exists"
+        }
+      ],
+      "transformers": [],
+      "output": {
+        "event": false,
+        "keep": true,
+        "attributes": {
+          "appsec.events.llm.call.provider": {
+            "address": "server.business_logic.llm.event",
+            "key_path": [
+              "provider"
+            ]
+          },
+          "appsec.events.llm.call.model": {
+            "address": "server.business_logic.llm.event",
+            "key_path": [
+              "model"
             ]
           }
         }

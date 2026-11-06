@@ -11,6 +11,7 @@ gem 'rdkafka', '~> 0.21.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem 'faraday', '~> 2.13.0'
+gem 'faraday-follow_redirects', '~> 0.3'
 
 group :development do
   gem 'pry-byebug'

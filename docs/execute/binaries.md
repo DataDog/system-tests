@@ -7,6 +7,38 @@ But we often want to run system tests against unmerged changes. The general appr
 
 * Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
 
+### Building an agent image from a local datadog-agent branch
+
+If your datadog-agent changes are limited to `pkg/trace` or `cmd/trace-agent`, you don't need
+to wait for a datadog-agent CI image build (or run the slow, Linux-devcontainer-only
+`dda inv agent.hacky-dev-image-build`) to test them. `utils/scripts/build-local-agent-image.sh`
+compiles just the trace-agent binary from your local checkout/worktree and overlays it onto a
+published agent base image:
+
+```bash
+./utils/scripts/build-local-agent-image.sh /path/to/datadog-agent datadog/agent-dev:my-branch
+echo datadog/agent-dev:my-branch > binaries/agent-image
+./build.sh golang
+TEST_LIBRARY=golang ./run.sh DEFAULT
+```
+
+Run `./utils/scripts/build-local-agent-image.sh --help` for all options (base image, output
+image tag/path via flags or env vars, etc). The script builds the trace-agent with `CGO_ENABLED=1`
+(required by the zstd dependency, so it can't cross-compile from macOS with `CGO_ENABLED=0`)
+inside a `golang` container matching your Docker host's architecture and your agent checkout's
+`.go-version`, and sets version ldflags so the resulting binary reports the same agent version as
+the base image (otherwise system-tests' agent-version gating sees a generic `6.0.0`).
+
+To confirm the custom binary is actually running once a scenario has executed:
+* `logs_<scenario>/docker/agent/stdout.log` -- TRACE-level log lines show `/src/...` source
+  paths, since the binary was compiled inside the script's `/src` mount.
+* `logs_<scenario>/docker/agent/image.json` -- shows the image tag that was used.
+
+**Limitation**: only the trace-agent binary is replaced, so this only covers changes inside
+`pkg/trace`/`cmd/trace-agent`. For changes elsewhere in datadog-agent, build a full agent image
+instead, either with `dda inv agent.hacky-dev-image-build` from a Linux devcontainer, or by using
+the CI-built `datadog/agent-dev:<branch>` image from your datadog-agent PR.
+
 ## C++ library
 
 * Tracer:
@@ -17,6 +49,25 @@ There are two ways for running the C++ library tests with a custom tracer:
 2. Clone the dd-trace-cpp repo inside `binaries`
 
 * Profiling: add a ddprof release tar to the binaries folder. Call the `install_ddprof`.
+
+## C++ Kong library (cpp_kong)
+
+There are three ways to run system-tests with a custom Kong plugin:
+
+1. Place a `kong-plugin-ddtrace*.rock` file (`.src.rock` artifact from CI) in `binaries/`. The build will extract the source files from the rock package.
+2. Clone the kong-plugin-ddtrace repo inside `binaries/`:
+    ```bash
+    cd binaries && git clone https://github.com/DataDog/kong-plugin-ddtrace.git
+    ```
+3. Use `load-binary.sh` to download the latest CI artifact automatically:
+    ```bash
+    ./utils/scripts/load-binary.sh cpp_kong
+    ```
+
+To test with a custom dd-trace-cpp C binding, you can additionally:
+* Create a file `cpp-load-from-git` in `binaries/` (e.g. `https://github.com/DataDog/dd-trace-cpp@main`)
+* Clone dd-trace-cpp inside `binaries/`
+* Place a pre-built `libdd_trace_c.so` in `binaries/`
 
 ## .Net library
 
@@ -63,7 +114,17 @@ By default you will be on the `master` branch, but if you'd like to run system-t
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+For ordinary Java tests, copy these two JARs. Do not copy sources or Javadoc JARs.
+
+For OpenFeature parametric tests at SDK revision
+`411eb0537e93cbdea7309cd49694aebdbfbcd389`, also build
+`:products:feature-flagging:feature-flagging-api:jar` and copy
+`products/feature-flagging/feature-flagging-api/build/libs/dd-openfeature-*.jar`
+from that same revision. Older SDK revisions may use `:dd-openfeature:jar` and
+`dd-openfeature/build/libs/` instead. The development artifact loader downloads
+`dd-java-agent.jar` and `dd-openfeature.jar` from the same SDK branch for both
+ordinary Java weblogs and the parametric application. Do not combine an
+automatically downloaded API with a second custom copy of that API.
 
 4. Build your selected weblog:
 
@@ -119,9 +180,36 @@ There are three ways to run system-tests with a custom node tracer.
 ## PHP library
 
 - Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
-  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline of dd-trace-php's `gitlab.ddbuild.io`), from a CI run of your branch.
+    - **Via the browser:** open the pipeline for your branch, drill into the `package-trigger`
+      child pipeline, open the `package extension: [...]` job, and download its artifacts.
+    - **Via `glab` (for agents/CLI use):** the one-liners `glab ci artifact`/`glab job artifact`
+      only search the *top-level* pipeline's jobs, so they never find `package extension: [...]`
+      (it lives in the `package-trigger` **child** pipeline) — they just hang instead of failing
+      fast. Walk the GitLab API by hand instead (project is `DataDog/apm-reliability/dd-trace-php`,
+      project ID `355`; see [GitLab CLI setup](../ai/ai-tools-integration-guide.md#gitlab-cli-glab)).
+      These calls must target `gitlab.ddbuild.io` explicitly via `--hostname`, since `glab`'s
+      default host may point elsewhere:
+      ```bash
+      # 1. Find the top-level pipeline for your commit
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines?sha=<commit-sha>"
+
+      # 2. List that pipeline's trigger bridges, find package-trigger's downstream_pipeline.id
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<pipeline-id>/bridges"
+
+      # 3. Find the job's numeric id in that child pipeline (paginate with &page=N if needed)
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<child-pipeline-id>/jobs?per_page=100"
+
+      # 4. Download the job's artifacts zip (large; can take a few minutes). `--output` selects
+      # glab's own response format (json/ndjson), not a file path, so redirect stdout instead.
+      glab api --hostname gitlab.ddbuild.io "/projects/355/jobs/<job-id>/artifacts" > artifacts.zip
+
+      # 5. Pull out just the tarball you need, matching your host/container architecture
+      # (<arch> is aarch64 or x86_64, matching `uname -m` inside the PHP weblog container)
+      unzip -p artifacts.zip "packages/dd-library-php-<version>-<arch>-linux-gnu.tar.gz" \
+        > binaries/dd-library-php-<version>-<arch>-linux-gnu.tar.gz
+      ```
   - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
-- Copy it in the binaries folder
 
 Then run the tests from the repo root folder:
 
@@ -136,6 +224,12 @@ Then run the tests from the repo root folder:
   ],
 ```
 
+> :note: **Keep `binaries/` clean between runs**
+> Only one PHP tarball should be present in `binaries/` at a time — a stale one left over from an earlier test causes `install_ddtrace.sh`'s "multiple dd-library-php tarballs found" error.
+> This can also happen even when `binaries/` on the host is clean: the PHP base image (`apache-mod.base.Dockerfile`, tagged e.g. `datadog/system-tests:apache-mod-8.2.base-v1`) bakes in whatever was in `binaries/` at the time it was built, and it's only rebuilt if the tag is missing locally.
+> If a stale tarball was baked into the base image, every later build adds a second tarball on top of it. Fix by removing the base image and letting it rebuild:
+> - `docker rmi datadog/system-tests:<variant>.base-v1`
+
 ## Python library
 
 Use one of the four options:
@@ -149,11 +243,11 @@ For fast local development (for `PARAMETRIC`, `INTEGRATION_FRAMEWORKS`, otel and
 - **Prerequisites (for most use cases, a one-time setup)**: Make sure the native extensions are built for the Python version being used by the scenario you are running. For example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image.
   - If they are not available (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` does not exist), you will need to build them.
   - Ensure Docker is running. In `dd-trace-py`, run `scripts/ddtest` to start up a shell which is based off of the `testrunner` image.
-  - Run `pyenv local 3.11.14 && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions.
+  - Run `pyenv local [PYTHON_VERSION] && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions. You need to replace `[PYTHON_VERSION]` with the appropriate version for the weblog you want to run (for example `3.11` for flask-poc). The required version can be found in the base image docker file of the weblog.
   - Verify the native extensions are built by checking for the existence of `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so`.
   - For any of these steps, swap out the Python version used/checked and the architecture (e.g. `aarch64-linux-gnu` or `x86_64-linux-gnu`) as needed.
 - Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
-- Run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
+- Build and run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
 
 
 ## Ruby library

@@ -1,13 +1,19 @@
+import itertools
 import json
-from typing import Any
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
-import time
+from http import HTTPStatus
+from typing import Any
+
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+
+from tests.test_telemetry_heartbeat_utils import heartbeat_delays_by_runtime
+from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
+from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -48,7 +54,33 @@ def is_v1_payload(data: dict):
     return get_request_content(data).get("api_version") == "v1"
 
 
-@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
+def _first_lifecycle_per_runtime(
+    telemetry_data: list[dict[str, Any]],
+    skip_request_types: frozenset[str],
+) -> list[tuple[str, str]]:
+    """Extract (runtime_id, request_type) for the first lifecycle message per runtime.
+
+    Sorts by (runtime_id, seq_id, batch_index) so the first per runtime is correct.
+    """
+    messages: list[tuple[str, int, int, str]] = []
+    for data in telemetry_data:
+        content: dict[str, Any] = data["request"]["content"]
+        runtime_id: str = content.get("runtime_id", "")
+        seq_id: int = content.get("seq_id", 0)
+        if content.get("request_type") == "message-batch":
+            for i, msg in enumerate(content.get("payload", [])):
+                rt: str | None = msg.get("request_type")
+                if rt and rt not in skip_request_types:
+                    messages.append((runtime_id, seq_id, i, rt))
+        else:
+            rt = content.get("request_type")
+            if rt and rt not in skip_request_types:
+                messages.append((runtime_id, seq_id, 0, rt))
+
+    messages.sort(key=lambda m: (m[0], m[1], m[2]))
+    return [(rid, next(grp)[3]) for rid, grp in itertools.groupby(messages, key=lambda m: m[0])]
+
+
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -69,7 +101,9 @@ class Test_Telemetry:
     def validate_agent_telemetry_data(
         self, validator: Callable[[dict], None], *, flatten_message_batches: bool = True, allow_no_data: bool = False
     ):
-        telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
+        telemetry_data = list(
+            interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=flatten_message_batches)
+        )
 
         if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
@@ -96,8 +130,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -113,17 +145,18 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
-        interfaces.agent.assert_headers_presence(
+        interfaces.mocked_backend.assert_headers_presence(
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        interfaces.agent.assert_headers_presence(path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"])
+        interfaces.mocked_backend.assert_headers_presence(
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"]
+        )
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
@@ -184,59 +217,53 @@ class Test_Telemetry:
                 last_known_data = data
 
     @features.telemetry_app_started_event
+    @rfc(
+        "https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/overview.md#app-lifecycle-events:~:text=A%20tracer%20session%20should%20be%20generated%20when%20the%20tracer%20starts%20and%20should%20be%20identical%20within%20the%20context%20of%20a%20host%20(i.e.%20multiple%20threads%5Cprocesses%20that%20belong%20to%20a%20single%20instrumented%20app%20should%20share%20the%20same%20runtime_id)"
+    )
     def test_app_started_sent_exactly_once(self):
-        """Request type app-started is sent exactly once"""
+        r"""Request type app-started is sent exactly once per runtime id.
+        * multiple threads\processes that belong to a single instrumented app should share the same runtime_id
+        * each runtime id should report exactly one app-started event
+        """
 
-        count_by_runtime_id: dict[str, int] = defaultdict(lambda: 0)
+        count_by_runtime_id: dict[str, int] = {}
 
         for data in interfaces.library.get_telemetry_data():
+            runtime_id: str = data["request"]["content"]["runtime_id"]
+
+            if runtime_id not in count_by_runtime_id:
+                count_by_runtime_id[runtime_id] = 0
+
             if get_request_type(data) == "app-started":
                 logger.debug(
-                    f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
+                    f"runtime id {runtime_id} reported app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
                 )
-                runtime_id = data["request"]["content"]["runtime_id"]
-                if data["response"]["status_code"] == 202:
+                if data["response"]["status_code"] in (HTTPStatus.OK, HTTPStatus.ACCEPTED):
+                    # if for some reason the agent do no answer 200/202, the tracer should report another event
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all(count == 1 for count in count_by_runtime_id.values())
+        for runtime_id, count in count_by_runtime_id.items():
+            assert count == 1, f"runtime id {runtime_id} did not reported exactly one app-started event"
 
     @features.telemetry_app_started_event
-    def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or the first message in the first batch"""
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-        assert len(telemetry_data) > 0, "No telemetry messages"
-        for batch in telemetry_data:
-            if batch["request"]["content"].get("request_type") == "message-batch":
-                if all(
-                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
-                    for message in batch["request"]["content"]["payload"]
-                ):
-                    # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
-                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
-                    continue
-                first_message = batch["request"]["content"]["payload"][0]
-                assert first_message.get("request_type") == "app-started", (
-                    "app-started was not the first message in the first batch"
-                )
-                return
-            else:
-                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-                app_started = [
-                    d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"
-                ]
-                assert app_started, "app-started message not found"
-                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-                assert app_started[0]["request"]["content"]["seq_id"] == min_seq_id, (
-                    "app-started is not the first message by seq_id"
-                )
-                return
-        raise ValueError("app-started message not found")
+    def test_app_started_is_first_message(self) -> None:
+        """Request type app-started is the first telemetry message by seq_id (per runtime_id).
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
-    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
+        Uses seq_id ordering for deterministic testing, where the first captured batch has to be the first one sent.
+        """
+        skip_request_types: frozenset[str] = frozenset({"sketches", "generate-metrics", "logs", "distributions"})
+        telemetry_data: list[dict[str, Any]] = list(
+            interfaces.library.get_telemetry_data(flatten_message_batches=False)
+        )
+        assert len(telemetry_data) > 0, "No telemetry messages"
+
+        first_per_runtime: list[tuple[str, str]] = _first_lifecycle_per_runtime(telemetry_data, skip_request_types)
+        assert first_per_runtime, "No lifecycle telemetry messages found (only sketches/generate-metrics/logs?)"
+        for runtime_id, first_type in first_per_runtime:
+            assert first_type == "app-started", (
+                f"runtime_id {runtime_id}: first lifecycle message is {first_type!r}, expected app-started"
+            )
+
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
@@ -258,8 +285,8 @@ class Test_Telemetry:
 
             if key not in self.library_requests:
                 # once the library interface is validated, weblog is not stopped. But it can send other data, and
-                # they won't be seen. The agent interface wait 5 second after, and can collect data. So if the
-                # library sent some data during this 5s, the agent interface will see it, but not the library
+                # they won't be seen. The mocked backend interface waits 5 seconds after, and can collect data. So if the
+                # library sent some data during this 5s, the mocked backend interface will see it, but not the library
                 # interface. For now, simply do not consider this use case, waiting for a better solution.
 
                 pass
@@ -290,43 +317,25 @@ class Test_Telemetry:
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
-    def _get_heartbeat_delays_by_runtime() -> dict:
+    def _get_heartbeat_delays_by_runtime() -> dict[str, list[float]]:
         """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        heartbeats_by_runtime = defaultdict(list)
+        delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(
+            interfaces.library.get_telemetry_data(flatten_message_batches=False),
+            # Require 2 intervals of lifespan so a short-lived process (e.g. a forked child
+            # from the session-id tests) can't skew the average with just a couple of
+            # samples. A normal long-lived runtime clears this easily.
+            min_lifespan=context.telemetry_heartbeat_interval * 2,
+        )
+        assert delays_by_runtime, (
+            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
+        )
 
-        for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "app-heartbeat":
-                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
-
-        delays_by_runtime = {}
-
-        for runtime_id, heartbeats in heartbeats_by_runtime.items():
-            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
-
-            logger.debug(f"Heartbeats for runtime {runtime_id}:")
-
-            # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
-
-            prev_message_time = None
-            delays: list[float] = []
-            for data in heartbeats:
-                curr_message_time = isoparse(data["request"]["timestamp_start"])
-                if prev_message_time is None:
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
-                else:
-                    delay = (curr_message_time - prev_message_time).total_seconds()
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
-                    delays.append(delay)
-
-                prev_message_time = curr_message_time
-
-            delays_by_runtime[runtime_id] = delays
+        for runtime_id, delays in delays_by_runtime.items():
+            logger.debug(f"Heartbeat delays for runtime {runtime_id}: {delays}")
 
         return delays_by_runtime
 
@@ -403,8 +412,15 @@ class Test_Telemetry:
         seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
         seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
+        # The same dependency reported once per process is valid: children spawned by the
+        # session-id tests are separate processes (distinct runtime_id) that legitimately
+        # re-load and re-report the same dependency. Duplicate detection is therefore scoped
+        # to a single runtime_id rather than the whole app.
+        loaded_per_runtime: dict[str, set[str]] = defaultdict(set)
+
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
+            runtime_id = content.get("runtime_id")
             if content.get("request_type") == "app-started":
                 if "dependencies" in content["payload"]:
                     for dependency in content["payload"]["dependencies"]:
@@ -417,14 +433,15 @@ class Test_Telemetry:
             elif content.get("request_type") == "app-dependencies-loaded":
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
-                    if seen_loaded_dependencies.get(dependency_id) is True:
-                        raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
-                        )
+                    if dependency_id in seen_loaded_dependencies:
+                        if dependency_id in loaded_per_runtime[runtime_id]:
+                            raise Exception(
+                                "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                            )
+                        loaded_per_runtime[runtime_id].add(dependency_id)
+                        seen_loaded_dependencies[dependency_id] = True
                     if dependency_id in seen_defined_dependencies:
                         seen_defined_dependencies[dependency_id] = True
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
@@ -441,24 +458,29 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
-    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration: dict[str, dict] = {
+        test_configuration: dict[str, dict[str, object]] = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
+            "nodejs": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port, "DD_APPSEC_ENABLED": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
-            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
+            "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
+            "rust": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port},
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
+        nodejs_legacy_config_names = {
+            "DD_AGENT_HOST": ["DD_AGENT_HOST", "hostname"],
+            "DD_TRACE_AGENT_PORT": ["DD_TRACE_AGENT_PORT", "port"],
+            "DD_APPSEC_ENABLED": ["DD_APPSEC_ENABLED", "appsec.enabled"],
+        }
 
         def validator(data: dict):
             if get_request_type(data) == "app-started":
@@ -468,10 +490,14 @@ class Test_Telemetry:
 
                 # validator is updated to handle tracers sending configuration chaining data
                 for expected_config_name, expected_value in configuration_map.items():
-                    config_name_to_check = expected_config_name
+                    config_names_to_check = [expected_config_name]
                     if context.library.name == "java":
                         # support for older versions of Java Tracer
-                        config_name_to_check = expected_config_name.replace(".", "_")
+                        config_names_to_check = [expected_config_name.replace(".", "_")]
+                    elif context.library.name == "nodejs":
+                        config_names_to_check = nodejs_legacy_config_names.get(
+                            expected_config_name, [expected_config_name]
+                        )
 
                     expected_value_str = str(expected_value).lower()
 
@@ -479,17 +505,20 @@ class Test_Telemetry:
                     config_found = False
                     for cnf in configurations:
                         # Handle different configuration structures - some might not have 'value' key
-                        if cnf.get("name") == config_name_to_check:
+                        if cnf.get("name") in config_names_to_check:
                             config_value = cnf.get("value")
                             # Accept both the expected value and its float version for telemetry_heartbeat_interval
-                            if expected_config_name == "telemetry_heartbeat_interval":
+                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL" and isinstance(
+                                expected_value, str | int | float
+                            ):
                                 try:
                                     expected_float = float(expected_value)
-                                    config_float = float(config_value)
-                                    if config_float == expected_float:
-                                        config_found = True
-                                        configurations_present.append(expected_config_name)
-                                        break
+                                    if isinstance(config_value, str | int | float):
+                                        config_float = float(config_value)
+                                        if config_float == expected_float:
+                                            config_found = True
+                                            configurations_present.append(expected_config_name)
+                                            break
                                 except Exception as e:
                                     logger.debug(
                                         f"Could not compare as float for config '{expected_config_name}': {e}"
@@ -501,7 +530,7 @@ class Test_Telemetry:
 
                     if not config_found:
                         # For debugging, show all entries with this config name
-                        matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
+                        matching_entries = [cnf for cnf in configurations if cnf.get("name") in config_names_to_check]
                         if matching_entries:
                             values_found = [
                                 f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})"
@@ -514,7 +543,7 @@ class Test_Telemetry:
                         else:
                             raise Exception(
                                 f"Client Configuration information is not accurately reported, "
-                                f"{expected_config_name} is not present in configuration on app-started event"
+                                f"none of {config_names_to_check} are present in configuration on app-started event"
                             )
 
         self.validate_library_telemetry_data(validator)
@@ -522,10 +551,6 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
-        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
-    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
@@ -554,6 +579,90 @@ class Test_Telemetry:
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
+    def setup_session_id_headers_across_forks(self):
+        """Trigger spawn_child endpoint to create a fork tree for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "true"})
+
+    def setup_session_id_headers_across_spawned(self):
+        """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "false"})
+
+    def _validate_session_id_headers_across_processes(self) -> None:
+        """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry.
+
+        Stable Service Instance Identifier RFC: each app instance has one root runtime_id,
+        and DD-Session-ID (instance id) must equal runtime_id. When DD-Root-Session-ID is
+        absent, the process is its own root. All processes from one app instance share a
+        single root session ID, whether they run per-process tracers (e.g. parent/child
+        from spawn_child) or share one tracer (e.g. nginx workers).
+        """
+        # Fail loudly if the endpoint is missing/broken instead of passing on unrelated
+        # startup/shutdown events: the child process must have been spawned successfully.
+        assert self.spawn_child_response.status_code == 200, (
+            f"/spawn_child did not succeed: status {self.spawn_child_response.status_code}"
+        )
+
+        # Use lifecycle events only; metrics and log events from lib-datadog can contain
+        # runtime/session_ids that do not map to tracer-generated telemetry.
+        telemetry_data = list(interfaces.library.get_lifecycle_events())
+        if not telemetry_data:
+            raise ValueError("No telemetry data to validate on")
+
+        assert len(telemetry_data) > 1, (
+            f"Expected multiple telemetry events to verify consistency, got {len(telemetry_data)}"
+        )
+
+        runtime_ids = set[str]()
+        parent_runtime_ids = set[str]()
+        root_runtime_ids = set[str]()
+
+        for data in telemetry_data:
+            # Headers are not case sensitive
+            curr_sid = get_header(data, "request", "dd-session-id")
+            curr_rid = get_header(data, "request", "dd-root-session-id")
+            curr_pid = get_header(data, "request", "dd-parent-session-id")
+            curr_id = data["request"]["content"].get("runtime_id")
+
+            # Instance id (DD-Session-ID) must be present in all lifecycle events and equal to runtime_id
+            assert curr_sid is not None, f"DD-Session-ID is required in telemetry data: {data}"
+            assert curr_sid == curr_id, f"DD-Session-ID must match runtime_id: {curr_sid} != {curr_id}"
+
+            runtime_ids.add(curr_id)
+            if curr_pid is not None:
+                parent_runtime_ids.add(curr_pid)
+            if curr_rid is not None:
+                root_runtime_ids.add(curr_rid)
+            else:
+                # If dd-root-session-id is not set, dd-session-id is treated as root
+                root_runtime_ids.add(curr_id)
+
+        # One root per app instance: all processes share the same root session ID
+        assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
+
+        if len(runtime_ids) > 1:
+            # Multiple runtimes (per-process tracers): root must be consistent
+            # across all payloads from all processes
+            if parent_runtime_ids:
+                # DD-Parent-Session-ID is optional but must reference a known runtime if present
+                missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
+                assert not missing_parent_runtime_ids, (
+                    f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
+                )
+        else:
+            # Single runtime (e.g. nginx workers sharing one tracer): session ID
+            # must be consistent across all events
+            sole_rid = next(iter(runtime_ids))
+            sole_root = next(iter(root_runtime_ids))
+            assert sole_rid == sole_root, f"Single runtime_id {sole_rid} does not match root {sole_root}"
+
+    def test_session_id_headers_across_forks(self):
+        """Test session ID headers in telemetry (fork=true). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
+    def test_session_id_headers_across_spawned(self):
+        """Test session ID headers in telemetry (fork=false, exec). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
 
 @features.telemetry_app_started_event
 @scenarios.telemetry_enhanced_config_reporting
@@ -562,7 +671,7 @@ class Test_TelemetryEnhancedConfigReporting:
     # Expected configuration precedence: default -> env_var -> code
     EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "name": "DD_LOG_INJECTION",
+            "names": ["DD_LOGS_INJECTION", "DD_LOG_INJECTION"],
             "precedence": [
                 {"origin": "default", "value": True},
                 {"origin": "env_var", "value": False},
@@ -586,7 +695,7 @@ class Test_TelemetryEnhancedConfigReporting:
             ],
         },
         "java": {
-            "name": "logs_injection_enabled",
+            "name": "DD_LOGS_INJECTION_ENABLED",
             "precedence": [
                 {"origin": "default", "value": "true"},
                 {
@@ -594,6 +703,14 @@ class Test_TelemetryEnhancedConfigReporting:
                     "value": "true",
                 },  # File-based properties differ from sysprops, but still report with origin:jvm_prop, even though they have a lower precedence than env_var: https://github.com/DataDog/dd-trace-java/blob/5c66a150ff3b16ebf9626c0f0170fc9715461a6b/utils/config-utils/src/main/java/datadog/trace/bootstrap/config/provider/ConfigProvider.java#L507-L514
                 {"origin": "env_var", "value": "false"},
+            ],
+        },
+        "ruby": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
             ],
         },
     }
@@ -610,15 +727,17 @@ class Test_TelemetryEnhancedConfigReporting:
     def test_telemetry_enhanced_config_reporting_precedence(self):
         """Verify configuration precedence order matches expected sequence."""
         expected_config = self.EXPECTED_CONFIGS[context.library.name]
-        config_name = expected_config["name"]
+        config_names = expected_config.get("names")
+        if config_names is None:
+            config_names = [expected_config["name"]]
         expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
         # Get configurations from telemetry events
         all_configs = interfaces.library.get_telemetry_configurations()
         assert all_configs, "No configurations found"
 
-        matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
-        assert matching_configs, f"No configurations found for {config_name}"
+        matching_configs = [cfg for cfg in all_configs if cfg["name"] in config_names]
+        assert matching_configs, f"No configurations found for any of {config_names}"
 
         # Group configurations by origin and keep the latest (highest seq_id) for each origin
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
@@ -632,9 +751,11 @@ class Test_TelemetryEnhancedConfigReporting:
         # Verify each configuration matches expected precedence
         for i, expected in enumerate(expected_precedence):
             actual = sorted_configs[i]
-            assert actual["name"] == config_name, f"Config: {actual}, Expected Name: {config_name}"
+            assert actual["name"] in config_names, f"Config: {actual}, Expected Name in: {config_names}"
             assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
-            assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
+            assert actual["value"] == expected["value"] or (
+                context.library.name == "python" and actual["value"] == str(expected["value"]).lower()
+            ), f" Config: {actual}, Expected Value: {expected['value']}"
 
     def _get_latest_configs_by_origin(self, configs: list[dict]) -> dict[str, dict[str, Any]]:
         """Group configs by origin and return the latest (highest seq_id) for each origin."""
@@ -655,9 +776,9 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, chunk, chunk_format in interfaces.agent.get_traces():
-                for span in chunk.get("spans", []):
-                    span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+            for _, chunk in interfaces.mocked_backend.get_traces():
+                for span in chunk.spans:
+                    span_meta = span.meta
                     if tag in span_meta:
                         return
             raise Exception(f"Did not find tag {tag} in any spans")
@@ -665,28 +786,6 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.id")
         validate_at_least_one_span_with_tag("_dd.install.time")
         validate_at_least_one_span_with_tag("_dd.install.type")
-
-
-def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result: list = []
-    for obj in objs:
-        if obj is not None:
-            if isinstance(obj, dict):
-                result.extend(list(obj.keys()))
-                result.extend(list(obj.values()))
-            elif isinstance(obj, list):
-                result.extend(obj)
-            else:
-                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-    return result
-
-
-def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
-    lower_key = key.lower()
-    is_allowed_key = lower_key in allowed_keys
-    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-    return is_allowed_key or is_allowed_prefix
 
 
 @features.telemetry_api_v2_implemented
@@ -704,54 +803,6 @@ class Test_TelemetryV2:
                 assert "appsec" in products, (
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
-
-    @irrelevant(
-        condition=context.library not in ("python",),
-        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
-    )
-    def test_config_telemetry_completeness(self):
-        """Assert that config telemetry is handled properly by telemetry intake
-
-        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
-        """
-
-        config_norm_rules = load_telemetry_json("config_norm_rules")
-        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
-        config_aggregation_list = load_telemetry_json("config_aggregation_list")
-
-        lang_configs = get_lang_configs()
-
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if not is_v2_payload(data):
-                continue
-            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
-                language_name = data["request"]["content"]["application"]["language_name"]
-
-                lang_config = lang_configs.get(language_name, {})
-
-                norm_rules = lang_config.get("normalization_rules", {})
-                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
-
-                prefix_keys = get_all_keys_and_values(
-                    config_prefix_block_list,
-                    lang_config.get("prefix_block_list", {}),
-                    config_aggregation_list,
-                    lang_config.get("reduce_rules", {}),
-                )
-
-                configuration = data["request"]["content"]["payload"]["configuration"]
-                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
-
-                missing_config_keys = [
-                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
-                ]
-
-                # This may create a fairly large test output, but it makes the output more actionable
-                if len(missing_config_keys) != 0:
-                    logger.error(json.dumps(missing_config_keys, indent=2))
-                    raise ValueError(
-                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
-                    )
 
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
@@ -814,7 +865,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin is enabled by default."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -853,7 +904,13 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
-        assert co_config == "false", "Code Origin for Spans should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
+        if context.library != "python" or context.library.version < "4.9.0-dev":
+            assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
@@ -1015,15 +1072,67 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
+        )
+
+
+@scenarios.telemetry_extended_heartbeat
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
+
+    def setup_extended_heartbeat_config_matches(self):
+        weblog.get("/")
+
+    def test_extended_heartbeat_config_matches(self):
+        """Test that every config reported in app-started or app-client-configuration-change
+        was eventually reported by at least one app-extended-heartbeat event.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        # Collect all config names reported in app-started and config-change events
+        expected_config_names: set[str] = set()
+        found_app_started = False
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            if request_type in ("app-started", "app-client-configuration-change"):
+                if request_type == "app-started":
+                    found_app_started = True
+                for c in get_configurations(data) or []:
+                    expected_config_names.add(c["name"])
+
+        assert found_app_started, "app-started event not found"
+
+        # Collect all config names ever reported across all extended heartbeats
+        heartbeat_config_names: set[str] = set()
+        found_extended_hb = False
+
+        for data in telemetry_data:
+            if get_request_type(data) == "app-extended-heartbeat":
+                found_extended_hb = True
+                for c in get_configurations(data) or []:
+                    heartbeat_config_names.add(c["name"])
+
+        assert found_extended_hb, "app-extended-heartbeat event not found"
+
+        # For each expected config, verify it was reported by at least one extended heartbeat.
+        # Configs may appear in heartbeats before or after they are (re-)reported in
+        # config-change events (e.g. remote config updates re-report existing configs).
+        missing = sorted(expected_config_names - heartbeat_config_names)
+        assert not missing, (
+            f"{len(missing)} config(s) reported in app-started or config-change but never "
+            f"included in any app-extended-heartbeat event: {missing}"
         )

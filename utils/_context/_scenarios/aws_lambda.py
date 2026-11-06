@@ -1,21 +1,32 @@
 import pytest
 from utils import interfaces
-from utils._context._scenarios.core import ScenarioGroup
-from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from ._core import (
+    DockerScenario,
+    FakeDatadogKey,
+    scenario_groups,
+    scenario_groups as all_scenario_groups,
+    ScenarioGroup,
+)
+from utils._context.constants import WeblogCategory
+from utils._context.containers import (
+    InternalServerContainer,
+    LambdaProxyContainer,
+    LambdaWeblogContainer,
+    MockedBackendContainer,
+)
 from utils._logger import logger
-from .endtoend import DockerScenario, ProxyBasedInterfaceValidator
-from .core import scenario_groups as all_scenario_groups
 
 
-class LambdaScenario(DockerScenario):
+class _LambdaScenario(DockerScenario):
     """Scenario for end-to-end testing of AWS Lambda HTTP Instrumentation.
 
-    The `LambdaScenario` sets up an environment with the following components:
+    The `_LambdaScenario` sets up an environment with the following components:
     - A LambdaWeblog container that runs the application using AWS Lambda RIE (Runtime Interface Emulator).
     - A LambdaProxy container that converts between http requests and lambda events to invoke the function.
 
     In this scenario, there is no agent container, but the LambdaWeblog contains the `datadog-lambda-extension`
-    which is the agent in the context of Lambda.
+    which is the agent in the context of Lambda. It sends to the mocked backend.
     """
 
     def __init__(
@@ -33,12 +44,24 @@ class LambdaScenario(DockerScenario):
             all_scenario_groups.tracer_release,
             all_scenario_groups.end_to_end,
             all_scenario_groups.lambda_end_to_end,
+            all_scenario_groups.all,
         ] + (scenario_groups or [])
 
-        super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
+        super().__init__(
+            name,
+            github_workflow=github_workflow,
+            doc=doc,
+            scenario_groups=scenario_groups,
+            weblog_categories=[WeblogCategory.dd_trace_lambda],
+        )
 
+        self.dd_api_key = FakeDatadogKey.DEFAULT
+        """The API key the lambda weblog sends with"""
         self.lambda_weblog = LambdaWeblogContainer(
-            environment=weblog_env or {}, volumes=weblog_volumes or {}, trace_managed_services=trace_managed_services
+            dd_api_key=self.dd_api_key,
+            environment=weblog_env or {},
+            volumes=weblog_volumes or {},
+            trace_managed_services=trace_managed_services,
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(
@@ -46,8 +69,12 @@ class LambdaScenario(DockerScenario):
             lambda_weblog_port=str(self.lambda_weblog.container_port),
         )
 
+        # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
+        self.mocked_backend_container = MockedBackendContainer(tls=True)
+
         self.lambda_proxy_container.depends_on.append(self.lambda_weblog)
         self.lambda_weblog.depends_on.append(self.proxy_container)
+        self.lambda_weblog.depends_on.append(self.mocked_backend_container)
 
         self.proxy_container.environment.update(
             {
@@ -56,7 +83,9 @@ class LambdaScenario(DockerScenario):
             }
         )
 
-        self._required_containers.extend((self.lambda_weblog, self.lambda_proxy_container))
+        # before the weblog: close_targets removes the containers in reverse order, so it receives what the
+        # extension sends until the weblog stops
+        self._containers.extend((self.mocked_backend_container, self.lambda_weblog, self.lambda_proxy_container))
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -77,9 +106,8 @@ class LambdaScenario(DockerScenario):
 
         self.lambda_proxy_container.environment.update({"LAMBDA_EVENT_TYPE": event_type})
 
-        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
 
         if not self.replay:
@@ -106,7 +134,7 @@ class LambdaScenario(DockerScenario):
         logger.stdout("")
 
     def _start_interfaces_watchdog(self):
-        return super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
+        return super().start_interfaces_watchdog([interfaces.library, interfaces.mocked_backend])
 
     def _set_components(self):
         self.components["library"] = self.library.version
@@ -133,16 +161,13 @@ class LambdaScenario(DockerScenario):
 
             interfaces.library.load_data_from_logs()
             interfaces.library.check_deserialization_errors()
-
-            interfaces.backend.load_data_from_logs()
+            interfaces.mocked_backend.load_data_from_logs()
+            interfaces.mocked_backend.check_deserialization_errors()
         else:
             self._wait_interface(interfaces.library, 0 if force_interface_timeout_to_zero else 5)
-            self._wait_interface(interfaces.agent, 0 if force_interface_timeout_to_zero else 5)
+            self._wait_interface(interfaces.mocked_backend, 0 if force_interface_timeout_to_zero else 5)
             self.lambda_weblog.stop()
             interfaces.library.check_deserialization_errors()
-            interfaces.agent.check_deserialization_errors()
-
-            self._wait_interface(interfaces.backend, 0)
 
     def post_setup(self, session: pytest.Session):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
@@ -152,6 +177,12 @@ class LambdaScenario(DockerScenario):
         finally:
             self.close_targets()
 
+        if not self.replay:
+            # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
+            # can arrive now, so ingest them all instead of waiting an arbitrary time
+            interfaces.mocked_backend.ingest_all_files()
+            interfaces.mocked_backend.check_deserialization_errors()
+
     @property
     def library(self):
         return self.lambda_weblog.library
@@ -160,11 +191,101 @@ class LambdaScenario(DockerScenario):
     def weblog_variant(self):
         return self.lambda_weblog.weblog_variant
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
 
         return result
+
+
+# Appsec Lambda Scenarios
+class AppsecLambdaDefault(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_DEFAULT",
+            doc="Default Lambda scenario",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaBlocking(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_BLOCKING",
+            weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+            weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+            doc="Misc tests for appsec blocking in Lambda",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaApiSecurity(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_API_SECURITY",
+            weblog_env={
+                "DD_API_SECURITY_ENABLED": "true",
+                "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+                "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+                "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+                "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+            },
+            doc="""
+        Scenario for API Security feature in lambda, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaSca(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_SCA",
+            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaRasp(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_RASP",
+            weblog_env={
+                "DD_APPSEC_RASP_ENABLED": "true",
+                "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+                # added to test Test_ExtendedRequestBodyCollection
+                "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+                "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "1.0",
+            },
+            weblog_volumes={
+                "./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}
+            },
+            doc="Enable APPSEC RASP",
+            github_workflow="endtoend",
+            scenario_groups=[
+                scenario_groups.appsec_rasp,
+                scenario_groups.appsec_rasp_scenario,
+                scenario_groups.appsec_lambda,
+            ],
+        )
+
+    def configure(self, config: pytest.Config):
+        self._internal_server = InternalServerContainer()
+        self.lambda_weblog.depends_on.append(self._internal_server)
+        self._containers.append(self._internal_server)
+
+        super().configure(config)
+
+
+class AppsecLambdaInferredSpans(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_INFERRED_SPANS",
+            doc="Lambda scenario with managed services tracing enabled",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+            trace_managed_services=True,
+        )

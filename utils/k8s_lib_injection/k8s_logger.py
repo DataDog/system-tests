@@ -2,7 +2,7 @@ import logging
 import logging.config
 
 
-def k8s_logger(log_folder, log_name, level=logging.INFO):
+def k8s_logger(log_folder: str, log_name: str, level: int = logging.INFO) -> logging.Logger:
     logging.getLogger("kubernetes").setLevel(logging.ERROR)
     specified_logger = logging.getLogger(log_name)
     if len(specified_logger.handlers) == 0:

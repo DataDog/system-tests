@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+  "headers": {
+   "Content-Type": "application/json",
+   "DD-AI-GUARD-SOURCE": "SDK"
+  },
+  "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Malformed entries check, SSN 123-45-6789\"}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}}}}"
+ },
+ "response": {
+  "status": {
+   "code": 200,
+   "message": "OK"
+  },
+  "headers": {
+   "content-type": "application/vnd.api+json",
+   "content-length": "1034"
+  },
+  "body": "{\"data\": {\"id\": \"redaction-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"Sensitive data detected; configured categories will be redacted.\", \"redaction_replacements\": [{\"replacement\": \"Malformed entries check, SSN <REDACTED>\"}, {\"path\": \"messages[0].content\"}, {\"path\": \"messages[0].content\", \"replacement\": null}, {\"path\": \"messages[0].content\", \"replacement\": 42}, {\"path\": \"\", \"replacement\": \"Malformed entries check, SSN <REDACTED>\"}], \"sds_findings\": [{\"rule_display_name\": \"US Social Security Number Scanner\", \"rule_tag\": \"us_ssn\", \"category\": \"ssn\", \"location\": {\"path\": \"messages[0].content\", \"start_index\": 29, \"end_index_exclusive\": 40}}], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": []}}}"
+ }
+}

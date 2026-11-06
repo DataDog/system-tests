@@ -7,7 +7,7 @@ from typing import Any
 
 import boto3
 from botocore.exceptions import ClientError
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Mapping
 import pulumi
 import pulumi_aws as aws
 from pulumi import automation as auto
@@ -18,41 +18,112 @@ import pulumi_command as command
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
+_LAUNCH_REPORT_DELAY_DAYS = 1
+_RETIRE_TAG = "ami-retire-at"
 
 
-def get_last_launched_time(ami_id: str) -> datetime:
-    """Fetches the last launched time of an AMI using AWS CLI.
-    https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-last-launched-time.html
-    Considerations: When the AMI is used to launch an instance, there is a 24-hour delay before that usage is reported.
-    """
+def _retire_at(tags: Mapping[str, str] | None) -> datetime | None:
+    raw = (tags or {}).get(_RETIRE_TAG)
+    if not raw:
+        return None
     try:
-        result = subprocess.run(
-            [
-                "aws",
-                "ec2",
-                "describe-image-attribute",
-                "--image-id",
-                ami_id,
-                "--attribute",
-                "lastLaunchedTime",
-                "--output",
-                "json",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
+        parsed = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=UTC)
+    return parsed
+
+
+def ami_cleanup_action(
+    tags: Mapping[str, str] | None,
+    creation_date: datetime,
+    last_launched_date: datetime | None,
+    now: datetime,
+    retention_days: int,
+    last_launched_days: int,
+    *,
+    launch_lookup_ok: bool = True,
+) -> str:
+    """Return delete, mark, clear, or keep. Active and candidate images wait one extra cleanup."""
+    state = (tags or {}).get("ami-state")
+    if state == "rejected":
+        return "delete"
+    if state in {"active", "candidate"}:
+        if not launch_lookup_ok:
+            return "keep"
+        old = creation_date < now - timedelta(days=retention_days)
+        stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
+        if not (old or stale):
+            return "clear" if _retire_at(tags) is not None else "keep"
+        retire_at = _retire_at(tags)
+        if retire_at is None:
+            return "mark"
+        if retire_at <= now:
+            return "delete"
+        return "keep"
+    old = creation_date < now - timedelta(days=retention_days)
+    stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
+    return "delete" if old or stale else "keep"
+
+
+def should_delete_ami(
+    tags: Mapping[str, str] | None,
+    creation_date: datetime,
+    last_launched_date: datetime | None,
+    now: datetime,
+    retention_days: int,
+    last_launched_days: int,
+    *,
+    launch_lookup_ok: bool = True,
+) -> bool:
+    """Decide whether automatic cleanup can deregister an AMI."""
+    return (
+        ami_cleanup_action(
+            tags,
+            creation_date,
+            last_launched_date,
+            now,
+            retention_days,
+            last_launched_days,
+            launch_lookup_ok=launch_lookup_ok,
         )
-        data = json.loads(result.stdout)
-        if data:
-            last_launched_time: str = data.get("LastLaunchedTime").get("Value", None)
+        == "delete"
+    )
 
-            if last_launched_time:
-                return datetime.fromisoformat(last_launched_time)
-    except Exception as e:
-        print(f"⚠️ Failed to fetch last launched time for AMI {ami_id}: {e}")
 
-    # Return today's date if LastLaunchedTime is missing
-    return datetime.now(UTC)
+def _set_retire_tag(ami_id: str, when: datetime) -> None:
+    value = when.strftime("%Y-%m-%dT%H:%M:%SZ")
+    subprocess.run(
+        ["aws", "ec2", "create-tags", "--resources", ami_id, "--tags", f"Key={_RETIRE_TAG},Value={value}"],
+        check=False,
+    )
+
+
+def _clear_retire_tag(ami_id: str) -> None:
+    subprocess.run(["aws", "ec2", "delete-tags", "--resources", ami_id, "--tags", f"Key={_RETIRE_TAG}"], check=False)
+
+
+def get_last_launched_time(ami_id: str) -> tuple[bool, datetime | None]:
+    """Return the AMI last-launched time. AWS can delay this value for 24 hours."""
+    command = [
+        "aws",
+        "ec2",
+        "describe-image-attribute",
+        "--image-id",
+        ami_id,
+        "--attribute",
+        "lastLaunchedTime",
+        "--output",
+        "json",
+    ]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        value = json.loads(result.stdout).get("LastLaunchedTime", {}).get("Value")
+        return True, datetime.fromisoformat(value) if value else None
+    except (subprocess.CalledProcessError, json.JSONDecodeError, TypeError, ValueError) as error:
+        print(f"⚠️ Failed to fetch last launched time for AMI {ami_id}: {error}")
+        return False, None
 
 
 def deregister_ami(ami_id: str) -> None:
@@ -196,54 +267,34 @@ async def clean_up_amis() -> None:
     ami_retention_days = int(config.require("ami_retention_days"))
     ami_last_launched_days = int(config.require("ami_last_launched_days"))
 
-    cutoff_creation_date = datetime.now(UTC) - timedelta(days=ami_retention_days)
-    cutoff_last_launched_date = datetime.now(UTC) - timedelta(days=ami_last_launched_days)
-
     print(f"🧹 Removing AMIs older than {ami_retention_days} days and not launched in {ami_last_launched_days} days")
 
-    # Fetch all AMIs owned by the current AWS account with the CI=system-tests tag
     ami_ids = (await aws.ec2.get_ami_ids(owners=["self"], filters=[{"name": "tag:CI", "values": ["system-tests"]}])).ids
-
-    # Loop through AMIs and delete the ones that meet the conditions
     for ami_id in ami_ids:
-        print(" ")
-        print(f"🔍 Checking AMI: {ami_id}")
         ami = await aws.ec2.get_ami(
             filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami_id])],
             owners=["self"],
             most_recent=True,
         )
         creation_date = datetime.fromisoformat(ami.creation_date)
-
-        # Fetch last launched time using AWS CLI
-        last_launched_date = get_last_launched_time(ami_id)
-
-        print(f"📅 AMI {ami.id} was created on {creation_date} and last launched data {last_launched_date}")
-
-        # Check deletion conditions
-        should_delete = False
-
-        if creation_date < cutoff_creation_date:
-            should_delete = True
-            print(f"🕒 AMI {ami.id} is older than {ami_retention_days} days (Created on {creation_date})")
-
-        if last_launched_date and last_launched_date < cutoff_last_launched_date:
-            should_delete = True
-            print(
-                f"🚀 AMI {ami.id} not launched in the last {ami_last_launched_days} days (Last: {last_launched_date})"
-            )
-
-        if not last_launched_date and creation_date < cutoff_creation_date:
-            should_delete = True
-            print(
-                f"❌ AMI {ami.id} was NEVER launched.(Older than {ami_retention_days} days created on {creation_date})"
-            )
-
-        # If conditions are met, delete AMI and its associated snapshots
-        if should_delete:
+        launch_lookup_ok, last_launched_date = get_last_launched_time(ami_id)
+        now = datetime.now(UTC)
+        action = ami_cleanup_action(
+            ami.tags,
+            creation_date,
+            last_launched_date,
+            now,
+            ami_retention_days,
+            ami_last_launched_days,
+            launch_lookup_ok=launch_lookup_ok,
+        )
+        print(f"AMI {ami.id} created={creation_date} launched={last_launched_date} action={action}")
+        if action == "delete":
             delete_ami(ami)
-        else:
-            print(f"✅ AMI {ami.id} is not eligible for deletion")
+        elif action == "mark":
+            _set_retire_tag(ami.id, now + timedelta(days=_LAUNCH_REPORT_DELAY_DAYS))
+        elif action == "clear":
+            _clear_retire_tag(ami.id)
 
 
 async def clean_up_amis_by_name() -> None:

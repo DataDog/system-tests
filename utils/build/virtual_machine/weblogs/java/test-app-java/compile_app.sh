@@ -12,7 +12,7 @@ if [ -f "$JETTY_FILE" ]; then
     echo "Jetty already downloaded."
 else
     echo "Downloading Jetty runtime"
-    wget -q https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$JETTY_VERSION/jetty-distribution-$JETTY_VERSION.tar.gz
+    wget -q https://static.datadoghq.com/assets/dd-repo-tools/mirror/02f5f9c4f6b4be0e5b2640d4b5a21e2838d68143ef96c540c2ba39885b60cb62/jetty-distribution-$JETTY_VERSION.tar.gz
     sudo tar -xf jetty-distribution-$JETTY_VERSION.tar.gz -C /opt/
 fi
 

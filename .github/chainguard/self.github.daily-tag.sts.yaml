@@ -1,0 +1,13 @@
+# Policy for: .github/workflows/daily-tag.yml in DataDog/system-tests
+issuer: https://token.actions.githubusercontent.com
+
+subject: repo:DataDog/system-tests:ref:refs/heads/main
+
+claim_pattern:
+  event_name: (push|schedule|workflow_dispatch)
+  job_workflow_ref: DataDog/system-tests/\.github/workflows/daily-tag\.yml@refs/heads/main
+  ref: refs/heads/main
+  repository: DataDog/system-tests
+
+permissions:
+  contents: write

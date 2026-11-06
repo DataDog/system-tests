@@ -1,0 +1,82 @@
+{
+  "snapshot_0": [
+    {
+      "duration": "<scrubbed>",
+      "error": 1,
+      "meta": {
+        "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.1.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.exception_hash": "<scrubbed>",
+        "_dd.debug.error.exception_id": "<scrubbed>",
+        "_dd.p.dm": "-1",
+        "_dd.p.ksr": "1",
+        "_dd.p.tid": "<scrubbed>",
+        "_dd.tags.process": "entrypoint.type:script,entrypoint.workdir:/,runtime.sapi:fpm-fcgi",
+        "env": "system-tests",
+        "error.debug_info_captured": "true",
+        "error.message": "Caught RuntimeException (500): inner exception in /var/www/html/debugger.php:170",
+        "error.stack": "#0 /var/www/html/debugger.php(332): DebuggerController->exceptionReplayInner()\n#1 {main}\n\nNext RuntimeException: outer exception<scrubbed>",
+        "error.type": "RuntimeException",
+        "http.method": "GET",
+        "http.request.headers.user-agent": "<scrubbed>",
+        "http.status_code": "500",
+        "http.url": "http://localhost:7777/exceptionreplay/inner",
+        "http.useragent": "<scrubbed>",
+        "key1": "val1",
+        "key2": "val2",
+        "runtime-id": "<scrubbed>",
+        "span.kind": "server",
+        "version": "<scrubbed>"
+      },
+      "metrics": "<scrubbed>",
+      "name": "web.request",
+      "resource": "GET /exceptionreplay/inner",
+      "service": "weblog",
+      "spanID": "<scrubbed>",
+      "start": "<scrubbed>",
+      "traceID": "<scrubbed>",
+      "type": "web"
+    },
+    "legacy"
+  ],
+  "snapshot_1": [
+    {
+      "duration": "<scrubbed>",
+      "error": 1,
+      "meta": {
+        "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.1.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.exception_hash": "<scrubbed>",
+        "_dd.debug.error.exception_id": "<scrubbed>",
+        "_dd.p.dm": "-1",
+        "_dd.p.ksr": "1",
+        "_dd.p.tid": "<scrubbed>",
+        "_dd.tags.process": "entrypoint.type:script,entrypoint.workdir:/,runtime.sapi:fpm-fcgi",
+        "env": "system-tests",
+        "error.debug_info_captured": "true",
+        "error.message": "Caught RuntimeException (500): inner exception in /var/www/html/debugger.php:170",
+        "error.stack": "#0 /var/www/html/debugger.php(332): DebuggerController->exceptionReplayInner()\n#1 {main}\n\nNext RuntimeException: outer exception<scrubbed>",
+        "error.type": "RuntimeException",
+        "http.method": "GET",
+        "http.request.headers.user-agent": "<scrubbed>",
+        "http.status_code": "500",
+        "http.url": "http://localhost:7777/exceptionreplay/inner",
+        "http.useragent": "<scrubbed>",
+        "key1": "val1",
+        "key2": "val2",
+        "runtime-id": "<scrubbed>",
+        "span.kind": "server",
+        "version": "<scrubbed>"
+      },
+      "metrics": "<scrubbed>",
+      "name": "web.request",
+      "resource": "GET /exceptionreplay/inner",
+      "service": "weblog",
+      "spanID": "<scrubbed>",
+      "start": "<scrubbed>",
+      "traceID": "<scrubbed>",
+      "type": "web"
+    },
+    "legacy"
+  ]
+}

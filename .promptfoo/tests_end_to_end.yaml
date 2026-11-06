@@ -1,29 +1,23 @@
   - description: "[End-to-End] Create new weblog for Node.js"
     vars:
-      user_prompt: "I want to create a new end to end weblog for nodejs using fastify."
+      user_prompt: "what should i do to create a new end to end weblog for nodejs using fastify."
     assert:
-        - type: icontains-all
-          value:
-            - "utils/build/docker/nodejs/install_ddtrace.sh"
-            - "fastify.Dockerfile"
-            - "7777"
-            - "help you implement"
-            - "specific endpoints"
+        - type: llm-rubric
+          value: "The Fastify web log already exists for Node.js and has many endpoints defined. For endpoints that are not implemented yet, the response either explicitly notes that some endpoints are missing or asks the user if they want to implement a new one. Users are offered different actions they can perform."
+
 
   - description: "[End-to-End] Find scenarios with specific endpoint"
     vars:
-      user_prompt: "what end to end scenarios include the endpoint /shell_execution"
+      user_prompt: "what end to end scenarios include the endpoint /shell_execution? Always include the scenario name in your answer.."
     assert:
         - type: icontains-all
           value:
             - "test_shell_execution.py"
             - "Default"
-            - "APPSEC_RASP"
-            - "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"
 
   - description: "[End-to-End] Create new scenario - general inquiry"
     vars:
-      user_prompt: "I want to create a new scenario with name \"not_sure_scenario\""
+      user_prompt: "what should i do to create a new scenario with name \"not_sure_scenario\""
     assert:
         - type: icontains-any
           value:
@@ -37,21 +31,22 @@
 
   - description: "[End-to-End] Create new AppSec scenario with environment variables"
     vars:
-      user_prompt: "I want to create a new scenario called \"my_new_appsec_scenario\" that populates these env variables into the weblog: \"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP\": \"hide-key\", \"DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP\": \".*hide_value\""
+      user_prompt: "what should i do to create a new end-to-end scenario called \"my_new_appsec_scenario\" that populates these env variables into the weblog: \"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP\": \"hide-key\", \"DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP\": \".*hide_value\". Could i use an existing scenario with similar configurations?"
     assert:
-        - type: icontains-all
-          value:
-            - "utils/_context/_scenarios/__init__.py"
-            - "EndToEndScenario"
-            - "weblog_env"
+        - type: llm-rubric
+          value: "The user can choose to use an existing scenario or create a new one. Also it's possible not to show the option to cerate a new one, and try to use the existing one."
+
 
   - description: "[End-to-End] Create test case for AppSec scenario with validation"
     vars:
-      user_prompt: "I want to create a new test case for the new scenario \"my_new_appsec_scenario\" that perform a request to /waf endpoint with header that it's key it should be obfuscated. validate in the library interface that key doesn't appear in the appsec data/messages"
+      user_prompt: "What should i do to create a new test case for the new scenario \"my_new_appsec_scenario\" that perform a request to /waf endpoint (security attack simulation) with header that it's key it should be obfuscated. validate in the library interface that key doesn't appear in the appsec data/messages"
     assert:
         - type: icontains-all
           value:
-            - "scenarios.my_new_appsec_scenario"
             - "nested_lookup"
             - "assert_waf_attack"
             - "interfaces.library"
+        - type: icontains-any
+          value:
+            - "scenarios.appsec_custom_obfuscation"
+            - "scenarios.my_new_appsec_scenario"

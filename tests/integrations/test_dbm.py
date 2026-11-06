@@ -6,8 +6,9 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, bug, logger
+from utils import weblog, interfaces, context, scenarios, features, logger
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 def remove_traceparent(s: str) -> str:
@@ -53,8 +54,19 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                     ]
                 )
+        elif self.library_name == "java":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "postgresql"}),
+            ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysql"}),
+                        weblog.get("/dbm", params={"integration": "mssql"}),
+                    ]
+                )
 
-    def _get_db_span(self, response: HttpResponse) -> dict:
+    def _get_db_span(self, response: HttpResponse) -> DataDogLibrarySpan:
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
         spans = []
@@ -83,15 +95,15 @@ class Test_Dbm:
         for request in self.requests:
             self._assert_span_is_untagged(self._get_db_span(request))
 
-    def _assert_span_is_untagged(self, span: dict) -> None:
+    def _assert_span_is_untagged(self, span: DataDogLibrarySpan) -> None:
         meta = span.get("meta", {})
-        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
+        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span.raw_span, indent=2)}"
 
-    def _assert_span_is_tagged(self, span: dict) -> None:
+    def _assert_span_is_tagged(self, span: DataDogLibrarySpan) -> None:
         meta = span.get("meta", {})
-        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
+        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span.raw_span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
-        assert tag_value == "true", f"{self.META_TAG} value is not `true`."
+        assert is_same_boolean(actual=tag_value, expected="true"), f"{self.META_TAG} value is not `true`."
 
     # Setup Methods
     setup_trace_payload_disabled = weblog_trace_payload
@@ -113,7 +125,6 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
@@ -145,7 +156,6 @@ class _BaseDbmComment:
     def setup_dbm_comment(self):
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_dbm_comment(self):
         assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
 
@@ -154,15 +164,21 @@ class _BaseDbmComment:
         except json.decoder.JSONDecodeError as e:
             raise ValueError(f"Response from {self.r.request.url} should have been JSON") from e
 
-        expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
-
         assert "status" in data
         assert data["status"] == "ok"
         assert "traceparent" in data["dbm_comment"]
-        assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
+
+        # Field order varies by tracer — check each field and the SQL suffix individually
+        comment = remove_traceparent(data["dbm_comment"])
+        assert f"dddb='{self.dddb}'" in comment, f"dddb not found in: {comment}"
+        assert f"dddbs='{self.dddbs}'" in comment, f"dddbs not found in: {comment}"
+        assert f"dde='{self.dde}'" in comment, f"dde not found in: {comment}"
+        assert f"ddh='{self.ddh}'" in comment, f"ddh not found in: {comment}"
+        assert f"ddps='{self.ddps}'" in comment, f"ddps not found in: {comment}"
+        assert f"ddpv='{self.ddpv}'" in comment, f"ddpv not found in: {comment}"
+        assert comment.endswith("*/ SELECT version()"), f"SQL suffix not found in: {comment}"
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
@@ -170,11 +186,10 @@ class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
@@ -182,14 +197,13 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
@@ -197,14 +211,13 @@ class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
 # no batching dbm comment injection for asyncpg
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
@@ -212,11 +225,10 @@ class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
@@ -224,11 +236,10 @@ class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
@@ -236,11 +247,10 @@ class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
@@ -248,11 +258,10 @@ class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
@@ -260,14 +269,13 @@ class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
@@ -275,14 +283,13 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
@@ -290,14 +297,13 @@ class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
@@ -305,14 +311,13 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
@@ -320,14 +325,13 @@ class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "weblog-mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
 # no dbm batch comment injection for mysql2
 
 
-@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
@@ -335,8 +339,127 @@ class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "weblog-postgres"  # db name
     ddh = "postgres"  # container name
 
 
-# no dbm batch comment injection for mysql2
+# no dbm batch comment injection for pg
+
+# Maps library name → (integration param, dddbs value)
+_PG_LIBRARY_CONFIG = {
+    "java": ("postgresql", "postgresql"),
+    "golang": ("pg", "postgres.db"),
+    "ruby": ("pg", "pg"),
+    "php": ("pdo-pgsql", "pdo"),
+}
+
+
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Postgres(_BaseDbmComment):
+    """DBM comment format test for PostgreSQL — one class, all libraries.
+
+    Per-library differences (integration name, dddbs) are resolved at runtime
+    via context.library.name.  Unsupported libraries are gated with
+    missing_feature in manifests/*.yml rather than separate irrelevant entries.
+    """
+
+    operation = "execute"
+    dddb = "system_tests_dbname"
+    ddh = "postgres"
+
+    integration = _PG_LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+    dddbs = _PG_LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+
+
+_MYSQL_LIBRARY_CONFIG = {
+    "java": ("mysql", "mysql"),
+    "php": ("pdo-mysql", "pdo"),
+}
+
+
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Mysql(_BaseDbmComment):
+    """DBM comment format test for MySQL — one class, all libraries."""
+
+    operation = "execute"
+    dddb = "mysql_dbname"
+    ddh = "mysqldb"
+
+    integration = _MYSQL_LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+    dddbs = _MYSQL_LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+
+
+class _BaseDbmDynamicService:
+    """Verify DD_DBM_PROPAGATION_MODE=dynamic_service:
+    - injects ddsh='<hash>' into the SQL comment
+    - sets _dd.propagated_hash=<same_hash> on the SQL span
+    """
+
+    operation: str = "execute"
+
+    @property
+    def integration(self):
+        return None
+
+    def setup_dbm_dynamic_service(self):
+        self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
+
+    def test_dbm_dynamic_service(self):
+        assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
+
+        try:
+            data = json.loads(self.r.text)
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError(f"Response from {self.r.request.url} should have been JSON") from e
+
+        assert data.get("status") == "ok"
+        comment = data.get("dbm_comment", "")
+        assert comment, "dbm_comment is empty"
+
+        # ddsh field is present and non-empty in the SQL comment
+        match = re.search(r"ddsh='([^']*)'", comment)
+        assert match, f"ddsh field not found in SQL comment: {comment}"
+        ddsh_value = match.group(1)
+        assert ddsh_value, "ddsh value is empty"
+
+        # SQL span carries _dd.propagated_hash equal to ddsh
+        sql_spans = [
+            span
+            for _, trace in interfaces.library.get_traces(request=self.r)
+            for span in trace
+            if span.get("type") == "sql"
+        ]
+        assert sql_spans, "No SQL span found for the /stub_dbm request"
+
+        for span in sql_spans:
+            propagated_hash = span.get("meta", {}).get("_dd.propagated_hash")
+            if propagated_hash is not None:
+                assert propagated_hash == ddsh_value, f"_dd.propagated_hash '{propagated_hash}' != ddsh '{ddsh_value}'"
+                return
+
+        raise AssertionError(
+            f"_dd.propagated_hash not found in any SQL span. "
+            f"Span meta keys: {[list(s.get('meta', {}).keys()) for s in sql_spans]}"
+        )
+
+
+@features.database_monitoring_dynamic_service
+@scenarios.dbm_dynamic_service
+class Test_Dbm_DynamicService_Postgres(_BaseDbmDynamicService):
+    """DBM dynamic_service mode — PostgreSQL integration across all languages."""
+
+    _LIBRARY_CONFIG = {
+        "python": "psycopg",
+        "nodejs": "pg",
+        "java": "postgresql",
+        "ruby": "pg",
+        "php": "pdo-pgsql",
+        "dotnet": "npgsql",
+        "golang": "pg",
+    }
+
+    @property
+    def integration(self):
+        return self._LIBRARY_CONFIG.get(context.library.name)

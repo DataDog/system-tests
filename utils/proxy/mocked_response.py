@@ -7,7 +7,7 @@ from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self
+from typing import TYPE_CHECKING, Self, Literal
 
 import requests
 
@@ -15,8 +15,10 @@ from mitmproxy.http import HTTPFlow, Response as HTTPResponse
 
 from .ports import ProxyPorts
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
-MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
 
 
 def _get_proxy_domain() -> str:
@@ -27,6 +29,17 @@ def _get_proxy_domain() -> str:
         m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
         return m.group(1) if m is not None else "localhost"
     return "localhost"
+
+
+def send_mocked_tracer_responses(mocks: Sequence[MockedTracerResponse]) -> None:
+    """Send multiple mocked tracer responses in a single PUT request."""
+    domain = _get_proxy_domain()
+    response = requests.put(
+        f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_TRACER_RESPONSES_PATH}",
+        json=[m.to_json() for m in mocks],
+        timeout=30,
+    )
+    response.raise_for_status()
 
 
 class MockedResponse(ABC):
@@ -160,6 +173,42 @@ class MockedTracerResponse(MockedResponse):
         """Send instruction to the proxy at /mocked_tracer_responses endpoint."""
         self._send_to_endpoint(MOCKED_TRACER_RESPONSES_PATH)
 
+    @staticmethod
+    def _gate_rc_response_by_products(response: dict, request_content: dict) -> dict:
+        """Restrict a /v0.7/config response to the products the client subscribed to.
+
+        The real Datadog agent only returns configs for products listed in the
+        request's ``client.products``. Mirror the real-world behaviour here.
+        """
+        if not isinstance(response, dict):
+            return response
+        client_configs = response.get("client_configs")
+        if not isinstance(client_configs, list):
+            return response
+        try:
+            products = request_content["client"]["products"]
+        except (KeyError, TypeError):
+            return response
+        if not isinstance(products, list):
+            return response
+        allowed = set(products)
+
+        def product_of(path: str) -> str | None:
+            # datadog/<org_id>/<PRODUCT>/<config_id>/<name> or employee/<PRODUCT>/<config_id>/<name>
+            parts = path.split("/")
+            return parts[-3]
+
+        kept = [path for path in client_configs if product_of(path) in allowed]
+        if kept == client_configs:
+            return response
+        filtered = dict(response)
+        filtered["client_configs"] = kept
+        target_files = response.get("target_files")
+        if isinstance(target_files, list):
+            kept_paths = set(kept)
+            filtered["target_files"] = [tf for tf in target_files if tf.get("path") in kept_paths]
+        return filtered
+
 
 class StaticJsonMockedTracerResponse(MockedTracerResponse):
     """Always overwrites the same static JSON content on request made on the given path."""
@@ -175,7 +224,15 @@ class StaticJsonMockedTracerResponse(MockedTracerResponse):
 
     def execute(self, flow: HTTPFlow) -> None:
         super().execute(flow)
-        flow.response.content = json.dumps(self.mocked_json).encode()
+        response = self.mocked_json
+        if self.path == "/v0.7/config" and isinstance(response, dict):
+            try:
+                request_content = json.loads(flow.request.content)
+            except (ValueError, TypeError):
+                request_content = None
+            if isinstance(request_content, dict):
+                response = self._gate_rc_response_by_products(response, request_content)
+        flow.response.content = json.dumps(response).encode()
 
     def to_json(self) -> dict:
         return {
@@ -203,7 +260,7 @@ class SequentialRemoteConfigJsonMockedTracerResponse(MockedTracerResponse):
         request_content = json.loads(flow.request.content)
         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
         nth_api_command = self._runtime_ids_request_count[runtime_id]
-        response = self.mocked_json_sequence[nth_api_command]
+        response = self._gate_rc_response_by_products(self.mocked_json_sequence[nth_api_command], request_content)
 
         flow.response.content = json.dumps(response).encode()
         flow.response.headers["st-proxy-overwrite-rc-response"] = f"{nth_api_command}"
@@ -214,6 +271,41 @@ class SequentialRemoteConfigJsonMockedTracerResponse(MockedTracerResponse):
     def to_json(self) -> dict:
         return {
             "type": self.__class__.__name__,
+            "mocked_json_sequence": self.mocked_json_sequence,
+        }
+
+
+class SequentialJsonMockedTracerResponse(MockedTracerResponse):
+    """Overwrites JSON content on requests to a given path with a sequence of predefined responses.
+
+    Uses a global counter (not per-runtime_id). When the sequence is exhausted,
+    the last element is returned for all subsequent requests.
+    """
+
+    def __init__(self, path: str, mocked_json_sequence: list[dict]):
+        super().__init__(path=path, mocked_headers={"Content-Type": "application/json"})
+        self.mocked_json_sequence = mocked_json_sequence
+        """Sequence of JSON responses to return"""
+
+        self._request_count: int = 0
+        """Tracks how many requests have been made"""
+
+    def execute(self, flow: HTTPFlow) -> None:
+        super().execute(flow)
+
+        idx = min(self._request_count, len(self.mocked_json_sequence) - 1)
+        response = self.mocked_json_sequence[idx]
+
+        flow.response.content = json.dumps(response).encode()
+        flow.response.headers["st-proxy-sequential-response-idx"] = str(idx)
+
+        if self._request_count < len(self.mocked_json_sequence) - 1:
+            self._request_count += 1
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "path": self.path,
             "mocked_json_sequence": self.mocked_json_sequence,
         }
 
@@ -315,8 +407,36 @@ class SetClientDropP0s(_InternalMockedTracerResponse):
         }
 
 
+class SetObfuscationVersion(_InternalMockedTracerResponse):
+    """Override the obfuscation_version field in the agent's /info response.
+
+    This controls which obfuscation version the agent advertises. When set to a version
+    higher than what the SDK supports, the SDK should skip client-side obfuscation and
+    omit the Datadog-Obfuscation-Version header from stats payloads.
+    """
+
+    def __init__(self, *, obfuscation_version: int | Literal["MISSING"]):
+        super().__init__(path="/info")
+        self.obfuscation_version = obfuscation_version
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            if self.obfuscation_version == "MISSING":
+                del c["obfuscation_version"]
+            else:
+                c["obfuscation_version"] = self.obfuscation_version
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "obfuscation_version": self.obfuscation_version,
+        }
+
+
 class MockedBackendResponse(MockedResponse):
-    """Base class for mocking responses from backend to agent.
+    """Responses served by the mocked backend (utils/mocked_backend), to the agent or to an agentless library.
 
     These mocks create new responses without forwarding the request to any
     upstream server. The flow.response does not exist when execute() is called.
@@ -365,15 +485,6 @@ class MockedBackendResponse(MockedResponse):
         return cls(**source)
 
     def send(self) -> None:
-        """Send instruction to the proxy at /mocked_backend_responses endpoint."""
-        self._send_to_endpoint(MOCKED_BACKEND_RESPONSES_PATH)
-
-
-class _InternalMockedBackendResponse(MockedBackendResponse):
-    """Backend mocked responses that will be applied on the entire test session.
-
-    These cannot be sent via the API and must be configured at proxy startup.
-    """
-
-    def send(self) -> None:
-        raise ValueError("This mocked response cannot be sent directly")
+        raise ValueError(
+            "The proxy doesn't serve backend responses: use mocked_backend_container.client.set_mocked_responses()"
+        )

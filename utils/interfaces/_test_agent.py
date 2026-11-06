@@ -1,13 +1,17 @@
+import contextlib
+import json
 import pathlib
 import threading
-import json
+import time
+from typing import Any
 
 import ddapm_test_agent.client as agent_client
+import requests
 
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 from utils._weblog import HttpResponse
-from utils.tools import get_rid_from_span
+from utils.tools import get_rid_from_user_agent
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -15,20 +19,30 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         super().__init__("test_agent")
         self.ready = threading.Event()
         self._data_traces_list = []
-        self._data_telemetry_list = []
+        self._data_telemetry_list: list[dict[str, Any]] = []
+        self._client: agent_client.TestAgentClient | None = None
+        self._interface_folder: pathlib.Path | None = None
 
-    def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126):
+    def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126) -> None:
         logger.debug("Collecting data from test agent")
-        client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
-        self._data_traces_list = client.traces(clear=False)
+        self._client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
+        self._interface_folder = pathlib.Path(interface_folder)
+        self._data_traces_list = self._client.traces(clear=False)
         if self._data_traces_list:
-            pathlib.Path(f"{interface_folder}/00_traces.json").write_text(
+            (self._interface_folder / "00_traces.json").write_text(
                 json.dumps(self._data_traces_list, indent=2), encoding="utf-8"
             )
 
-        self._data_telemetry_list = client.telemetry(clear=False)
+        self._refresh_telemetry_data()
+
+    def _refresh_telemetry_data(self, request_timeout: float | None = None) -> None:
+        if self._client is None or self._interface_folder is None:
+            raise RuntimeError("Test agent data must be collected before refreshing telemetry")
+
+        request_options = {"timeout": request_timeout} if request_timeout is not None else {}
+        self._data_telemetry_list = self._client.telemetry(clear=False, **request_options)
         if self._data_telemetry_list:
-            pathlib.Path(f"{interface_folder}/00_telemetry.json").write_text(
+            (self._interface_folder / "00_telemetry.json").write_text(
                 json.dumps(self._data_telemetry_list, indent=2), encoding="utf-8"
             )
 
@@ -42,7 +56,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         for trace in self._data_traces_list:
             for span in trace:
-                if rid == get_rid_from_span(span):
+                if rid == _get_rid_from_span(span):
                     return span
         return None
 
@@ -88,13 +102,13 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         logger.debug("Try to find injection metadata related to autoinject")
         return [t["payload"] for t in self._data_telemetry_list if t["request_type"] == "injection-metadata"]
 
-    def get_telemetry_logs(self):
+    def get_telemetry_logs(self) -> list[dict[str, Any]]:
         logger.debug("Try to find telemetry data related to logs")
         return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
 
-    def get_crash_reports(self):
+    def get_crash_reports(self) -> list[dict[str, Any]]:
         logger.debug("Try to find telemetry data related to crash reports")
-        crash_reports: list = []
+        crash_reports: list[dict[str, Any]] = []
 
         for t in self.get_telemetry_logs():
             payload = t["payload"]
@@ -117,14 +131,78 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 ):
                     crash_reports.append(payload)
 
-        return crash_reports
+                # v2 logs send in the form of `payload:{logs:[]}`
+                # we should also check if `logs` value is a list, and iterate
+                # through the `dict`s in the list
+                if "logs" in payload and isinstance(payload["logs"], list):
+                    for log in payload["logs"]:
+                        if isinstance(log, dict):
+                            if (
+                                "si_signo" in log.get("tags", "")
+                                or "signame" in log.get("tags", "")
+                                or "signum" in log.get("tags", "")
+                            ):
+                                crash_reports.append(log)
+        # Filter for crash reports only; ignoring crash pings
+        # Crash pings have is_crash_ping:true
+        return [r for r in crash_reports if "is_crash_ping" not in r.get("tags", "")]
+
+    def wait_for_crash_reports(
+        self, timeout: float = 10, poll_interval: float = 0.1, settle_time: float = 1
+    ) -> list[dict[str, Any]]:
+        deadline = time.monotonic() + timeout
+        last_refresh_error: str | None = None
+        crash_reports: list[dict[str, Any]] = []
+        while True:
+            crash_reports = self.get_crash_reports()
+            if crash_reports:
+                break
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+
+            try:
+                self._refresh_telemetry_data(request_timeout=remaining)
+            except requests.exceptions.RequestException as error:
+                last_refresh_error = str(error)
+
+            crash_reports = self.get_crash_reports()
+            if crash_reports:
+                break
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            time.sleep(min(poll_interval, remaining))
+
+        if not crash_reports:
+            request_types = sorted(
+                {str(telemetry.get("request_type", "<missing>")) for telemetry in self._data_telemetry_list}
+            )
+            refresh_error_diagnostic = f"; last refresh error: {last_refresh_error}" if last_refresh_error else ""
+            raise AssertionError(
+                f"No crash report received within {timeout:g} seconds; "
+                f"collected {len(self._data_telemetry_list)} telemetry request(s) with types: "
+                f"{', '.join(request_types) or '<none>'}{refresh_error_diagnostic}"
+            )
+
+        # A crash report was found, but a tracer may still be flushing an additional
+        # (e.g. duplicate) report. Let the snapshot settle before returning so callers
+        # asserting an exact report count aren't fooled by returning too early.
+        if settle_time > 0:
+            time.sleep(settle_time)
+            with contextlib.suppress(requests.exceptions.RequestException):
+                self._refresh_telemetry_data(request_timeout=settle_time)
+
+        return self.get_crash_reports()
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""
         configurations = {}
-        # Sort telemetry requests by timestamp, this ensures later configurations take precedence
+        # Sort telemetry requests by timestamp and seq_id, this ensures later configurations take precedence
         requests = list(self.get_telemetry_for_runtime(runtime_id))
-        requests.sort(key=lambda x: x["tracer_time"])
+        requests.sort(key=lambda x: (x["tracer_time"], x.get("seq_id", 0)))
         for request in requests:
             if service_name is not None and request["application"]["service_name"] != service_name:
                 # Check if the service name in telemetry matches the expected service name
@@ -149,3 +227,46 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                     for config in config_list:
                         configurations[config["name"]] = config
         return configurations
+
+
+def _get_rid_from_span(span: dict) -> str | None:
+    meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
+
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
+
+    user_agent = None
+
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
+        user_agent = meta.get("http.request.headers.user-agent")
+
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
+
+    if not user_agent:
+        # cpp tracer
+        user_agent = meta.get("http_user_agent")
+
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
+
+    if not user_agent:  # last last hope (java opentelemetry autoinstrumentation)
+        user_agent = meta.get("user_agent.original")
+
+    if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
+        user_agent = meta.get("http.user_agent")
+
+    if not user_agent:
+        # Weblogs can use this tag without emulating unsupported HTTP instrumentation.
+        user_agent = meta.get("system_tests.request.user_agent")
+
+    return get_rid_from_user_agent(user_agent)

@@ -13,18 +13,18 @@
             "value": "paper"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
         "locals": {},
         "staticFields": {},
         "throwable": {
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayPaper",
+          "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayPaper",
           "message": "Paper exception",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
               "lineNumber": 45
             },
             {
@@ -47,12 +47,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
         "lineNumber": 52
       },
       {
@@ -79,18 +79,18 @@
             "value": "rock"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
         "locals": {},
         "staticFields": {},
         "throwable": {
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock",
+          "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayRock",
           "message": "Rock exception",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
               "lineNumber": 41
             },
             {
@@ -113,12 +113,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
         "lineNumber": 52
       },
       {
@@ -145,18 +145,18 @@
             "value": "scissors"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
         "locals": {},
         "staticFields": {},
         "throwable": {
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayScissors",
+          "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayScissors",
           "message": "Scissors exception",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
               "lineNumber": 49
             },
             {
@@ -179,12 +179,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRockPaperScissors",
         "lineNumber": 52
       },
       {

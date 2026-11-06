@@ -7,24 +7,34 @@ name: Daily Tag
 # which always points to the final commit of that day.
 
 on:
-  schedule:
-    - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
-  push:
-    branches:
-      - main
+# Note: disable schedule and push. So far, this mechanism is not used.
+# Furthermore, the mutability of intraday tags goes against a key concept : tag should not be mutated
+# If ever you want to reactivate this, please modify the logic to only set a imutable tag for D-1
+#   schedule:
+#     - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch: # allow manual trigger too
-
-permissions:
-  contents: write
 
 jobs:
   tag:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
+      - name: Get GitHub token
+        uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.github.daily-tag
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          token: ${{ steps.octo-sts.outputs.token }}
 
       - name: Set up git
         run: |

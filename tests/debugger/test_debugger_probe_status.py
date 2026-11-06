@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context
+from utils import context, features, missing_feature, scenarios, slow
 
 
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
@@ -12,7 +12,15 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     expected_diagnostics: dict[str, debugger.ProbeStatus] = {}
     expect_error_on_missing_symbol: bool = False
 
-    def _setup(self, probes_name: str, probe_type: str):
+    def _setup(
+        self,
+        probes_name: str,
+        probe_type: str,
+        *,
+        path_prefix: str = "",
+        uppercase_source_files: bool = False,
+        use_backslashes: bool = False,
+    ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
@@ -25,7 +33,12 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
                 suffix = "installed"
             probe["id"] = debugger.generate_probe_id(probe_type, suffix)
 
-        self.set_probes(probes)
+        self.set_probes(
+            probes,
+            path_prefix=path_prefix,
+            uppercase_source_files=uppercase_source_files,
+            use_backslashes=use_backslashes,
+        )
 
         # The Go debugger can report an ERROR status if a symbol is missing
         # because it knows definitively that a symbol will not later show up.
@@ -44,7 +57,8 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"])
+        if not self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"]):
+            self.setup_failures.append(f"Timed out waiting for probe diagnostics: {self.probe_ids}")
 
     def _assert(self):
         self.collect()
@@ -77,11 +91,9 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
 
 @features.debugger_method_probe
-@scenarios.debugger_probes_status
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(
-    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
-)
+@scenarios.debugger_expression_language
+@slow
+@missing_feature(context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented")
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
@@ -96,7 +108,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_status(self):
         self._setup("probe_status_metric", probe_type="metric")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_status(self):
         self._assert()
 
@@ -104,7 +115,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_method_status(self):
         self._setup("probe_status_span", probe_type="span")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_method_status(self):
         self._assert()
 
@@ -112,13 +122,12 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_method_status(self):
         self._setup("probe_status_spandecoration", probe_type="decor")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_status(self):
         self._assert()
 
 
 @features.debugger_line_probe
-@scenarios.debugger_probes_status
+@scenarios.debugger_expression_language
 class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for line-level probe status"""
 
@@ -126,18 +135,87 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_log_line_status(self):
         self._setup("probe_status_log_line", probe_type="log")
 
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_log_line_status(self):
+        self._assert()
+
+    ############ log line probe with unknown path prefix ############
+    def setup_probe_status_log_line_with_unknown_path_prefix(self):
+        self._setup("probe_status_log_line", "log", path_prefix="unknown-prefix")
+
+    def test_probe_status_log_line_with_unknown_path_prefix(self):
+        # Validate that the source file actually contains a path separator to ensure
+        # this test is meaningful (i.e., it's actually testing prefix stripping)
+        for probe in self.probe_definitions:
+            assert "where" in probe, "`where` object missing in probe"
+            assert "sourceFile" in probe["where"], (
+                "Test expects source `sourceFile` to be present in `where` object."
+                "This suggests the tracer's source path doesn't include subdirectories "
+                "making this edge case test meaningless."
+            )
+
+            source_file = probe["where"]["sourceFile"]
+            assert isinstance(source_file, str), (
+                f"Test expects source `sourceFile` to be a string in `where` object, got `{source_file}`"
+                "This suggests the tracer's source path doesn't include subdirectories "
+                "making this edge case test meaningless."
+            )
+
+            assert "/" in source_file or "\\" in source_file, (
+                f"Test expects source file to contain a path separator, but got: {source_file}. "
+                f"This suggests the tracer's source path doesn't include subdirectories, "
+                f"making this edge case test meaningless. See DEBUG-5101 for .NET."
+            )
+
+        self._assert()
+
+    ############ log line probe with different casing ############
+    def setup_probe_status_log_line_with_different_casing(self):
+        self._setup("probe_status_log_line", "log", uppercase_source_files=True)
+
+    def test_probe_status_log_line_with_different_casing(self):
+        # Validate that the source file was actually uppercased to ensure this test is meaningful
+        for probe in self.probe_definitions:
+            assert "where" in probe
+            assert "sourceFile" in probe["where"]
+
+            source_file = probe["where"]["sourceFile"]
+            assert isinstance(source_file, str)
+
+            assert source_file.isupper(), (
+                f"Test expects source file to be uppercased, but got: {source_file}. "
+                f"This suggests the uppercase transformation didn't work."
+            )
+
+        self._assert()
+
+    ############ log line probe with Windows path ############
+    def setup_probe_status_log_line_with_windows_path(self):
+        self._setup("probe_status_log_line", "log", use_backslashes=True)
+
+    def test_probe_status_log_line_with_windows_path(self):
+        # Validate that the source file actually contains backslashes to ensure
+        # this test is meaningful (i.e., it's actually testing Windows path handling)
+        for probe in self.probe_definitions:
+            assert "where" in probe
+            assert "sourceFile" in probe["where"]
+
+            source_file = probe["where"]["sourceFile"]
+            assert isinstance(source_file, str)
+
+            assert "\\" in source_file, (
+                f"Test expects source file to contain backslashes for Windows path testing, "
+                f"but got: {source_file}. This suggests the tracer's source path doesn't include "
+                f"subdirectories, making this edge case test meaningless. See DEBUG-5108 for .NET."
+            )
+
         self._assert()
 
     ############ metric line probe ############
     def setup_metric_line_status(self):
         self._setup("probe_status_metric_line", probe_type="metric")
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_metric_line_status(self):
         self._assert()
 
@@ -145,8 +223,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_line_status(self):
         self._setup("probe_status_spandecoration_line", probe_type="decor")
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_line_status(self):
         self._assert()

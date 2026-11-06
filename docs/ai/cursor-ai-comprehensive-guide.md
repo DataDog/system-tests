@@ -1,74 +1,49 @@
 # Cursor AI and System-Tests: Comprehensive Integration Guide
 
-## 🎯 Overview
+## Overview
 
-This guide provides comprehensive documentation about the AI integration capabilities in the `system-tests` repository, with a focus on **Cursor AI** and the `.cursor` rules structure. The AI tools are designed to enhance developer productivity when implementing tests, troubleshooting issues, and working with complex testing scenarios.
+The AI instructions in `system-tests` use the portable [`AGENTS.md`](../../AGENTS.md) convention. Cursor loads the root `AGENTS.md` automatically; that file routes the agent to the authoritative Markdown rules under `.agents/rules/`.
 
-## 📁 The .cursor Folder Structure
+## Agent instruction structure
 
-The `.cursor` folder contains the AI configuration and rules that make the system-tests repository AI-ready. Here's the complete structure:
-
-```
-.cursor/
-└── rules/                           # AI rules directory
-    ├── aws-ssi-testing.mdc         # AWS SSI (Single Step Instrumentation) testing rules
-    ├── code-format-standards.mdc    # Code formatting and quality standards
-    ├── end-to-end-testing.mdc      # End-to-end testing scenarios rules
-    ├── fine-tuning-guidance.mdc    # General fine-tuning and guidance rules
-    ├── general-behavior.mdc        # General AI behavior and communication rules
-    ├── java-endpoint-prompt.mdc    # Specialized Java endpoint development rules
-    ├── k8s-ssi.mdc                 # Kubernetes SSI testing rules
-    ├── promptfoo-llm.mdc           # LLM testing and validation rules
-    ├── repository-structure.mdc    # Repository structure and navigation rules
-    ├── system-tests-overview.mdc   # High-level system-tests overview rules
-    └── test-activation.mdc         # Test activation and deactivation rules
+```text
+system-tests/
+├── AGENTS.md              # Portable entry point and rule index
+├── CLAUDE.md              # Claude Code adapter
+├── .agents/
+│   ├── rules/             # Authoritative shared rules
+│   └── skills/            # Reusable Agent Skills
+└── .cursor/
+    └── mcp.json           # Cursor-specific MCP configuration
 ```
 
-### 📋 Rules File Categories
+`AGENTS.md` separates rules into:
 
-#### 🔧 **Core Functionality Rules** (Always Applied)
-- **`general-behavior.mdc`**: Defines communication style, documentation referencing, and basic AI behavior
-- **`fine-tuning-guidance.mdc`**: Core guidance for interpreting documentation, file references, and repository navigation
-- **`system-tests-overview.mdc`**: Fundamental understanding of what system-tests is and main concepts
-- **`repository-structure.mdc`**: Detailed repository structure with comments for each folder
+- **Always-applied rules**: every coding agent must read these before starting work.
+- **Manual rules**: read only when the user explicitly requests the corresponding workflow.
+- **Task-specific rules**: read when the request matches their scope, such as pull request review.
 
-#### 🏗️ **Testing Domain Rules** (Always Applied)
-- **`aws-ssi-testing.mdc`**: Comprehensive rules for AWS Single Step Instrumentation testing
-- **`end-to-end-testing.mdc`**: End-to-end testing scenarios, weblogs, and test implementation
-- **`k8s-ssi.mdc`**: Kubernetes library injection testing rules
-- **`test-activation.mdc`**: Rules for enabling/disabling tests using manifests and decorators
-- **`code-format-standards.mdc`**: Code quality standards for shell, Python, and YAML
+The index in `AGENTS.md` is authoritative for classification. Rule files do not contain Cursor-specific `alwaysApply` or `globs` metadata.
 
-#### 🎯 **Specialized Task Rules** (Manual Activation)
-- **`java-endpoint-prompt.mdc`**: Comprehensive Java weblog endpoint development specialist
-- **`promptfoo-llm.mdc`**: LLM testing framework for validating AI prompts and responses
+## How Cursor loads the rules
 
-## 🚀 Getting Started with Cursor AI
+Cursor automatically includes `AGENTS.md` in a new Agent conversation. Linked files are not inlined automatically: the instructions in `AGENTS.md` require Cursor to read the applicable files from `.agents/rules/` with its repository tools.
 
-### 1. Basic Setup
-Cursor AI automatically loads all rules marked with `alwaysApply: true`. No additional setup is required for basic functionality.
+Start a new conversation after changing `AGENTS.md` or moving rule files so the instruction context is rebuilt.
 
-### 2. Understanding Rule Types
+## Specialized rules
 
-#### Always Applied Rules
-These rules are automatically loaded when you start Cursor:
-```yaml
----
-description:
-globs:
-alwaysApply: true
----
-```
+The Java endpoint workflow is stored at `.agents/rules/java-endpoint-prompt.md`. Ask Cursor to apply that rule explicitly when implementing Java weblog endpoints.
 
-#### Manual Rules
-These specialized rules require explicit activation:
-```yaml
----
-description: "Specialized Java endpoint development"
-globs: ["**/*.java"]
-alwaysApply: false
----
-```
+Reusable workflows that adopt the open Agent Skills format belong in `.agents/skills/<skill-name>/SKILL.md`.
 
-**📖 See: [Cursor AI Practical Examples](cursor-practical-examples.md)**
+## Adding a rule
+
+1. Add a standard Markdown file under `.agents/rules/`.
+2. Register it in the appropriate section of `AGENTS.md`.
+3. Use repository-relative Markdown links.
+4. Add or update prompt validation coverage.
+5. Start a new Cursor conversation and verify that the agent reads the file.
+
+See [Cursor AI Practical Examples](cursor-practical-examples.md) and [Prompt validation](ai-tools-prompt-validation.md).
 

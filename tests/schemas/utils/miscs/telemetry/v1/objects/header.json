@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v1/objects/header.json",
+  "description": "V1 Header",
+  "title": "Instrumentation Telemetry V1 Header",
+  "type": "object",
+  "properties": {
+    "api_version": {
+      "const": "v1"
+    },
+    "application": {
+      "$ref": "./application.json"
+    },
+    "host": {
+      "$ref": "./host.json"
+    },
+    "runtime_id": {
+      "type": "string"
+    },
+    "seq_id": {
+      "type": "integer",
+      "format": "uint64"
+    },
+    "tracer_time": {
+      "type": "integer",
+      "format": "uint64"
+    },
+    "debug": {
+      "type": "boolean"
+    }
+  }
+}

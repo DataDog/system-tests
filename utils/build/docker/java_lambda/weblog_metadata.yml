@@ -1,0 +1,10 @@
+java-alb:
+  categories: [dd_trace_lambda]
+java-alb-multi:
+  categories: [dd_trace_lambda]
+java-apigw-http:
+  categories: [dd_trace_lambda]
+java-apigw-rest:
+  categories: [dd_trace_lambda]
+java-function-url:
+  categories: [dd_trace_lambda]

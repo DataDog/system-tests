@@ -3,9 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import weblog, context, interfaces, missing_feature, rfc, scenarios, features
+from utils import weblog, interfaces, rfc, scenarios, features
 from utils.tools import nested_lookup
-
+from utils.dd_types import DataDogLibrarySpan
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
@@ -30,7 +30,6 @@ class Test_ConfigurationVariables:
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.everything_disabled
     def test_disabled(self):
         """Test DD_APPSEC_ENABLED = false"""
@@ -54,7 +53,6 @@ class Test_ConfigurationVariables:
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
-    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """Test DD_APPSEC_WAF_TIMEOUT = low value"""
@@ -68,7 +66,7 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -84,7 +82,7 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -110,7 +108,7 @@ class Test_ConfigurationVariables_New_Obfuscation:
     def test_partial_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
