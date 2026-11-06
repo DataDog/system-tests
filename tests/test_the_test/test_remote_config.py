@@ -191,6 +191,85 @@ def test_build_apm_tracing_command_legacy_by_default():
     assert sent["lib_config"]["dynamic_instrumentation_enabled"] is True
 
 
+_MULTICONFIG_LOG_PROBE = {"id": "multiconfig-log-probe", "type": "LOG_PROBE"}
+_MULTICONFIG_LOG_PROBE_PATH = "datadog/2/LIVE_DEBUGGING/logProbe_multiconfig-log-probe/config"
+
+
+def _wildcard_dynamic_instrumentation_disabled_config() -> dict:
+    """Return an org-wide APM_TRACING config, in the legacy shape, that disables DI"""
+    return {
+        "schema_version": "v1.0.0",
+        "action": "enable",
+        "lib_config": {"tracing_enabled": True, "dynamic_instrumentation_enabled": False},
+        "service_target": {"service": "*", "env": "*"},
+    }
+
+
+def _build_weblog_dynamic_instrumentation_enabled_multiconfig_command(
+    prev_payloads: list[dict], *, use_sdk_config: bool
+) -> dict:
+    """Build a multiconfig command adding a weblog config that enables DI, with one log probe"""
+    return rc.build_combined_apm_tracing_and_debugger_command_multiconfig(
+        1,
+        prev_payloads,
+        [_MULTICONFIG_LOG_PROBE],
+        dynamic_instrumentation_enabled=True,
+        exception_replay_enabled=None,
+        live_debugging_enabled=None,
+        code_origin_enabled=None,
+        dynamic_sampling_enabled=None,
+        service_name="weblog",
+        env="system-tests",
+        use_sdk_config=use_sdk_config,
+    )
+
+
+def _sent_apm_tracing_payloads(command: dict) -> list[dict]:
+    """Decode the command's APM_TRACING target files, in command order"""
+    return [
+        json.loads(base64.b64decode(target_file["raw"]))
+        for target_file in command["target_files"]
+        if "/APM_TRACING/" in target_file["path"]
+    ]
+
+
+@scenarios.test_the_test
+def test_build_multiconfig_command_use_sdk_config():
+    """Every accumulated and new APM_TRACING payload carries the sdk_config shape"""
+    prev_payloads = [_wildcard_dynamic_instrumentation_disabled_config()]
+    command = _build_weblog_dynamic_instrumentation_enabled_multiconfig_command(prev_payloads, use_sdk_config=True)
+
+    sent = _sent_apm_tracing_payloads(command)
+
+    assert len(sent) == 2  # the accumulated wildcard config and the new one
+    for payload in sent:
+        assert "lib_config" not in payload
+        assert "sdk_config" in payload
+    assert sent[0]["sdk_config"]["service_name"] == "*"
+    assert sent[0]["sdk_config"]["config"]["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] == "false"
+    assert sent[1]["sdk_config"]["config"]["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] == "true"
+    assert _MULTICONFIG_LOG_PROBE_PATH in [target_file["path"] for target_file in command["target_files"]]
+
+    # prev_payloads gains the new config in the legacy shape, as later calls re-send it
+    assert len(prev_payloads) == 2
+    assert prev_payloads[-1]["lib_config"]["dynamic_instrumentation_enabled"] is True
+
+
+@scenarios.test_the_test
+def test_build_multiconfig_command_legacy_shape():
+    """Libraries that do not advertise SDK_CONFIGURATION keep receiving lib_config"""
+    prev_payloads = [_wildcard_dynamic_instrumentation_disabled_config()]
+    command = _build_weblog_dynamic_instrumentation_enabled_multiconfig_command(prev_payloads, use_sdk_config=False)
+
+    sent = _sent_apm_tracing_payloads(command)
+
+    assert len(sent) == 2
+    for payload in sent:
+        assert "sdk_config" not in payload
+        assert "lib_config" in payload
+    assert _MULTICONFIG_LOG_PROBE_PATH in [target_file["path"] for target_file in command["target_files"]]
+
+
 @scenarios.test_the_test
 def test_sdk_configuration_alone_selects_sdk_config():
     """SDK_CONFIGURATION without per-setting APM_TRACING capabilities selects sdk_config."""
