@@ -3,7 +3,7 @@
 These files are copied from the canonical FFE fixture repository.
 
 Canonical source: https://github.com/DataDog/ffe-system-test-data
-Source commit: c8cc8da239341748dc8c30c2145c0f0b5432c958
+Source commit: fdd48ad2dc30cee7819b3aafb883d1edcd2455db
 
 Do not edit these fixtures directly in system-tests. Add or update shared FFE behavior in
 ffe-system-test-data first, then refresh this snapshot.

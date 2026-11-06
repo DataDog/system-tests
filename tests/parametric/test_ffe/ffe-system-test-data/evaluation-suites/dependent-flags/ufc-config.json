@@ -6,7 +6,8 @@
     "unknownEnvironmentField": "ignored"
   },
   "evaluatorParams": {
-    "maxDependencyDepth": 2
+    "maxDependencyDepth": 2,
+    "unknownEvaluatorField": "ignored"
   },
   "flags": {
     "dependent-leaf-on": {
@@ -856,6 +857,62 @@
           "splits": [
             {
               "variationKey": "b",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-unknown-fields-root": {
+      "key": "dependent-unknown-fields-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "direct-match"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "direct-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "dependent-match",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on",
+                    "property": "variant"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ],
+                  "unknownConditionField": {
+                    "nested": true
+                  }
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
               "shards": []
             }
           ],
