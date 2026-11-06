@@ -1,5 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2015
+# This helper is shared by every supported AWS SSI weblog language.
 
 # Provision runs "sh create_and_run_app_container.sh" — re-exec with bash for traps/functions.
 if [ -z "${BASH_VERSION:-}" ]; then
