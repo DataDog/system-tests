@@ -41,8 +41,8 @@ NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
 MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS = 30000
-# Fixed SDKs fail within a second. The bound stays below the slowest unfixed path the apps allow:
-# the 30 s initialization timeout, or the Go app's 15 s start deadline.
+# Fixed SDKs fail within a second. The bound stays below the shortest unfixed wait the apps allow:
+# the Go app's 15 s start deadline; the other apps wait out the 30 s initialization timeout.
 MISSING_API_KEY_FAIL_FAST_SECONDS = 10.0
 
 BASE_ENVVARS = {
@@ -695,8 +695,8 @@ class Test_Feature_Flag_Configuration_Source_Missing_Api_Key:
     def test_default_endpoint_fails_fast(self, test_library: APMLibrary) -> None:
         # Agentless with no custom base URL selects the Datadog-hosted endpoint. Without a key it can
         # never deliver flags, so a provider that waits for configuration returns only after the
-        # 30 s timeout. Finishing start within the bound proves the provider failed at once; the
-        # default/not-ready evaluation proves evaluations still return the caller default.
+        # timeout (30 s; 15 s in the Go app). Finishing start within the bound proves the provider
+        # failed at once. When start reports success, the evaluation must return the caller default.
         started_at = time.monotonic()
         started = test_library.ffe_start()
         elapsed_seconds = time.monotonic() - started_at
@@ -719,7 +719,7 @@ class Test_Feature_Flag_Configuration_Source_Missing_Api_Key:
     ) -> None:
         # The same missing key with a custom base URL isolates the key check to the Datadog-hosted
         # endpoint. The expected value and the request to CONFIG_PATH prove agentless delivery still
-        # starts; the absent header proves no key was invented.
+        # starts without a key.
         assert test_library.ffe_start(), "failed to start FFE provider with a custom endpoint and no DD_API_KEY"
         _assert_expected_value(_evaluate(test_library))
 
