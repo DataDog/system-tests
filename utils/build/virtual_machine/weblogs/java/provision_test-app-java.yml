@@ -1,4 +1,5 @@
 ---
+# Changes in this AWS SSI weblog select Java and the onboarding scenario group in CI.
 lang_variant:
   name: OpenJDK11
   version: "11"
