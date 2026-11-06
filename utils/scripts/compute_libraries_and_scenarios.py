@@ -85,6 +85,12 @@ def get_gitlab_ssi_library(pr_title: str) -> str | None:
     return None
 
 
+def get_gitlab_ssi_libraries(pr_title: str, impacted_libraries: set[str]) -> set[str]:
+    if library := get_gitlab_ssi_library(pr_title):
+        return {library}
+    return impacted_libraries.intersection(GITLAB_SSI_LIBRARIES)
+
+
 def _setify(value: list[str] | set[str] | str | None) -> set[str]:
     if isinstance(value, set):
         return value
@@ -467,10 +473,7 @@ class Inputs:
 
 
 def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
-    outputs = {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
-    if ssi_library := get_gitlab_ssi_library(inputs.pr_title):
-        outputs["ssi_library"] = ssi_library
-    return outputs
+    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
 
 
 def stringify_outputs(outputs: dict[str, Any]) -> list[str]:
@@ -530,6 +533,10 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        if inputs.selects_scenarios_from_diff():
+            ssi_libraries = get_gitlab_ssi_libraries(inputs.pr_title, library_processor.selected)
+            outputs["ssi_libraries"] = " ".join(sorted(ssi_libraries))
+
         gitlab_libraries = filter_gitlab_libraries(inputs, library_processor.selected)
         if is_gitlab_pr_pipeline(inputs):
             library_weblog_scenarios = get_gitlab_library_weblog_scenarios(
