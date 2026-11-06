@@ -48,7 +48,7 @@ _OTLP_EXPORTER_KEYS = (
     "OTEL_EXPORTER_OTLP_HEADERS",
 )
 _STANDALONE_KEYS = (
-    "OTEL_ENABLED",
+    "OTEL_TRACES_EXPORTER",
     "OTEL_LOG_LEVEL",
     "OTEL_SERVICE_NAME",
     "OTEL_RESOURCE_ATTRIBUTES",
@@ -145,8 +145,8 @@ class Test_OTEL_Startup_Logs:
     def test_otlp_exporter(self) -> None:
         _assert_keys(*_OTLP_EXPORTER_KEYS)
 
-    def test_otel_enabled(self) -> None:
-        _assert_keys("OTEL_ENABLED")
+    def test_otel_traces_exporter(self) -> None:
+        _assert_keys("OTEL_TRACES_EXPORTER")
 
     def test_otel_log_level(self) -> None:
         _assert_keys("OTEL_LOG_LEVEL")
