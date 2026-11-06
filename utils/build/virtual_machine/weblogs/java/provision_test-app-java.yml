@@ -1,3 +1,4 @@
+# Host-based Java weblog provision used by AWS SSI onboarding tests.
 lang_variant:
     name: DefaultJDK
     version: default
