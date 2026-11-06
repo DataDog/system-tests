@@ -14,7 +14,7 @@ clusterAgent:
     - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_INIT_RESOURCES_CPU
       value: "1000m"
     - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_INIT_RESOURCES_MEMORY
-      value: "256Mi"
+      value: "512Mi"
   livenessProbe:
     initialDelaySeconds: 15
     periodSeconds: 15
