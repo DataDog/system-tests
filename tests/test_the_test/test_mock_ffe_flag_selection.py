@@ -37,6 +37,7 @@ SUITE_FLAGS = sorted(
     json.loads((REPO_ROOT / EVALUATION_SUITES_RELATIVE_PATH / SUITE / "ufc-config.json").read_text())["flags"]
 )
 CHECKOUT_FLAGS = ["checkout-banner", "checkout-pricing"]
+SUITE_CASE_FILES = sorted((REPO_ROOT / EVALUATION_SUITES_RELATIVE_PATH / SUITE / "cases").glob("*.json"))
 
 
 def _encode(value: str) -> str:
@@ -66,7 +67,14 @@ def test_selection_matches_shared_vectors(case: dict) -> None:
     if not has_selection_parameters(raw_query):
         assert expected["selectedKeys"] == sorted(flag_tags)
         return
-    assert select_flags(parse_selection(raw_query), flag_tags) == expected["selectedKeys"]
+    selection = parse_selection(raw_query)
+    if "selection" in case.get("sdk", {}):
+        # The server normalizes a selection exactly like the SDK canonicalizes it.
+        assert selection == Selection(
+            tags=tuple(case["sdk"]["selection"]["tags"]),
+            key_patterns=tuple(case["sdk"]["selection"]["keyPatterns"]),
+        )
+    assert select_flags(selection, flag_tags) == expected["selectedKeys"]
 
 
 @dataclass
@@ -383,5 +391,35 @@ def test_each_selection_and_suite_has_its_own_etag() -> None:
 
         server.client.ffe_use_suite("dependent-flags")
         assert _get_config(server, queries[0]).headers["ETag"] not in etags
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("case_path", SUITE_CASE_FILES, ids=[path.stem for path in SUITE_CASE_FILES])
+def test_suite_case_files_agree_with_the_mock(case_path: Path) -> None:
+    """For the request a suite case file expects, the mock serves each case's flag unless it expects FLAG_NOT_FOUND."""
+    cases = json.loads(case_path.read_text(encoding="utf-8"))
+    request = cases[0]["expectations"]["configurationRequest"]
+    ignored_reason = cases[0].get("configurationResponse", {}).get("flagSelectionIgnored")
+    query = "&".join(
+        f"{parameter}={_encode(value)}"
+        for parameter, field in (
+            ("selected_flag_tags", "selectedFlagTags"),
+            ("selected_flag_key_patterns", "selectedFlagKeyPatterns"),
+        )
+        for value in request.get(field, [])
+    )
+    server = MockedBackendServer()
+    try:
+        server.client.ffe_use_suite(SUITE)
+        if ignored_reason is not None:
+            server.client.ffe_set_flag_selection_ignored_reason(ignored_reason)
+        response = _get_config(server, query)
+
+        assert response.headers.get(FLAG_SELECTION_IGNORED_HEADER) == ignored_reason
+        served = set(_flag_keys(response))
+        for case in cases:
+            assert (case["flag"] in served) == (case["result"].get("errorCode") != "FLAG_NOT_FOUND"), case
     finally:
         server.close()

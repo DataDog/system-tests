@@ -8,10 +8,12 @@ and paths observed across both formats.
 
 The JSON configuration serves the root UFC, or with ``mocked_backend.client.ffe_use_suite(name)``
 the UFC of that ffe-system-test-data evaluation suite. It applies the ``selected_flag_tags`` and
-``selected_flag_key_patterns`` query parameters like production, matching tags from the suite's
-``flag-tags.json``; the root UFC has no tags. ``mocked_backend.client.ffe_set_flag_selection_ignored_reason(...)``
-makes it ignore every valid selection with that reason, as when production cannot load flag tags.
-The protobuf helpers ignore both.
+``selected_flag_key_patterns`` query parameters with the semantics of ffe-system-test-data
+``flag-selection/README.md``, matching tags from the suite's ``flag-tags.json``; the root UFC has no tags.
+``mocked_backend.client.ffe_set_flag_selection_ignored_reason(...)`` makes it ignore every valid, non-empty
+selection with that reason, as when production cannot load flag tags.
+The protobuf helpers ignore both; their ``selection_ignored_*`` scripted responses add a
+``DD-Flag-Selection-Ignored`` header to the unfiltered configuration.
 """
 
 from __future__ import annotations
@@ -519,7 +521,7 @@ class MockedBackendServerFfeMixin(_Base):
             headers = {"Content-Type": "application/protobuf", "ETag": wire_fixture["rules"]["etag"]}
             body = base64.b64decode(wire_fixture["rules"]["response"])
             if response in SELECTION_IGNORED_RESPONSES:
-                headers["DD-Flag-Selection-Ignored"] = SELECTION_IGNORED_RESPONSES[response]
+                headers[FLAG_SELECTION_IGNORED_HEADER] = SELECTION_IGNORED_RESPONSES[response]
             elif response == "delayed":
                 time.sleep(4)
             elif response == "delayed_body":

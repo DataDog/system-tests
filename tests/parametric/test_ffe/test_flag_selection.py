@@ -5,9 +5,9 @@ only the flags the backend returns. The cases come from the ffe-system-test-data
 mocked backend serves the suite's ufc-config.json and applies the selection with the suite's flag-tags.json. Each case
 file is one provider start.
 
-The selection reaches the SDK as written, through ffe_start's flag_selection field, so the canonical selection on the
-request is the SDK's own work. The Node.js test app builds its provider at boot, so it takes the same raw selection
-from SYSTEM_TESTS_FFE_FLAG_SELECTION instead.
+The test apps must pass the selection to the SDK as written, through ffe_start's flag_selection field, so the
+canonical selection on the request is the SDK's own work. The Node.js test app builds its provider at boot, so it must
+take the same raw selection from SYSTEM_TESTS_FFE_FLAG_SELECTION instead.
 """
 
 from dataclasses import dataclass
