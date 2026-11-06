@@ -63,6 +63,13 @@ public class FeatureFlagEvaluatorController {
         }
     }
 
+    // dd-openfeature reads no initialization-timeout variable, so the app maps the one other SDKs read.
+    // Unset keeps the short timeout that existing tests rely on.
+    private static long initTimeoutMillis() {
+        final String configured = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS");
+        return configured == null || configured.isBlank() ? 100 : Long.parseLong(configured.trim());
+    }
+
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
 
@@ -77,7 +84,7 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
+                provider = new Provider(new Provider.Options().initTimeout(initTimeoutMillis(), TimeUnit.MILLISECONDS));
             } else {
                 provider = new NoOpProvider() {
                     @Override

@@ -2,8 +2,8 @@
 
 Feature under test: server SDKs preserve legacy Remote Configuration adopters,
 load UFC flag definitions from the agentless HTTP backend by default only after
-application provider access, and honor explicit source selection and the stable
-provider kill switch.
+application provider access, honor explicit source selection and the stable
+provider kill switch, and fail fast when the Datadog-hosted endpoint has no API key.
 
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
@@ -40,6 +40,16 @@ MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
+MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS = 30000
+# Agentless without a custom base URL: the SDK selects the Datadog-hosted endpoint.
+MISSING_API_KEY_DEFAULT_ENDPOINT: dict[str, Any] = {
+    "agentless": False,
+    "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
+}
+# Fixed SDKs fail within a second. The bound stays below the shortest unfixed wait the apps allow:
+# the Go app's 15 s start deadline; the others wait out the 30 s initialization timeout, except
+# PHP, whose start does not wait.
+MISSING_API_KEY_FAIL_FAST_SECONDS = 10.0
 
 BASE_ENVVARS = {
     "DD_API_KEY": scenarios.parametric.dd_api_key,
@@ -74,12 +84,15 @@ UFC_VALID_DATA = _load_valid_ufc_fixture()
 
 
 @pytest.fixture
-def library_env(request: pytest.FixtureRequest, mocked_backend: MockedBackendServer) -> dict[str, str]:
+def library_env(request: pytest.FixtureRequest, mocked_backend: MockedBackendServer) -> dict[str, str | None]:
     params = getattr(request, "param", {})
     if not isinstance(params, dict):
         params = {}
 
-    env = dict(BASE_ENVVARS)
+    env: dict[str, str | None] = dict(BASE_ENVVARS)
+    if "api_key" in params:
+        # None removes DD_API_KEY from the library environment.
+        env["DD_API_KEY"] = params["api_key"]
     configuration_source = params.get("configuration_source", "agentless")
     response = params.get("response", "valid")
     responses = params.get("responses")
@@ -647,6 +660,86 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         )
         _assert_cold_not_ready(test_library, started=started)
         assert status["last_path"] == CONFIG_PATH
+
+
+@scenarios.parametric
+@features.feature_flags_agentless
+class Test_Feature_Flag_Configuration_Source_Missing_Api_Key:
+    """Validate agentless provider startup without DD_API_KEY.
+
+    The Datadog-hosted endpoint requires DD_API_KEY, so the provider must fail at once instead of
+    waiting out its initialization timeout. A custom endpoint and Remote Configuration, which the
+    error message offers as alternatives, must keep working without a key.
+    """
+
+    @parametrize(
+        "library_env",
+        [
+            {**MISSING_API_KEY_DEFAULT_ENDPOINT, "configuration_source": "agentless", "api_key": None},
+            {**MISSING_API_KEY_DEFAULT_ENDPOINT, "configuration_source": "agentless", "api_key": ""},
+            {
+                **MISSING_API_KEY_DEFAULT_ENDPOINT,
+                "configuration_source": None,
+                "provider_enabled": True,
+                "api_key": None,
+            },
+        ],
+        indirect=True,
+        ids=["key-absent", "key-empty", "default-source-key-absent"],
+    )
+    def test_default_endpoint_fails_fast(self, test_library: APMLibrary) -> None:
+        # Agentless with no custom base URL selects the Datadog-hosted endpoint. Without a key it can
+        # never deliver flags, so a provider that waits for configuration returns only after the
+        # timeout (30 s; 15 s in the Go app). Finishing start within the bound proves the provider
+        # failed at once. When start reports success, the evaluation must return the caller default.
+        started_at = time.monotonic()
+        started = test_library.ffe_start()
+        elapsed_seconds = time.monotonic() - started_at
+
+        assert elapsed_seconds < MISSING_API_KEY_FAIL_FAST_SECONDS, (
+            f"provider start took {elapsed_seconds:.1f}s without DD_API_KEY; "
+            f"expected under {MISSING_API_KEY_FAIL_FAST_SECONDS:.0f}s"
+        )
+        _assert_cold_not_ready(test_library, started=started)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "agentless", "api_key": None, "response": "valid"}],
+        indirect=True,
+    )
+    def test_custom_endpoint_does_not_require_api_key(
+        self,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # The same missing key with a custom base URL isolates the key check to the Datadog-hosted
+        # endpoint. The expected value and the request to CONFIG_PATH prove agentless delivery still
+        # starts without a key.
+        assert test_library.ffe_start(), "failed to start FFE provider with a custom endpoint and no DD_API_KEY"
+        _assert_expected_value(_evaluate(test_library))
+
+        status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "custom endpoint request without DD_API_KEY",
+        )
+        assert status["observed_dd_api_key"] is None
+        assert status["last_path"] == CONFIG_PATH
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "remote_config", "api_key": None, "agentless": False}],
+        indirect=True,
+    )
+    def test_remote_config_does_not_require_api_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        # Remote Configuration reaches flags through the Agent, so the missing key must not block it.
+        # The RC acknowledgement and expected value prove the provider loaded flags without a key.
+        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+        assert apply_state["product"] == RC_PRODUCT
+
+        assert test_library.ffe_start(), "failed to start FFE provider in remote_config mode without DD_API_KEY"
+        _assert_expected_value(_evaluate(test_library))
 
 
 @scenarios.parametric
