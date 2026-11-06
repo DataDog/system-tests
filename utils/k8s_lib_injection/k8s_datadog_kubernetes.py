@@ -213,6 +213,7 @@ class K8sDatadog:
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
+        self._wait_for_daemonset_ready("datadog-csi-driver-node-server", namespace, "CSI driver")
 
     def deploy_datadog_operator(self, host_log_folder: str, namespace: str = "datadog") -> None:
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog
@@ -254,27 +255,22 @@ class K8sDatadog:
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
-    def wait_for_test_agent(self, namespace: str) -> None:
-        """Waits for the test agent to be ready."""
-        daemonset_created = False
+    def _wait_for_daemonset_ready(self, name: str, namespace: str, component_name: str) -> None:
         daemonset_status = None
-        # Wait for the daemonset to be created
         for _ in range(20):
             daemonset_status = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set_status(
-                name="datadog", namespace=namespace
+                name=name, namespace=namespace
             )
             if daemonset_status is not None and daemonset_status.status.number_ready > 0:
-                logger.info("[Test agent] daemonset status datadog running!")
-                daemonset_created = True
-                break
-            if daemonset_status is None:
-                logger.info("[Test agent] daemonset status datadog not found")
+                logger.info(f"[{component_name}] DaemonSet {name} is ready")
+                return
             time.sleep(5)
 
-        if not daemonset_created:
-            logger.info(f"[Test agent] Daemonset not created. Last status: {daemonset_status}")
-            raise K8sLibInjectionError("Daemonset not created")
+        raise K8sLibInjectionError(f"{component_name} DaemonSet {name} not ready. Last status: {daemonset_status}")
 
+    def wait_for_test_agent(self, namespace: str) -> None:
+        """Waits for the test agent to be ready."""
+        self._wait_for_daemonset_ready("datadog", namespace, "Test agent")
         w = watch.Watch()
         for event in w.stream(
             func=self.list_namespaced_pod,
