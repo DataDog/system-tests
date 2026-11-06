@@ -3801,7 +3801,7 @@ manifest:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (libdatadog status.code fix is not merged)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (libdatadog status.code fix is not merged)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:  # Easy win for fastapi, flask-poc, uds-flask, uwsgi-poc and version 4.16.3
     - weblog_declaration:
         '*': 4.15.0-dev
     - weblog_declaration:
