@@ -55,6 +55,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
+        # A successful response confirms the injected weblog stayed available.
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
 
         # If the language version is supported there are traces related with the request
