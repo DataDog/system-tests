@@ -32,6 +32,7 @@
 - "datadog/system-tests:apache-mod-8.1.base-4f7ec411d89f"
 - "datadog/system-tests:apache-mod-8.2-zts.base-b9bbd5c900af"
 - "datadog/system-tests:apache-mod-8.2.base-cfccdda1a650"
+- "datadog/system-tests:cpp-parametric.base-7da050dd1bcd"
 - "datadog/system-tests:django-poc.base-1d15b551f35b"
 - "datadog/system-tests:django-py3.13.base-8fa5fb488bac"
 - "datadog/system-tests:express4-typescript.base-070fd1ba6efd"
