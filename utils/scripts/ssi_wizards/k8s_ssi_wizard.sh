@@ -655,14 +655,35 @@ run_the_tests(){
     fi
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
+
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}" \
+        "provider=${K8S_PROVIDER}" \
+        "keep_alive=$([[ ${KEEP_ALIVE:-} == y ]] && echo true || echo false)"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start rc
+        run_start=$(date +%s)
         "${CMD[@]}"
+        rc=$?
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${rc}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
+wizard_usage_begin k8s-lib-injection
 welcome "K8s lib-injection Tests"
 load_requirements
 ask_load_k8s_requirements

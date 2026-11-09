@@ -478,16 +478,35 @@ run_the_tests(){
     CMD=("./run.sh" "$SCENARIO" "--k8s-library" "$TEST_LIBRARY" "--k8s-weblog" "$WEBLOG" "--k8s-weblog-img" "$WEBLOG_IMAGE" "--k8s-cluster-img" "$CLUSTER_AGENT_IMAGE" "--k8s-lib-init-img" "$LIB_INIT_IMAGE" "--k8s-injector-img" "$INJECTOR_IMAGE" "--k8s-ssi-registry-base" "$K8S_SSI_REGISTRY_BASE")
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
+
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start rc
+        run_start=$(date +%s)
         "${CMD[@]}"
+        rc=$?
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${rc}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
 
 # Main execution flow
+wizard_usage_begin k8s-injector-dev
 welcome "K8s injector dev Tests"
 ask_load_requirements
 ask_load_injector_dev_binary

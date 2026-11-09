@@ -115,6 +115,7 @@ check_and_set_env_var() {
     fi
 }
 
+wizard_usage_begin aws
 welcome "AWS/Onboarding Tests"
 ask_load_requirements
 echo -e "${YELLOW}📌 Step: Check the Pulumi installation${NC}"
@@ -438,15 +439,36 @@ run_test_command() {
     echo "   $TEST_COMMAND"
     echo ""
 
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}" \
+        "vm=${VIRTUAL_MACHINE}" \
+        "env=${CI_ENVIRONMENT}" \
+        "keep_vms=$([[ -n ${ONBOARDING_KEEP_VMS:-} ]] && echo true || echo false)" \
+        "custom_tracer=$([[ -n ${DD_INSTALLER_LIBRARY_VERSION:-} ]] && echo true || echo false)" \
+        "custom_injector=$([[ -n ${DD_INSTALLER_INJECTOR_VERSION:-} ]] && echo true || echo false)"
+
     # Ask for user confirmation
     read -p "❓ Do you want to execute this command now? (y/n): " execute_choice
 
     if [[ "$execute_choice" =~ ^[Yy]$ ]]; then
         echo "🚀 Running the test command..."
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start rc
+        run_start=$(date +%s)
         eval "$TEST_COMMAND"
+        rc=$?
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${rc}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
 
         # Check if the command was successful
-        if [[ $? -eq 0 ]]; then
+        if [[ ${rc} -eq 0 ]]; then
             echo "🎉 ✅ TESTS COMPLETED SUCCESSFULLY! 🎉"
 
             # If ONBOARDING_KEEP_VMS is set, remind the user to destroy the stack
@@ -466,6 +488,7 @@ run_test_command() {
             echo "❌ There was an error running the tests. Please check the logs above."
         fi
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
         echo "🛑 Test command execution skipped."
         echo "📌 You can run it manually later by copying and pasting this command:"
         echo ""

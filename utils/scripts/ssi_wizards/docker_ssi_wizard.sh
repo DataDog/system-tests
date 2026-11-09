@@ -268,9 +268,24 @@ run_the_tests(){
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
 
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}" \
+        "base_image=${BASE_IMAGE}" \
+        "arch=${ARCH}" \
+        "runtime=${INSTALLABLE_RUNTIME:-}" \
+        "env=${CI_ENVIRONMENT}" \
+        "custom_tracer=$([[ -n ${SSI_LIBRARY_VERSION:-} ]] && echo true || echo false)" \
+        "custom_injector=$([[ -n ${SSI_INJECTOR_VERSION:-} ]] && echo true || echo false)"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing the command...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start
+        run_start=$(date +%s)
 
         # Copy binaries folder to Docker build context
         cp -r binaries utils/build/ssi/base/binaries
@@ -286,9 +301,17 @@ run_the_tests(){
         rm -rf utils/build/ssi/base/binaries
         echo -e "${CYAN}ℹ️  Removed binaries folder from build context${NC}"
 
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "outcome=$([[ ${TEST_EXIT_CODE} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${TEST_EXIT_CODE}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
+
         # Return the original exit code
         exit $TEST_EXIT_CODE
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
@@ -334,6 +357,7 @@ configure_private_registry() {
     fi
 }
 
+wizard_usage_begin docker
 welcome "Docker SSI Tests"
 ask_load_requirements
 configure_private_registry
