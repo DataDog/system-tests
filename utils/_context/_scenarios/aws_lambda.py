@@ -251,7 +251,6 @@ class AppsecLambdaSca(_LambdaScenario):
                 "DD_APPSEC_ENABLED": "false",
                 "DD_APPSEC_SCA_ENABLED": "true",
             },
-            doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
