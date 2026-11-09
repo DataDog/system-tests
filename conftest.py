@@ -256,7 +256,13 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         for key, value in flatten(properties, {}).items():
             xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
 
-        xml.add_global_property("dd_tags[test.parameters]", json.dumps(properties))
+        # test.parameters is part of the Test Optimization fingerprint: exclude agent and library
+        # versions, so that the test identity is stable across dev builds
+        parameters = {key: value for key, value in properties.items() if key != "agent"}
+        if isinstance(library := parameters.get("library"), dict):
+            parameters["library"] = {key: value for key, value in library.items() if key != "version"}
+
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(parameters))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
