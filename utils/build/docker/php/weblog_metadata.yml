@@ -15,7 +15,11 @@ apache-mod-8.0:
 apache-mod-8.1:
   categories: [dd_trace]
 apache-mod-8.2:
-  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API]
+  supported_scenarios:
+    - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTEL_API
+    - SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
   categories: [dd_trace]
 apache-mod-7.0-zts:
   categories: [dd_trace]

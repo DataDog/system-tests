@@ -36,7 +36,13 @@ net-http:
 chi:
   categories: [dd_trace]
 net-http-orchestrion:
-  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
+  supported_scenarios:
+    - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTEL_API
+    - SECURITY_SMOKE_DDOT
+    - SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION
   categories: [dd_trace]
 net-http-span-pool:
   categories: [dd_trace]

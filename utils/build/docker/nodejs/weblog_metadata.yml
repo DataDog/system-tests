@@ -23,7 +23,13 @@ express4-typescript:
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
 express5:
-  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
+  supported_scenarios:
+    - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTEL_API
+    - SECURITY_SMOKE_DDOT
+    - SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION
   build_mode: local
   categories: [dd_trace]
 fastify:

@@ -1683,6 +1683,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
     - weblog_declaration:
         spring-boot: v1.54.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v1.66.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
     - weblog_declaration:
         '*': v0.108.0
@@ -1705,9 +1706,12 @@ manifest:
     - weblog_declaration:
         vertx3: missing_feature (APPSEC-55781)
         vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v1.40.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v1.40.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v0.115.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
     - weblog_declaration:
         akka-http: missing_feature (login endpoints not implemented)

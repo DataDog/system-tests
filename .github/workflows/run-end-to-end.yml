@@ -182,6 +182,15 @@ jobs:
     - name: Run SECURITY_SMOKE_DDOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_DDOT"')
       run: ./run.sh SECURITY_SMOKE_DDOT
+    - name: Run SECURITY_SMOKE_RUNTIME_ACTIVATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_RUNTIME_ACTIVATION"')
+      run: ./run.sh SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - name: Run SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION"')
+      run: ./run.sh SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
+    - name: Run SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION"')
+      run: ./run.sh SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION
     - name: Run APPSEC_APM_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
       run: ./run.sh APPSEC_APM_STANDALONE

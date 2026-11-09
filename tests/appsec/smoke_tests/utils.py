@@ -119,6 +119,17 @@ def assert_backend_attack(response: HttpResponse) -> None:
     raise AssertionError("Backend did not receive an AppSec event with a structured attack report")
 
 
+def assert_backend_blocked(response: HttpResponse) -> None:
+    assert response.status_code == 403
+    spans = [span for _, span in interfaces.mocked_backend.get_spans(response)]
+    assert spans, "Backend did not receive the blocked request"
+    assert any(
+        is_same_boolean(actual=span.meta.get("appsec.blocked"), expected="true")
+        and span.meta.get("http.status_code") == "403"
+        for span in spans
+    ), "Backend must receive the blocking flag and HTTP status"
+
+
 def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
     """Walk agent appsec data and assert the expected RASP rule triggered."""
     for _, span, _ in interfaces.mocked_backend.get_appsec_data(response):
@@ -300,7 +311,7 @@ class BaseRemoteConfigSmokeTests:
         self._rc_state.reset().apply()
 
     def test_rasp_blocking_smoke(self) -> None:
-        assert self.r.status_code == 403
+        assert_backend_blocked(self.r)
         _assert_rasp_attack(
             self.r,
             "rasp-930-100",
@@ -327,7 +338,7 @@ class BaseRemoteConfigSmokeTests:
         self._rc_state.reset().apply()
 
     def test_ip_blocking_smoke(self) -> None:
-        assert self.r.status_code == 403
+        assert_backend_blocked(self.r)
 
 
 # ---------------------------------------------------------------------------

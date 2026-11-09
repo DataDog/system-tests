@@ -1158,6 +1158,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v4.14.0-rc1
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
     - weblog_declaration:
         '*': v1.18.0
@@ -1173,9 +1174,12 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v2.10.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v2.10.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v2.10.1
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1

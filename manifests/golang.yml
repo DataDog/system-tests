@@ -705,6 +705,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v2.10.1
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:
     - weblog_declaration:
@@ -724,6 +725,8 @@ manifest:
     - declaration: irrelevant (there is no equivalent to system(3) in go)
     - weblog_declaration:
         fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v2.0.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v2.0.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
@@ -733,6 +736,7 @@ manifest:
         net-http-orchestrion: v2.7.0
     - weblog_declaration:
         fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v1.69.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion

@@ -32,7 +32,13 @@ uds-flask:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 flask-poc:
-  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
+  supported_scenarios:
+    - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTEL_API
+    - SECURITY_SMOKE_DDOT
+    - SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION
   categories: [dd_trace]
 fastapi:
   categories: [dd_trace]

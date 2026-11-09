@@ -18,7 +18,11 @@ rails72:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 rails80:
-  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API]
+  supported_scenarios:
+    - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTEL_API
+    - SECURITY_SMOKE_RUNTIME_ACTIVATION
+    - SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 sinatra14:

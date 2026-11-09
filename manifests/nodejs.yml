@@ -1102,6 +1102,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
     - weblog_declaration:
         express5: '>=5.69.0'
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
     - weblog_declaration:
         '*': '>=3.11.0 || ^2.24.0'
@@ -1116,9 +1117,12 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: '>=5.24.0 || ^4.48.0'
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: '>=5.24.0 || ^4.48.0'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         nextjs: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: '>=3.9.0 || ^2.22.0'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Sca:
     - weblog_declaration:
         nextjs: missing_feature

@@ -50,11 +50,19 @@ class Test_SecuritySmokeMatrix:
         ],
     )
     def test_one_weblog_per_topology(self, library: str, weblog: str) -> None:
-        for scenario in (scenarios.security_smoke, scenarios.security_smoke_otel_api, scenarios.security_smoke_ddot):
+        for scenario in (
+            scenarios.security_smoke,
+            scenarios.security_smoke_otel_api,
+            scenarios.security_smoke_ddot,
+            scenarios.security_smoke_runtime_activation,
+            scenarios.security_smoke_otel_api_runtime_activation,
+            scenarios.security_smoke_ddot_runtime_activation,
+        ):
             selected = [
                 metadata.name
                 for metadata in WeblogMetaData.load(library)
                 if metadata.support_scenario(scenario.name, scenario.weblog_categories)
             ]
-            expected = [] if scenario == scenarios.security_smoke_ddot and library in ("ruby", "php") else [weblog]
+            ddot = scenario in (scenarios.security_smoke_ddot, scenarios.security_smoke_ddot_runtime_activation)
+            expected = [] if ddot and library in ("ruby", "php") else [weblog]
             assert selected == expected

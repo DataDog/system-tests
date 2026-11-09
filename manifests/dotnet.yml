@@ -343,8 +343,12 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py: v3.41.0
   tests/appsec/smoke_tests/test_security.py: v3.41.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: v2.24.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext: v3.9.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v2.51.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v2.52.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v2.16.0
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v3.50.0
   tests/appsec/test_alpha.py::Test_Basic: v1.28.6
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.17.0
