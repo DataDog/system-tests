@@ -223,7 +223,7 @@ def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]
         (
             target
             for request in reversed(previous_requests)
-            for target in request["body"].get("cached_target_files", [])
+            for target in (request["body"].get("cached_target_files") or [])
             if target["path"] == path
         ),
         None,
@@ -236,13 +236,14 @@ def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]
         for request in test_agent.rc_requests()[len(previous_requests) :]:
             body = request["body"]
             changed = any(
-                target["path"] == path and target != previous_target for target in body.get("cached_target_files", [])
+                target["path"] == path and target != previous_target
+                for target in (body.get("cached_target_files") or [])
             )
             acknowledged = any(
                 state["product"] == RC_PRODUCT
                 and state["id"] == config_id
                 and state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
-                for state in body["client"]["state"].get("config_states", [])
+                for state in (body["client"]["state"].get("config_states") or [])
             )
             if changed and acknowledged:
                 return

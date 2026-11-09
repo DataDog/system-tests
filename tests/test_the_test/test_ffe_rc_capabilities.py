@@ -111,6 +111,25 @@ class Test_FFE_RC_Delivery:
         assert agent.rc_requests.call_count == 5
         agent.clear.assert_not_called()
 
+    def test_null_rc_state_waits_for_new_content_and_ack(self) -> None:
+        agent = MagicMock(spec=TestAgentAPI)
+        empty = _poll()
+        empty["body"]["cached_target_files"] = None
+        empty["body"]["client"]["state"]["config_states"] = None
+        new_without_state = _poll(content="new")
+        new_without_state["body"]["client"]["state"]["config_states"] = None
+        new_ack = _poll(content="new", acknowledged=True)
+        agent.rc_requests.side_effect = [
+            [empty],
+            [empty, empty],
+            [empty, empty, new_without_state],
+            [empty, empty, new_without_state, new_ack],
+        ]
+        with patch("tests.parametric.test_ffe.utils.time.sleep"):
+            deliver(agent, config_id="flags", payload={"flags": {}})
+        assert agent.rc_requests.call_count == 4
+        agent.clear.assert_not_called()
+
     def test_stale_ack_times_out(self) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         old = _poll(content="old", acknowledged=True)
