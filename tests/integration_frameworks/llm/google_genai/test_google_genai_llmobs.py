@@ -328,6 +328,7 @@ class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
                 "input_tokens": mock.ANY,
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
