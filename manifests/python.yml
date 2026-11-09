@@ -1154,7 +1154,6 @@ manifest:
   tests/appsec/smoke_tests/test_security.py: v4.6.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
     - weblog_declaration:
-        '*': irrelevant (just one weblog is enough to test the SDK)
         flask-poc: v3.18.1
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - weblog_declaration:

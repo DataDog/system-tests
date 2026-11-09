@@ -1101,7 +1101,6 @@ manifest:
   tests/appsec/smoke_tests/test_security.py: v5.92.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
     - weblog_declaration:
-        '*': irrelevant (just one weblog is enough to test the SDK)
         express5: '>=5.69.0'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
     - weblog_declaration:
