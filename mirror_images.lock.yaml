@@ -246,6 +246,10 @@ images:
     digest: sha256:e49b909d4819f43ba50d034b273341a43e3c7a6c5bee70b287e9ca661479d5a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb
     tag: uwsgi-poc.base-6c2040a5b9bb
+  datadog/system-tests:vertx3.base-0f17e2ccaa86:
+    digest: sha256:09df76a7b09f74452663d1e8f7a072d03591000b70eac130718f29b82aefb45b
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:vertx3.base-0f17e2ccaa86
+    tag: vertx3.base-0f17e2ccaa86
   debian:bookworm-slim:
     digest: sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
     target: registry.ddbuild.io/system-tests/mirror/debian:bookworm-slim
