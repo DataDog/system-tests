@@ -13,6 +13,9 @@ class RuntimeInstallableVersion:
 class JavaRuntimeInstallableVersions:
     """Java runtime versions that can be installed automatically"""
 
+    JAVA_27 = RuntimeInstallableVersion("JAVA_27", "27.0.1.0+9-zulu")
+    JAVA_26 = RuntimeInstallableVersion("JAVA_26", "26.0.2.1+1-zulu")
+    JAVA_25 = RuntimeInstallableVersion("JAVA_25", "25.0.5.0+8-zulu")
     JAVA_24 = RuntimeInstallableVersion("JAVA_24", "24.0.1-zulu")
     JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.7-zulu")
     JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.15-zulu")
@@ -21,6 +24,9 @@ class JavaRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
+            JavaRuntimeInstallableVersions.JAVA_27,
+            JavaRuntimeInstallableVersions.JAVA_26,
+            JavaRuntimeInstallableVersions.JAVA_25,
             JavaRuntimeInstallableVersions.JAVA_24,
             JavaRuntimeInstallableVersions.JAVA_21,
             JavaRuntimeInstallableVersions.JAVA_17,
@@ -48,6 +54,8 @@ class PHPRuntimeInstallableVersions:
     PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
     PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
+    PHP84 = RuntimeInstallableVersion("PHP84", "8.4")
+    PHP85 = RuntimeInstallableVersion("PHP85", "8.5")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -62,6 +70,8 @@ class PHPRuntimeInstallableVersions:
             PHPRuntimeInstallableVersions.PHP81,
             PHPRuntimeInstallableVersions.PHP82,
             PHPRuntimeInstallableVersions.PHP83,
+            PHPRuntimeInstallableVersions.PHP84,
+            PHPRuntimeInstallableVersions.PHP85,
         ]
 
     @staticmethod
@@ -82,6 +92,8 @@ class PythonRuntimeInstallableVersions:
     PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
     PY311 = RuntimeInstallableVersion("PY311", "3.11.10")
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
+    PY313 = RuntimeInstallableVersion("PY313", "3.13.18")
+    PY314 = RuntimeInstallableVersion("PY314", "3.14.10")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -93,6 +105,8 @@ class PythonRuntimeInstallableVersions:
             PythonRuntimeInstallableVersions.PY310,
             PythonRuntimeInstallableVersions.PY311,
             PythonRuntimeInstallableVersions.PY312,
+            PythonRuntimeInstallableVersions.PY313,
+            PythonRuntimeInstallableVersions.PY314,
         ]
 
     @staticmethod
@@ -120,6 +134,7 @@ class JSRuntimeInstallableVersions:
     JS2211 = RuntimeInstallableVersion("JS2211", "22.11")
     JS2300 = RuntimeInstallableVersion("JS2300", "23.0")
     JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
+    JS2613 = RuntimeInstallableVersion("JS2613", "26.13")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -138,6 +153,7 @@ class JSRuntimeInstallableVersions:
             JSRuntimeInstallableVersions.JS2211,
             JSRuntimeInstallableVersions.JS2300,
             JSRuntimeInstallableVersions.JS2303,
+            JSRuntimeInstallableVersions.JS2613,
         ]
 
     @staticmethod
@@ -151,6 +167,8 @@ class JSRuntimeInstallableVersions:
 class DotnetRuntimeInstallableVersions:
     """.NET runtime versions that can be installed automatically"""
 
+    DOTNET10 = RuntimeInstallableVersion("DOTNET10", "10.0.403")
+    DOTNET9 = RuntimeInstallableVersion("DOTNET9", "9.0.320")
     DOTNET80 = RuntimeInstallableVersion("DOTNET80", "8.0.404")
     DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
     DOTNET60 = RuntimeInstallableVersion("DOTNET60", "6.0.428")
@@ -158,6 +176,8 @@ class DotnetRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
+            DotnetRuntimeInstallableVersions.DOTNET10,
+            DotnetRuntimeInstallableVersions.DOTNET9,
             DotnetRuntimeInstallableVersions.DOTNET80,
             DotnetRuntimeInstallableVersions.DOTNET70,
             DotnetRuntimeInstallableVersions.DOTNET60,

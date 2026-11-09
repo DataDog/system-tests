@@ -919,7 +919,7 @@ class Test_WaitForBaseImage:
         assert exit_info.value.code == 1
         assert calls == 1
 
-    def test_non_missing_error_fails_immediately(self, monkeypatch: pytest.MonkeyPatch):
+    def test_non_missing_error_fails_after_a_few_attempts(self, monkeypatch: pytest.MonkeyPatch):
         calls = 0
 
         def unauthorized(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
@@ -939,7 +939,28 @@ class Test_WaitForBaseImage:
             wait_for_base_image.main()
 
         assert exit_info.value.code == 1
-        assert calls == 1
+        # well before the timeout: it's not a missing image
+        assert calls == wait_for_base_image._UNEXPECTED_ERROR_ATTEMPTS  # noqa: SLF001
+
+    def test_transient_error_is_retried(self, monkeypatch: pytest.MonkeyPatch):
+        results = iter(
+            [
+                subprocess.CompletedProcess(
+                    [], 1, stdout="", stderr='Get "https://production.cloudfront.docker.com/...'
+                ),
+                subprocess.CompletedProcess([], 0, stdout="{}", stderr=""),
+            ]
+        )
+
+        monkeypatch.setattr(wait_for_base_image.subprocess, "run", lambda *_args, **_kwargs: next(results))
+        monkeypatch.setattr(wait_for_base_image.time, "sleep", lambda _seconds: None)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "express4", "--timeout", "900", "--poll-interval", "30"],
+        )
+
+        wait_for_base_image.main()
 
 
 @scenarios.test_the_test

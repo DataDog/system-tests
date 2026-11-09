@@ -11,8 +11,6 @@ class IPV6Scenario(EndToEndScenario):
             enable_ipv6=True,
             scenario_groups=[scenario_groups.ipv6],
             weblog_categories=[WeblogCategory.dd_trace],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
             doc=(
                 "Test the agent/lib communication using an IPv6 address. We do not use the proxy between "
