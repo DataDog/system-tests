@@ -1,3 +1,4 @@
+---
 graphql23:
   categories: [dd_trace_graphql]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ?
@@ -17,6 +18,7 @@ rails72:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 rails80:
+  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API]
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 sinatra14:

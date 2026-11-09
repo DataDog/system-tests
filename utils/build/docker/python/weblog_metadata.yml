@@ -1,3 +1,4 @@
+---
 # docs/understand/weblogs/weblog-metadata.md
 
 openai-py:
@@ -31,6 +32,7 @@ uds-flask:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
 flask-poc:
+  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
   categories: [dd_trace]
 fastapi:
   categories: [dd_trace]

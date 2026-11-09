@@ -1,3 +1,4 @@
+---
 name: End-to-end tests
 
 on:
@@ -172,6 +173,15 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run SECURITY_SMOKE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE"')
+      run: ./run.sh SECURITY_SMOKE
+    - name: Run SECURITY_SMOKE_OTEL_API scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_OTEL_API"')
+      run: ./run.sh SECURITY_SMOKE_OTEL_API
+    - name: Run SECURITY_SMOKE_DDOT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE_DDOT"')
+      run: ./run.sh SECURITY_SMOKE_DDOT
     - name: Run APPSEC_APM_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
       run: ./run.sh APPSEC_APM_STANDALONE

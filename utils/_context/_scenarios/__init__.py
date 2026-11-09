@@ -166,6 +166,7 @@ from .otel_collector import (
 from .open_telemetry import (
     OtelIntegrations,
 )
+from .security_smoke import SecuritySmoke, SecuritySmokeOtelApi, SecuritySmokeDdot
 from .otel_semantics import (
     OtelSemanticsOtlp,
     OtelSemanticsOtlpCustomErrorStatuses,
@@ -303,6 +304,9 @@ class _Scenarios:
     appsec_auto_events_rc = AppsecAutoEventsRc()
     runtime_sca_reachability = RuntimeScaReachability()
     appsec_standalone = AppsecStandalone()
+    security_smoke = SecuritySmoke()
+    security_smoke_otel_api = SecuritySmokeOtelApi()
+    security_smoke_ddot = SecuritySmokeDdot()
     appsec_apm_standalone = AppsecApmStandalone()
     appsec_standalone_apm_standalone = AppsecStandaloneApmStandalone()
     # Combined scenario for API Security in standalone mode

@@ -1,3 +1,4 @@
+---
 # docs/understand/weblogs/weblog-metadata.md
 
 express4:
@@ -22,6 +23,7 @@ express4-typescript:
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
 express5:
+  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
   build_mode: local
   categories: [dd_trace]
 fastify:

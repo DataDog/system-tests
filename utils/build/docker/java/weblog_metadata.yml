@@ -1,3 +1,4 @@
+---
 # docs/understand/weblogs/weblog-metadata.md
 
 akka-http:
@@ -15,6 +16,7 @@ ratpack:
 resteasy-netty3:
   categories: [dd_trace]
 spring-boot:
+  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
   categories: [dd_trace]
 spring-boot-3-native:
   categories: [dd_trace]

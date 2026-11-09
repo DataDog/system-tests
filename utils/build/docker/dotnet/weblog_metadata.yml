@@ -1,6 +1,8 @@
+---
 # docs/understand/weblogs/weblog-metadata.md
 
 poc:
+  supported_scenarios: [SECURITY_SMOKE, SECURITY_SMOKE_OTEL_API, SECURITY_SMOKE_DDOT]
   categories: [dd_trace]
 uds:
   categories: [dd_trace]
