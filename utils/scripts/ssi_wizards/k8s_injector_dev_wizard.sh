@@ -62,7 +62,7 @@ ask_load_injector_dev_binary(){
 
             echo "Downloading injector-dev binary from $BINARY_URL..."
             if command_exists curl; then
-                curl -L -o "binaries/injector-dev" "$BINARY_URL"
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fL -o "binaries/injector-dev" "$BINARY_URL"
             elif command_exists wget; then
                 wget -O "binaries/injector-dev" "$BINARY_URL"
             else
@@ -116,7 +116,7 @@ ask_load_k8s_injector_dev_requirements(){
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO https://github.com/abiosoft/colima/releases/latest/download/colima-linux-x86_64
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/abiosoft/colima/releases/latest/download/colima-linux-x86_64
                 chmod +x colima-linux-x86_64
                 sudo mv colima-linux-x86_64 /usr/local/bin/colima
             fi
@@ -135,17 +135,17 @@ ask_load_k8s_injector_dev_requirements(){
                 # macOS
                 ARCH=$(uname -m)
                 if [[ "$ARCH" == "arm64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
                     sudo install minikube-darwin-arm64 /usr/local/bin/minikube
                     rm minikube-darwin-arm64
                 else
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-amd64
                     sudo install minikube-darwin-amd64 /usr/local/bin/minikube
                     rm minikube-darwin-amd64
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
                 sudo install minikube-linux-amd64 /usr/local/bin/minikube
                 rm minikube-linux-amd64
             fi
@@ -165,11 +165,11 @@ ask_load_k8s_injector_dev_requirements(){
                 if command_exists brew; then
                     brew install helm
                 else
-                    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
             fi
             echo -e "${GREEN}✅ Helm installed successfully.${NC}"
         fi
@@ -189,16 +189,16 @@ ask_load_k8s_injector_dev_requirements(){
                 else
                     ARCH=$(uname -m)
                     if [[ "$ARCH" == "arm64" ]]; then
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
+                        curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
                     else
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
+                        curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
                     fi
                     chmod +x kubectl
                     sudo mv kubectl /usr/local/bin/
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                 chmod +x kubectl
                 sudo mv kubectl /usr/local/bin/
             fi
