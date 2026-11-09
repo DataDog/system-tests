@@ -262,13 +262,21 @@ def start_and_deliver(
     # before delivery. Trigger startup without requiring readiness until after RC.
     with ThreadPoolExecutor(max_workers=1) as executor:
         started = executor.submit(test_library.ffe_start)
-        observe_polls(test_agent, supported=supported)
-        deliver(test_agent, config_id=config_id, payload=payload)
-        if started.result(timeout=10):
-            return
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            if test_library.ffe_start():
-                return
-            time.sleep(0.1)
-        raise AssertionError("Failed to initialize the provider after RC delivery")
+        try:
+            observe_polls(test_agent, supported=supported)
+            deliver(test_agent, config_id=config_id, payload=payload)
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline:
+                if started.result(timeout=max(0, deadline - time.monotonic())):
+                    return
+                time.sleep(0.1)
+                started = executor.submit(test_library.ffe_start)
+            raise AssertionError("Failed to initialize the provider after RC delivery")
+        except BaseException as error:
+            # Stop the server before the executor joins its worker: /ffe/start
+            # may still be waiting for configuration that will never arrive.
+            try:
+                test_library.terminate()
+            except Exception as cleanup_error:
+                error.add_note(f"Failed to terminate the test application: {cleanup_error}")
+            raise

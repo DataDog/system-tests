@@ -1,6 +1,7 @@
 """Regressions for RC capability assertions, gated startup, and update acknowledgement."""
 
 import base64
+from concurrent.futures import Future
 from threading import Event
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -156,5 +157,63 @@ class Test_FFE_RC_Delivery:
         agent.set_remote_config.side_effect = configure
         start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, supported=supported)
         assert delivered.is_set()
+        library.terminate.assert_not_called()
         assert library.ffe_start.call_count == (1 if blocking else 2)
         agent.clear.assert_not_called()
+
+    @pytest.mark.parametrize("failure_stage", ["capabilities", "delivery", "readiness", "retry"])
+    def test_failed_startup_terminates_before_joining(self, failure_stage: str) -> None:
+        agent = MagicMock(spec=TestAgentAPI)
+        library = MagicMock(spec=ParametricTestClientApi)
+        starting = Event()
+        stopped = Event()
+        finished = Event()
+        failure = (
+            TimeoutError(f"Failed during {failure_stage}")
+            if failure_stage in ("readiness", "retry")
+            else AssertionError(f"Failed during {failure_stage}")
+        )
+
+        def start() -> bool:
+            if failure_stage == "retry" and library.ffe_start.call_count == 1:
+                return False
+            starting.set()
+            try:
+                assert stopped.wait(timeout=5), "Startup was joined before the application was terminated"
+                raise ConnectionError("Application terminated")
+            finally:
+                finished.set()
+
+        def observe(*_args: object, **_kwargs: object) -> None:
+            if failure_stage != "retry":
+                assert starting.wait(timeout=5)
+            if failure_stage == "capabilities":
+                raise failure
+
+        def deliver_config(*_args: object, **_kwargs: object) -> None:
+            if failure_stage == "delivery":
+                raise failure
+
+        original_result = Future.result
+        result_calls = 0
+
+        def result(future: Future[bool], timeout: float | None = None) -> bool:
+            nonlocal result_calls
+            result_calls += 1
+            if failure_stage == "readiness" or (failure_stage == "retry" and result_calls == 2):
+                assert starting.wait(timeout=5)
+                raise failure
+            return original_result(future, timeout=timeout)
+
+        library.ffe_start.side_effect = start
+        library.terminate.side_effect = stopped.set
+        with (
+            patch("tests.parametric.test_ffe.utils.observe_polls", side_effect=observe),
+            patch("tests.parametric.test_ffe.utils.deliver", side_effect=deliver_config),
+            patch.object(Future, "result", result),
+            pytest.raises((AssertionError, TimeoutError)) as raised,
+        ):
+            start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, supported=True)
+        assert raised.value is failure
+        library.terminate.assert_called_once_with()
+        assert finished.is_set(), "Startup worker leaked beyond the helper"

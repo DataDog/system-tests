@@ -838,9 +838,7 @@ class ParametricTestClientApi(TestClientApi):
         if flag_selection is not None:
             payload["flag_selection"] = flag_selection
 
-        # Cold-start tests initialize concurrently with RC delivery. Bound the
-        # request so a missing configuration cannot leave startup waiting forever.
-        resp = self._session.post(self._url("/ffe/start"), json=payload, timeout=30)
+        resp = self._session.post(self._url("/ffe/start"), json=payload)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
