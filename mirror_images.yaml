@@ -68,6 +68,7 @@
 - "datadog/system-tests:ruby_buddy-v2"
 - "datadog/system-tests:tornado.base-3edec3b229d1"
 - "datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb"
+- "datadog/system-tests:vertx3.base-0f17e2ccaa86"
 - "debian:bookworm-slim"
 - "debian:stable-slim"
 - "demisto/fastapi:0.116.1.4266494"
