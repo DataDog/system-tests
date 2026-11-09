@@ -22,7 +22,7 @@ def commands(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     """Record the commands run by the steps instead of running them."""
     recorded: list[list[str]] = []
 
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         recorded.append(command)
 
     monkeypatch.setattr(finalizer, "run", run)
@@ -139,7 +139,7 @@ def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[l
 def test_a_failing_step_does_not_stop_the_next_ones(
     tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
 ):
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         if command[0] == "datadog-ci":
             raise subprocess.CalledProcessError(1, command)
         commands.append(command)
