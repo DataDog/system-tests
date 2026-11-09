@@ -72,6 +72,13 @@ def validate_positive_int(name: str, value: str) -> list[str]:
     return []
 
 
+def validate_int(name: str, value: str) -> list[str]:
+    """Must be an integer, e.g. '-1' or '900'."""
+    if not re.match(r"^-?[0-9]+$", value):
+        return [_error(name, value, "expected an integer")]
+    return []
+
+
 def validate_path(name: str, value: str) -> list[str]:
     """Must be a valid relative path."""
     if not re.match(r"^[a-zA-Z0-9_][a-zA-Z0-9_./-]*$", value):
@@ -133,6 +140,8 @@ CHECKS: list[tuple[str, object]] = [
     ("FORCE_EXECUTE", None),  # pytest node IDs are too complex to validate by format
     ("SYSTEM_TESTS_PARAMETRIC_JOB_COUNT", validate_positive_int),
     ("SYSTEM_TESTS_PARAMETRIC_WORKERS", validate_positive_int),
+    ("SYSTEM_TESTS_DESIRED_EXECUTION_TIME", validate_int),
+    ("SYSTEM_TESTS_ENDTOEND_JOB_COUNT", validate_int),
     ("SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION", validate_bool),
     ("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", validate_bool),
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),

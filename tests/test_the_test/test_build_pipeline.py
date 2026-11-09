@@ -1,5 +1,6 @@
 """Tests for utils/ci/gitlab/build_pipeline.py — chunking, rendering, and CLI."""
 
+import copy
 import json
 import re
 from pathlib import Path
@@ -20,6 +21,33 @@ MINIMAL_PARAMS = {
     "miscs": {"binaries_artifact": "flask-binaries"},
     "parametric": {"enable": False, "parallel_jobs": []},
 }
+
+
+def _timed_params(weblog: str, times: dict[str, int]) -> dict:
+    """Params with one end-to-end job for the weblog, with the time of each scenario, like compute_params() writes."""
+    return {
+        "endtoend_defs": {
+            "parallel_weblogs": [{"name": weblog}],
+            "parallel_jobs": [
+                {
+                    "weblog": weblog,
+                    "weblog_instance": 1,
+                    "scenarios": sorted(times),
+                    "scenarios_times": times,
+                    "expected_job_time": sum(times.values()),
+                    "weblog_build_required": True,
+                }
+            ],
+        },
+        "miscs": {"binaries_artifact": ""},
+        "parametric": {"enable": False, "parallel_jobs": []},
+    }
+
+
+def _jobs(params: dict) -> list[tuple[str, int, list[str]]]:
+    return [
+        (job["weblog"], job["weblog_instance"], job["scenarios"]) for job in params["endtoend_defs"]["parallel_jobs"]
+    ]
 
 
 def write_params(tmp_path: Path, *libs: str) -> None:
@@ -175,9 +203,9 @@ class Test_BuildPipeline:
             "variables": {
                 "TEST_LIBRARY": "golang",
                 "SYSTEM_TESTS_WEBLOG": "envoy",
-                "SYSTEM_TESTS_SCENARIO": "GO_PROXIES_DEFAULT",
                 "SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED": "false",
                 "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": "bin",
+                "SYSTEM_TESTS_SCENARIOS": "GO_PROXIES_DEFAULT",
             },
             "needs": [{"job": "envoy-binaries", "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"}],
         }
@@ -252,6 +280,233 @@ class Test_BuildPipeline:
         # other jobs keep the default runner, from .system_tests_base
         assert "tags" not in pipeline["system_tests_run_python_DEFAULT_flask"]
         assert "tags" not in pipeline["system_tests_build_python_flask"]
+
+    def test_scenarios_are_not_grouped_by_default(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [],
+                "parallel_jobs": [
+                    {"weblog": "flask", "scenarios": ["DEFAULT", "SAMPLING"], "weblog_build_required": True}
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_python.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(["python"], tmp_path, out, stage="e2e", ci_image="img", chunks=1)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert pipeline["system_tests_run_python_DEFAULT_flask"]["variables"]["SYSTEM_TESTS_SCENARIOS"] == "DEFAULT"
+        assert pipeline["system_tests_run_python_SAMPLING_flask"]["variables"]["SYSTEM_TESTS_SCENARIOS"] == "SAMPLING"
+
+    def test_scheduler_balances_scenarios_of_all_libraries(self, tmp_path: Path) -> None:
+        python_times = {"DEFAULT": 400, "SAMPLING": 300, "IPV6": 200, "PROFILING": 100, "THREAD_CONTEXT_SHARING": 50}
+        (tmp_path / "params_python.json").write_text(json.dumps(_timed_params("flask", python_times)))
+        (tmp_path / "params_java.json").write_text(
+            json.dumps(_timed_params("spring-boot", {"DEFAULT": 500, "IPV6": 100}))
+        )
+        out = tmp_path / "out"
+
+        build(["python", "java"], tmp_path, out, stage="e2e", ci_image="img", chunks=1, endtoend_job_count=5)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        run_jobs = [
+            (name, job["variables"]["SYSTEM_TESTS_SCENARIOS"])
+            for name, job in pipeline.items()
+            if name.startswith("system_tests_run_")
+        ]
+        # 1 job per weblog, 1 for THREAD_CONTEXT_SHARING (dedicated runner). The 4th one goes to flask, which has
+        # the longest job (1000s, split into two 500s jobs), the 5th one to spring-boot (600s, split into 500s+100s).
+        # Jobs of a weblog are ordered by expected time, longest first, then by scenarios
+        assert run_jobs == [
+            ("system_tests_run_python_flask_1", "DEFAULT,PROFILING"),
+            ("system_tests_run_python_flask_2", "IPV6,SAMPLING"),
+            ("system_tests_run_python_THREAD_CONTEXT_SHARING_flask", "THREAD_CONTEXT_SHARING"),
+            ("system_tests_run_java_DEFAULT_spring-boot", "DEFAULT"),
+            ("system_tests_run_java_IPV6_spring-boot", "IPV6"),
+        ]
+        assert pipeline["system_tests_run_python_THREAD_CONTEXT_SHARING_flask"]["tags"] == [
+            "docker-in-docker:amd64-cws"
+        ]
+        assert "tags" not in pipeline["system_tests_run_python_flask_1"]
+        # twice the expected time, plus 5 minutes
+        assert pipeline["system_tests_run_python_flask_1"]["timeout"] == "22 minutes"
+        assert "timeout" not in pipeline["system_tests_run_java_DEFAULT_spring-boot"]
+
+    def test_scheduler_is_deterministic(self) -> None:
+        """Ties are broken by the order of the params, then by scenario names."""
+        times = {"A": 100, "B": 100, "C": 100, "D": 100}
+        all_params = {
+            "python": _timed_params("flask", times),
+            "java": _timed_params("spring-boot", times),
+        }
+
+        build_pipeline.EndToEndScheduler(all_params).schedule(job_count=3)
+
+        assert [_jobs(params) for params in all_params.values()] == [
+            # first weblog with the longest job: it gets the 3rd job
+            [("flask", 1, ["A", "C"]), ("flask", 2, ["B", "D"])],
+            [("spring-boot", 1, ["A", "B", "C", "D"])],
+        ]
+
+    def test_scheduler_does_not_add_useless_jobs(self) -> None:
+        """Another job is only added if it may make the longest job shorter, and never more jobs than scenarios."""
+        all_params: dict[str, dict] = {
+            "python": {
+                "endtoend_defs": {
+                    "parallel_jobs": [
+                        {
+                            "weblog": "flask",
+                            "scenarios": ["DEFAULT", "IPV6", "SAMPLING"],
+                            "scenarios_times": {"DEFAULT": 1000, "IPV6": 100, "SAMPLING": 100},
+                        },
+                        {"weblog": "django", "scenarios": ["DEFAULT", "IPV6"], "expected_job_time": 100},
+                    ]
+                }
+            }
+        }
+
+        build_pipeline.EndToEndScheduler(all_params).schedule(job_count=100)
+
+        jobs = all_params["python"]["endtoend_defs"]["parallel_jobs"]
+        # without scenarios times, the expected time of the job is shared between its scenarios
+        assert [
+            (job["weblog"], job["weblog_instance"], job["scenarios"], job["expected_job_time"]) for job in jobs
+        ] == [
+            ("flask", 1, ["DEFAULT"], 1000),
+            ("flask", 2, ["IPV6", "SAMPLING"], 200),
+            ("django", 1, ["DEFAULT"], 50),
+            ("django", 2, ["IPV6"], 50),
+        ]
+        assert all("scenarios_times" not in job for job in jobs)
+
+    @pytest.mark.parametrize("kwargs", [{}, {"job_count": 3, "max_job_time": 600}])
+    def test_scheduler_needs_exactly_one_limit(self, kwargs: dict[str, int]) -> None:
+        with pytest.raises(ValueError, match="Exactly one"):
+            build_pipeline.EndToEndScheduler({}).schedule(**kwargs)
+
+    def test_scheduler_uses_at_least_one_job_per_weblog(self) -> None:
+        all_params = {lib: _timed_params("w", {"DEFAULT": 100, "IPV6": 100}) for lib in ("python", "java")}
+
+        build_pipeline.EndToEndScheduler(all_params).schedule(job_count=1)
+
+        # scenarios of different weblogs can't share a job
+        assert [_jobs(params) for params in all_params.values()] == [
+            [("w", 1, ["DEFAULT", "IPV6"])],
+            [("w", 1, ["DEFAULT", "IPV6"])],
+        ]
+
+    @pytest.mark.parametrize(
+        ("desired_execution_time", "expected_job_count"),
+        [
+            (10000, 3),  # one job per weblog, plus THREAD_CONTEXT_SHARING
+            (600, 4),  # flask (1000s) is split into 2 jobs of 500s
+            (500, 5),  # spring-boot (600s) too: 500s + 100s
+            (400, 6),  # flask into 3 jobs: 400s (DEFAULT) + 300s + 300s
+            (1, 6),  # DEFAULT alone is the longest job of flask and spring-boot: they can't be shortened
+        ],
+    )
+    def test_scheduler_with_max_job_time(
+        self, tmp_path: Path, desired_execution_time: int, expected_job_count: int
+    ) -> None:
+        python_times = {"DEFAULT": 400, "SAMPLING": 300, "IPV6": 200, "PROFILING": 100, "THREAD_CONTEXT_SHARING": 50}
+        all_params = {
+            "python": _timed_params("flask", python_times),
+            "java": _timed_params("spring-boot", {"DEFAULT": 500, "IPV6": 100}),
+        }
+        for library, params in all_params.items():
+            (tmp_path / f"params_{library}.json").write_text(json.dumps(params))
+
+        job_count = build_pipeline.EndToEndScheduler(copy.deepcopy(all_params)).schedule(
+            max_job_time=desired_execution_time
+        )
+        assert job_count == expected_job_count
+
+        # both stop the same sequence of steps: same result as with the job count it ends with
+        build(
+            ["python", "java"],
+            tmp_path,
+            tmp_path / "sized",
+            stage="e2e",
+            ci_image="img",
+            chunks=1,
+            desired_execution_time=desired_execution_time,
+        )
+        build(
+            ["python", "java"],
+            tmp_path,
+            tmp_path / "counted",
+            stage="e2e",
+            ci_image="img",
+            chunks=1,
+            endtoend_job_count=job_count,
+        )
+        sized = (tmp_path / "sized" / "generated-pipeline-chunk-0.yml").read_text()
+        assert sized == (tmp_path / "counted" / "generated-pipeline-chunk-0.yml").read_text()
+        run_jobs = [name for name in yaml.safe_load(sized) if name.startswith("system_tests_run_")]
+        assert len(run_jobs) == expected_job_count
+
+    @pytest.mark.parametrize(
+        ("arguments", "environ", "expected"),
+        [
+            ([], {}, {"endtoend_job_count": 0, "desired_execution_time": -1}),
+            (["--desired-execution-time", "900"], {}, {"endtoend_job_count": 0, "desired_execution_time": 900}),
+            (
+                ["--desired-execution-time", "-1"],
+                {"SYSTEM_TESTS_DESIRED_EXECUTION_TIME": "600"},
+                {"endtoend_job_count": 0, "desired_execution_time": 600},
+            ),
+            (["--endtoend-job-count", "20"], {}, {"endtoend_job_count": 20, "desired_execution_time": -1}),
+            (
+                ["--endtoend-job-count", "20"],
+                {"SYSTEM_TESTS_ENDTOEND_JOB_COUNT": "0"},
+                {"endtoend_job_count": 0, "desired_execution_time": -1},
+            ),
+        ],
+    )
+    def test_job_count_inputs_are_passed_to_build(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        arguments: list[str],
+        environ: dict[str, str],
+        expected: dict[str, int],
+    ) -> None:
+        computed: list[list[str]] = []
+
+        def fake_compute(command: list[str], *, check: bool) -> object:  # noqa: ARG001
+            computed.append(command)
+            Path(command[command.index("--output") + 1]).write_text(json.dumps(MINIMAL_PARAMS))
+            return type("Result", (), {"returncode": 0})()
+
+        monkeypatch.setattr(build_pipeline.subprocess, "run", fake_compute)
+        built: list[dict] = []
+        monkeypatch.setattr(build_pipeline, "build", lambda **kwargs: built.append(kwargs))
+
+        main(
+            [
+                *("--stage", "e2e", "--ci-image", "img", "--output-dir", str(tmp_path), "--libraries", "python"),
+                *arguments,
+            ],
+            environ=environ,
+        )
+
+        # params always have one job per weblog, with the time of each scenario: build() splits them into run jobs
+        assert "--include-scenarios-times" in computed[0]
+        assert "--desired-execution-time" not in computed[0]
+        assert {name: built[0][name] for name in expected} == expected
+
+    def test_endtoend_job_count_and_desired_execution_time_are_exclusive(self, tmp_path: Path) -> None:
+        result = main(
+            [
+                *("--stage", "e2e", "--ci-image", "img", "--output-dir", str(tmp_path), "--libraries", "python"),
+                *("--desired-execution-time", "900", "--endtoend-job-count", "20"),
+            ],
+            environ={},
+        )
+        assert result == 1
 
     def test_inputs_are_merged_with_pipeline_variables(self) -> None:
         args = parse_args(

@@ -34,7 +34,12 @@ def _image_list(scenario: str, library: str, weblog: str) -> list[str]:
 def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]:
     """Record commands instead of running them, from a fake system-tests clone in $CI_PROJECT_DIR."""
     recorded: list[list[str]] = []
-    monkeypatch.setattr(_common, "run", lambda command, **_: recorded.append(command))
+
+    def record(command: list[str], **_: object) -> int:
+        recorded.append(command)
+        return 0
+
+    monkeypatch.setattr(_common, "run", record)
 
     clone = tmp_path / "system-tests"
     (clone / "binaries").mkdir(parents=True)
@@ -58,7 +63,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "upstream" / "lib.tgz").write_text("lib")
         monkeypatch.setenv("TEST_LIBRARY", "golang")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "envoy")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "GO_PROXIES_DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "GO_PROXIES_DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
         monkeypatch.setenv("SYSTEM_TESTS_BINARIES_ARTIFACT_PATH", "upstream")
         monkeypatch.setenv("SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME", "0")
@@ -67,8 +72,8 @@ class Test_GitlabJobScripts:
 
         assert Path("binaries/lib.tgz").read_text() == "lib"
         assert commands[0] == ["ls", "-la", "binaries/"]
-        assert commands[1] == _image_list("GO_PROXIES_DEFAULT", "golang", "envoy")
-        assert commands[2] == TAG_RUN
+        assert commands[1] == TAG_RUN
+        assert commands[2] == _image_list("GO_PROXIES_DEFAULT", "golang", "envoy")
         # weblog and library are passed through the environment, not on the command line
         assert commands[3] == _trace(
             "run golang GO_PROXIES_DEFAULT envoy",
@@ -90,7 +95,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "binaries" / "python-flask-weblog.tar.zst").write_text("image")
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
 
         run_scenario.main()
@@ -98,9 +103,9 @@ class Test_GitlabJobScripts:
         assert Path("binaries/python-flask-weblog.tar.zst").read_text() == "image"
         tags = ["system-tests.library:python", "system-tests.weblog:flask"]
         assert commands == [
-            _image_list("DEFAULT", "python", "flask"),
             TAG_RUN,
             _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
+            _image_list("DEFAULT", "python", "flask"),
             _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
 
@@ -112,7 +117,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "upstream" / "nodejs-load-from-npm").write_text("dd-trace")
         monkeypatch.setenv("TEST_LIBRARY", "nodejs")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "express4")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
         monkeypatch.setenv("SYSTEM_TESTS_BINARIES_ARTIFACT_PATH", "upstream")
 
@@ -122,35 +127,85 @@ class Test_GitlabJobScripts:
         tags = ["system-tests.library:nodejs", "system-tests.weblog:express4"]
         assert commands == [
             ["ls", "-la", "binaries/"],
-            _image_list("DEFAULT", "nodejs", "express4"),
             TAG_RUN,
             _trace("build nodejs express4", tags, "./build.sh", "-i", "weblog", "-w", "express4"),
+            _image_list("DEFAULT", "nodejs", "express4"),
             _trace("run nodejs DEFAULT express4", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
 
     def test_run_scenario_pulls_images_before_running(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Like the GitHub workflow: the images listed by get-image-list.py are pulled before build.sh and run.sh."""
+        """Like the GitHub workflow: the images listed by get-image-list.py are pulled before run.sh."""
 
-        def record(command: list[str], **_: object) -> None:
+        def record(command: list[str], **_: object) -> int:
             commands.append(command)
             if "utils/scripts/get-image-list.py" in command:
                 Path("compose.yaml").write_text("services:\n  agent:\n    image: datadog/agent:latest\n")
+            return 0
 
         monkeypatch.setattr(_common, "run", record)
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
 
         run_scenario.main()
 
         assert commands[:3] == [
+            TAG_RUN,
             _image_list("DEFAULT", "python", "flask"),
             [".github/actions/pull_images/main.sh"],
-            TAG_RUN,
         ]
+
+    def test_run_scenario_runs_several_scenarios(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Grouped scenarios: the weblog is built once, then each scenario is run, one after the other."""
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT,SAMPLING")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
+
+        run_scenario.main()
+
+        tags = ["system-tests.library:python", "system-tests.weblog:flask"]
+        assert commands == [
+            TAG_RUN,
+            _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
+            _image_list("DEFAULT", "python", "flask"),
+            _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
+            _image_list("SAMPLING", "python", "flask"),
+            _trace("run python SAMPLING flask", [*tags, "system-tests.scenario:SAMPLING"], "./run.sh", "SAMPLING"),
+        ]
+
+    def test_run_scenario_runs_next_scenarios_after_a_failure(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Like the GitHub workflow: a failing scenario doesn't prevent the next ones from running."""
+
+        def record(command: list[str], **_: object) -> int:
+            commands.append(command)
+            if command[-2:] == ["./run.sh", "DEFAULT"]:
+                return 3
+            if "utils/scripts/get-image-list.py" in command and "SAMPLING" in command:
+                return 4
+            return 0
+
+        monkeypatch.setattr(_common, "run", record)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT,SAMPLING,IPV6")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
+
+        with pytest.raises(SystemExit) as exc:
+            run_scenario.main()
+
+        # exit code of the first failure
+        assert exc.value.code == 3
+        run_commands = [command[-1] for command in commands if command[-2:-1] == ["./run.sh"]]
+        # images of SAMPLING could not be listed: it is not run, but IPV6 is
+        assert run_commands == ["DEFAULT", "IPV6"]
 
     def test_build_weblog(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("TEST_LIBRARY", "python")
@@ -198,11 +253,11 @@ class Test_GitlabJobScripts:
         ]
 
     def test_missing_input_fails(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("SYSTEM_TESTS_SCENARIO", raising=False)
+        monkeypatch.delenv("SYSTEM_TESTS_SCENARIOS", raising=False)
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
 
-        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIO"):
+        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIOS"):
             run_scenario.main()
         assert commands == []
 

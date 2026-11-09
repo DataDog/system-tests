@@ -228,8 +228,8 @@ class Job:
         # split mechanism
         self.build_time = build_time
 
-    def serialize(self) -> dict:
-        return {
+    def serialize(self, *, include_scenarios_times: bool = False) -> dict:
+        result = {
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
@@ -239,6 +239,10 @@ class Job:
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
         }
+        if include_scenarios_times:
+            # used by the GitLab pipeline to balance scenarios between a given number of jobs
+            result["scenarios_times"] = dict(sorted(self._scenarios_times.items()))
+        return result
 
     @property
     def scenarios(self) -> tuple[str, ...]:
@@ -316,6 +320,8 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
+    *,
+    include_scenarios_times: bool = False,
 ) -> dict:
     scenarios: list[Scenario] = scenario_map.get("endtoend", [])
 
@@ -373,7 +379,7 @@ def get_endtoend_definitions(
             "parallel_weblogs": [
                 _get_weblog_build_job(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
             ],
-            "parallel_jobs": [job.serialize() for job in jobs],
+            "parallel_jobs": [job.serialize(include_scenarios_times=include_scenarios_times) for job in jobs],
         }
     }
 

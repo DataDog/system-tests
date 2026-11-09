@@ -50,6 +50,23 @@ spec:
       description: "Maximum number of pytest-xdist workers per PARAMETRIC job"
       type: number
       default: 4
+    desired_execution_time:
+      description: >-
+        In seconds. If positive, the number of end-to-end run jobs is computed so that each one is expected to last
+        at most this time (based on utils/scripts/ci_orchestrators/time-stats.json; a scenario expected to last more
+        gets its own job), then scenarios are split between them like with endtoend_job_count.
+        Otherwise, and without endtoend_job_count, each scenario runs in its own job.
+        Can't be used with endtoend_job_count.
+      type: number
+      default: -1
+    endtoend_job_count:
+      description: >-
+        If positive, the end-to-end scenarios of all libraries are split between this number of run jobs (runners),
+        so that they all have about the same expected length (build and parametric jobs are not counted).
+        Scenarios of different weblogs can't share a job, so at least one job per weblog is used, and fewer jobs
+        are used if more would not make the longest one shorter. Can't be used with desired_execution_time.
+      type: number
+      default: 0
     push_to_test_optimization:
       description: "Push test results to Datadog Test Optimization"
       type: boolean
@@ -93,7 +110,7 @@ variables:
   #   + utils/ci/gitlab/validate_param_env.py, which is copied into the image)
   # Update this when any of these files changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt utils/ci/gitlab/validate_param_env.py | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9"
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:e61bc60d2d54"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
@@ -149,6 +166,8 @@ system_tests_build_pipeline:
       --force-execute "$[[ inputs.force_execute ]]"
       --parametric-job-count "$[[ inputs.parametric_job_count ]]"
       --parametric-workers "$[[ inputs.parametric_workers ]]"
+      --desired-execution-time "$[[ inputs.desired_execution_time ]]"
+      --endtoend-job-count "$[[ inputs.endtoend_job_count ]]"
       --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]"
       --skip-empty-scenario "$[[ inputs.skip_empty_scenarios ]]"
       --split-pipeline "$[[ inputs.split_pipeline ]]"

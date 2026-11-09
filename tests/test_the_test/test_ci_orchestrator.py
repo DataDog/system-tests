@@ -195,6 +195,17 @@ def test_otel_collector():
 
 
 @scenarios.test_the_test
+def test_scenarios_times_are_only_included_on_demand():
+    scenario_map = {"endtoend": [scenarios.otel_collector]}
+    defs = get_endtoend_definitions(
+        "otel_collector", scenario_map, [], "prod", -1, 256, "123", "", include_scenarios_times=True
+    )
+
+    (job,) = defs["endtoend_defs"]["parallel_jobs"]
+    assert job["scenarios_times"] == {"OTEL_COLLECTOR": 74.34217318962216}
+
+
+@scenarios.test_the_test
 def test_weblog_metadata_scenario_names_are_valid():
     valid_names = {scenario.name for scenario in get_all_scenarios()}
 
