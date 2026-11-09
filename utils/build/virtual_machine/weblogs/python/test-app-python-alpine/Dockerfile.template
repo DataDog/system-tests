@@ -1,4 +1,5 @@
 FROM public.ecr.aws/docker/library/python:3.12-alpine
+COPY pip.conf /etc/pip.conf
 # Install python/pip
 ENV PYTHONUNBUFFERED=1
 RUN pip3 install --no-cache --upgrade pip setuptools

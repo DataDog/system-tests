@@ -9,8 +9,7 @@ from utils import interfaces
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 CWS_READINESS_TIMEOUT = 90
@@ -44,19 +43,22 @@ class ThreadContextSharingScenario(EndToEndScenario):
     classes using this scenario should be marked `@missing_feature` per-library until
     each tracer's implementation lands.
 
-    CWS security events are observed through the agent's proxy-captured HTTPS traffic
-    (`/api/v2/logs`), decoded via `tests/cws/utils.py` - the same way this scenario
-    already observes telemetry, remote config, etc.
+    CWS security events are observed in what the agent sends to the mocked backend
+    (`/api/v2/secruntime`), decoded via `tests/cws/utils.py`.
 
     When /vm-host exists, the scenario assumes it runs inside a Kata VM's docker-in-docker
     container, where the kernel filesystems of the VM are mounted under /vm-host by the CI
     runner. See docs/understand/scenarios/thread_context_sharing.md.
     """
 
-    def __init__(self, name: str, doc: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name=name,
-            doc=doc,
+            name="THREAD_CONTEXT_SHARING",
+            doc=(
+                "Check that tracers share the trace_id/span_id of the currently active span with "
+                "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
+                "the same thread carry them as dd.trace_id/dd.span_id."
+            ),
             weblog_categories=[WeblogCategory.dd_trace],
             appsec_enabled=True,
             iast_enabled=False,
@@ -181,7 +183,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
 
         self._agent_warmup()
 
-        if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
+        if not interfaces.mocked_backend.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
             message = (
                 f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
             )

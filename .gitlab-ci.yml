@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.10.0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.12.1/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
     inputs:
       stage: "e2e"
@@ -28,7 +28,7 @@ variables:
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
 compute_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:144846811
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
   tags: ["arch:amd64"]
   stage: configure
   variables:
@@ -218,7 +218,7 @@ delete_amis:
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
-  timeout: 3h
+  timeout: 6h
 
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
@@ -411,14 +411,20 @@ system_tests_param:
       python3 -c "
       import json, shlex
       with open('raw_params.txt') as f:
-          for line in f:
-              line = line.strip()
-              if '=' not in line: continue
-              key, val = line.split('=', 1)
-              val = json.loads(val)
-              if key == 'libraries': print('export LIBRARIES=' + shlex.quote(str(val)))
-              elif key == 'scenarios': print('export SCENARIOS=' + shlex.quote(str(val)))
-              elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
+          params = dict(line.strip().split('=', 1) for line in f if '=' in line)
+      params = {key: json.loads(val) for key, val in params.items()}
+      if 'library_weblog_scenarios' in params and 'libraries' not in params:
+          # alongside library_weblog_scenarios, build_pipeline.py needs libraries for scenarios/scenarios_groups
+          params.pop('scenarios', None)
+          params.pop('scenarios_groups', None)
+      variables = {
+          'LIBRARIES': 'libraries',
+          'SCENARIOS': 'scenarios',
+          'SCENARIO_GROUPS': 'scenarios_groups',
+          'LIBRARY_WEBLOG_SCENARIOS': 'library_weblog_scenarios',
+      }
+      for variable, key in variables.items():
+          if key in params: print('export ' + variable + '=' + shlex.quote(str(params[key])))
       " > set_vars.sh
       source set_vars.sh
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
@@ -513,7 +519,9 @@ mirror_images:
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
-    - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
+    # Download to a file so retries discard partial responses before extraction.
+    - curl --fail --retry 3 --retry-delay 5 --retry-all-errors -sSL --output /tmp/crane.tar.gz "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+    - tar -xzf /tmp/crane.tar.gz -C /usr/local/bin crane
     # This is the only job that pulls from Docker Hub (the mirror sources), so it
     # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
     - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")

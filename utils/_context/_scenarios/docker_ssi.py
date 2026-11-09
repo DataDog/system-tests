@@ -6,6 +6,7 @@ import time
 from collections.abc import Iterator
 from pathlib import Path
 from docker.errors import BuildError
+from docker.models.images import Image
 from docker.models.networks import Network
 import pytest
 
@@ -22,10 +23,14 @@ from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
-from .core import Scenario, ScenarioGroup
+from ._core import Scenario, scenario_groups, ScenarioGroup
 
 
 AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
+MAVEN_PROXY_WEBLOGS = frozenset({"jboss-app", "tomcat-app", "websphere-app"})
+DEFAULT_MAVEN_REPOSITORY_PROXY = "https://depot-read-api-java.us1.ddbuild.io/magicmirror/magicmirror/@current/"
+PIP_INDEX_WEBLOGS = frozenset({"py-app"})
+DEFAULT_PIP_INDEX_URL = "https://depot-read-api-python.us1.ddbuild.io/datadog/python/@current/simple"
 
 
 class ContainerRemovalError(Exception):
@@ -36,7 +41,14 @@ class ImagePushError(Exception):
     """Exception raised when a docker image push operation fails."""
 
 
-class DockerSSIScenario(Scenario):
+def _component_version_missing(version: Version | None) -> bool:
+    """Return True when SSI did not report a real installed version."""
+    if version is None:
+        return True
+    return version == "0.0.0"
+
+
+class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
@@ -139,6 +151,8 @@ class DockerSSIScenario(Scenario):
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
         self.print_installed_components()
+        # Fail before containers start. The installer can exit 0 without installing SSI.
+        self.check_installed_components()
 
         for container in self._required_containers:
             try:
@@ -243,39 +257,47 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def check_installed_components(self):
-        """Check the the injector and library versions are present"""
-        is_valid = True
-        if not self.components.get("datadog-apm-library"):
-            is_valid = False
-            logger.stdout(
-                "❌ Library version not found. Could not get the tracer image or the version of the library "
-                "could not be extracted"
-            )
+    def check_installed_components(self) -> None:
+        """Stop the scenario when the installer exits 0 without installing SSI.
+
+        A missing version and ``0.0.0`` both mean the component was not installed.
+        ``Version("0.0.0")`` is truthy, so a truthiness check does not catch it.
+        Exit code 3 matches the AWS SSI check, and GitLab retries that code.
+        """
+        library_missing = _component_version_missing(self.components.get("datadog-apm-library"))
+        injector_missing = _component_version_missing(self.components.get("datadog-apm-inject"))
+        if not library_missing and not injector_missing:
+            logger.stdout("✅ All components are installed correctly. ✅")
+            return
+
+        if library_missing:
+            logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
             if self._custom_library_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the library (--ssi-library-version), please check "
-                    f"that the reference [{self._custom_library_version}] is correct."
+                    "🛠️ You have specified a custom version of the library (--ssi-library-version). "
+                    f"Check that the reference [{self._custom_library_version}] is correct."
                 )
-        if not self._datadog_apm_inject_version:
-            is_valid = False
-            logger.stdout(
-                "❌ Injector version not found. Could not get the injector image or the version of the injector "
-                "could not be extracted"
-            )
+        if injector_missing:
+            logger.stdout("❌ SSI installer finished, but the injector was not installed ❌")
             if self._custom_injector_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the injector (--ssi-injector-version), please check "
-                    f"that the reference [{self._custom_injector_version}] is correct."
+                    "🛠️ You have specified a custom version of the injector (--ssi-injector-version). "
+                    f"Check that the reference [{self._custom_injector_version}] is correct."
                 )
-        if not is_valid:
-            logger.stdout(f"🌍 You have set the environment to [{self._env}]. Check the docker build logs.\n\n\n")
-            raise ValueError("❌ Error: Could not get the library or injector version. ❌")
-        logger.stdout("✅ All components are installed correctly. ✅")
+
+        build_log = f"{self.host_log_folder}/docker_build.log"
+        logger.stdout(f"🌍 You have set the environment to [{self._env}]. Review {build_log}.")
+        missing_parts: list[str] = []
+        if library_missing:
+            missing_parts.append("the tracer library")
+        if injector_missing:
+            missing_parts.append("the injector")
+        pytest.exit(
+            f"SSI installer finished without installing {' and '.join(missing_parts)}. Review {build_log}.",
+            returncode=3,
+        )
 
     def post_setup(self, session: pytest.Session) -> None:  # noqa: ARG002
-        self.check_installed_components()
-
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(15)
         interfaces.test_agent.collect_data(
@@ -425,131 +447,141 @@ class DockerSSIImageBuilder:
         runtime = (
             resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
         )
-        return (
-            f"{self._base_image}_{runtime}{self._arch}".replace(".", "_")
-            .replace("-", "-")
-            .replace(":", "-")
-            .replace("/", "-")
-            .lower()
-        )
+        return f"{self._base_image}_{runtime}{self._arch}".replace(".", "_").replace(":", "-").replace("/", "-").lower()
 
-    def build_lang_deps_image(self):
+    def _build_image(
+        self,
+        *,
+        path: str,
+        dockerfile: str,
+        tag: str,
+        buildargs: dict[str, str | None],
+        error_label: str,
+        error_message: str,
+    ) -> Image:
+        try:
+            image, build_logs = get_docker_client().images.build(
+                path=path,
+                dockerfile=dockerfile,
+                platform=self._arch,
+                nocache=self._force_build or self.should_push_base_images,
+                tag=tag,
+                buildargs=buildargs,
+            )
+        except BuildError as error:
+            logger.stdout("ERROR building docker file. check log file for more details")
+            logger.exception(f"Failed to build docker image: {error}")
+            self.print_docker_build_logs(error_label, error.build_log)
+            raise BuildError(error_message, error.build_log) from error
+        self.print_docker_build_logs(tag, build_logs)
+        return image
+
+    def build_lang_deps_image(self) -> None:
         """Build the lang image. Install the language runtime on the base image.
         We also install some linux deps for the ssi installer
         If there is not runtime installation requirement, we install only the linux deps
         Base lang contains the scrit to install the runtime and the script to install dependencies
         """
-        dockerfile_template = None
-        try:
-            if self._installable_runtime:
-                dockerfile_template = "base/base_lang.Dockerfile"
-                logger.stdout(
-                    f"[tag: {self.docker_tag}] Installing language runtime [{self._installable_runtime}] and common "
-                    f"dependencies on base image [{self._base_image}]."
-                )
-            else:
-                dockerfile_template = "base/base_deps.Dockerfile"
-                logger.stdout(
-                    f"[tag: {self.docker_tag}] Installing common dependencies on base image [{self._base_image}]. "
-                    f"No language runtime installation required."
-                )
-
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile=dockerfile_template,
-                tag=self.docker_tag,
-                platform=self._arch,
-                nocache=self._force_build or self.should_push_base_images,
-                buildargs={
-                    "ARCH": self._arch,
-                    "DD_LANG": self.dd_lang,
-                    "RUNTIME_VERSIONS": self._installable_runtime,
-                    "BASE_IMAGE": self._base_image,
-                },
-            )
-            self.print_docker_build_logs(self.docker_tag, build_logs)
-
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise BuildError("Failed to build docker image", e.build_log) from e
-
-    def build_ssi_installer_image(self):
-        """Build the ssi installer image. Install only the ssi installer on the image"""
-        try:
+        if self._installable_runtime:
+            dockerfile_template = "base/base_lang.Dockerfile"
             logger.stdout(
-                f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
+                f"[tag: {self.docker_tag}] Installing language runtime [{self._installable_runtime}] and common "
+                f"dependencies on base image [{self._base_image}]."
+            )
+        else:
+            dockerfile_template = "base/base_deps.Dockerfile"
+            logger.stdout(
+                f"[tag: {self.docker_tag}] Installing common dependencies on base image [{self._base_image}]. "
+                f"No language runtime installation required."
             )
 
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi_installer.Dockerfile",
-                nocache=self._force_build or self.should_push_base_images,
-                platform=self._arch,
-                tag=self.ssi_installer_docker_tag,
-                buildargs={"BASE_IMAGE": self.docker_tag},
-            )
-            self.print_docker_build_logs(self.ssi_installer_docker_tag, build_logs)
+        self._build_image(
+            path="utils/build/ssi/",
+            dockerfile=dockerfile_template,
+            tag=self.docker_tag,
+            buildargs={
+                "ARCH": self._arch,
+                "DD_LANG": self.dd_lang,
+                "RUNTIME_VERSIONS": self._installable_runtime,
+                "BASE_IMAGE": self._base_image,
+            },
+            error_label=f"Error building docker file [{dockerfile_template}]",
+            error_message="Failed to build docker image",
+        )
 
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise BuildError("Failed to build installer docker image", e.build_log) from e
+    def build_ssi_installer_image(self) -> None:
+        """Build the ssi installer image. Install only the ssi installer on the image"""
+        logger.stdout(
+            f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
+        )
+        self._build_image(
+            path="utils/build/ssi/",
+            dockerfile="base/base_ssi_installer.Dockerfile",
+            tag=self.ssi_installer_docker_tag,
+            buildargs={"BASE_IMAGE": self.docker_tag},
+            error_label="Error building installer docker file",
+            error_message="Failed to build installer docker image",
+        )
 
-    def build_weblog_image(self, ssi_installer_docker_tag: str):
+    def _maven_proxy_buildargs(self) -> dict[str, str]:
+        if self._base_weblog not in MAVEN_PROXY_WEBLOGS:
+            return {}
+        return {
+            "MAVEN_REPOSITORY_PROXY": os.environ.get("MAVEN_REPOSITORY_PROXY", DEFAULT_MAVEN_REPOSITORY_PROXY),
+        }
+
+    def _pip_index_buildargs(self) -> dict[str, str]:
+        if self._base_weblog not in PIP_INDEX_WEBLOGS:
+            return {}
+        return {
+            "PIP_INDEX_URL": os.environ.get("PIP_INDEX_URL", DEFAULT_PIP_INDEX_URL),
+        }
+
+    def build_weblog_image(self, ssi_installer_docker_tag: str) -> None:
         """Build the final weblog image. Uses base ssi installer image, install
         the full ssi (to perform the auto inject) and build the weblog image
         """
-
         weblog_docker_tag = "weblog-injection:latest"
         logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
-
         logger.stdout(
             f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image "
             f"[{ssi_installer_docker_tag}]."
         )
         pin_injector = not self._custom_injector_version and (bool(self._custom_library_version) or self._env == "prod")
-        pinned_injector_version = AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip() if pin_injector else None
-        try:
-            # Install the ssi to run the auto instrumentation
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi.Dockerfile",
-                platform=self._arch,
-                nocache=self._force_build or self.should_push_base_images,
-                tag=self.ssi_all_docker_tag,
-                buildargs={
-                    "DD_LANG": self.dd_lang,
-                    "BASE_IMAGE": ssi_installer_docker_tag,
-                    "SSI_ENV": self._env,
-                    "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
-                    "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
-                    "DD_INSTALLER_PINNED_INJECTOR_VERSION": pinned_injector_version,
-                    "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
-                    if isinstance(self._appsec_enabled, bool)
-                    else None,
-                },
-            )
-            self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
-            # Build the weblog image
-            self._weblog_docker_image, build_logs = get_docker_client().images.build(
-                path=".",
-                dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
-                platform=self._arch,
-                tag=weblog_docker_tag,
-                nocache=self._force_build or self.should_push_base_images,
-                buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
-            )
-            self.print_docker_build_logs(weblog_docker_tag, build_logs)
-            logger.info("Weblog build done!")
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise BuildError("Failed to build weblog docker image", e.build_log) from e
+        self._build_image(
+            path="utils/build/ssi/",
+            dockerfile="base/base_ssi.Dockerfile",
+            tag=self.ssi_all_docker_tag,
+            buildargs={
+                "DD_LANG": self.dd_lang,
+                "BASE_IMAGE": ssi_installer_docker_tag,
+                "SSI_ENV": self._env,
+                "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
+                "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                "DD_INSTALLER_PINNED_INJECTOR_VERSION": (
+                    AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip() if pin_injector else None
+                ),
+                "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
+                if isinstance(self._appsec_enabled, bool)
+                else None,
+            },
+            error_label="Error building weblog",
+            error_message="Failed to build weblog docker image",
+        )
+        logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
+        self._weblog_docker_image = self._build_image(
+            path=".",
+            dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
+            tag=weblog_docker_tag,
+            buildargs={
+                "BASE_IMAGE": self.ssi_all_docker_tag,
+                **self._maven_proxy_buildargs(),
+                **self._pip_index_buildargs(),
+            },
+            error_label="Error building weblog",
+            error_message="Failed to build weblog docker image",
+        )
+        logger.info("Weblog build done!")
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.
@@ -606,3 +638,42 @@ def _get_free_port():
         except OSError:
             port += 1
     raise OSError("no free ports")
+
+
+class DockerSsi(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiServicenaming(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_SERVICENAMING",
+            doc="Validates the installer and the ssi service naming features on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiAppsec(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_APPSEC",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            appsec_enabled=True,
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiCrashtracking(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_CRASHTRACKING",
+            doc="Validates the crashtracking for ssi on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )

@@ -44,7 +44,7 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 def _get_schemas_filenames():
     for schema_dir in (
         "tests/schemas/utils/library/",
-        "tests/schemas/utils/agent/",
+        "tests/schemas/utils/mocked_backend/",
         "tests/schemas/utils/miscs/",
         "tests/schemas/utils/otel_collector/",
     ):
@@ -168,7 +168,7 @@ class SchemaValidator:
             return result
 
         # For agent debugger endpoint, handle multipart structure
-        if self.interface == "agent" and path == "/api/v2/debugger":
+        if self.interface == "mocked_backend" and path == "/api/v2/debugger":
             # Extract the actual debugger data from multipart structure
             result = []
             content = data["request"].get("content", [])
@@ -196,11 +196,11 @@ class SchemaValidator:
 
 
 def _main():
-    for interface in ("agent", "library"):
+    for interface in ("mocked_backend", "library"):
         validator = SchemaValidator(interface)
         folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
-            path = folder / f"/interfaces/{interface}"
+            path = folder / f"interfaces/{interface}"
 
             if not Path(path).exists():
                 continue

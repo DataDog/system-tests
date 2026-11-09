@@ -4,7 +4,13 @@
 set -e
 
 readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
+# Created by the provision when the agent must send its payloads to the mocked backend
+readonly AGENT_COMPOSE_MOCKED_BACKEND="docker-compose-agent-mocked-backend.yml"
 readonly AGENT_LOCK="agent.lock"
+# 90s start_period + 12 retries * 10s. Keep the wait above that budget.
+readonly COMPOSE_WAIT_TIMEOUT_SECONDS=300
+# A hung image build must not consume the whole CI job.
+readonly DOCKER_BUILD_TIMEOUT_SECONDS=1200
 PULL_AGENT_IMAGE_SCRIPT="$(dirname "$0")/pull_agent_image.sh"
 readonly PULL_AGENT_IMAGE_SCRIPT
 
@@ -17,8 +23,13 @@ sudo systemctl start docker # Start docker service if it's not started
 #if we don't remove it, the dotnet restore will try to restore the system-tests folder
 sudo rm -rf system-tests || true
 
-#Build apps
-sudo docker-compose -f docker-compose.yml build  --parallel
+#Build apps. timeout exits 124 when the cap is reached.
+if ! timeout -k 30 "${DOCKER_BUILD_TIMEOUT_SECONDS}" sudo docker-compose -f docker-compose.yml build --parallel; then
+    build_status=$?
+    echo "..:: DOCKER BUILD FAILED (exit ${build_status}; cap ${DOCKER_BUILD_TIMEOUT_SECONDS}s) ::.."
+    sudo docker ps -a || true
+    exit 1
+fi
 
 if [ -f "${AGENT_COMPOSE}" ]; then
     set -a
@@ -29,7 +40,13 @@ if [ -f "${AGENT_COMPOSE}" ]; then
     # Agent may be installed in a different way. Pull with retries before compose up
     # so GCR rate limits / timeouts do not fail the provision on the first attempt.
     bash "${PULL_AGENT_IMAGE_SCRIPT}"
-    sudo -E docker-compose -f "${AGENT_COMPOSE}" up -d --remove-orphans datadog --wait --wait-timeout 120
+    # Run with "sh": no arrays
+    AGENT_COMPOSE_FILES="-f ${AGENT_COMPOSE}"
+    if [ -f "${AGENT_COMPOSE_MOCKED_BACKEND}" ]; then
+        AGENT_COMPOSE_FILES="${AGENT_COMPOSE_FILES} -f ${AGENT_COMPOSE_MOCKED_BACKEND}"
+    fi
+    # shellcheck disable=SC2086
+    sudo -E docker-compose ${AGENT_COMPOSE_FILES} up -d --remove-orphans datadog --wait --wait-timeout 120
 fi
 
 #Env variables set on the scenario definition. Write to file and load  
@@ -40,9 +57,14 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
-sudo -E docker-compose -f docker-compose.yml up -d --wait --wait-timeout 200
+if ! sudo -E docker-compose -f docker-compose.yml up -d --wait --wait-timeout "${COMPOSE_WAIT_TIMEOUT_SECONDS}"; then
+    echo "..:: COMPOSE WAIT FAILED ::.."
+    sudo docker-compose -f docker-compose.yml ps || true
+    sudo docker-compose -f docker-compose.yml logs --no-color || true
+    exit 1
+fi
 
-echo "..:: RUNNING DOCKER SERVICES ::.." 
+echo "..:: RUNNING DOCKER SERVICES ::.."
 sudo docker-compose -f docker-compose.yml ps
 
 echo "..:: WEBLOG APP OUTPUT ::.."

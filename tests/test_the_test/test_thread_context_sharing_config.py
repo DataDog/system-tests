@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from docker.types import Mount
 
 from utils import pytest, scenarios
-from utils._context._scenarios.endtoend import EndToEndScenario
+from utils._context._scenarios._core.endtoend import EndToEndScenario
 from utils._context._scenarios import thread_context_sharing
 from utils._context._scenarios.thread_context_sharing import ThreadContextSharingScenario
 
@@ -37,7 +37,7 @@ def configured_scenario(vm_host: Path) -> Iterator[ScenarioFactory]:
             vm_host.mkdir()
             for path in vm_host_dirs:
                 (vm_host / path).mkdir(parents=True)
-        scenario = ThreadContextSharingScenario("CWS_CONFIG_TEST", "")
+        scenario = ThreadContextSharingScenario()
         created.append(scenario)
         with patch.object(EndToEndScenario, "configure", MagicMock()):
             scenario.configure(MagicMock())

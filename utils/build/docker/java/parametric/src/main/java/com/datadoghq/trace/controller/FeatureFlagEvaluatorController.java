@@ -8,6 +8,8 @@ import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
 import dev.openfeature.sdk.FlagEvaluationDetails;
+import dev.openfeature.sdk.FlagEvaluationOptions;
+import dev.openfeature.sdk.Hook;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -26,16 +28,40 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/ffe")
 public class FeatureFlagEvaluatorController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFlagEvaluatorController.class);
+
+    private static final boolean CAPTURE_HOOK_FEATURES =
+            Boolean.parseBoolean(System.getenv("SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES"));
+    private static final ThreadLocal<Object> HOOK_FEATURES = new ThreadLocal<>();
+
+    private static void captureHookFeatures(Client client) {
+        // Load the optional public API only for tests whose manifest requires it.
+        // Older dd-openfeature versions must still build and run the baseline suite.
+        try {
+            Class<?> hookClass = Class.forName("com.datadog.openfeature.ExposureHook");
+            Consumer<Object> callback = evaluation -> {
+                try {
+                    HOOK_FEATURES.set(evaluation.getClass().getMethod("getFeatures").invoke(evaluation));
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalStateException("Cannot capture ExposureHook features", e);
+                }
+            };
+            client.addHooks((Hook<?>) hookClass.getConstructor(Consumer.class).newInstance(callback));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Split-feature tests require the public ExposureHook API", e);
+        }
+    }
 
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
@@ -61,7 +87,11 @@ public class FeatureFlagEvaluatorController {
                 };
             }
             api.setProviderAndWait(provider);
-            return api.getClient();
+            Client client = api.getClient();
+            if (CAPTURE_HOOK_FEATURES) {
+                captureHookFeatures(client);
+            }
+            return client;
         }
     }
 
@@ -81,25 +111,30 @@ public class FeatureFlagEvaluatorController {
 
     @PostMapping(value = "/evaluate", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
+        HOOK_FEATURES.remove();
         Object value;
         String reason;
         String errorCode = null;
         Map<String, Object> flagMetadata = null;
         final EvaluationContext context = context(request);
+        final List<Map<String, Object>> exposureRows = new ArrayList<>();
+        final FlagEvaluationOptions options = request.isExposureHooks()
+                ? ExposureHookSupport.options(exposureRows, request.isFailAfterHook())
+                : FlagEvaluationOptions.EMPTY;
         try {
             final FlagEvaluationDetails<?> details = switch (request.getVariationType()) {
                 case "BOOLEAN" ->
-                        client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                case "STRING" -> client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
+                        client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context, options);
+                case "STRING" -> client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context, options);
                 case "INTEGER" -> {
                     final Number integerEval = (Number) request.getDefaultValue();
-                    yield client.getIntegerDetails(request.getFlag(), integerEval.intValue(), context);
+                    yield client.getIntegerDetails(request.getFlag(), integerEval.intValue(), context, options);
                 }
                 case "NUMERIC" -> {
                     final Number doubleEval = (Number) request.getDefaultValue();
-                    yield client.getDoubleDetails(request.getFlag(), doubleEval.doubleValue(), context);
+                    yield client.getDoubleDetails(request.getFlag(), doubleEval.doubleValue(), context, options);
                 }
-                case "JSON" -> client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                case "JSON" -> client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context, options);
                 default -> null;
             };
             value = details == null ? request.getDefaultValue() : details.getValue();
@@ -123,6 +158,13 @@ public class FeatureFlagEvaluatorController {
         result.put("errorCode", errorCode);
         result.put("value", value);
         result.put("flagMetadata", flagMetadata);
+        if (request.isExposureHooks()) {
+            result.put("exposureHooks", exposureRows);
+        }
+        if (CAPTURE_HOOK_FEATURES) {
+            result.put("hookFeatures", HOOK_FEATURES.get());
+        }
+        HOOK_FEATURES.remove();
         return ResponseEntity.ok(result);
     }
 
@@ -158,6 +200,24 @@ public class FeatureFlagEvaluatorController {
         @JsonAlias("targeting_key")
         private String targetingKey;
         private Map<String, Object> attributes;
+        private boolean exposureHooks;
+        private boolean failAfterHook;
+
+        public boolean isExposureHooks() {
+            return exposureHooks;
+        }
+
+        public void setExposureHooks(boolean exposureHooks) {
+            this.exposureHooks = exposureHooks;
+        }
+
+        public boolean isFailAfterHook() {
+            return failAfterHook;
+        }
+
+        public void setFailAfterHook(boolean failAfterHook) {
+            this.failAfterHook = failAfterHook;
+        }
 
         public Map<String, Object> getAttributes() {
             return attributes;

@@ -13,27 +13,21 @@ from utils._logger import logger
 from utils.injector_dev.injector_client import InjectorDevClient
 from utils.injector_dev.scenario_provision_parser import ScenarioProvisionParser
 from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
-from .core import Scenario, scenario_groups, ScenarioGroup
-
-# Default scenario groups for K8sInjectorDevScenario
-DEFAULT_SCENARIO_GROUPS: list[ScenarioGroup] = [scenario_groups.all, scenario_groups.lib_injection]
+from ._core import Scenario, scenario_groups
 
 
-class K8sInjectorDevScenario(Scenario):
+class K8sInjectorDevSingleService(Scenario):
     """Scenario that tests kubernetes lib injection using the injector-dev tool"""
 
-    def __init__(
-        self,
-        name: str,
-        doc: str,
-        scenario_provision: str,
-        scenario_groups: list[ScenarioGroup] | None = None,
-    ) -> None:
-        if scenario_groups is None:
-            scenario_groups = DEFAULT_SCENARIO_GROUPS
-        super().__init__(name, doc=doc, github_workflow="k8s_injector_dev", scenario_groups=scenario_groups)
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_INJECTOR_DEV_SINGLE_SERVICE",
+            doc="Kubernetes Injector Dev Scenario",
+            github_workflow="k8s_injector_dev",
+            scenario_groups=[scenario_groups.k8s_injector_dev],
+        )
         # provision template
-        self.scenario_provision = scenario_provision
+        self.scenario_provision = "single-service.yaml"
         # Used to store the path to the actual scenario provision file (with injected component images/log folder)
         self.current_scenario_provision: Path | None = None
 

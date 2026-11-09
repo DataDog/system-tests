@@ -1,0 +1,246 @@
+# Test Activation and Deactivation
+
+**Always prefer manifests over decorators.**
+
+## Key Documentation
+
+- [Manifest format](../../docs/edit/manifest.md): entry formats and syntax rules
+- [Skipping tests](../../docs/edit/skip-tests.md): decorator usage when manifests cannot be used
+- [Enabling tests](../../docs/edit/enable-test.md): how to enable tests
+- [Versions](../../docs/edit/versions.md): version specification guidelines
+
+---
+
+## Decision: Manifest vs Decorator
+
+```
+Does the condition depend ONLY on:
+  - Library name (java, python, nodejs, etc.)
+  - Library version
+  - Weblog variant
+  - Agent version (alone)
+?
+    │
+    ├─► YES → Use MANIFEST (preferred)
+    │         - Library conditions → manifests/{library}.yml
+    │         - Agent version conditions → manifests/agent.yml
+    │
+    └─► NO (uses context.scenario, context.vm_name,
+            or other attributes, or complex combinations)
+            → Use DECORATOR (only option)
+```
+
+---
+
+## Manifest Rules
+
+### Do NOT Create New Manifest Files
+
+The existing manifests cover all supported libraries. If creating a new manifest seems needed:
+1. STOP and ask the user first
+2. Suggest asking in **#apm-shared-testing** Slack channel
+3. Only proceed if explicitly confirmed
+4. If confirmed, also update `utils/manifest/_internal/parser.py`
+
+### Using YAML References (Anchors)
+
+is a repeating pattern in your modifications.
+
+References are defined in the `refs:` section at the top of manifests:
+
+```yaml
+refs:
+  - &ref_5_0_0 v5.0.0
+  - &ref_5_6_0 '>=5.6.0'
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+```
+
+**Rules:**
+1. Check for existing references before adding a version
+2. Verify what a reference contains before using it
+3. Don't mix reference types (version refs vs declaration refs)
+4. You should not change existing references without explicit approval from the user.
+5. You can create new references only in manifests that already have references and
+   with approval from the user. You should propose creating new references when there
+
+**Mistake to avoid:**
+```yaml
+# WRONG - using a version ref where a declaration is expected
+tests/path/test.py::TestClass:
+  - declaration: *ref_5_0_0  # ref_5_0_0 is "v5.0.0", not a valid declaration!
+    component_version: '<5.0.0'
+
+# CORRECT
+tests/path/test.py::TestClass:
+  - declaration: missing_feature (Description)
+    component_version: '<5.0.0'
+```
+
+### Inferring the Next Release Version (specific to dd-trace-js, do not apply to other tracers)
+
+Don't try to predict the next `dd-trace-js` minimum version yourself.
+`vX.Y.Z-proposal` branches are mutable — PRs continue to be merged into them
+until the release is cut, so a PR landing on `master` after a proposal branch
+exists may still ship in that same version. When activating a test, ask the user
+which version contains the change.
+
+### After Modifying Manifests
+
+**ALWAYS run `./format.sh` after any manifest modification.**
+
+---
+
+## Decorator Rules
+
+### Pytest Facade
+
+Test modules must import pytest with `from utils import pytest`. Direct imports of
+the external `pytest` package are forbidden by Import Linter.
+
+`pytest.mark.skip_if_xfail` is an internal implementation detail and is
+intentionally absent from the facade. Never recreate an alias for it. If an
+expected failure must not execute:
+
+1. Keep its declaration in the appropriate manifest.
+2. Add `@slow` when running the test would consume excessive CI time.
+3. Add `@scenario_crash` only when running the test could crash the scenario or
+   disrupt other tests.
+
+### Version Format
+
+**CRITICAL**: Always use `library@version` format:
+
+```python
+# CORRECT
+@missing_feature(context.library < "python@2.5.0", reason="...")
+
+# WRONG - missing library specifier
+@missing_feature(context.library < "2.5.0", reason="...")
+```
+
+### Always Include Reason
+
+** Rules **
+1. When you don't know the reason you should ask the user
+2. Bugs must reference a valid JIRA ticket, you must ask the user for one
+
+```python
+# CORRECT
+@missing_feature(condition, reason="Feature not implemented yet")
+@bug(condition, reason="JIRA-1234")
+
+# WRONG - missing reason
+@missing_feature(condition)
+```
+
+---
+
+## Quick Reference: User Request → Action
+
+| User Request | Use | Format |
+|--------------|-----|--------|
+| "Bug for {library}" | Manifest | `bug (JIRA-XXX)` in `{library}.yml` |
+| "Bug for {library} >= X.Y.Z" | Manifest | Explicit with `component_version` |
+| "Feature available from X.Y.Z" | Manifest | `vX.Y.Z` |
+| "Irrelevant for {library}" | Manifest | `irrelevant (reason)` |
+| "Flaky for {library}" | Manifest | `flaky (JIRA-XXX)` |
+| "Bug on {weblog} variant" | Manifest | `weblog_declaration` format |
+| "Bug for agent version X" | Manifest | Entry in `agent.yml` |
+| "Bug for scenario X" | **Decorator** | `@bug(context.scenario == ...)` |
+| "Bug on specific VM" | **Decorator** | `@bug(context.vm_name == ...)` |
+| "Bug for agent + library combo" | **Decorator** | Complex condition |
+| "Test is slow and known to fail" | **Manifest + Decorator** | Manifest declaration + `@slow` on the test |
+| "Test crashes the scenario" | **Manifest + Decorator** | Manifest declaration + `@scenario_crash` on the test |
+
+---
+
+## Common Mistakes to Avoid
+
+1. ❌ Using decorators when manifests can express the condition
+2. ❌ Forgetting the `reason` parameter in decorators
+3. ❌ Using `library < "2.5.0"` instead of `library < "python@2.5.0"`
+4. ❌ Not sorting manifest entries alphabetically
+5. ❌ Using `false` or invalid markers in manifests (use only: `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`)
+6. ❌ Forgetting to quote values with special YAML characters (`>`, `<`, `:`, `#`)
+7. ❌ Creating new manifest files without asking first
+8. ❌ Using `X.Y.Z` instead of `vX.Y.Z` for versions (see warning below)
+
+### Version Format Warning
+
+**If you see a version like `1.2.0` (without `v` prefix) in a manifest, ASK THE USER if this is intentional:**
+
+- `vX.Y.Z` = `>=X.Y.Z` (enabled for this version AND all future versions) ✓ Common case
+- `X.Y.Z` = exactly that version only ⚠️ Rarely intended
+
+```yaml
+# COMMON - enables test for v1.2.0 and all later versions
+tests/path/test.py::TestClass: v1.2.0
+
+# RARE - enables test ONLY for exactly version 1.2.0 (not 1.2.1, not 1.3.0)
+tests/path/test.py::TestClass: 1.2.0  # ⚠️ Ask user: "Did you mean v1.2.0?"
+```
+
+---
+
+## Examples
+
+### Example 1: Deactivate for library (all versions)
+
+**Request:** "Test X is irrelevant for java"
+
+**Action:** Add to `manifests/java.yml`:
+```yaml
+  tests/path/test.py::TestClass::test_method: irrelevant (Not applicable to Java)
+```
+
+### Example 2: Bug from specific version
+
+**Request:** "Bug in test X for nodejs >= 5.0.0, ticket APPSEC-123"
+
+**Action:** Add to `manifests/nodejs.yml`:
+```yaml
+  tests/path/test.py::TestClass::test_method:
+    - declaration: bug (APPSEC-123)
+      component_version: '>=5.0.0'
+```
+
+### Example 3: Feature available from version
+
+**Request:** "Test X requires python 2.5.0 or higher"
+
+**Action:** Add to `manifests/python.yml`:
+```yaml
+  tests/path/test.py::TestClass::test_method: v2.5.0
+```
+
+### Example 4: Weblog-specific issue
+
+**Request:** "Test X fails on fastify for nodejs"
+
+**Action:** Add to `manifests/nodejs.yml`:
+```yaml
+  tests/path/test.py::TestClass:
+    - weblog_declaration:
+        "*": v5.0.0
+        fastify: bug (JIRA-123)
+```
+
+### Example 5: Scenario-specific (requires decorator)
+
+**Request:** "Test X doesn't apply to profiling scenario"
+
+**Action:** Add decorator in test file:
+```python
+@irrelevant(context.scenario == scenarios.profiling, reason="Not applicable to profiling")
+def test_method(self):
+    pass
+```
+
+### Example 6: Multiple libraries
+
+**Request:** "Test X is irrelevant for both python and nodejs"
+
+**Action:** Add to BOTH `manifests/python.yml` AND `manifests/nodejs.yml`:
+```yaml
+  tests/path/test.py::TestClass: irrelevant (Reason)
+```
