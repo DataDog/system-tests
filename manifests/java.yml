@@ -3167,7 +3167,7 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
     - declaration: bug (DEBUG-3390)
-      # Added by easy win activation script
+      component_version: '<1.50.0'
     - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
@@ -3331,7 +3331,9 @@ manifest:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: incomplete_test_app (no /debugger/correlation/loop endpoint)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets:
+    - declaration: bug (DEBUG-3797)
+      component_version: '<1.60.0'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature

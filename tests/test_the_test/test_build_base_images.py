@@ -712,7 +712,10 @@ class Test_ComputeHash:
 
 @scenarios.test_the_test
 class Test_BuildAndPush:
-    def test_build_and_push_streams_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    @pytest.mark.parametrize(("platform", "arch"), [("linux/amd64", "amd64"), ("linux/arm64", "arm64")])
+    def test_build_and_push_streams_output(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, platform: str, arch: str
+    ) -> None:
         calls: list[tuple[list[str], dict[str, object]]] = []
 
         def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess:
@@ -727,7 +730,7 @@ class Test_BuildAndPush:
             "datadog/system-tests:test.base-123456789abc",
             tmp_path / "build",
             "Dockerfile",
-            "linux/arm64",
+            platform,
         )
 
         assert calls == [
@@ -745,7 +748,9 @@ class Test_BuildAndPush:
                     "--set",
                     "target.dockerfile=Dockerfile",
                     "--set",
-                    "target.platform=linux/arm64",
+                    f"target.platform={platform}",
+                    "--set",
+                    f"target.args.TARGETARCH={arch}",
                     "-f",
                     str(tmp_path / "docker-bake.hcl"),
                     "target",

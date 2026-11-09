@@ -3,6 +3,7 @@
 set -euo pipefail
 
 GITHUB_PR_TITLE=""
+GITHUB_PR_BASE_SHA=""
 
 if GITHUB_TOKEN=$(dd-octo-sts token \
     --scope DataDog/system-tests \
@@ -19,6 +20,11 @@ if GITHUB_TOKEN=$(dd-octo-sts token \
             echo "⚠️ Unable to parse the GitHub PR title. Running all SSI languages."
             GITHUB_PR_TITLE=""
         fi
+        if ! GITHUB_PR_BASE_SHA=$(jq -r \
+            '[.[] | select(.state == "open")] | if length == 1 then .[0].base.sha else "" end' <<< "$PR_DATA"); then
+            echo "⚠️ Unable to parse the GitHub PR base. Comparing changes with main."
+            GITHUB_PR_BASE_SHA=""
+        fi
     else
         echo "⚠️ Unable to read the GitHub PR title. Running all SSI languages."
     fi
@@ -30,4 +36,7 @@ else
     echo "⚠️ Unable to authenticate to GitHub. Running all SSI languages."
 fi
 
-printf 'GITHUB_PR_TITLE=%s\n' "$GITHUB_PR_TITLE" > pr-title.env
+{
+    printf 'GITHUB_PR_TITLE=%s\n' "$GITHUB_PR_TITLE"
+    printf 'GITHUB_PR_BASE_SHA=%s\n' "$GITHUB_PR_BASE_SHA"
+} > pr-title.env
