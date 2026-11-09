@@ -426,6 +426,9 @@ patterns:
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp
+    utils/build/docker/cpp/parametric.base.Dockerfile:
+        libraries: cpp
+        scenarios: PARAMETRIC
     utils/build/docker/cpp/*:
         libraries: cpp
         scenario_groups: [ end_to_end, open_telemetry]
