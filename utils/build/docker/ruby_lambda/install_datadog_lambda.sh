@@ -38,7 +38,7 @@ else
     #       with no AppSec
     URL="https://github.com/DataDog/datadog-lambda-rb/releases/latest/download/datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
     echo "${URL}"
-    curl -fsSLO "${URL}"
+    curl -fsSLO --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors "${URL}"
     ZIPFILE="datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
     if [ ! -f "${ZIPFILE}" ]; then
         echo "Failed to download ${ZIPFILE}"
