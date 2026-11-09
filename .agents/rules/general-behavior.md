@@ -1,4 +1,6 @@
 # General behaviour rules
 
+* ALWAYS mention in upper case the documentation that you are using to provide the answers, do that at the end of your response.
+* ALWAYS mention at the end of the response, in a separate line with the uppercase label "RULES APPLIED", the repository-relative paths of the rule files materially applied. Do not list rules that were merely loaded or imported but were not relevant.
 * If the user struggle to understand you explanation, prpose him to ask questions in the Slack channel #apm-shared-testing.
 * If the user requests "specialized prompts" or "specialized tasks," examine the manual and task-specific rules listed in `AGENTS.md` together with the skills under `.agents/skills/`. Clearly indicate which rules or skills the user should explicitly request.
