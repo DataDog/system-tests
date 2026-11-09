@@ -777,7 +777,31 @@ class Test_GitLabMode:
 
         assert 'libraries="c"' in process(inputs)
 
-    def test_main_push_ignores_weblog_map(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    @staticmethod
+    def _library_weblog_scenarios(output: list[str]) -> dict | None:
+        line = next((line for line in output if line.startswith("library_weblog_scenarios=")), None)
+        return None if line is None else json.loads(json.loads(line.split("=", 1)[1]))
+
+    @pytest.mark.parametrize("source", ["merge_request_event", "push"])
+    def test_pr_pipeline_selects_php_weblog_map(self, monkeypatch: pytest.MonkeyPatch, source: str) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/php")
+        inputs = build_inputs(modified_files=["utils/build/docker/php/apache-mod-8.0.Dockerfile"])
+
+        output = process(inputs)
+        assert self._library_weblog_scenarios(output) == {"php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]}}
+        assert not any(line.startswith("libraries=") for line in output)
+
+    def test_pr_pipeline_does_not_select_php_if_not_impacted(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/c")
+        inputs = build_inputs(modified_files=["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert self._library_weblog_scenarios(process(inputs)) is None
+
+    def test_main_push_uses_main_weblog_maps(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
         monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
@@ -785,7 +809,8 @@ class Test_GitLabMode:
 
         output = process(inputs)
         assert 'libraries="python"' in output
-        assert not any(line.startswith("library_weblog_scenarios=") for line in output)
+        # python runs all its weblogs on main, php only its weblog map
+        assert self._library_weblog_scenarios(output) == {"php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]}}
 
     @pytest.mark.parametrize(
         ("source", "ref"),
