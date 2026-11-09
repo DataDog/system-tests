@@ -317,22 +317,21 @@ class Test_BuildPipeline:
             for name, job in pipeline.items()
             if name.startswith("system_tests_run_")
         ]
-        # 1 job per weblog, 1 for THREAD_CONTEXT_SHARING (dedicated runner). The 4th one goes to flask, which has
-        # the longest job (1000s, split into two 500s jobs), the 5th one to spring-boot (600s, split into 500s+100s).
+        # 1 job per weblog. The 3rd one goes to flask, which has the longest job (1050s, split into 500s+550s), the
+        # 4th one to spring-boot (600s, split into 500s+100s), the 5th one to flask again (400s+350s+300s).
         # Jobs of a weblog are ordered by expected time, longest first, then by scenarios
         assert run_jobs == [
-            ("system_tests_run_python_flask_1", "DEFAULT,PROFILING"),
-            ("system_tests_run_python_flask_2", "IPV6,SAMPLING"),
-            ("system_tests_run_python_THREAD_CONTEXT_SHARING_flask", "THREAD_CONTEXT_SHARING"),
+            ("system_tests_run_python_DEFAULT_flask", "DEFAULT"),
+            ("system_tests_run_python_flask_2", "SAMPLING,THREAD_CONTEXT_SHARING"),
+            ("system_tests_run_python_flask_3", "IPV6,PROFILING"),
             ("system_tests_run_java_DEFAULT_spring-boot", "DEFAULT"),
             ("system_tests_run_java_IPV6_spring-boot", "IPV6"),
         ]
-        assert pipeline["system_tests_run_python_THREAD_CONTEXT_SHARING_flask"]["tags"] == [
-            "docker-in-docker:amd64-cws"
-        ]
-        assert "tags" not in pipeline["system_tests_run_python_flask_1"]
+        # the CWS runners can run the other scenarios too
+        assert pipeline["system_tests_run_python_flask_2"]["tags"] == ["docker-in-docker:amd64-cws"]
+        assert "tags" not in pipeline["system_tests_run_python_flask_3"]
         # twice the expected time, plus 5 minutes
-        assert pipeline["system_tests_run_python_flask_1"]["timeout"] == "22 minutes"
+        assert pipeline["system_tests_run_python_flask_2"]["timeout"] == "17 minutes"
         assert "timeout" not in pipeline["system_tests_run_java_DEFAULT_spring-boot"]
 
     def test_scheduler_is_deterministic(self) -> None:
@@ -382,10 +381,13 @@ class Test_BuildPipeline:
         ]
         assert all("scenarios_times" not in job for job in jobs)
 
-    @pytest.mark.parametrize("kwargs", [{}, {"job_count": 3, "max_job_time": 600}])
-    def test_scheduler_needs_exactly_one_limit(self, kwargs: dict[str, int]) -> None:
-        with pytest.raises(ValueError, match="Exactly one"):
-            build_pipeline.EndToEndScheduler({}).schedule(**kwargs)
+    def test_runner_tags_follow_priority(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(build_pipeline, "SCENARIO_RUNNER_TAGS", {"B": ["runner-b"], "A": ["runner-a"]})
+
+        # the tags of the first entry win, whatever the order of the scenarios
+        assert build_pipeline._runner_tags(["A", "B", "C"]) == ["runner-b"]  # noqa: SLF001
+        assert build_pipeline._runner_tags(["A", "C"]) == ["runner-a"]  # noqa: SLF001
+        assert build_pipeline._runner_tags(["C"]) is None  # noqa: SLF001
 
     def test_scheduler_uses_at_least_one_job_per_weblog(self) -> None:
         all_params = {lib: _timed_params("w", {"DEFAULT": 100, "IPV6": 100}) for lib in ("python", "java")}
@@ -401,17 +403,17 @@ class Test_BuildPipeline:
     @pytest.mark.parametrize(
         ("desired_execution_time", "expected_job_count"),
         [
-            (10000, 3),  # one job per weblog, plus THREAD_CONTEXT_SHARING
-            (600, 4),  # flask (1000s) is split into 2 jobs of 500s
-            (500, 5),  # spring-boot (600s) too: 500s + 100s
-            (400, 6),  # flask into 3 jobs: 400s (DEFAULT) + 300s + 300s
-            (1, 6),  # DEFAULT alone is the longest job of flask and spring-boot: they can't be shortened
+            (10000, 2),  # one job per weblog
+            (600, 3),  # flask (1000s) is split into 2 jobs of 500s
+            (500, 4),  # spring-boot (600s) too: 500s + 100s
+            (400, 5),  # flask into 3 jobs: 400s (DEFAULT) + 300s + 300s
+            (1, 5),  # DEFAULT alone is the longest job of flask and spring-boot: they can't be shortened
         ],
     )
     def test_scheduler_with_max_job_time(
         self, tmp_path: Path, desired_execution_time: int, expected_job_count: int
     ) -> None:
-        python_times = {"DEFAULT": 400, "SAMPLING": 300, "IPV6": 200, "PROFILING": 100, "THREAD_CONTEXT_SHARING": 50}
+        python_times = {"DEFAULT": 400, "SAMPLING": 300, "IPV6": 200, "PROFILING": 100}
         all_params = {
             "python": _timed_params("flask", python_times),
             "java": _timed_params("spring-boot", {"DEFAULT": 500, "IPV6": 100}),
@@ -497,6 +499,20 @@ class Test_BuildPipeline:
         assert "--include-scenarios-times" in computed[0]
         assert "--desired-execution-time" not in computed[0]
         assert {name: built[0][name] for name in expected} == expected
+
+    @pytest.mark.parametrize("name", ["desired-execution-time", "endtoend-job-count"])
+    def test_decimal_job_count_inputs_are_rejected(
+        self, tmp_path: Path, name: str, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        result = main(
+            [
+                *("--stage", "e2e", "--ci-image", "img", "--output-dir", str(tmp_path), "--libraries", "python"),
+                *(f"--{name}", "900.5"),
+            ],
+            environ={},
+        )
+        assert result == 1
+        assert f"{name.replace('-', '_')}: expected an integer, got '900.5'" in capsys.readouterr().err
 
     def test_endtoend_job_count_and_desired_execution_time_are_exclusive(self, tmp_path: Path) -> None:
         result = main(

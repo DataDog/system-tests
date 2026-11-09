@@ -261,6 +261,18 @@ class Test_GitlabJobScripts:
             run_scenario.main()
         assert commands == []
 
+    @pytest.mark.parametrize("value", [",", " , "])
+    def test_empty_scenario_list_fails(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, value: str
+    ) -> None:
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", value)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+
+        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIOS does not list any scenario"):
+            run_scenario.main()
+        assert commands == []
+
     def test_push_to_test_optimization(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:

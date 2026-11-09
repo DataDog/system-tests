@@ -8,6 +8,7 @@ logic lives in the scripts of utils/ci/gitlab/jobs/.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import math
 import os
@@ -25,12 +26,25 @@ if TYPE_CHECKING:
 TEMPLATES_FILE = "utils/ci/gitlab/templates.yml"
 CHILD_PIPELINE_FILE = "utils/ci/gitlab/child-pipeline.yml"
 
-# CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
-# (see docs/understand/scenarios/thread_context_sharing.md)
-SCENARIO_RUNNER_TAGS: dict[str, list[str]] = {"THREAD_CONTEXT_SHARING": ["docker-in-docker:amd64-cws"]}
+# Runner tags of the scenarios needing a dedicated runner pool, by priority: a run job gets the tags of the first
+# entry matching one of its scenarios, so the runners of an entry must be able to run the scenarios of the entries
+# after it, and the scenarios without dedicated tags (default runner).
+SCENARIO_RUNNER_TAGS: dict[str, list[str]] = {
+    # CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
+    # (see docs/understand/scenarios/thread_context_sharing.md)
+    "THREAD_CONTEXT_SHARING": ["docker-in-docker:amd64-cws"],
+}
 
-# timeout of .system_tests_run (child-pipeline.yml), for jobs running a single scenario
-RUN_JOB_TIMEOUT_MINUTES = 15
+
+@functools.cache
+def _run_job_timeout_minutes() -> int:
+    """Timeout of .system_tests_run in child-pipeline.yml, the one of jobs running a single scenario."""
+    child_pipeline = yaml.safe_load((Path(__file__).parent / "child-pipeline.yml").read_text())
+    timeout = child_pipeline[".system_tests_run"]["timeout"]
+    match = re.fullmatch(r"(\d+) minutes?", timeout)
+    if not match:
+        raise ValueError(f"Unexpected timeout format for .system_tests_run in {CHILD_PIPELINE_FILE}: {timeout!r}")
+    return int(match.group(1))
 
 
 def noop_stub(stage: str) -> str:
@@ -137,7 +151,7 @@ def library_jobs(
             [".system_tests_run", *test_mixins],
             variables=variables,
             needs=needs,
-            tags=SCENARIO_RUNNER_TAGS.get(scenarios[0]),
+            tags=_runner_tags(scenarios),
             timeout=timeout,
         )
 
@@ -158,12 +172,17 @@ def library_jobs(
     return jobs
 
 
+def _runner_tags(scenarios: list[str]) -> list[str] | None:
+    """Tags of the highest priority entry of SCENARIO_RUNNER_TAGS matching one of the scenarios, if any."""
+    return next((tags for scenario, tags in SCENARIO_RUNNER_TAGS.items() if scenario in scenarios), None)
+
+
 def _grouped_run_job_timeout(job_def: dict) -> str:
     """Timeout of a run job running several scenarios: twice their expected time (with some margin, as the time
     stats come from GitHub runners), never less than the timeout of a single scenario job.
     """
     minutes = math.ceil(2 * float(job_def["expected_job_time"]) / 60) + 5
-    return f"{max(RUN_JOB_TIMEOUT_MINUTES, minutes)} minutes"
+    return f"{max(_run_job_timeout_minutes(), minutes)} minutes"
 
 
 def _upstream_artifact_jobs(binaries_artifacts: str, binaries_artifact: str) -> list[str]:
@@ -230,8 +249,8 @@ def build(
     """Render pipeline chunk files into *output_dir*, one per chunk.
 
     End-to-end scenarios of all libraries are split into run jobs by EndToEndScheduler, until there are
-    endtoend_job_count jobs, or until they all fit in desired_execution_time (only one of them can be set).
-    Otherwise, each scenario gets its own run job.
+    endtoend_job_count jobs, or else until they all fit in desired_execution_time (main() checks that only one of
+    them is set). Otherwise, each scenario gets its own run job.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -243,8 +262,6 @@ def build(
             sys.exit(1)
         all_params[library] = json.loads(params_file.read_text())
 
-    if desired_execution_time > 0 and endtoend_job_count > 0:
-        raise ValueError("desired_execution_time and endtoend_job_count can't be used together")
     if endtoend_job_count > 0:
         EndToEndScheduler(all_params).schedule(job_count=endtoend_job_count)
     elif desired_execution_time > 0:
@@ -286,13 +303,12 @@ def build(
         chunk_file.write_text(to_yaml(pipeline))
 
 
-def _endtoend_jobs(all_params: Mapping[str, dict]) -> Iterator[tuple[dict, dict]]:
-    """(params, job) for each end-to-end job of the params, in a deterministic order: libraries in the given order,
-    then jobs in the order of the params (sorted by weblog by compute-workflow-parameters.py).
+def _endtoend_jobs(all_params: Mapping[str, dict]) -> Iterator[dict]:
+    """End-to-end jobs of the params, in a deterministic order: libraries in the given order, then jobs in the order
+    of the params (sorted by weblog by compute-workflow-parameters.py).
     """
     for params in all_params.values():
-        for job_def in params.get("endtoend_defs", {}).get("parallel_jobs", []):
-            yield params, job_def
+        yield from params.get("endtoend_defs", {}).get("parallel_jobs", [])
 
 
 def _scenarios_times(job_def: dict) -> dict[str, float]:
@@ -327,7 +343,7 @@ def _run_job(job_def: dict, scenarios: list[str], times: Mapping[str, float]) ->
 def split_scenarios_into_jobs(all_params: Mapping[str, dict]) -> None:
     """Default, without a number of jobs: each scenario gets its own run job."""
     jobs_of: dict[int, list[dict]] = {}
-    for _, job_def in _endtoend_jobs(all_params):
+    for job_def in _endtoend_jobs(all_params):
         times = _scenarios_times(job_def)
         jobs_of[id(job_def)] = [_run_job(job_def, [scenario], times) for scenario in job_def["scenarios"]]
     _set_endtoend_jobs(all_params, jobs_of)
@@ -367,8 +383,8 @@ class _WeblogJobs:
 class EndToEndScheduler:
     """Split the end-to-end scenarios of all libraries into run jobs of balanced length.
 
-    A run job only runs scenarios of one weblog, and scenarios needing a dedicated runner pool (SCENARIO_RUNNER_TAGS)
-    get their own job: so each weblog gets one job, then each additional job goes to the weblog with the longest job
+    A run job only runs scenarios of one weblog: so each weblog gets one job, then each additional job goes to the
+    weblog with the longest job
     (the first one, in the order of _endtoend_jobs, if several have the same), as long as another job may make it
     shorter. Jobs are added until there are job_count of them, or until all of them fit in max_job_time: both stop
     the same sequence of steps, so the result only depends on the params and on the number of jobs it ends with.
@@ -376,19 +392,15 @@ class EndToEndScheduler:
 
     def __init__(self, all_params: Mapping[str, dict]):
         self.all_params = all_params
-        self.weblogs: list[_WeblogJobs] = []
-        self.isolated: list[tuple[dict, str]] = []
-        for _, job_def in _endtoend_jobs(all_params):
-            times = _scenarios_times(job_def)
-            self.isolated += [(job_def, scenario) for scenario in times if scenario in SCENARIO_RUNNER_TAGS]
-            if groupable := {
-                scenario: time for scenario, time in times.items() if scenario not in SCENARIO_RUNNER_TAGS
-            }:
-                self.weblogs.append(_WeblogJobs(job_def, groupable))
+        self.weblogs = [
+            _WeblogJobs(job_def, _scenarios_times(job_def))
+            for job_def in _endtoend_jobs(all_params)
+            if job_def["scenarios"]
+        ]
 
     @property
     def job_count(self) -> int:
-        return sum(weblog.count for weblog in self.weblogs) + len(self.isolated)
+        return sum(weblog.count for weblog in self.weblogs)
 
     def longest_weblog_to_shorten(self) -> _WeblogJobs | None:
         candidates = [weblog for weblog in self.weblogs if weblog.can_be_shortened()]
@@ -398,17 +410,15 @@ class EndToEndScheduler:
     def schedule(self, *, job_count: int | None = None, max_job_time: float | None = None) -> int:
         """Rewrite the end-to-end jobs of the params, in place, and return the number of run jobs.
 
-        Exactly one of:
+        Either (without any, each weblog gets as many jobs as may make its longest job shorter):
             job_count: number of jobs to use, at most (fewer if more would not make the longest job shorter)
             max_job_time: no job may be expected to last more, except jobs that can't be shortened (a scenario alone
                 expected to last more), with as few jobs as possible
         """
-        if (job_count is None) == (max_job_time is None):
-            raise ValueError("Exactly one of job_count and max_job_time is required")
         if job_count is not None and job_count < self.job_count:
             print(  # noqa: T201
-                f"⚠️ {job_count} end-to-end jobs requested, but the scenarios of {len(self.weblogs)} weblogs, and "
-                f"{len(self.isolated)} scenarios needing a dedicated runner, can't share a job: using {self.job_count}"
+                f"⚠️ {job_count} end-to-end jobs requested, but the scenarios of {len(self.weblogs)} weblogs can't "
+                f"share a job: using {self.job_count}"
             )
         while weblog := self.longest_weblog_to_shorten():
             if job_count is not None and self.job_count >= job_count:
@@ -420,13 +430,11 @@ class EndToEndScheduler:
         return self.job_count
 
     def write(self) -> None:
-        jobs_of: dict[int, list[dict]] = {id(job_def): [] for _, job_def in _endtoend_jobs(self.all_params)}
+        jobs_of: dict[int, list[dict]] = {id(job_def): [] for job_def in _endtoend_jobs(self.all_params)}
         for weblog in self.weblogs:
             jobs = [_run_job(weblog.job_def, group, weblog.times) for group in weblog.groups]
             # longest jobs first, so they start first
-            jobs_of[id(weblog.job_def)] += sorted(jobs, key=lambda job: (-job["expected_job_time"], job["scenarios"]))
-        for job_def, scenario in self.isolated:
-            jobs_of[id(job_def)].append(_run_job(job_def, [scenario], _scenarios_times(job_def)))
+            jobs_of[id(weblog.job_def)] = sorted(jobs, key=lambda job: (-job["expected_job_time"], job["scenarios"]))
         _set_endtoend_jobs(self.all_params, jobs_of)
 
 
@@ -464,6 +472,10 @@ def _split(value: str, separators: str = ",") -> list[str]:
     return list(dict.fromkeys(item for item in items if item))
 
 
+class InputError(ValueError):
+    """Invalid component input or pipeline variable, reported without a traceback by main()."""
+
+
 def resolve_inputs(args: argparse.Namespace, environ: Mapping[str, str]) -> argparse.Namespace:
     """Merge the component inputs (command line arguments) with the pipeline variables set by the caller."""
     resolved = argparse.Namespace(**vars(args))
@@ -479,10 +491,12 @@ def resolve_inputs(args: argparse.Namespace, environ: Mapping[str, str]) -> argp
         if value := environ.get(variable, ""):
             setattr(resolved, name, value)
 
-    resolved.parametric_job_count = int(resolved.parametric_job_count)
-    resolved.parametric_workers = int(resolved.parametric_workers)
-    resolved.desired_execution_time = int(resolved.desired_execution_time)
-    resolved.endtoend_job_count = int(resolved.endtoend_job_count)
+    for name in ("parametric_job_count", "parametric_workers", "desired_execution_time", "endtoend_job_count"):
+        value = getattr(resolved, name)
+        try:
+            setattr(resolved, name, int(value))
+        except ValueError:
+            raise InputError(f"{name}: expected an integer, got {value!r}") from None
     for name in ("push_to_test_optimization", "skip_empty_scenario", "split_pipeline"):
         setattr(resolved, name, str(getattr(resolved, name)).lower() == "true")
 
@@ -735,7 +749,11 @@ def child_pipeline_variables(inputs: argparse.Namespace, environ: Mapping[str, s
 
 def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None) -> int:
     environ = os.environ if environ is None else environ
-    inputs = resolve_inputs(parse_args(argv), environ)
+    try:
+        inputs = resolve_inputs(parse_args(argv), environ)
+    except InputError as error:
+        print(f"❌ {error}", file=sys.stderr)  # noqa: T201
+        return 1
     output_dir = Path(inputs.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 

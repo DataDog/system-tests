@@ -70,6 +70,8 @@ def main() -> None:
     library = ci.env("TEST_LIBRARY")
     weblog = ci.env("SYSTEM_TESTS_WEBLOG")
     scenarios = [scenario.strip() for scenario in ci.env("SYSTEM_TESTS_SCENARIOS").split(",") if scenario.strip()]
+    if not scenarios:
+        sys.exit("ERROR: SYSTEM_TESTS_SCENARIOS does not list any scenario")
     build_required = os.environ.get("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "").lower() == "true"
 
     with ci.section("weblog_setup", "Setting up the weblog"):
