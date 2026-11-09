@@ -276,6 +276,8 @@ build() {
 
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
+            # Left by a previous build (of any weblog) killed mid-save: remove them so they're not copied into the build context
+            rm -f binaries/*-weblog.tar.zst.tmp
 
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
@@ -419,7 +421,10 @@ build() {
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
+                    # Write to a temp file, then rename: if this attempt is killed mid-save (e.g. by the
+                    # timeout in build.sh), the next attempt must not find and load a truncated file.
+                    (set -o pipefail; docker save system_tests/weblog | zstd > "$BINARIES_FILENAME.tmp")
+                    mv "$BINARIES_FILENAME.tmp" "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
