@@ -276,8 +276,8 @@ build() {
 
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
-            # Left by a previous attempt killed mid-save: remove it so it's not copied into the build context
-            rm -f "$BINARIES_FILENAME.tmp"
+            # Left by a previous build (of any weblog) killed mid-save: remove them so they're not copied into the build context
+            rm -f binaries/*-weblog.tar.zst.tmp
 
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
