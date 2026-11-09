@@ -23,11 +23,19 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 SYSTEM_TESTS_DIR = Path(__file__).resolve().parents[2]
 
 AWS_LOGS_BUCKET = "system-tests-aws-ssi-apm"
 MAX_ARTIFACT_FILE_SIZE = 50 * 1024 * 1024
+PUBLISH_ATTEMPTS = 3
+PUBLISH_TIMEOUT_SECONDS = 30
+PUBLISH_RETRY_DELAY_SECONDS = 5
+# The raw log folder is uploaded before large files are removed. Two attempts of 60s, plus a
+# full feature-parity retry, stay inside the runner's 5-minute after_script timeout.
+S3_PUBLISH_ATTEMPTS = 2
+S3_PUBLISH_TIMEOUT_SECONDS = 60
 
 
 @dataclass
@@ -70,8 +78,50 @@ class Job:
 Step = Callable[[Job], None]
 
 
-def run(command: list[str], env: Mapping[str, str] | None = None, cwd: Path | None = None) -> None:
-    subprocess.run(command, check=True, cwd=cwd, env=None if env is None else {**os.environ, **env})
+def run(
+    command: list[str],
+    env: Mapping[str, str] | None = None,
+    cwd: Path | None = None,
+    timeout: float | None = None,
+) -> None:
+    subprocess.run(command, check=True, cwd=cwd, timeout=timeout, env=None if env is None else {**os.environ, **env})
+
+
+def _publish_failure(command_name: str, error: subprocess.CalledProcessError | subprocess.TimeoutExpired) -> str:
+    """Status only. CalledProcessError stringifies the whole argument list."""
+    if isinstance(error, subprocess.TimeoutExpired):
+        return f"{command_name} timed out after {error.timeout} seconds"
+    return f"{command_name} exited with status {error.returncode}"
+
+
+def run_publish(
+    command: list[str],
+    env: Mapping[str, str] | None = None,
+    *,
+    attempts: int = PUBLISH_ATTEMPTS,
+    timeout: float = PUBLISH_TIMEOUT_SECONDS,
+    ignore_failure: bool = False,
+) -> bool:
+    """Retry a publish command.
+
+    Raise when every attempt fails. The S3 log upload sets ignore_failure so a remaining
+    failure is logged and the after_script still exits 0.
+    """
+    failure = ""
+    for attempt in range(1, attempts + 1):
+        try:
+            run(command, env=env, timeout=timeout)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as attempt_error:
+            failure = _publish_failure(command[0], attempt_error)
+            print(f"⚠️ {failure} (attempt {attempt}/{attempts})", flush=True)
+            if attempt < attempts:
+                time.sleep(PUBLISH_RETRY_DELAY_SECONDS)
+            continue
+        return True
+    if ignore_failure:
+        print(f"⚠️ {failure} after {attempts} attempts, ignored", flush=True)
+        return False
+    raise RuntimeError(f"{failure} after {attempts} attempts")
 
 
 @cache
@@ -100,13 +150,17 @@ def upload_logs_to_s3(job: Job) -> None:
     for folder in job.log_folders:
         pipeline_id = job.env.get("CI_PIPELINE_ID", "datadog-local")
         prefix = f"{pipeline_id}/{folder.name}/{job.env['VM']}_{job.env['WEBLOG']}/"
-        run(
+        uploaded = run_publish(
             ["aws", "s3", "cp", str(folder), f"s3://{AWS_LOGS_BUCKET}/{prefix}", "--recursive", "--quiet"],
             env={"AWS_PROFILE": "apm-ecosystems-reliability-ci"},
+            attempts=S3_PUBLISH_ATTEMPTS,
+            timeout=S3_PUBLISH_TIMEOUT_SECONDS,
+            ignore_failure=True,
         )
-        job.aws_console_url = (
-            f"https://s3.console.aws.amazon.com/s3/buckets/{AWS_LOGS_BUCKET}?region=us-east-1&prefix={prefix}"
-        )
+        if uploaded:
+            job.aws_console_url = (
+                f"https://s3.console.aws.amazon.com/s3/buckets/{AWS_LOGS_BUCKET}?region=us-east-1&prefix={prefix}"
+            )
 
 
 def delete_large_log_files(job: Job) -> None:
@@ -138,7 +192,7 @@ def publish_feature_parity(job: Job) -> None:
     api_key = read_secret("fpd", "fp_api_key")
     for report in sorted(job.reports_dir.glob(f"logs*/{job.profile.feature_parity_pattern}")):
         print(f"Processing report: {report}")
-        run(
+        run_publish(
             [
                 "curl",
                 "-X",
@@ -161,7 +215,7 @@ def upload_junit_reports(job: Job) -> None:
     if not reports:
         print("No reports/logs*/reportJunit.xml found; skipping Test Optimization upload")
         return
-    run(
+    run_publish(
         [
             "datadog-ci",
             "junit",

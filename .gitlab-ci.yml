@@ -27,10 +27,36 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
+resolve_ssi_pr_title:
+  image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
+  tags: ["arch:amd64"]
+  stage: configure
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  rules:
+    - if: >-
+        $CI_PROJECT_PATH == "DataDog/system-tests" &&
+        $CI_PIPELINE_SOURCE == "push" &&
+        $CI_COMMIT_BRANCH &&
+        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
+        ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") &&
+        ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
+    - when: never
+  script:
+    - bash utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh
+  artifacts:
+    reports:
+      dotenv: pr-title.env
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
   tags: ["arch:amd64"]
   stage: configure
+  needs:
+    - job: resolve_ssi_pr_title
+      artifacts: true
+      optional: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
@@ -86,12 +112,21 @@ compute_pipeline:
            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
           source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      for library in nodejs java dotnet python php ruby; do
+        selected_scenarios="$scenarios"
+        selected_scenario_groups="$scenarios_groups"
+        if [ -n "${ssi_library:-}" ] && [ "$library" != "$ssi_library" ]; then
+          selected_scenarios=""
+          selected_scenario_groups=""
+        fi
+        python utils/scripts/compute-workflow-parameters.py "$library" \
+          -s "$selected_scenarios" \
+          -g "$selected_scenario_groups" \
+          --parametric-job-count 1 \
+          --ci-environment "${CI_ENVIRONMENT}" \
+          --format gitlab
+      done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
@@ -489,7 +524,7 @@ mirror_images:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
     # Download to a file so retries discard partial responses before extraction.
-    - curl --fail --retry 3 --retry-delay 5 --retry-all-errors -sSL --output /tmp/crane.tar.gz "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+    - curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -sSL --output /tmp/crane.tar.gz "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
     - tar -xzf /tmp/crane.tar.gz -C /usr/local/bin crane
     # This is the only job that pulls from Docker Hub (the mirror sources), so it
     # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
