@@ -373,8 +373,8 @@ patterns:
       libraries: null
     utils/ci/github/*:
       scenarios: DEFAULT
-    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs the c library on PRs
-      libraries: c, python, php
+    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs these libraries on PRs (see GITLAB_PR_LIBRARIES)
+      libraries: [c, php, python]
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
