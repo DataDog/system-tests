@@ -40,19 +40,25 @@ printf '%s\\n' "$url" >> "$CURL_CALLS"
 if [[ "${{MISSING_BRANCH:-}}" != "" && "$url" == *"${{MISSING_BRANCH}}"* ]]; then
     exit 22
 fi
+if [[ "$url" == *"DataDog/dd-trace-c"* ]]; then
+    response='{{"commit":{{"sha":"{C_LIBRARY_SHA}"}}}}'
+else
+    response='{{"commit":{{"sha":"{C_INJECTOR_SHA}"}}}}'
+fi
 previous=
 for argument in "$@"; do
     if [[ "$previous" == "--output" ]]; then
-        printf '%s\\n' "$url" > "$argument"
+        # branch lookups are written to a file too (curl_get), downloads get their URL as content
+        if [[ "$url" == *"/branches/"* ]]; then
+            printf '%s\\n' "$response" > "$argument"
+        else
+            printf '%s\\n' "$url" > "$argument"
+        fi
         exit 0
     fi
     previous="$argument"
 done
-if [[ "$url" == *"DataDog/dd-trace-c"* ]]; then
-    printf '%s\\n' '{{"commit":{{"sha":"{C_LIBRARY_SHA}"}}}}'
-else
-    printf '%s\\n' '{{"commit":{{"sha":"{C_INJECTOR_SHA}"}}}}'
-fi
+printf '%s\\n' "$response"
 """,
     )
     _write_executable(

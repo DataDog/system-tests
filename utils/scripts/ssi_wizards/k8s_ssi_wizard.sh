@@ -34,9 +34,9 @@ ask_load_k8s_requirements(){
                 # Download appropriate version (Mac M1 arm64 arch or linux amd64)
                 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
                 if [ "$ARCH" = "arm64" ]; then
-                    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
                 else
-                    curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
                 fi
                 chmod +x ./kind
                 sudo mv ./kind /usr/local/bin/kind
@@ -50,10 +50,10 @@ ask_load_k8s_requirements(){
                 echo "Installing Minikube..."
                 ARCH=$(uname -m)
                 if [[ "$ARCH" == "arm64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
                     sudo install minikube-darwin-arm64 /usr/local/bin/minikube
                 elif [[ "$ARCH" == "x86_64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
                     sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
                 fi
                 echo -e "${GREEN}✅ Minikube installed successfully.${NC}"
@@ -66,7 +66,7 @@ ask_load_k8s_requirements(){
         read -p "⚠️  Helm is not installed. Do you want to install it? (y/n): " INSTALL_HELM
         if [[ "$INSTALL_HELM" == "y" ]]; then
             echo "Installing Helm..."
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+            curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
             if command_exists helm; then
                 echo -e "${GREEN}✅ Helm installed successfully.${NC}"
             else

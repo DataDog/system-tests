@@ -263,7 +263,7 @@ build() {
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
-                curl -L -O $BINARY_URL
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fL -O $BINARY_URL
                 cd ..
             fi
 
