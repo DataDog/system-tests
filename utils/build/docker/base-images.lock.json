@@ -3,6 +3,7 @@
   "images": {
     "system_tests_base_cpp_cpp_parametric": "datadog/system-tests:cpp-parametric.base-7da050dd1bcd",
     "system_tests_base_java_lambda_java_lambda_runtime": "datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57",
+    "system_tests_base_java_vertx3": "datadog/system-tests:vertx3.base-0f17e2ccaa86",
     "system_tests_base_nodejs_express4": "datadog/system-tests:express4.base-527c2a306057",
     "system_tests_base_nodejs_express4_typescript": "datadog/system-tests:express4-typescript.base-070fd1ba6efd",
     "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-5bff656d2059",
