@@ -1278,13 +1278,13 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
     - weblog_declaration:
         '*': v2.25.0-dev
-        rack: irrelevant
-        rails42: irrelevant
-        sinatra14: irrelevant
-        sinatra22: irrelevant
-        sinatra32: irrelevant
-        sinatra41: irrelevant
-        uds-sinatra: irrelevant
+        rack: incomplete_test_app (endpoint not implemented)
+        rails42: incomplete_test_app (endpoint not implemented)
+        sinatra14: incomplete_test_app (endpoint not implemented)
+        sinatra22: incomplete_test_app (endpoint not implemented)
+        sinatra32: incomplete_test_app (endpoint not implemented)
+        sinatra41: incomplete_test_app (endpoint not implemented)
+        uds-sinatra: incomplete_test_app (endpoint not implemented)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v2.48.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:

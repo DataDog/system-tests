@@ -50,7 +50,7 @@ class Test_SecuritySmoke_EventTags:
             assert span.meta.get("env") == "system-tests"
             assert span.metrics.get("_dd.appsec.enabled") == 1
             assert span.meta.get("http.method") == "GET"
-            assert span.meta.get("http.status_code") == str(self.r.status_code)
+            assert span.get_tag("http.status_code") == str(self.r.status_code)
             assert span.meta.get("http.client_ip") == "42.42.42.42"
             assert span.meta.get("network.client.ip")
             assert "Arachni/v1" in span.meta.get("http.useragent", "")
@@ -229,7 +229,7 @@ class Test_SecuritySmoke_ApiSecurity:
             if not all(f"_dd.appsec.s.{address}" in span.meta for address in addresses):
                 continue
             assert span.meta.get("http.method") == method
-            assert span.meta.get("http.status_code") == "200"
+            assert span.get_tag("http.status_code") == "200"
             assert span.meta.get("http.route"), "Backend schemas need the request route"
             for address in addresses:
                 schema = span.meta[f"_dd.appsec.s.{address}"]

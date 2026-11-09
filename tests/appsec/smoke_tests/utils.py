@@ -125,7 +125,7 @@ def assert_backend_blocked(response: HttpResponse) -> None:
     assert spans, "Backend did not receive the blocked request"
     assert any(
         is_same_boolean(actual=span.meta.get("appsec.blocked"), expected="true")
-        and span.meta.get("http.status_code") == "403"
+        and span.get_tag("http.status_code") == "403"
         for span in spans
     ), "Backend must receive the blocking flag and HTTP status"
 
