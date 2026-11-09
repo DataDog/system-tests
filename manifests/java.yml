@@ -1687,7 +1687,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
     - weblog_declaration:
         '*': v0.108.0
-        play: missing_feature (no endpoint)
+        play: incomplete_test_app (no endpoint)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:
     - weblog_declaration:
@@ -1714,13 +1714,13 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v0.115.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
     - weblog_declaration:
-        akka-http: missing_feature (login endpoints not implemented)
-        jersey-grizzly2: missing_feature (login endpoints not implemented)
-        play: missing_feature (login endpoints not implemented)
-        ratpack: missing_feature (login endpoints not implemented)
-        resteasy-netty3: missing_feature (login endpoints not implemented)
-        vertx3: missing_feature (login endpoints not implemented)
-        vertx4: missing_feature (login endpoints not implemented)
+        akka-http: incomplete_test_app (login endpoints not implemented)
+        jersey-grizzly2: incomplete_test_app (login endpoints not implemented)
+        play: incomplete_test_app (login endpoints not implemented)
+        ratpack: incomplete_test_app (login endpoints not implemented)
+        resteasy-netty3: incomplete_test_app (login endpoints not implemented)
+        vertx3: incomplete_test_app (login endpoints not implemented)
+        vertx4: incomplete_test_app (login endpoints not implemented)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v1.65.0-SNAPSHOT
