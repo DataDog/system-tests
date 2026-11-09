@@ -63,6 +63,7 @@ load_requirements() {
 }
 
 ask_load_requirements() {
+    wizard_usage_step requirements
     spacer
     echo -e "${YELLOW}📌 Step: system-tests requirements${NC}"
     echo "🔧 Do you want to load the system-tests requirements?"
@@ -106,6 +107,8 @@ ask_for_test_language() {
         export TEST_LIBRARY
         echo "✅ Selected test language: $TEST_LIBRARY"
     fi
+    WIZARD_LIBRARY="${TEST_LIBRARY}"
+    export WIZARD_LIBRARY
 }
 # 🎨 Colors for styling
 RED='\033[0;31m'
@@ -163,6 +166,8 @@ select_scenario() {
     done
 
     echo "✅ Selected scenario: $SCENARIO"
+    WIZARD_SCENARIO="${SCENARIO}"
+    export WIZARD_SCENARIO
 }
 
 # Select the weblog based on the chosen scenario
@@ -208,4 +213,6 @@ else:
     done
 
     echo "✅ Selected weblog: $WEBLOG"
+    WIZARD_WEBLOG="${WEBLOG}"
+    export WIZARD_WEBLOG
 }

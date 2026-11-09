@@ -13,6 +13,7 @@ command_exists() {
 }
 
 ask_load_k8s_requirements(){
+    wizard_usage_step provider
     # 📌 Step: Ask user for Kubernetes provider
     echo -e "${YELLOW}📌 Step: Choose a Kubernetes provider${NC}"
     select K8S_PROVIDER in "minikube" "kind"; do
@@ -79,6 +80,7 @@ ask_load_k8s_requirements(){
 }
 
 configure_private_registry() {
+    wizard_usage_step registry
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
     echo "Configuring ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)..."
@@ -94,6 +96,7 @@ configure_private_registry() {
 }
 
 select_weblog_img(){
+    wizard_usage_step weblog_image
     spacer
     echo -e "${YELLOW}📌 Step: Select Weblog Image${NC}"
     echo ""
@@ -434,6 +437,7 @@ print(parser.get_default_component_version('injector'))
 }
 
 review_and_customize_components() {
+    wizard_usage_step components
     spacer
     echo -e "${YELLOW}📋 Component Configuration Summary${NC}"
     echo ""
@@ -616,6 +620,7 @@ print(' '.join(versions))
 
 run_the_tests(){
     spacer
+    wizard_usage_step keep_alive
     # 📌 Step: Confirm and execute
     echo ""
     echo "==============================================="
@@ -656,6 +661,7 @@ run_the_tests(){
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
 
+    wizard_usage_step confirm
     wizard_usage wizard.configured \
         "library=${TEST_LIBRARY}" \
         "scenario=${SCENARIO}" \
@@ -675,11 +681,12 @@ run_the_tests(){
         wizard_usage_finish wizard.finished \
             "library=${TEST_LIBRARY}" \
             "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
             "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
             "exit_code=${rc}" \
             "run_seconds=$(( $(date +%s) - run_start ))"
     else
-        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }

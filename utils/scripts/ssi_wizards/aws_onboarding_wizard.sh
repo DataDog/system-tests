@@ -118,6 +118,7 @@ check_and_set_env_var() {
 wizard_usage_begin aws
 welcome "AWS/Onboarding Tests"
 ask_load_requirements
+wizard_usage_step pulumi
 echo -e "${YELLOW}📌 Step: Check the Pulumi installation${NC}"
 check_pulumi_installed
 get_pulumi_version
@@ -154,12 +155,14 @@ verify_aws_environment() {
     fi
 }
 
+wizard_usage_step aws_variables
 spacer
 echo -e "${YELLOW}📌 Step: Check the AWS variables${NC}"
 # Call the function to verify AWS setup
 verify_aws_environment
 
 # Required environment variables
+wizard_usage_step env
 check_and_set_env_var "PULUMI_CONFIG_PASSPHRASE" "Passphrase to store secure data in Pulumi."
 check_and_set_env_var "DD_API_KEY_ONBOARDING" "🔑 API Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
 check_and_set_env_var "DD_APP_KEY_ONBOARDING" "🔑 Application Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
@@ -233,6 +236,7 @@ create_key_pair() {
 
 # Step: AWS Key Pair Selection
 ask_for_key_pair_selection() {
+    wizard_usage_step key_pair
     spacer
     echo -e "${YELLOW}📌 Step: AWS key pair ${NC}"
     echo "🔑 AWS Key Pair Configuration"
@@ -298,6 +302,7 @@ select_weblog
 
 # Step 14: Select the virtual machine for testing
 select_virtual_machine() {
+    wizard_usage_step virtual_machine
     spacer
      echo -e "${YELLOW}📌 Step: Select virtual machine to test ${NC}"
     echo "🔄 Fetching available virtual machines for:"
@@ -346,6 +351,7 @@ select_virtual_machine
 
 # Step: Select the environment for testing
 select_test_environment() {
+    wizard_usage_step environment
     spacer
     echo -e "${YELLOW}📌 Step: Test environment${NC}"
     echo "🌍 Choose the environment for testing:"
@@ -373,6 +379,7 @@ select_test_environment
 
 # Step: Ask for optional OCI image versions
 ask_for_optional_versions() {
+    wizard_usage_step versions
     spacer
     echo -e "${YELLOW}📌 Step: Custom versions for the tracer or injector ${NC}"
     echo "🛠️ Optional: Use a custom version of the tracer or injector OCI image."
@@ -403,6 +410,7 @@ ask_for_optional_versions
 
 # Step 17: Run the final test command
 run_test_command() {
+    wizard_usage_step confirm
     echo ""
     echo "==============================================="
     echo "🚀 READY TO RUN THE TESTS! 🚀"
@@ -463,6 +471,7 @@ run_test_command() {
         wizard_usage_finish wizard.finished \
             "library=${TEST_LIBRARY}" \
             "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
             "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
             "exit_code=${rc}" \
             "run_seconds=$(( $(date +%s) - run_start ))"
@@ -488,7 +497,7 @@ run_test_command() {
             echo "❌ There was an error running the tests. Please check the logs above."
         fi
     else
-        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo "🛑 Test command execution skipped."
         echo "📌 You can run it manually later by copying and pasting this command:"
         echo ""

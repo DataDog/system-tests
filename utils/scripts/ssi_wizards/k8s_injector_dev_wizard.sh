@@ -10,6 +10,7 @@ command_exists() {
 }
 
 ask_load_injector_dev_binary(){
+    wizard_usage_step injector_binary
     spacer
     echo -e "${YELLOW}📌 Step: Check Injector Dev Binary${NC}"
 
@@ -87,6 +88,7 @@ ask_load_injector_dev_binary(){
 }
 
 ask_load_k8s_injector_dev_requirements(){
+    wizard_usage_step tools
     spacer
     echo -e "${YELLOW}📌 Step: Install K8s Injector Dev Requirements${NC}"
     echo "The following tools are required for K8s injector dev scenarios:"
@@ -212,6 +214,7 @@ ask_load_k8s_injector_dev_requirements(){
 }
 
 configure_private_registry() {
+    wizard_usage_step registry
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
     echo "You need to use a private registry to execute these tests."
@@ -247,6 +250,7 @@ configure_private_registry() {
 }
 
 select_weblog_img(){
+    wizard_usage_step weblog_image
     spacer
     echo -e "${YELLOW}📌 Step: Select weblog img registry${NC}"
     WEBLOG_IMAGE="$PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG:latest"
@@ -285,6 +289,7 @@ select_weblog_img(){
 }
 
 migrate_images_to_private_registry() {
+    wizard_usage_step migrate_images
     if [[ "$PRIVATE_DOCKER_REGISTRY" == "235494822917.dkr.ecr.us-east-1.amazonaws.com" ]]; then
         return
     fi
@@ -368,6 +373,7 @@ migrate_images_to_private_registry() {
 }
 
 confirm_root_registry(){
+    wizard_usage_step root_registry
     spacer
     echo -e "${YELLOW}📌 Step: Confirm Root Registry for Injection Images${NC}"
     echo "All injection images (cluster agent, apm-injector and lib-init) must be in the same registry path."
@@ -388,6 +394,7 @@ confirm_root_registry(){
 }
 
 select_cluster_agent(){
+    wizard_usage_step cluster_agent
     spacer
     echo -e "${YELLOW}📌 Step: Select Cluster Agent Image${NC}"
     echo "You only need to specify the image name and tag."
@@ -406,6 +413,7 @@ select_cluster_agent(){
 }
 
 select_lib_init_and_injector(){
+    wizard_usage_step lib_init
     spacer
     echo -e "${YELLOW}📌 Step: Select Lib Init and Injector Images${NC}"
     echo "You only need to specify the image names and tags."
@@ -456,6 +464,7 @@ select_lib_init_and_injector(){
 }
 
 run_the_tests(){
+    wizard_usage_step confirm
     spacer
     # 📌 Step: Confirm and execute
     echo ""
@@ -496,11 +505,12 @@ run_the_tests(){
         wizard_usage_finish wizard.finished \
             "library=${TEST_LIBRARY}" \
             "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
             "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
             "exit_code=${rc}" \
             "run_seconds=$(( $(date +%s) - run_start ))"
     else
-        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}"
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
