@@ -25,17 +25,48 @@ class Test_SecuritySmokeReports:
         assert get_backend_report(self._span(trace_format, report), "appsec") == report
 
     @pytest.mark.parametrize(
-        ("trace_format", "location"), [("legacy", "meta"), ("legacy", "payload"), ("efficient", "envRef")]
+        ("trace_format", "location"),
+        [
+            ("legacy", "meta"),
+            ("legacy", "payload"),
+            ("efficient", "meta"),
+            ("efficient", "payload"),
+            ("efficient", "tracer_payload"),
+        ],
     )
     def test_environment_encoding(self, trace_format: str, location: str) -> None:
         span = self._span(trace_format, None)
+        content: dict[str, object] = {"env": "agent-env"}
         if location == "meta":
             span.meta["env"] = "system-tests"
         elif location == "payload":
-            span.trace.data["request"] = {"content": {"env": "system-tests"}}
-        else:
-            span.raw_span["envRef"] = "system-tests"
+            content["env"] = "system-tests"
+        elif location == "tracer_payload":
+            content["idxTracerPayloads"] = [
+                {"envRef": "unrelated-env", "chunks": [{}]},
+                {"envRef": "system-tests", "chunks": [span.trace.raw_trace]},
+            ]
+        span.trace.data["request"] = {"content": content}
         assert span.get_span_env() == "system-tests"
+
+    @pytest.mark.parametrize("location", ["meta", "tracer_payload", "agent"])
+    def test_environment_precedence(self, location: str) -> None:
+        span = self._span("efficient", None)
+        span.raw_span["envRef"] = "unused-span-env"
+        content: dict[str, object] = {"env": "agent-env"}
+        if location != "agent":
+            content["idxTracerPayloads"] = [{"envRef": "tracer-env", "chunks": [span.trace.raw_trace]}]
+        if location == "meta":
+            span.meta["env"] = "meta-env"
+        span.trace.data["request"] = {"content": content}
+        assert (
+            span.get_span_env() == {"meta": "meta-env", "tracer_payload": "tracer-env", "agent": "agent-env"}[location]
+        )
+
+    def test_span_environment_ref_alone_is_not_backend_environment(self) -> None:
+        span = self._span("efficient", None)
+        span.raw_span["envRef"] = "unused-span-env"
+        assert span.get_span_env() == ""
 
     @pytest.mark.parametrize(
         ("trace_format", "status", "location", "valid"),

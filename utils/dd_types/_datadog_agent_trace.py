@@ -134,10 +134,17 @@ class DataDogAgentSpan(ABC):
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
     def get_span_env(self) -> str:
-        """Read the environment from its intake field, falling back to legacy metadata."""
+        """Use the backend's span, tracer-payload, then Agent environment fallbacks."""
+        content = self.trace.data.get("request", {}).get("content", {})
+        fallback = content.get("env", "")
         if self.trace.format == AgentTraceFormat.efficient_trace_payload_format:
-            return self.raw_span.get("envRef", self.meta.get("env", ""))
-        return self.meta.get("env", self.trace.data.get("request", {}).get("content", {}).get("env", ""))
+            for payload in content.get("idxTracerPayloads", []):
+                if any(chunk is self.trace.raw_trace for chunk in payload.get("chunks", [])):
+                    fallback = payload.get("envRef") or fallback
+                    break
+            # SpansV1Parser currently promotes env attributes and tracer-payload env,
+            # but does not promote the span's envRef. Agent env is the final fallback.
+        return self.meta.get("env", fallback)
 
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
         """Return a tag using the backend's precedence of meta over metrics.
