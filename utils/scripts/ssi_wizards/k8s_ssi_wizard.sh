@@ -685,6 +685,7 @@ run_the_tests(){
             "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
             "exit_code=${rc}" \
             "run_seconds=$(( $(date +%s) - run_start ))"
+        return "${rc}"
     else
         wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"

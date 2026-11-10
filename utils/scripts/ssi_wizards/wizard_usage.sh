@@ -149,10 +149,11 @@ PY
     local domain="${SSI_WIZARD_TELEMETRY_DOMAIN:-app.datadoghq.com}"
     local status=""
     # Single quotes on purpose: the inner shell, after dd-auth, expands DD_API_KEY and DD_SITE.
+    # The key is written to curl's stdin so it is not part of the process arguments.
     # shellcheck disable=SC2016
     status="$(
         DD_AUTH_API_KEY=1 dd-auth --domain "${domain}" -- bash -c \
-            'curl -sS -m 5 -o /dev/null -w "%{http_code}" -X POST -H "DD-API-KEY: $DD_API_KEY" -H "Content-Type: application/json" "https://http-intake.logs.${DD_SITE}/api/v2/logs" --data @"$1"' \
+            'printf "DD-API-KEY: %s\n" "$DD_API_KEY" | curl -sS -m 5 -o /dev/null -w "%{http_code}" -X POST -H @- -H "Content-Type: application/json" "https://http-intake.logs.${DD_SITE}/api/v2/logs" --data @"$1"' \
             _ "${payload_file}" 2>/dev/null | tail -n 1
     )" || status=""
     status="${status//[[:space:]]/}"
