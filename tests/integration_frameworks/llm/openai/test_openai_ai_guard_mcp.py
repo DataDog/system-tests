@@ -181,7 +181,9 @@ def _tool_call(span: dict, name: str) -> dict:
 
 
 def _wait_for_openai_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
-    """Poll until at least count openai.request spans arrived, and return all of them (fewer on timeout)."""
+    """Poll until at least count openai.request spans arrived and return all of them, so the caller
+    can assert the exact count: extra spans are returned, never hidden (fewer on timeout).
+    """
     spans: list[dict] = []
     for _ in range(30):
         traces = test_agent.traces(clear=False)
@@ -290,7 +292,7 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
             )
             assert status_code == 500, "expected the AI Guard abort to fail the approval continuation"
 
-        spans, span = _matched_evaluations(test_agent, request, [EXAMPLE_SERVER])
+        _, span = _matched_evaluations(test_agent, request, [EXAMPLE_SERVER])
         assert span["meta"]["ai_guard.action"] == "DENY"
         assert span["meta"]["ai_guard.blocked"] == "true"
         last = ai_guard_messages(span)[-1]
@@ -308,7 +310,11 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         assert len(openai_spans) == 2, f"expected two openai.request spans, got {len(openai_spans)}"
         for openai_span in openai_spans:
             assert "AIGuardAbortError" in openai_span["meta"].get("error.type", ""), openai_span["meta"]
-        assert len(ai_guard_spans(test_agent.traces(clear=False))) == len(spans) == 2
+        guard_spans = ai_guard_spans(test_agent.traces(clear=False))
+        assert len(guard_spans) == 2, (
+            f"expected only the prompt and the approval evaluations, got {len(guard_spans)} ai_guard spans: "
+            "the approval continuation must reuse the recorded decision, not evaluate again"
+        )
 
 
 @features.ai_guard

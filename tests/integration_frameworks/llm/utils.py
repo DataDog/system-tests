@@ -281,7 +281,9 @@ def find_ai_guard_spans_with_reason(test_agent: TestAgentAPI, reason: str) -> li
 
 
 def wait_for_ai_guard_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
-    """Poll until at least count ai_guard spans arrived, and return all of them (fewer on timeout)."""
+    """Poll until at least count ai_guard spans arrived and return all of them, so the caller can
+    assert the exact count: extra spans are returned, never hidden (fewer on timeout).
+    """
     spans: list[dict] = []
 
     def select(traces: list[list[dict]]) -> list[dict]:
