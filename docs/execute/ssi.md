@@ -11,7 +11,7 @@ This page covers all local SSI test suites in system-tests.
 | --- | --- | --- | --- |
 | Docker SSI | Tracer versions, guardrails, service naming, and other fast checks | Local Docker | APM Test Agent |
 | AWS SSI | Host and container injection on real virtual machines | AWS EC2 | Datadog backend |
-| K8s library injection | Admission Controller, injector, lib-init, and Cluster Agent | Local Kind or Minikube | APM Test Agent |
+| K8s library injection | Kubernetes injection components | Local Kind or Minikube | APM Test Agent (Datadog backend for Operator) |
 | K8s injector-dev | Changes to the `injector-dev` tool | Local Colima and Minikube | APM Test Agent |
 
 If you are new to SSI, start with Docker SSI. It has the fewest access
@@ -96,8 +96,13 @@ execution, logs, and troubleshooting.
 This suite tests the normal Kubernetes library injection flow. It uses the
 Datadog Admission Controller or pod annotations.
 
-Complete the ECR steps in the
-[access guide](ssi-access.md#configure-the-private-ecr-registry).
+Complete the [AWS access steps](ssi-access.md#configure-aws-access) and the
+[ECR steps](ssi-access.md#configure-the-private-ecr-registry).
+
+If you select `K8S_LIB_INJECTION_OPERATOR`, also complete the
+[Datadog key steps](ssi-access.md#configure-datadog-keys). This scenario uses
+the real Datadog Agent and backend. Other K8s injection scenarios use the APM
+Test Agent.
 
 Run the wizard:
 
@@ -106,8 +111,8 @@ Run the wizard:
 ```
 
 The wizard installs the system-tests runner. It can also install Kind,
-Minikube, and Helm. You then select the scenario, weblog, and component
-versions.
+Minikube, and Helm. It does not install kubectl. You then select the scenario,
+weblog, and component versions.
 
 See the
 [K8s library injection reference](../understand/scenarios/k8s_lib_injection.md)

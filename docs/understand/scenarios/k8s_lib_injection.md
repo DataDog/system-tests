@@ -6,7 +6,12 @@ Use this suite for the normal Kubernetes library injection flow. It tests the
 Admission Controller, injector, lib-init, and Cluster Agent.
 
 First, complete the
-[K8s access steps](../../execute/ssi-access.md#configure-the-private-ecr-registry).
+[AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
+[ECR steps](../../execute/ssi-access.md#configure-the-private-ecr-registry).
+Install kubectl before you run the wizard.
+
+The `K8S_LIB_INJECTION_OPERATOR` scenario also needs the
+[Datadog keys](../../execute/ssi-access.md#configure-datadog-keys).
 
 Run the wizard from the repository root:
 
@@ -71,6 +76,7 @@ If you prefer to run the tests manually, follow the sections below.
 
 - Docker environment
 - Kubernetes environment (Kind or Minikube)
+- kubectl and Helm
 - AWS CLI and aws-vault (for ECR access)
 
 ##### Docker environment

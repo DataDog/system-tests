@@ -33,11 +33,24 @@ docker info
 | --- | --- | --- |
 | Docker SSI | None for most tests | Private ECR access only for `websphere-app` and `jboss-app` |
 | AWS SSI | AWS CLI, aws-vault, and Pulumi 3.69 or later | AWS account, AppGate, and Datadog keys |
-| K8s library injection | Kind or Minikube, Helm | Private ECR access |
+| K8s library injection | AWS CLI, aws-vault, kubectl, Kind or Minikube, and Helm | Private ECR. Operator also needs Datadog keys |
 | K8s injector-dev | `injector-dev`, Colima, Minikube, Helm, kubectl | A private registry. Datadog ECR is the default |
 
-The Kubernetes wizards can install the local Kubernetes tools. The
-injector-dev wizard can also copy or download the `injector-dev` binary.
+The K8s library injection wizard can install Kind or Minikube and Helm. It does
+not install kubectl. Install kubectl before you start.
+
+On macOS:
+
+```bash
+brew install kubectl
+kubectl version --client
+```
+
+For other systems, follow the
+[kubectl installation guide](https://kubernetes.io/docs/tasks/tools/#kubectl).
+
+The injector-dev wizard can install its Kubernetes tools. It can also copy or
+download the `injector-dev` binary.
 
 ## Configure AWS access
 
@@ -56,10 +69,10 @@ Use the current setup command:
 ddtool cloud aws config
 ```
 
-On macOS, install `aws-vault` with Homebrew:
+On macOS, install the AWS CLI and `aws-vault` with Homebrew:
 
 ```bash
-brew install aws-vault
+brew install awscli aws-vault
 ```
 
 For other systems, use the installation steps in the AWS SSO setup guide.
@@ -97,11 +110,11 @@ has access and give you the current client profile.
 
 Connect to the Datadog private network before you run the AWS SSI wizard.
 
-## Configure AWS SSI secrets
+## Configure Datadog keys
 
-The AWS SSI wizard asks for:
+AWS SSI and `K8S_LIB_INJECTION_OPERATOR` use the real Datadog backend. Both
+need:
 
-- `PULUMI_CONFIG_PASSPHRASE`
 - `DD_API_KEY_ONBOARDING`
 - `DD_APP_KEY_ONBOARDING`
 
@@ -110,8 +123,19 @@ The Datadog keys must belong to the
 If you cannot create or read these keys, ask in
 [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
 
-The wizard can save the values in the local `.env` file. Git ignores this file.
-Never add these values to source files or commits.
+The AWS SSI wizard asks for these keys. It also asks for
+`PULUMI_CONFIG_PASSPHRASE`. The wizard can save all three values in the local
+`.env` file.
+
+For the K8s Operator scenario, add the two Datadog keys to `.env` before you
+run the wizard:
+
+```text
+DD_API_KEY_ONBOARDING=<api-key>
+DD_APP_KEY_ONBOARDING=<application-key>
+```
+
+Git ignores `.env`. Never add these values to source files or commits.
 
 The wizard provides working defaults for the subnet, security group, and IAM
 instance profile. Use those defaults for a normal local run.
