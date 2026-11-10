@@ -1,5 +1,33 @@
 # Testing K8s library injection feature
 
+## Quick start
+
+Use this suite for the normal Kubernetes library injection flow. It tests the
+Admission Controller, injector, lib-init, and Cluster Agent.
+
+First, complete the
+[AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
+[ECR steps](../../execute/ssi-access.md#configure-the-private-ecr-registry).
+Install kubectl before you run the wizard.
+
+The `K8S_LIB_INJECTION_OPERATOR` scenario also needs the
+[Datadog keys](../../execute/ssi-access.md#configure-datadog-keys).
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
+```
+
+The wizard prepares a local Kind or Minikube cluster. It also selects a valid
+set of test components.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run K8s library injection manually](#run-k8s-library-injection-tests-manually)
+- [Debug K8s test results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+
+## Contents
+
 1. [Run the tests](#run-the-tests)
    * [Run K8s library injection tests using the Wizard (Recommended)](#run-k8s-library-injection-tests-using-the-wizard-recommended)
    * [Run K8s library injection tests manually](#run-k8s-library-injection-tests-manually)
@@ -48,6 +76,7 @@ If you prefer to run the tests manually, follow the sections below.
 
 - Docker environment
 - Kubernetes environment (Kind or Minikube)
+- kubectl and Helm
 - AWS CLI and aws-vault (for ECR access)
 
 ##### Docker environment

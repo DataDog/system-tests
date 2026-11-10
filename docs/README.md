@@ -31,7 +31,8 @@ Everything you need to build images and execute test scenarios.
 - [Replay mode](execute/replay.md) -- re-run test methods without rebuilding the environment
 - [Custom tracer versions](execute/binaries.md) -- testing with local or unmerged tracer builds
 - [Troubleshooting](execute/troubleshooting.md) -- common issues, debugging tips, tracer debug output
-- [SSI execution](execute/ssi.md) -- running SSI-specific scenarios
+- [SSI quick start](execute/ssi.md) -- choose and run Docker, AWS, or Kubernetes SSI tests
+- [SSI access](execute/ssi-access.md) -- tools, AWS profiles, network access, registries, and keys
 - [End-to-end execution](execute/e2e.md) -- running end-to-end scenarios
 
 ## Writing and editing tests
@@ -58,6 +59,7 @@ How to add, modify, enable, and disable tests.
 
 Deep dives into each scenario type.
 
+- **SSI start here**: [quick start](execute/ssi.md) and [access requirements](execute/ssi-access.md)
 - **End-to-end**: covered in [scenarios overview](understand/scenarios/README.md) and [architecture](understand/architecture.md)
 - **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](edit/parametric_contributing.md)
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
