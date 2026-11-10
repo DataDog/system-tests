@@ -12,8 +12,6 @@ WORKDIR /app
 COPY spring-boot/pom.xml ./pom.xml
 COPY spring-boot/src/main/liberty/config/server.xml ./src/main/liberty/config/server.xml
 
-COPY maven_repository_cleanup.sh /maven_repository_cleanup.sh
-
 # `mvn dependency:go-offline` misses some artifacts (transitive poms, version ranges metadata, protoc binaries,
 # app server runtimes), so run the real build against a dummy app to fill the local repository: a main class
 # for the spring-boot repackaging, a grpc service so that protoc and its grpc plugin are downloaded, and the
@@ -26,6 +24,4 @@ RUN mkdir -p /maven src/main/java/warmup src/main/proto src/main/webapp-payara \
  && mvn -Dmaven.repo.local=/maven -B -P"${MAVEN_PROFILE}" package \
  && if [ "${MAVEN_PROFILE}" = payara ]; then mvn -Dmaven.repo.local=/maven -B dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1; fi \
  && mvn -Dmaven.repo.local=/maven -B install:install-file -Dfile=pom.xml -DgroupId=system-tests -DartifactId=warmup -Dversion=0 -Dpackaging=pom \
- && rm -rf /maven/system-tests /app/* \
- && /maven_repository_cleanup.sh /maven \
- && rm /maven_repository_cleanup.sh
+ && rm -rf /maven/system-tests /app/*
