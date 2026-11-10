@@ -452,7 +452,6 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v1.6.2
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v1.6.2
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v1.6.2
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Sca: incomplete_test_app (plain PHP weblog has no dependency inventory fixture)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Telemetry::test_telemetry_smoke:
     - component_version: '<1.23.3'
       declaration: bug (APPSEC-69429)

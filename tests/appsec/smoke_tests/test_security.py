@@ -307,7 +307,7 @@ class Test_SecuritySmoke_Iast:
 @scenarios.security_smoke_ddot
 class Test_SecuritySmoke_Sca:
     def setup_dependency_inventory(self) -> None:
-        path = "/" if context.library.name in ("python", "golang") else "/load_dependency"
+        path = "/" if context.library.name in ("python", "golang", "ruby") else "/load_dependency"
         self.r = weblog.get(path)
         self.expected_dependencies = (
             ["flask"]
