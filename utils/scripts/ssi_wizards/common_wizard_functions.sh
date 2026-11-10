@@ -2,6 +2,9 @@
 # shellcheck disable=all
 #This script was generated using chatgpt
 
+# shellcheck source=wizard_usage.sh
+source "$(dirname "${BASH_SOURCE[0]}")/wizard_usage.sh"
+
 # 🎨 Colors for styling
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,6 +28,7 @@ welcome() {
 
 # Function to check AWS account access
 check_aws_account_access() {
+    wizard_usage_step aws_account
     local account_name="$1"
     local aws_profile="sso-${account_name}-account-admin"
 
@@ -44,6 +48,7 @@ check_aws_account_access() {
 }
 
 load_requirements() {
+    wizard_usage_step requirements
     echo "🚀 Loading system-tests requirements..."
     ./build.sh -i runner
     if [[ $? -ne 0 ]]; then
@@ -58,6 +63,7 @@ load_requirements() {
 }
 
 ask_load_requirements() {
+    wizard_usage_step requirements
     spacer
     echo -e "${YELLOW}📌 Step: system-tests requirements${NC}"
     echo "🔧 Do you want to load the system-tests requirements?"
@@ -71,6 +77,7 @@ ask_load_requirements() {
 }
 
 ask_for_test_language() {
+    wizard_usage_step language
     spacer
     echo -e "${YELLOW}📌 Step: Choose the language to test${NC}"
     if [[ -n "$TEST_LIBRARY" ]]; then
@@ -100,6 +107,8 @@ ask_for_test_language() {
         export TEST_LIBRARY
         echo "✅ Selected test language: $TEST_LIBRARY"
     fi
+    WIZARD_LIBRARY="${TEST_LIBRARY}"
+    export WIZARD_LIBRARY
 }
 # 🎨 Colors for styling
 RED='\033[0;31m'
@@ -110,6 +119,7 @@ CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
 load_workflow_data(){
+    wizard_usage_step workflow
     spacer
     echo "🔄 Running Python script to compute workflow parameters..."
 
@@ -128,7 +138,7 @@ load_workflow_data(){
 }
 
 select_scenario() {
-
+    wizard_usage_step scenario
     spacer
     echo -e "${YELLOW}📌 Step: Select the scenario${NC}"
     # Extract top-level keys (scenarios) from the JSON
@@ -156,10 +166,13 @@ select_scenario() {
     done
 
     echo "✅ Selected scenario: $SCENARIO"
+    WIZARD_SCENARIO="${SCENARIO}"
+    export WIZARD_SCENARIO
 }
 
 # Select the weblog based on the chosen scenario
 select_weblog() {
+    wizard_usage_step weblog
     spacer
     echo -e "${YELLOW}📌 Step: Select the weblog${NC}"
     echo "🔄 Fetching weblogs for the selected scenario: $SCENARIO..."
@@ -200,4 +213,6 @@ else:
     done
 
     echo "✅ Selected weblog: $WEBLOG"
+    WIZARD_WEBLOG="${WEBLOG}"
+    export WIZARD_WEBLOG
 }

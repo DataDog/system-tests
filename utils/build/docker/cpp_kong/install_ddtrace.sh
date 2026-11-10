@@ -99,8 +99,11 @@ elif [ -d kong-plugin-ddtrace ]; then
 else
   TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
   echo "Installing kong-plugin-ddtrace from latest release ${TAG}"
-  curl -sL "https://github.com/DataDog/kong-plugin-ddtrace/archive/refs/tags/${TAG}.tar.gz" \
-      | tar -xz
+  # to a file: a retry can't truncate what was already piped to tar
+  curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsL -o kong-plugin-ddtrace.tar.gz \
+      "https://github.com/DataDog/kong-plugin-ddtrace/archive/refs/tags/${TAG}.tar.gz"
+  tar -xzf kong-plugin-ddtrace.tar.gz
+  rm kong-plugin-ddtrace.tar.gz
   mv "kong-plugin-ddtrace-${TAG#v}" kong-plugin-ddtrace
   KONG_IS_RELEASE=true
 fi
@@ -113,9 +116,10 @@ PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
 
 if [ "$KONG_IS_RELEASE" = "false" ]; then
   auth_header=$(get_authentication_header)
-  COMMIT_SHA=$(eval "curl --silent --fail --retry 3 $auth_header \
-      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
-      | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+  eval "curl --silent --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output /tmp/kong-commit.json $auth_header \
+      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" || true
+  COMMIT_SHA=$(grep '"sha"' /tmp/kong-commit.json 2>/dev/null | head -1 | cut -d'"' -f4 | cut -c1-7 || true)
   if [ -n "$COMMIT_SHA" ]; then
     PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
   fi

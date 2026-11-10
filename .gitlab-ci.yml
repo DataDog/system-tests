@@ -27,10 +27,36 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
+resolve_ssi_pr_title:
+  image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
+  tags: ["arch:amd64"]
+  stage: configure
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  rules:
+    - if: >-
+        $CI_PROJECT_PATH == "DataDog/system-tests" &&
+        $CI_PIPELINE_SOURCE == "push" &&
+        $CI_COMMIT_BRANCH &&
+        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
+        ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") &&
+        ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
+    - when: never
+  script:
+    - bash utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh
+  artifacts:
+    reports:
+      dotenv: pr-title.env
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
   tags: ["arch:amd64"]
   stage: configure
+  needs:
+    - job: resolve_ssi_pr_title
+      artifacts: true
+      optional: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
@@ -44,7 +70,15 @@ compute_pipeline:
         git fetch --all  # Ensure all branches are available
         git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
         git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
-        if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        if [ -n "${GITHUB_PR_BASE_SHA:-}" ]; then
+          git cat-file -e "${GITHUB_PR_BASE_SHA}^{commit}" 2>/dev/null || git fetch origin "$GITHUB_PR_BASE_SHA"
+          if ! BASE_COMMIT=$(git merge-base "$GITHUB_PR_BASE_SHA" "$CI_COMMIT_SHA"); then
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --unshallow origin
+            fi
+            BASE_COMMIT=$(git merge-base "$GITHUB_PR_BASE_SHA" "$CI_COMMIT_SHA")
+          fi
+        elif [ "$CI_COMMIT_REF_NAME" = "main" ]; then
           # merge-base with origin/main is the tip itself, so that diff is empty.
           # Diff the commits introduced by this push.
           if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] && [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
@@ -61,11 +95,9 @@ compute_pipeline:
           BASE_COMMIT=$(git merge-base origin/main "$CI_COMMIT_REF_NAME")
         fi
         echo "Branch was created from commit--> $BASE_COMMIT"
-        if [ "$CI_COMMIT_REF_NAME" = "main" ] && [ "$CI_PIPELINE_SOURCE" = "push" ]; then
-          # Compare manifests from this push with the same base used for modified_files.txt.
-          rm -rf original/manifests
-          git archive "$BASE_COMMIT" -- manifests/ | tar -xC original/
-        fi
+        # Compare manifests with the same base used for modified_files.txt.
+        rm -rf original/manifests
+        git archive "$BASE_COMMIT" -- manifests/ | tar -xC original/
         git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
         # Deliberate AWS SSI opt-in; shared callers keep the full matrix on main.
@@ -86,12 +118,21 @@ compute_pipeline:
            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
           source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      for library in nodejs java dotnet python php ruby; do
+        selected_scenarios="$scenarios"
+        selected_scenario_groups="$scenarios_groups"
+        if [ "${ssi_libraries+x}" = "x" ] && [[ " $ssi_libraries " != *" $library "* ]]; then
+          selected_scenarios=""
+          selected_scenario_groups=""
+        fi
+        python utils/scripts/compute-workflow-parameters.py "$library" \
+          -s "$selected_scenarios" \
+          -g "$selected_scenario_groups" \
+          --parametric-job-count 1 \
+          --ci-environment "${CI_ENVIRONMENT}" \
+          --format gitlab
+      done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
@@ -430,37 +471,6 @@ system_tests_param:
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
-# THREAD_CONTEXT_SHARING needs a dedicated runner pool, so it is run on every PR, whatever the
-# modified files are, to catch any breakage of this setup. It uses the official workflow, as tracer
-# repos do, in a child pipeline: including main.yml a second time here would override the jobs of
-# the include above. One PHP weblog is enough.
-system_tests_php_thread_context_sharing:
-  stage: e2e
-  needs:
-    - job: build_ci_image
-      artifacts: false
-      optional: true
-    - job: mirror_images
-      artifacts: false
-      optional: true
-    - job: build_base_images
-      artifacts: false
-      optional: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
-  trigger:
-    include:
-      - local: /utils/ci/gitlab/main.yml
-        inputs:
-          # main.yml declares no stage, so use one of GitLab's default stages
-          stage: "test"
-          ref: "$CI_COMMIT_SHA"
-          libraries: "php"
-          scenarios: "THREAD_CONTEXT_SHARING"
-          weblogs: "apache-mod-8.0"
-          push_to_test_optimization: true
-    strategy: depend
-
 build_ci_image:
   image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
   interruptible: false
@@ -519,7 +529,9 @@ mirror_images:
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
-    - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
+    # Download to a file so retries discard partial responses before extraction.
+    - curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -sSL --output /tmp/crane.tar.gz "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+    - tar -xzf /tmp/crane.tar.gz -C /usr/local/bin crane
     # This is the only job that pulls from Docker Hub (the mirror sources), so it
     # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
     - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
