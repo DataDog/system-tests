@@ -25,7 +25,7 @@ if [ -z "${ddprof_name}" ] || [ ! -e "${ddprof_name}" ]; then
     tag_name=${tag_name#v}
     url_release="https://github.com/DataDog/ddprof/releases/download/v${tag_name}/ddprof-${tag_name}-amd64-linux.tar.xz"
     echo "Using $url_release"
-    curl -L -O  -s --retry 3 ${url_release}
+    curl -fL -O -s --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors ${url_release}
     ddprof_name=$(ls ddprof*.xz)
 else
     echo "using existing ddprof ${ddprof_name}"

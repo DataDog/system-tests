@@ -27,7 +27,7 @@ from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
-from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.mocked_backend.ffe import EVALUATION_SUITES_RELATIVE_PATH, UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -766,6 +766,11 @@ class MockedBackendContainer(TestedContainer):
                 "./utils/proxy": {"bind": "/app/utils/proxy", "mode": "ro"},
                 # served as the FFE agentless configuration
                 f"./{UFC_FIXTURE_RELATIVE_PATH}": {"bind": f"/app/{UFC_FIXTURE_RELATIVE_PATH}", "mode": "ro"},
+                # served instead with client.ffe_use_suite, with the tags its flag selection matches against
+                f"./{EVALUATION_SUITES_RELATIVE_PATH}": {
+                    "bind": f"/app/{EVALUATION_SUITES_RELATIVE_PATH}",
+                    "mode": "ro",
+                },
             },
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},

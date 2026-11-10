@@ -92,14 +92,16 @@ patterns:
         scenario_groups: null
     docs/*:
         scenario_groups: null
-    lib-injection/*:
-        scenario_groups: lib_injection
 
 ################################ Single file rules #############################
 # This section contains rules applying to individual files that do not fit other
 # categories.
 ################################################################################
 
+    lib-injection/build/build_lib_injection_images.sh:
+        scenario_groups: lib_injection
+    lib-injection/build/build_lib_injection_weblog.sh:
+        scenario_groups: lib_injection
     repository.datadog.yml:
         scenario_groups: null
     .cursorrules:
@@ -262,6 +264,9 @@ patterns:
         scenario_groups: null
     utils/scripts/check_version.sh:
         scenario_groups: null
+    utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/ci_orchestrators/compute-time-stats.py:
         scenario_groups: null
         libraries: null
@@ -359,6 +364,24 @@ patterns:
 
     utils/build/ssi/*:
         scenario_groups: docker_ssi
+    utils/build/virtual_machine/weblogs/dotnet/*:
+        scenario_groups: onboarding
+        libraries: dotnet
+    utils/build/virtual_machine/weblogs/java/*:
+        scenario_groups: onboarding
+        libraries: java
+    utils/build/virtual_machine/weblogs/nodejs/*:
+        scenario_groups: onboarding
+        libraries: nodejs
+    utils/build/virtual_machine/weblogs/php/*:
+        scenario_groups: onboarding
+        libraries: php
+    utils/build/virtual_machine/weblogs/python/*:
+        scenario_groups: onboarding
+        libraries: python
+    utils/build/virtual_machine/weblogs/ruby/*:
+        scenario_groups: onboarding
+        libraries: ruby
     utils/build/virtual_machine/*:
         scenario_groups: onboarding
 
@@ -407,11 +430,15 @@ patterns:
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp
+    utils/build/docker/cpp/parametric.base.Dockerfile:
+        libraries: cpp
+        scenarios: PARAMETRIC
     utils/build/docker/cpp/*:
         libraries: cpp
         scenario_groups: [ end_to_end, open_telemetry]
     lib-injection/build/docker/cpp/*:
         libraries: cpp
+        scenario_groups: lib_injection
     utils/build/build_cpp_base_images.sh:
         libraries: cpp
 
@@ -430,6 +457,7 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry]
     lib-injection/build/docker/cpp_httpd/*:
         libraries: cpp_httpd
+        scenario_groups: lib_injection
     utils/build/build_cpp_httpd_base_images.sh:
         libraries: cpp_httpd
 
@@ -441,6 +469,7 @@ patterns:
         libraries: cpp_nginx
     lib-injection/build/docker/cpp_nginx/*:
         libraries: cpp_nginx
+        scenario_groups: lib_injection
     utils/build/build_cpp_nginx_base_images.sh:
         libraries: cpp_nginx
 
@@ -452,6 +481,7 @@ patterns:
         libraries: dotnet
     lib-injection/build/docker/dotnet/*:
         libraries: dotnet
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
     utils/build/build_dotnet_base_images.sh:
         libraries: dotnet
 
@@ -463,6 +493,7 @@ patterns:
         libraries: golang
     lib-injection/build/docker/golang/*:
         libraries: golang
+        scenario_groups: lib_injection
     utils/build/build_golang_base_images.sh:
         libraries: golang
 
@@ -474,6 +505,7 @@ patterns:
         libraries: java
     lib-injection/build/docker/java/*:
         libraries: java
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
     utils/build/build_java_base_images.sh:
         libraries: java
 
@@ -492,6 +524,7 @@ patterns:
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
     manifests/nodejs_lambda.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs_lambda
@@ -510,6 +543,7 @@ patterns:
         libraries: php
     lib-injection/build/docker/php/*:
         libraries: php
+        scenario_groups: lib_injection
     manifests/python.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: python
@@ -521,6 +555,7 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
     lib-injection/build/docker/python/*:
         libraries: python
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
     manifests/ruby.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: ruby
@@ -529,6 +564,7 @@ patterns:
         libraries: ruby
     lib-injection/build/docker/ruby/*:
         libraries: ruby
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
     utils/build/build_ruby_base_images.sh:
         libraries: ruby
 
@@ -540,6 +576,7 @@ patterns:
         libraries: python_lambda
     lib-injection/build/docker/python_lambda/*:
         libraries: python_lambda
+        scenario_groups: lib_injection
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
 
@@ -558,6 +595,7 @@ patterns:
         libraries: rust
     lib-injection/build/docker/rust/*:
         libraries: rust
+        scenario_groups: lib_injection
     utils/build/build_rust_base_images.sh:
         libraries: rust
 
@@ -569,6 +607,7 @@ patterns:
         libraries: python_otel
     lib-injection/build/docker/python_otel/*:
         libraries: python_otel
+        scenario_groups: lib_injection
     utils/build/build_python_otel_base_images.sh:
         libraries: python_otel
 
@@ -580,6 +619,7 @@ patterns:
         libraries: java_otel
     lib-injection/build/docker/java_otel/*:
         libraries: java_otel
+        scenario_groups: lib_injection
     utils/build/build_java_otel_base_images.sh:
         libraries: java_otel
 

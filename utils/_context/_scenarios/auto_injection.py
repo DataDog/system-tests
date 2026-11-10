@@ -458,6 +458,10 @@ class ContainerAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenar
         )
 
 
+# Same value the end-to-end appsec scenarios use. The tracer default times out on these VMs.
+_APPSEC_APP_ENV: dict[str, str] = {"DD_APPSEC_WAF_TIMEOUT": "10000000"}
+
+
 class SimpleAutoInjectionAppsec(_InstallerAutoInjectionScenario):
     def __init__(self) -> None:
         super().__init__(
@@ -465,6 +469,7 @@ class SimpleAutoInjectionAppsec(_InstallerAutoInjectionScenario):
             "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
             "stable config (application_monitoring.yaml)",
             agent_env={"DD_APPSEC_ENABLED": "true"},
+            app_env=_APPSEC_APP_ENV,
             scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
             github_workflow="aws_ssi",
         )
@@ -480,6 +485,7 @@ class HostAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
             ),
             vm_provision="host-auto-inject-install-script",
             agent_env={"DD_APPSEC_ENABLED": "true"},
+            app_env=_APPSEC_APP_ENV,
             scenario_groups=[scenario_groups.all],
             github_workflow="aws_ssi",
         )
@@ -492,6 +498,7 @@ class ContainerAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario)
             "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
             vm_provision="container-auto-inject-install-script",
             agent_env={"DD_APPSEC_ENABLED": "true"},
+            app_env=_APPSEC_APP_ENV,
             scenario_groups=[scenario_groups.all],
             github_workflow="aws_ssi",
         )

@@ -1267,6 +1267,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -1725,16 +1726,7 @@ manifest:
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled:  # TODO: a lower version might be supported
-    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
-      component_version: <3.57.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
-      component_version: 3.57.0
-      excluded_weblog: [poc, uds]
-    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
-      component_version: '>3.57.0'
-      weblog: [poc, uds]
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_traces_exporter: v3.58.0-dev
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v3.54.0

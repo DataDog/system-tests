@@ -62,6 +62,7 @@ GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
     },
 }
 GITLAB_MAIN = {"python"}
+GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -74,6 +75,20 @@ def check_scenario_groups(val: set[str]) -> bool:
 
 def check_libraries(val: set[str]) -> bool:
     return all(library in ALL_LIBRARIES for library in val)
+
+
+def get_gitlab_ssi_library(pr_title: str) -> str | None:
+    normalized_title = pr_title.lower()
+    for library in GITLAB_SSI_LIBRARIES:
+        if normalized_title.startswith(f"[{library}]"):
+            return library
+    return None
+
+
+def get_gitlab_ssi_libraries(pr_title: str, impacted_libraries: set[str]) -> set[str]:
+    if library := get_gitlab_ssi_library(pr_title):
+        return {library}
+    return impacted_libraries.intersection(GITLAB_SSI_LIBRARIES)
 
 
 def _setify(value: list[str] | set[str] | str | None) -> set[str]:
@@ -403,17 +418,16 @@ class Inputs:
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
+        self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
         if "GITLAB_CI" in os.environ:
             source = os.environ.get("CI_PIPELINE_SOURCE", "push")
             self.event_name = "pull_request" if source == "merge_request_event" else source
             branch = os.environ.get("CI_COMMIT_REF_NAME", "")
             self.ref = f"refs/heads/{branch}" if branch else ""
-            self.pr_title = ""
             self.is_gitlab = True
         else:
             self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
             self.ref = os.environ.get("GITHUB_REF", "")
-            self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
 
     def load_raw_impacts(self) -> None:
         # Gets the raw pattern matching data that maps file to impacted
@@ -500,7 +514,8 @@ def process(inputs: Inputs) -> list[str]:
         scenario_processor.process_manifests(inputs)
         scenario_processor.compute_scenarios_by_files(inputs)
 
-        library_processor.process_pr_title(inputs)
+        if not inputs.is_gitlab:
+            library_processor.process_pr_title(inputs)
 
         assert inputs.modified_files is not None
         for file in inputs.modified_files:
@@ -518,6 +533,10 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        if inputs.selects_scenarios_from_diff():
+            ssi_libraries = get_gitlab_ssi_libraries(inputs.pr_title, library_processor.selected)
+            outputs["ssi_libraries"] = " ".join(sorted(ssi_libraries))
+
         gitlab_libraries = filter_gitlab_libraries(inputs, library_processor.selected)
         if is_gitlab_pr_pipeline(inputs):
             library_weblog_scenarios = get_gitlab_library_weblog_scenarios(
