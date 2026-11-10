@@ -951,6 +951,24 @@ class TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
+    def assert_no_rc_subscription(self, product: str, capability: Capabilities) -> None:
+        """Assert neither the product nor its capability appears in any captured RC request.
+
+        This checks one snapshot, including empty capability sets and no requests. Callers
+        must exercise the SDK and sample over their observation window. Retrieval and
+        decoding errors propagate so missing evidence cannot pass a negative assertion.
+        """
+        for request in self.rc_requests():
+            client = request["body"]["client"]
+            assert product not in client.get("products", []), f"Unexpected RemoteConfig product: {product}"
+            raw_caps = client.get("capabilities")
+            if raw_caps is None:
+                raw_caps = ""
+            decoded = bytes(raw_caps) if isinstance(raw_caps, list) else base64.b64decode(raw_caps, validate=True)
+            assert not int.from_bytes(decoded, byteorder="big") & (1 << capability), (
+                f"Unexpected RemoteConfig capability: {capability.name}"
+            )
+
     def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
         """Wait for RC capabilities to be reported by the tracer and return the most recent set seen.
 

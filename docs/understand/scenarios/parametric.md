@@ -218,6 +218,12 @@ Note: These are based off of the Python tracer's http server which should be hel
 
 Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
+#### Feature flag provider activation
+
+`test_library.ffe_start()` sets up the provider/client through `POST /ffe/start`; its boolean result reflects the adapter's HTTP status. It is not a portable readiness barrier. Lazy SDKs, including PHP, can defer configuration loading until the first `ffe_evaluate` call.
+
+Configuration-source tests must evaluate a flag before waiting for delivery traffic. Keep a failing backend response in place until an evaluation returns the default/error, then change the response and check recovery. For warm-state tests, confirm a successful evaluation before introducing a failure. Disabled-provider tests must also attempt evaluation before asserting network silence. Check liveness during a bounded observation window, and use `test_agent.assert_no_rc_subscription` for negative RC checks; `wait_for_rc_capabilities` requires a nonempty set and is intended for positive checks.
+
 #### Standalone Rules Configuration
 
 `test_library.ffe_fetch_rules_configuration(options)` calls `POST /ffe/fetch-rules-configuration` (currently implemented in Node.js only). It fetches and serializes configuration using the public standalone FFE helpers in a fresh process, without initializing a tracer or OpenFeature provider. The response is either `{ "wire": "...", "diagnostics": [] }` or `{ "error": { "name": "ConfigurationFetchError", "code": "...", "message": "...", "status": 403 }, "diagnostics": [] }`. `status` is present only for HTTP failures. The adapter captures the helper's logger messages in `diagnostics` so tests can assert dropped or server-ignored selection diagnostics. Unexpected failures return HTTP 500.
