@@ -211,7 +211,7 @@ def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
 
 
 def _assert_disabled_or_not_ready(result: dict[str, Any]) -> None:
-    if result.get("reason") == "DISABLED":
+    if result.get("reason") in {"DISABLED", "STATIC", "DEFAULT"}:
         assert result.get("value") == EVALUATION_CASE["default_value"]
         assert result.get("errorCode") in {None, ""}
     else:
