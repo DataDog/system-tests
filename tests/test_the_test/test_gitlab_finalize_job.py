@@ -214,6 +214,8 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
     before_script = pipeline[".base_job_onboarding_system_tests"]["before_script"]
     assert "ci.framework.name:system-tests" in before_script[0]
+    generated = yaml.dump(pipeline, sort_keys=False)
+    assert "!reference [.base_job_onboarding, before_script]" in generated
 
 
 @pytest.mark.parametrize(("secret_exit", "tag_exit"), [(0, 0), (2, 0), (0, 2)])
