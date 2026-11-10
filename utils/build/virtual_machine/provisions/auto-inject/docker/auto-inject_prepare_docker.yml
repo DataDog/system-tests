@@ -1,6 +1,34 @@
     - os_type: linux
       os_distro: deb
+      os_branch: ubuntu23
       remote-command: |
+        set -euo pipefail
+        # https://docs.docker.com/engine/install/ubuntu/
+        # Ubuntu 23.04 (lunar) is EOL and Docker CE may not publish lunar packages for arm64.
+        # 23.10 (mantic) can have the same gap. Use the jammy repo for docker-ce only (common workaround).
+        sudo apt-get update
+        sudo apt-get -y install ca-certificates curl gnupg
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        docker_apt_codename="${VERSION_CODENAME}"
+        case "${VERSION_CODENAME}" in
+          lunar|mantic) docker_apt_codename="jammy" ;;
+        esac
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${docker_apt_codename} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+        sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        sudo apt-get -y install docker-buildx-plugin || true # Ubuntu 21.04 doesn't have this package
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
+        sudo chmod +x /usr/bin/docker-compose
+        sudo docker-compose --version
+        echo "DOCKER INSTALLED!"
+    - os_type: linux
+      os_distro: deb
+      remote-command: |
+        set -euo pipefail
         #https://docs.docker.com/engine/install/ubuntu/
         sudo apt-get update
         sudo apt-get -y install ca-certificates curl gnupg
@@ -8,13 +36,15 @@
         curl -fsSL https://download.docker.com/linux/$(grep -E '^ID=' /etc/os-release | cut -c4-)/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
         echo \
-          "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/"$(grep -E '^ID=' /etc/os-release | cut -c4-)" \
-          "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(grep -E '^ID=' /etc/os-release | cut -c4-) \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
         sudo apt-get -y install docker-buildx-plugin || true #Ubuntu 21.04 doesn't have this package
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
+        sudo chmod +x /usr/bin/docker-compose
+        sudo docker-compose --version
         echo "DOCKER INSTALLED!"
         #To run Docker without root privileges
         #sudo groupadd docker
