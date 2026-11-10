@@ -144,6 +144,9 @@ from .integrations import (
 from .ipv6 import (
     IPV6Scenario,
 )
+from .java_virtual_threads import (
+    JavaVirtualThreads,
+)
 from .k8s_injector_dev import (
     K8sInjectorDevSingleService,
 )
@@ -247,6 +250,7 @@ class _Scenarios:
     mock_the_test = MockTheTest()
     mock_the_test_2 = MockTheTest2()
     default = DefaultScenario()
+    java_virtual_threads = JavaVirtualThreads()
     integrations = Integrations()
     integrations_aws = AWSIntegrationsScenario()
     dbm_dynamic_service = DbmDynamicServiceScenario()

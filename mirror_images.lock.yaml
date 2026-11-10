@@ -282,6 +282,10 @@ images:
     digest: sha256:207ecae0b2b104dfc6dfa763d1e9cd2041cb344800a180e24cb1a28ed533ff90
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:17-jre
     tag: 17-jre
+  eclipse-temurin:21-jre:
+    digest: sha256:0b99b3376fbb50dbf9c0af8535fdd5b8eb0d3fdfc8b1e4967f383b6919f6901a
+    target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:21-jre
+    tag: 21-jre
   ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0:
     digest: sha256:b79a36b24977153d80e501e670bb1dcf95d50a694d98f748cd25d8a9a96fa843
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0
@@ -350,6 +354,10 @@ images:
     digest: sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9-eclipse-temurin-17
     tag: 3.9-eclipse-temurin-17
+  maven:3.9-eclipse-temurin-21:
+    digest: sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+    target: registry.ddbuild.io/system-tests/mirror/maven:3.9-eclipse-temurin-21
+    tag: 3.9-eclipse-temurin-21
   maven:3.9.14-eclipse-temurin-17:
     digest: sha256:674de0df5a38cfe793a587829a181835f8af3ea1f556be7172e0aa547274bcc9
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9.14-eclipse-temurin-17

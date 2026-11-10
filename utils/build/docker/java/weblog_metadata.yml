@@ -18,6 +18,11 @@ spring-boot:
   categories: [dd_trace]
 spring-boot-3-native:
   categories: [dd_trace]
+# JDK 21 + one virtual-thread carrier. Not a dd_trace weblog: it only implements the endpoints
+# of JAVA_VIRTUAL_THREADS, and every other Java weblog is JDK 11.
+spring-boot-virtual-threads:
+  supported_scenarios: [JAVA_VIRTUAL_THREADS]
+  request_timeout: 20
 spring-boot-jetty:
   categories: [dd_trace]
 spring-boot-openliberty:

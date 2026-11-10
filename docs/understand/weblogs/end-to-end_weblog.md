@@ -1165,6 +1165,22 @@ timing. When the array is absent or empty, evaluate the single `targetingKey`.
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
 
+### GET /virtual-threads/fanout
+
+Implemented only by `spring-boot-virtual-threads` (JDK 21, Tomcat virtual threads, one carrier).
+
+Query parameter `spans` (default `200`, between `1` and `2000`). The endpoint finishes that many
+child spans of the request span, each from its own virtual thread, and only then responds.
+
+The body is `text/plain`:
+
+```
+created {spans} spans\n
+```
+
+A request that does not finish within the weblog timeout means the single carrier stopped making
+progress while those spans were being written.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :
