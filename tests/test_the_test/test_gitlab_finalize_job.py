@@ -3,13 +3,12 @@
 import os
 from pathlib import Path
 import subprocess
-import sys
 
 import yaml
 
 from utils import pytest, scenarios
 from utils.scripts import gitlab_finalize_job as finalizer
-from utils.scripts.ci_orchestrators.gitlab_exporter import build_ssi_gitlab_pipeline
+from utils.scripts.ci_orchestrators.gitlab_exporter import GitLabLoader, build_ssi_gitlab_pipeline
 
 BASE_JOBS_PROFILES = {
     ".base_docker_ssi_job": "docker",
@@ -99,7 +98,8 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
     assert finalizer.finalize(job) == 0
 
     prefix = "42/logs_simple_installer_auto_injection/Ubuntu_22_amd64_test-app-java/"
-    assert commands[1][:5] == ["aws", "s3", "cp", str(logs), f"s3://system-tests-aws-ssi-apm/{prefix}"]
+    assert commands[0][:5] == ["aws", "s3", "cp", str(logs), f"s3://system-tests-aws-ssi-apm/{prefix}"]
+    assert not [command for command in commands if command[0] == "datadog-ci"]
     assert job.aws_console_url.endswith(f"prefix={prefix}")
     assert (tmp_path / "home" / ".aws" / "config").read_text() == "apm-ecosystems-reliability-profile/config\n"
     reports = tmp_path / "project" / "reports" / "logs_simple_installer_auto_injection"
@@ -172,37 +172,11 @@ def test_entry_point_runs_the_finalizer():
 
 
 @scenarios.test_the_test
-def test_tag_only_does_not_run_cleanup(
-    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(sys, "argv", ["gitlab_finalize_job.py", "--profile", "aws", "--tag-only"])
-    monkeypatch.setenv("CI_PROJECT_DIR", str(tmp_path))
-
-    assert finalizer.main() == 0
-
-    assert commands == [["datadog-ci", "tag", "--level", "job", "--tags", "ci.framework.name:system-tests"]]
-    assert not (tmp_path / "reports").exists()
-
-
-@pytest.mark.parametrize("failing_command", ["read-system-tests-secret", "datadog-ci"])
-@scenarios.test_the_test
-def test_tag_only_errors_do_not_fail_the_job(failing_command: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    def fail(command: list[str], **kwargs: object) -> None:  # noqa: ARG001
-        raise subprocess.CalledProcessError(2, command)
-
-    monkeypatch.setattr(sys, "argv", ["gitlab_finalize_job.py", "--profile", "aws", "--tag-only"])
-    if failing_command == "read-system-tests-secret":
-        monkeypatch.setattr(finalizer, "read_secret", lambda *path: fail([failing_command, *path]))
-    else:
-        monkeypatch.setattr(finalizer, "read_secret", lambda *_path: "test-key")
-        monkeypatch.setattr(finalizer, "run", fail)
-
-    assert finalizer.main() == 0
-
-
-@scenarios.test_the_test
 def test_base_jobs_call_the_finalizer_from_the_system_tests_checkout():
-    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
+    pipeline = yaml.load(
+        Path(".gitlab/ssi_gitlab-ci.yml").read_text(),
+        Loader=GitLabLoader,  # noqa: S506 - GitLabLoader extends SafeLoader.
+    )
 
     for base_job, profile in BASE_JOBS_PROFILES.items():
         assert pipeline[base_job]["variables"]["SYSTEM_TESTS_DIR"] == "$CI_PROJECT_DIR"
@@ -241,6 +215,41 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
     pipeline = build_ssi_gitlab_pipeline("php", matrix_data, "dev")
 
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
-    assert pipeline[".base_job_onboarding_system_tests"]["script"][0 if project == "system-tests" else 2] == (
-        'bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile aws --tag-only || true'
+    before_script = pipeline[".base_job_onboarding_system_tests"]["before_script"]
+    assert before_script[0] == [".base_job_onboarding", "before_script"]
+    assert "ci.framework.name:system-tests" in before_script[1]
+    generated = yaml.dump(pipeline, sort_keys=False)
+    assert "!reference [.base_job_onboarding, before_script]" in generated
+    assert yaml.load(generated, Loader=GitLabLoader) == pipeline  # noqa: S506 - GitLabLoader extends SafeLoader.
+
+
+@pytest.mark.parametrize(("secret_exit", "tag_exit"), [(0, 0), (2, 0), (0, 2)])
+@scenarios.test_the_test
+def test_aws_before_script_tagging_is_best_effort(secret_exit: int, tag_exit: int, tmp_path: Path) -> None:
+    pipeline = yaml.load(
+        Path(".gitlab/ssi_gitlab-ci.yml").read_text(),
+        Loader=GitLabLoader,  # noqa: S506 - GitLabLoader extends SafeLoader.
     )
+    tag_command = pipeline[".base_job_onboarding_system_tests"]["before_script"][1]
+    secret_reader = _write(tmp_path / "read-system-tests-secret", f"#!/bin/sh\necho test-key\nexit {secret_exit}\n")
+    tagger = _write(
+        tmp_path / "datadog-ci",
+        f'#!/bin/sh\ntest "$DATADOG_API_KEY" = test-key || exit 1\nprintf "%s\\n" "$@" > "$TAG_RECORD"\nexit {tag_exit}\n',
+    )
+    secret_reader.chmod(0o700)
+    tagger.chmod(0o700)
+    record = tmp_path / "tag.txt"
+
+    result = subprocess.run(
+        ["bash", "-e", "-c", tag_command + "\nprintf 'tests can run'"],
+        check=True,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "TAG_RECORD": str(record)},
+    )
+
+    assert result.stdout == "tests can run"
+    if secret_exit == 0:
+        assert record.read_text().splitlines() == ["tag", "--level", "job", "--tags", "ci.framework.name:system-tests"]
+    else:
+        assert not record.exists()
