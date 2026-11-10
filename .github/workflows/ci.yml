@@ -126,15 +126,17 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection),
-        # system_tests_e2e_run_pipeline_[0-2], mirror_images, build_base_images,
-        # build_base_images_amd64, build_base_images_arm64, *DOC (docker ssi),
-        # or *DO5A (docker ssi crashtracking).
-        # Also ignore the job that waits for the tests to succeed before adding
-        # to the merge queue.
+        # Ignore GitLab jobs that will not block the merge.
+        # These jobs must pass: Kubernetes library injection (K8S_LIB*),
+        # every AWS SSI and Docker SSI scenario, system_tests_e2e_run_pipeline_[0-2],
+        # mirror_images, and the build_base_images jobs.
+        # A scenario job is named "<target>.<prefix>". GitLab then appends the
+        # parallel matrix, for example "Ubuntu_24_amd64.HOS: [test-app-nodejs]".
+        # Prefixes come from utils/scripts/ci_orchestrators/gitlab_exporter.py.
+        # Also ignore the jobs that wait for this gate before the merge queue.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$|build_base_images_amd64$|build_base_images_arm64$)).*$(?<!DOC)(?<!DO5A)
+          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$|build_base_images_amd64$|build_base_images_arm64$|[^\n]*\.(?:CHA|CO1B|CO9C|CON|DO57|DO5A|DOA9|DOC|HOAA|HOBC|HOS|IN1C|INS|LOC|MUL|SI94|SID0|SIM)(?:: \[[^\]]*\])?$)).*
           devflow/merge
           devflow/mergegate
           DDCI Status
