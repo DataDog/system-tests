@@ -1,5 +1,28 @@
 # Testing K8s library injection feature
 
+## Quick start
+
+Use this suite for the normal Kubernetes library injection flow. It tests the
+Admission Controller, injector, lib-init, and Cluster Agent.
+
+First, complete the
+[K8s access steps](../../execute/ssi-access.md#configure-the-private-ecr-registry).
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
+```
+
+The wizard prepares a local Kind or Minikube cluster. It also selects a valid
+set of test components.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run K8s library injection manually](#run-k8s-library-injection-tests-manually)
+- [Debug K8s test results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+
+## Contents
+
 1. [Run the tests](#run-the-tests)
    * [Run K8s library injection tests using the Wizard (Recommended)](#run-k8s-library-injection-tests-using-the-wizard-recommended)
    * [Run K8s library injection tests manually](#run-k8s-library-injection-tests-manually)

@@ -1,3 +1,29 @@
+# AWS SSI testing
+
+## Quick start
+
+AWS SSI runs library injection tests on EC2 virtual machines. It sends the
+test telemetry to the system-tests Datadog organization.
+
+First, complete the
+[AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
+[AppGate steps](../../execute/ssi-access.md#configure-appgate-for-aws-ssi).
+Connect AppGate to **Commercial Green** before you start.
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh
+```
+
+The wizard prepares the local environment and selects a valid test case.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run AWS SSI manually](#run-the-scenario-manually)
+- [Troubleshoot AWS SSI](#troubleshooting)
+
+## Contents
+
 1. [Overall](#Overall)
    * [Library Injection testing scenarios](#Library-Injection-testing-scenarios)
    * [Knowledge concepts](#Knowledge-concepts)
@@ -471,8 +497,8 @@ export ONBOARDING_LOCAL_TEST="true"
 The following line shows an example of command line to run the tests on a secure environment using 'aws-vault':
 
 ```bash
- aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
- ```
+aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
 
 # How to develop tests
 

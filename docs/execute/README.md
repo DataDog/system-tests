@@ -34,6 +34,8 @@ For troubleshooting check the troubleshooting [page](./troubleshooting.md).
 
 - [Build](./build.md) -- build options, weblog variants, image names
 - [Run](./run.md) -- run options, test selection, scenarios, sleep mode
+- [SSI quick start](./ssi.md) -- choose and run Docker, AWS, or Kubernetes SSI tests
+- [SSI access](./ssi-access.md) -- tools, AWS profiles, AppGate, registries, and keys
 - [Test outcomes](./test-outcomes.md) -- detailed explanation of test result states
 - [Logs](./logs.md) -- log folder structure and what each file contains
 - [Replay mode](./replay.md) -- re-run tests without rebuilding the environment
