@@ -42,66 +42,52 @@ The Docker SSI are good for:
 
 ## Prerequisites
 
-There are no special requirements to run the Docker SSI tests, you only need the docker engine and have the access to GHCR.
+You need Docker.
+
+Most base images are public. Skip the private registry for those images.
+
+`websphere-app` and `jboss-app` use a private image. Both run in `DOCKER_SSI_SERVICENAMING`. Log in to the private registry before that run. The wizard can do the login.
 
 ### System-tests requirements
 
-All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before running the tests:
+Set up system-tests first. See the [quick start](../../../README.md#quick-start).
 
-- Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
-- Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
+The wizard can install the Python tools for you. It runs `./build.sh -i runner`. Say yes the first time you run it.
 
 ## Run the scenario
 
-To help us to run a concrete case of the matrix variants, execute this script locally:
-
-* `utils/scripts/ssi_wizards/docker_ssi_wizard.sh`: Interactive shell wizard that allow you to execute the Docker SSI scenario with the correct combination of arguments.
-
-Here is the command line and the mandatory parameters:
+Run the wizard:
 
 ```bash
-  ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"
-
+./utils/scripts/ssi_wizards/docker_ssi_wizard.sh
 ```
 
-The easy way to execute this scenario is to use the wizard script. For example:
+The wizard asks you to:
+
+1. Load the system-tests requirements.
+2. Skip the private registry for a public image. Log in for `websphere-app` or `jboss-app`.
+3. Choose a language.
+4. Choose a scenario, a weblog, and a base image.
+5. Choose a runtime, when the weblog needs one.
+6. Choose `prod` or `dev`. `prod` uses released components. `dev` uses snapshots.
+7. Set a custom tracer or injector image, or skip it.
+8. Confirm the command. The wizard runs it only after you type `y`.
+
+This command comes from a real wizard run. It uses Java, the `DOCKER_SSI` scenario, and the jetty weblog:
 
 ```bash
-(venv) system-tests % utils/build/ssi/build_local_wizard.sh
-Welcome to the SSI Wizard!
-Please select the library you want to test:
-1) dotnet
-2) java
-3) nodejs
-4) php
-5) python
-#? 2
-You selected: java
-Please select the weblog you want to use:
-1) java7-app      3) jetty-app      5) websphere-app
-2) jboss-app      4) tomcat-app
-#? 3
-You selected: jetty-app
-Please select the base image you want to use:
-1) almalinux:8.10    3) oraclelinux:8.10  5) ubuntu:16.04
-2) almalinux:9.4     4) oraclelinux:9     6) ubuntu:22.04
-#? 6
-You selected: ubuntu:22.04
-Please select the architecture you want to use:
-1) linux/amd64
-2) linux/arm64
-#? 2
-You selected: linux/arm64
-Please select the installable runtime you want to use:
-1) 11.0.24-zulu
-2) 17.0.12-zulu
-3) 21.0.4-zulu
-4) 22.0.2-zulu
-#? 3
-You selected: 21.0.4-zulu
-Enter any extra arguments (or leave blank):
-Executing: ./run.sh DOCKER_SSI --ssi-weblog jetty-app --ssi-library java --ssi-base-image ubuntu:22.04 --ssi-arch linux/arm64 --ssi-installable-runtime 21.0.4-zulu
+./run.sh DOCKER_SSI \
+  --ssi-weblog jetty-app \
+  --ssi-library java \
+  --ssi-base-image public.ecr.aws/lts/ubuntu:22.04 \
+  --ssi-arch linux/amd64 \
+  --ssi-env prod \
+  --ssi-installable-runtime 27.0.1.0+9-zulu
 ```
+
+Your lists will differ. Run the command the wizard prints.
+
+`--ssi-env` defaults to `prod` when you omit it.
 
 # How to develop tests
 
@@ -116,8 +102,7 @@ The following picture shows the main directories for the Docker SSI tests:
 * **utils/_context/scenarios/**: In this folder you can find the Docker SSI Lib injection scenario definition.
 * **utils/build/ssi/base/:** The base templates for the Docker SSI images, and the base utilities used to build the images, for example the language runtime installers.
 * **utils/build/ssi/[lang]/:** The weblog applications docker definitios.
-* **utils/build/ssi/build_local_manual.sh:** The helper script to run the Docker SSI scenarios.
-* **utils/build/ssi/build_local_wizard.sh:** The wizard script to run the Docker SSI scenarios.
+* **utils/scripts/ssi_wizards/docker_ssi_wizard.sh:** Wizard that runs one Docker SSI scenario.
 * **utils/docker_ssi:** The core implementation of this test framework.
 
 ## Docker SSI definitions
