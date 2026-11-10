@@ -212,36 +212,3 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
     pipeline = build_ssi_gitlab_pipeline("php", matrix_data, "dev")
 
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
-    before_script = pipeline[".base_job_onboarding_system_tests"]["before_script"]
-    assert "ci.framework.name:system-tests" in before_script[0]
-    generated = yaml.dump(pipeline, sort_keys=False)
-    assert "!reference [.base_job_onboarding, before_script]" in generated
-
-
-@pytest.mark.parametrize(("secret_exit", "tag_exit"), [(0, 0), (2, 0), (0, 2)])
-@scenarios.test_the_test
-def test_aws_before_script_tagging_is_best_effort(secret_exit: int, tag_exit: int, tmp_path: Path) -> None:
-    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
-    tag_command = pipeline[".base_job_onboarding_system_tests"]["before_script"][0]
-    secret_reader = _write(tmp_path / "read-system-tests-secret", f"#!/bin/sh\necho test-key\nexit {secret_exit}\n")
-    tagger = _write(
-        tmp_path / "datadog-ci",
-        f'#!/bin/sh\ntest "$DATADOG_API_KEY" = test-key || exit 1\nprintf "%s\\n" "$@" > "$TAG_RECORD"\nexit {tag_exit}\n',
-    )
-    secret_reader.chmod(0o700)
-    tagger.chmod(0o700)
-    record = tmp_path / "tag.txt"
-
-    result = subprocess.run(
-        ["bash", "-e", "-c", tag_command + "\nprintf 'tests can run'"],
-        check=True,
-        capture_output=True,
-        text=True,
-        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "TAG_RECORD": str(record)},
-    )
-
-    assert result.stdout == "tests can run"
-    if secret_exit == 0:
-        assert record.read_text().splitlines() == ["tag", "--level", "job", "--tags", "ci.framework.name:system-tests"]
-    else:
-        assert not record.exists()

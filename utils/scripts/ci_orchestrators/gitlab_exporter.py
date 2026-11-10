@@ -6,10 +6,6 @@ from utils._context._scenarios import get_all_scenarios
 from utils._context._scenarios._core.scenario import Scenario
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 
-# Keep GitLab !reference tags intact when generating child pipelines.
-yaml.SafeLoader.add_constructor("!reference", lambda _loader, node: node)
-yaml.Dumper.add_representer(yaml.SequenceNode, lambda _dumper, node: node)
-
 
 def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3) -> dict:
     """Generate a unique prefix for each scenario name/stage
@@ -89,7 +85,7 @@ def build_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
     pipeline_data = None
 
     with open(pipeline_file, encoding="utf-8") as f:
-        pipeline_data = yaml.safe_load(f)
+        pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
     result_pipeline["include"] = pipeline_data["include"]
     result_pipeline["variables"] = pipeline_data["variables"]
     if (

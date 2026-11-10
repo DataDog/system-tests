@@ -59,12 +59,6 @@ ssi_tests:
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
       # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
       SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
-    before_script:
-      # Tag before provisioning, while Vault credentials are still available.
-      - |
-        DATADOG_API_KEY="$(read-system-tests-secret test_optimization dd_api_key)" &&
-        DATADOG_API_KEY="$DATADOG_API_KEY" datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
-      - !reference [.base_job_onboarding, before_script]
     script:
         - |
             if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then

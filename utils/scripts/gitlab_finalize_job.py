@@ -2,9 +2,7 @@
 
 Runs in the after_script of those jobs, in system-tests and in the repositories that launch them.
 Each profile is an ordered list of steps. A failing step is reported and the next steps still run,
-so tagging and log collection are attempted even if another step fails.
-
-AWS SSI jobs tag themselves in before_script, so their cleanup does not need Datadog credentials.
+so log collection and printing are attempted even if another step fails.
 
 To add a feature, write a step function and add it to the profiles that need it.
 
