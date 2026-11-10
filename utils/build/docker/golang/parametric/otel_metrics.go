@@ -422,11 +422,10 @@ func (s *apmClientServer) OtelCreateAsynchronousCounter(args OtelCreateAsynchron
 		return fmt.Errorf("failed to create asynchronous counter: %w", err)
 	}
 
-	// The callback reports the observations currently stored for this instrument name
-	s.asynchronousObservations.Store(args.Name, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
-	name := args.Name
+	// The callback reports the observations currently stored for this instrument
+	s.asynchronousObservations.Store(key, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
 	callback := func(_ context.Context, o metric.Observer) error {
-		for _, obs := range s.loadAsynchronousObservations(name) {
+		for _, obs := range s.loadAsynchronousObservations(key) {
 			o.ObserveInt64(observableCounter, int64(obs.Value), metric.WithAttributes(obs.Attributes.ConvertToAttributes()...))
 		}
 		return nil
@@ -486,11 +485,10 @@ func (s *apmClientServer) OtelCreateAsynchronousUpDownCounter(args OtelCreateAsy
 		return fmt.Errorf("failed to create asynchronous updowncounter: %w", err)
 	}
 
-	// The callback reports the observations currently stored for this instrument name
-	s.asynchronousObservations.Store(args.Name, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
-	name := args.Name
+	// The callback reports the observations currently stored for this instrument
+	s.asynchronousObservations.Store(key, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
 	callback := func(_ context.Context, o metric.Observer) error {
-		for _, obs := range s.loadAsynchronousObservations(name) {
+		for _, obs := range s.loadAsynchronousObservations(key) {
 			o.ObserveInt64(observableUpDownCounter, int64(obs.Value), metric.WithAttributes(obs.Attributes.ConvertToAttributes()...))
 		}
 		return nil
@@ -550,11 +548,10 @@ func (s *apmClientServer) OtelCreateAsynchronousGauge(args OtelCreateAsynchronou
 		return fmt.Errorf("failed to create asynchronous gauge: %w", err)
 	}
 
-	// The callback reports the observations currently stored for this instrument name
-	s.asynchronousObservations.Store(args.Name, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
-	name := args.Name
+	// The callback reports the observations currently stored for this instrument
+	s.asynchronousObservations.Store(key, []OtelAsynchronousObservation{{Value: args.Value, Attributes: args.Attributes}})
 	callback := func(_ context.Context, o metric.Observer) error {
-		for _, obs := range s.loadAsynchronousObservations(name) {
+		for _, obs := range s.loadAsynchronousObservations(key) {
 			o.ObserveInt64(observableGauge, int64(obs.Value), metric.WithAttributes(obs.Attributes.ConvertToAttributes()...))
 		}
 		return nil
@@ -569,8 +566,8 @@ func (s *apmClientServer) OtelCreateAsynchronousGauge(args OtelCreateAsynchronou
 	return nil
 }
 
-func (s *apmClientServer) loadAsynchronousObservations(name string) []OtelAsynchronousObservation {
-	if v, ok := s.asynchronousObservations.Load(name); ok {
+func (s *apmClientServer) loadAsynchronousObservations(key string) []OtelAsynchronousObservation {
+	if v, ok := s.asynchronousObservations.Load(key); ok {
 		return v.([]OtelAsynchronousObservation)
 	}
 	return nil
@@ -595,7 +592,8 @@ func (s *apmClientServer) otelSetAsynchronousObservationsHandler(w http.Response
 
 // OtelSetAsynchronousObservations replaces the observations reported by the callback of an asynchronous instrument
 func (s *apmClientServer) OtelSetAsynchronousObservations(args OtelSetAsynchronousObservationsArgs) error {
-	s.asynchronousObservations.Store(args.Name, args.Observations)
+	key := createInstrumentKey(args.MeterName, args.Name, "observable_"+args.Kind, args.Unit, args.Description)
+	s.asynchronousObservations.Store(key, args.Observations)
 	return nil
 }
 

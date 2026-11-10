@@ -517,7 +517,11 @@ pub struct OtelAsynchronousObservation {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OtelSetAsynchronousObservationsArgs {
+    pub meter_name: String,
+    pub kind: String,
     pub name: String,
+    pub unit: String,
+    pub description: String,
     pub observations: Vec<OtelAsynchronousObservation>,
 }
 

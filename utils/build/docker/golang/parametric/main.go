@@ -37,7 +37,7 @@ type apmClientServer struct {
 	meters              map[string]metric.Meter
 	instruments         map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
 	metricConfiguration *metricReaderConfiguration
-	// Observations reported by asynchronous instrument callbacks: instrument name -> []OtelAsynchronousObservation
+	// Observations reported by asynchronous instrument callbacks: instrument key -> []OtelAsynchronousObservation
 	asynchronousObservations sync.Map
 }
 

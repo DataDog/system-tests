@@ -32,7 +32,7 @@ public class OpenTelemetryMetricsController {
   /** Previously created instruments of various types. */
   private final Map<String, Object> instruments = new ConcurrentHashMap<>();
 
-  /** Observations reported by asynchronous instrument callbacks, keyed by instrument name. */
+  /** Observations reported by asynchronous instrument callbacks, keyed by instrument key. */
   private final Map<String, List<SetAsynchronousObservationsArgs.Observation>>
       asynchronousObservations = new ConcurrentHashMap<>();
 
@@ -140,11 +140,11 @@ public class OpenTelemetryMetricsController {
     String instrumentKey =
         instrumentKey(
             meterName, args.name(), "observable_counter", args.unit(), args.description());
-    setObservations(args.name(), args.value(), args.attributes());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableLongMeasurement> observeCallback =
         measurement ->
             asynchronousObservations
-                .getOrDefault(args.name(), List.of())
+                .getOrDefault(instrumentKey, List.of())
                 .forEach(o -> measurement.record(o.value().longValue(), fromMap(o.attributes())));
     ObservableLongCounter observableCounter =
         meter
@@ -164,11 +164,11 @@ public class OpenTelemetryMetricsController {
     String instrumentKey =
         instrumentKey(
             meterName, args.name(), "observable_updowncounter", args.unit(), args.description());
-    setObservations(args.name(), args.value(), args.attributes());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableLongMeasurement> observeCallback =
         measurement ->
             asynchronousObservations
-                .getOrDefault(args.name(), List.of())
+                .getOrDefault(instrumentKey, List.of())
                 .forEach(o -> measurement.record(o.value().longValue(), fromMap(o.attributes())));
     ObservableLongUpDownCounter observableUpDownCounter =
         meter
@@ -186,11 +186,11 @@ public class OpenTelemetryMetricsController {
     Meter meter = lookupMeter(meterName);
     String instrumentKey =
         instrumentKey(meterName, args.name(), "observable_gauge", args.unit(), args.description());
-    setObservations(args.name(), args.value(), args.attributes());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableDoubleMeasurement> observeCallback =
         measurement ->
             asynchronousObservations
-                .getOrDefault(args.name(), List.of())
+                .getOrDefault(instrumentKey, List.of())
                 .forEach(
                     o -> measurement.record(o.value().doubleValue(), fromMap(o.attributes())));
     ObservableDoubleGauge observableGauge =
@@ -205,12 +205,20 @@ public class OpenTelemetryMetricsController {
   @PostMapping("set_asynchronous_observations")
   public void setAsynchronousObservations(@RequestBody SetAsynchronousObservationsArgs args) {
     LOGGER.info("Setting OTel asynchronous instrument observations: {}", args);
-    asynchronousObservations.put(args.name(), List.copyOf(args.observations()));
+    String instrumentKey =
+        instrumentKey(
+            args.meterName(),
+            args.name(),
+            "observable_" + args.kind(),
+            args.unit(),
+            args.description());
+    asynchronousObservations.put(instrumentKey, List.copyOf(args.observations()));
   }
 
-  private void setObservations(String name, Number value, Map<String, String> attributes) {
+  private void setObservations(
+      String instrumentKey, Number value, Map<String, String> attributes) {
     asynchronousObservations.put(
-        name, List.of(new SetAsynchronousObservationsArgs.Observation(value, attributes)));
+        instrumentKey, List.of(new SetAsynchronousObservationsArgs.Observation(value, attributes)));
   }
 
   @PostMapping("create_histogram")

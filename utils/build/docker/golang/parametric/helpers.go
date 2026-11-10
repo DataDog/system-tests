@@ -289,7 +289,11 @@ type OtelAsynchronousObservation struct {
 }
 
 type OtelSetAsynchronousObservationsArgs struct {
+	MeterName    string                        `json:"meter_name"`
+	Kind         string                        `json:"kind"`
 	Name         string                        `json:"name"`
+	Unit         string                        `json:"unit"`
+	Description  string                        `json:"description"`
 	Observations []OtelAsynchronousObservation `json:"observations"`
 }
 

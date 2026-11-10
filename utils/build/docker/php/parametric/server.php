@@ -212,7 +212,7 @@ $otelMeters = [];
 $otelCounters = [];
 /** @var array<string, object> $otelMetricInstruments */
 $otelMetricInstruments = [];
-// Observations reported by asynchronous instrument callbacks, keyed by instrument name.
+// Observations reported by asynchronous instrument callbacks, keyed by instrument key.
 $otelAsynchronousObservations = [];
 // Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
 // provider selection and shutdown; the app always uses the configured provider.
@@ -309,20 +309,21 @@ foreach ([
         $name = arg($req, 'name');
         $unit = arg($req, 'unit');
         $description = arg($req, 'description');
-        $otelAsynchronousObservations[$name] = [['value' => arg($req, 'value'), 'attributes' => arg($req, 'attributes') ?? []]];
-        // The callback reports the observations currently stored for this instrument name.
-        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use (&$otelAsynchronousObservations, $name): void {
-            foreach ($otelAsynchronousObservations[$name] ?? [] as $observation) {
+        $key = json_encode([$meterName, 'asynchronous_' . $kind, $name, $unit, $description]);
+        $otelAsynchronousObservations[$key] = [['value' => arg($req, 'value'), 'attributes' => arg($req, 'attributes') ?? []]];
+        // The callback reports the observations currently stored for this instrument.
+        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use (&$otelAsynchronousObservations, $key): void {
+            foreach ($otelAsynchronousObservations[$key] ?? [] as $observation) {
                 $observer->observe($observation['value'], $observation['attributes'] ?? []);
             }
         };
-        $key = json_encode([$meterName, 'asynchronous_' . $kind, $name, $unit, $description]);
         $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description, [], $callback);
         return jsonResponse(new stdClass());
     }));
 }
 $router->addRoute('POST', '/metrics/otel/set_asynchronous_observations', new ClosureRequestHandler(function (Request $req) use (&$otelAsynchronousObservations) {
-    $otelAsynchronousObservations[arg($req, 'name')] = arg($req, 'observations') ?? [];
+    $key = json_encode([arg($req, 'meter_name'), 'asynchronous_' . arg($req, 'kind'), arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+    $otelAsynchronousObservations[$key] = arg($req, 'observations') ?? [];
     return jsonResponse(new stdClass());
 }));
 $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {

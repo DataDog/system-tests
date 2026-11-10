@@ -16,7 +16,7 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
     private static readonly Dictionary<ulong, Activity> Activities = new();
     private static readonly Dictionary<string, Meter> OtelMeters = new();
     private static readonly Dictionary<string, object> OtelMeterInstruments = new();
-    // Observations reported by asynchronous instrument callbacks, keyed by instrument name
+    // Observations reported by asynchronous instrument callbacks, keyed by instrument key
     private static readonly ConcurrentDictionary<string, List<Measurement<double>>> OtelAsynchronousObservations = new();
     private static ILogger? _logger;
 
@@ -782,10 +782,10 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
-        var observableCounter = meter.CreateObservableCounter(normalizedName, () => GetAsynchronousObservations(name), unit, description);
-
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_counter", unit, description);
+        OtelAsynchronousObservations[instrumentKey] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableCounter = meter.CreateObservableCounter(normalizedName, () => GetAsynchronousObservations(instrumentKey), unit, description);
+
         OtelMeterInstruments[instrumentKey] = observableCounter;
 
         _logger?.LogInformation("OtelCreateAsynchronousCounterReturn");
@@ -809,10 +809,10 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
-        var observableUpDownCounter = meter.CreateObservableUpDownCounter(normalizedName, () => GetAsynchronousObservations(name), unit, description);
-
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_updowncounter", unit, description);
+        OtelAsynchronousObservations[instrumentKey] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableUpDownCounter = meter.CreateObservableUpDownCounter(normalizedName, () => GetAsynchronousObservations(instrumentKey), unit, description);
+
         OtelMeterInstruments[instrumentKey] = observableUpDownCounter;
 
         _logger?.LogInformation("OtelCreateAsynchronousUpDownCounterReturn");
@@ -836,18 +836,18 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
-        var observableGauge = meter.CreateObservableGauge(normalizedName, () => GetAsynchronousObservations(name), unit, description);
-
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_gauge", unit, description);
+        OtelAsynchronousObservations[instrumentKey] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableGauge = meter.CreateObservableGauge(normalizedName, () => GetAsynchronousObservations(instrumentKey), unit, description);
+
         OtelMeterInstruments[instrumentKey] = observableGauge;
 
         _logger?.LogInformation("OtelCreateAsynchronousGaugeReturn");
     }
 
-    private static IEnumerable<Measurement<double>> GetAsynchronousObservations(string name)
+    private static IEnumerable<Measurement<double>> GetAsynchronousObservations(string instrumentKey)
     {
-        return OtelAsynchronousObservations.TryGetValue(name, out var observations) ? observations : Enumerable.Empty<Measurement<double>>();
+        return OtelAsynchronousObservations.TryGetValue(instrumentKey, out var observations) ? observations : Enumerable.Empty<Measurement<double>>();
     }
 
     private static async Task OtelSetAsynchronousObservations(HttpRequest request)
@@ -855,7 +855,12 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
         _logger?.LogInformation("OtelSetAsynchronousObservations: {RequestBodyObject}", requestBodyObject);
 
+        var meterName = requestBodyObject["meter_name"]?.ToString() ?? throw new ArgumentNullException("meter_name");
+        var kind = requestBodyObject["kind"]?.ToString() ?? throw new ArgumentNullException("kind");
         var name = requestBodyObject["name"]?.ToString() ?? throw new ArgumentNullException("name");
+        var unit = requestBodyObject["unit"]?.ToString() ?? "";
+        var description = requestBodyObject["description"]?.ToString() ?? "";
+        var instrumentKey = CreateInstrumentKey(meterName, name, "observable_" + kind, unit, description);
         var observations = new List<Measurement<double>>();
         foreach (var observation in (JArray?)requestBodyObject["observations"] ?? new JArray())
         {
@@ -864,7 +869,7 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
             observations.Add(new Measurement<double>(value, ConvertToTagList(attributes)));
         }
 
-        OtelAsynchronousObservations[name] = observations;
+        OtelAsynchronousObservations[instrumentKey] = observations;
         _logger?.LogInformation("OtelSetAsynchronousObservationsReturn");
     }
 

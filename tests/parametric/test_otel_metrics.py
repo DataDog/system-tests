@@ -1038,7 +1038,11 @@ class Test_Otel_Metrics_Asynchronous_Stale_Series:
                 kept_attributes,
             )
             t.otel_set_asynchronous_observations(
+                DEFAULT_METER_NAME,
+                instrument,
                 name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
                 [{"value": 7, "attributes": kept_attributes}, {"value": 3, "attributes": removed_attributes}],
             )
             payloads_before_first_export = test_agent.otlp_metrics_fingerprints()
@@ -1052,7 +1056,14 @@ class Test_Otel_Metrics_Asynchronous_Stale_Series:
 
             # The callback stops observing the removed attribute set, like a closed connection pool would
             payloads_before_second_export = test_agent.otlp_metrics_fingerprints()
-            t.otel_set_asynchronous_observations(name, [{"value": 8, "attributes": kept_attributes}])
+            t.otel_set_asynchronous_observations(
+                DEFAULT_METER_NAME,
+                instrument,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                [{"value": 8, "attributes": kept_attributes}],
+            )
             t.otel_metrics_force_flush()
             second_export = test_agent.wait_for_new_otlp_metric(name, ignored=payloads_before_second_export)
 

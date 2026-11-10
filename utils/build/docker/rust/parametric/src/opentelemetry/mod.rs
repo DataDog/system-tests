@@ -36,17 +36,17 @@ pub enum MeterInstrument {
     ObservableGauge(ObservableGauge<f64>),
 }
 
-/// Observations reported by asynchronous instrument callbacks, keyed by instrument name.
+/// Observations reported by asynchronous instrument callbacks, keyed by instrument key.
 pub type AsynchronousObservations = Arc<Mutex<HashMap<String, Vec<(serde_json::Number, Vec<KeyValue>)>>>>;
 
 fn get_asynchronous_observations(
     observations: &AsynchronousObservations,
-    name: &str,
+    instrument_key: &str,
 ) -> Vec<(serde_json::Number, Vec<KeyValue>)> {
     observations
         .lock()
         .unwrap()
-        .get(name)
+        .get(instrument_key)
         .cloned()
         .unwrap_or_default()
 }
@@ -713,12 +713,19 @@ async fn otel_create_asynchronous_counter(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_counter",
+        &args.unit,
+        &args.description,
+    );
     state.otel_asynchronous_observations.lock().unwrap().insert(
-        args.name.clone(),
+        instrument_key.clone(),
         vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
     );
     let observations = state.otel_asynchronous_observations.clone();
-    let observations_name = args.name.clone();
+    let observations_key = instrument_key.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -728,19 +735,12 @@ async fn otel_create_asynchronous_counter(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_key) {
                 observer.observe(value.as_u64().unwrap_or(0), &attributes);
             }
         })
         .build();
 
-    let instrument_key = create_instrument_key(
-        &args.meter_name,
-        &args.name,
-        "observable_counter",
-        &unit,
-        &description,
-    );
     state
         .otel_meter_instruments
         .lock()
@@ -759,12 +759,19 @@ async fn otel_create_asynchronous_updowncounter(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_updowncounter",
+        &args.unit,
+        &args.description,
+    );
     state.otel_asynchronous_observations.lock().unwrap().insert(
-        args.name.clone(),
+        instrument_key.clone(),
         vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
     );
     let observations = state.otel_asynchronous_observations.clone();
-    let observations_name = args.name.clone();
+    let observations_key = instrument_key.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -774,19 +781,12 @@ async fn otel_create_asynchronous_updowncounter(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_key) {
                 observer.observe(value.as_i64().unwrap_or(0), &attributes);
             }
         })
         .build();
 
-    let instrument_key = create_instrument_key(
-        &args.meter_name,
-        &args.name,
-        "observable_updowncounter",
-        &unit,
-        &description,
-    );
     state
         .otel_meter_instruments
         .lock()
@@ -805,12 +805,19 @@ async fn otel_create_asynchronous_gauge(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_gauge",
+        &args.unit,
+        &args.description,
+    );
     state.otel_asynchronous_observations.lock().unwrap().insert(
-        args.name.clone(),
+        instrument_key.clone(),
         vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
     );
     let observations = state.otel_asynchronous_observations.clone();
-    let observations_name = args.name.clone();
+    let observations_key = instrument_key.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -820,19 +827,12 @@ async fn otel_create_asynchronous_gauge(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_key) {
                 observer.observe(value.as_f64().unwrap_or(0.0), &attributes);
             }
         })
         .build();
 
-    let instrument_key = create_instrument_key(
-        &args.meter_name,
-        &args.name,
-        "observable_gauge",
-        &unit,
-        &description,
-    );
     state
         .otel_meter_instruments
         .lock()
@@ -851,11 +851,18 @@ async fn otel_set_asynchronous_observations(
         .iter()
         .map(|o| (o.value.clone(), parse_attributes(Some(&o.attributes))))
         .collect();
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        &format!("observable_{}", args.kind),
+        &args.unit,
+        &args.description,
+    );
     state
         .otel_asynchronous_observations
         .lock()
         .unwrap()
-        .insert(args.name, observations);
+        .insert(instrument_key, observations);
     Json(OtelSetAsynchronousObservationsReturn {})
 }
 
