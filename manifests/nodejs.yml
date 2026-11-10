@@ -3336,14 +3336,24 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_0_0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed:  # TODO: a lower version might be supported
+    - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+      component_version: <6.24.0
+      weblog: [express5]
+    - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_0_0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: missing_feature (http.endpoint is not retained under OTel semantics)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming:  # TODO: a lower version might be supported
+    - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
+      component_version: <6.24.0
+      weblog: [express5]
+    - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
+      excluded_weblog: [express5]
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v6.20.0-dev
