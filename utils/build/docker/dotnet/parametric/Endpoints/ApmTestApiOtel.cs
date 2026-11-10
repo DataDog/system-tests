@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
@@ -15,6 +16,8 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
     private static readonly Dictionary<ulong, Activity> Activities = new();
     private static readonly Dictionary<string, Meter> OtelMeters = new();
     private static readonly Dictionary<string, object> OtelMeterInstruments = new();
+    // Observations reported by asynchronous instrument callbacks, keyed by instrument name
+    private static readonly ConcurrentDictionary<string, List<Measurement<double>>> OtelAsynchronousObservations = new();
     private static ILogger? _logger;
 
     public static void MapApmOtelEndpoints(WebApplication app, ILogger logger)
@@ -51,6 +54,7 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         app.MapPost("/metrics/otel/create_asynchronous_counter", OtelCreateAsynchronousCounter);
         app.MapPost("/metrics/otel/create_asynchronous_updowncounter", OtelCreateAsynchronousUpDownCounter);
         app.MapPost("/metrics/otel/create_asynchronous_gauge", OtelCreateAsynchronousGauge);
+        app.MapPost("/metrics/otel/set_asynchronous_observations", OtelSetAsynchronousObservations);
         app.MapPost("/metrics/otel/force_flush", OtelMetricsForceFlush);
     }
 
@@ -778,8 +782,8 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        var tagList = ConvertToTagList(attributes);
-        var observableCounter = meter.CreateObservableCounter(normalizedName, () => new Measurement<double>(value, tagList), unit, description);
+        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableCounter = meter.CreateObservableCounter(normalizedName, () => GetAsynchronousObservations(name), unit, description);
 
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_counter", unit, description);
         OtelMeterInstruments[instrumentKey] = observableCounter;
@@ -805,8 +809,8 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        var tagList = ConvertToTagList(attributes);
-        var observableUpDownCounter = meter.CreateObservableUpDownCounter(normalizedName, () => new Measurement<double>(value, tagList), unit, description);
+        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableUpDownCounter = meter.CreateObservableUpDownCounter(normalizedName, () => GetAsynchronousObservations(name), unit, description);
 
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_updowncounter", unit, description);
         OtelMeterInstruments[instrumentKey] = observableUpDownCounter;
@@ -832,13 +836,36 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         }
 
         var normalizedName = NormalizeInstrumentName(name);
-        var tagList = ConvertToTagList(attributes);
-        var observableGauge = meter.CreateObservableGauge(normalizedName, () => new Measurement<double>(value, tagList), unit, description);
+        OtelAsynchronousObservations[name] = new List<Measurement<double>> { new(value, ConvertToTagList(attributes)) };
+        var observableGauge = meter.CreateObservableGauge(normalizedName, () => GetAsynchronousObservations(name), unit, description);
 
         var instrumentKey = CreateInstrumentKey(meterName, name, "observable_gauge", unit, description);
         OtelMeterInstruments[instrumentKey] = observableGauge;
 
         _logger?.LogInformation("OtelCreateAsynchronousGaugeReturn");
+    }
+
+    private static IEnumerable<Measurement<double>> GetAsynchronousObservations(string name)
+    {
+        return OtelAsynchronousObservations.TryGetValue(name, out var observations) ? observations : Enumerable.Empty<Measurement<double>>();
+    }
+
+    private static async Task OtelSetAsynchronousObservations(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+        _logger?.LogInformation("OtelSetAsynchronousObservations: {RequestBodyObject}", requestBodyObject);
+
+        var name = requestBodyObject["name"]?.ToString() ?? throw new ArgumentNullException("name");
+        var observations = new List<Measurement<double>>();
+        foreach (var observation in (JArray?)requestBodyObject["observations"] ?? new JArray())
+        {
+            var value = Convert.ToDouble(observation["value"]);
+            var attributes = ((JObject?)observation["attributes"])?.ToObject<Dictionary<string, object>>();
+            observations.Add(new Measurement<double>(value, ConvertToTagList(attributes)));
+        }
+
+        OtelAsynchronousObservations[name] = observations;
+        _logger?.LogInformation("OtelSetAsynchronousObservationsReturn");
     }
 
     private static async Task<string> OtelMetricsForceFlush(HttpRequest request)

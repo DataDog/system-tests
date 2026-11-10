@@ -27,6 +27,11 @@ from .otel_env_vars.utils import (
 
 
 LIFECYCLE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_METRIC_EXPORT_INTERVAL": "3600000"}
+ASYNCHRONOUS_INSTRUMENT_CREATORS = {
+    "counter": APMLibrary.otel_create_asynchronous_counter,
+    "updowncounter": APMLibrary.otel_create_asynchronous_updowncounter,
+    "gauge": APMLibrary.otel_create_asynchronous_gauge,
+}
 
 
 @pytest.fixture
@@ -66,6 +71,20 @@ def find_metrics_by_name(metric_requests: list[dict], name: str) -> list[dict]:
         for metric in scope_metrics["metrics"]
         if metric["name"] == name
     ]
+
+
+def data_points_of_metric(metric_requests: list[dict], name: str) -> list[tuple[frozenset, float]]:
+    """Return (attribute set, value) for every data point exported for the metric `name`."""
+    data_points = []
+    for metric in find_metrics_by_name(metric_requests, name):
+        aggregation = metric.get("gauge") or metric.get("sum") or {}
+        for data_point in aggregation.get("data_points", []):
+            attributes = frozenset(
+                (item["key"], item["value"]["string_value"]) for item in data_point.get("attributes", [])
+            )
+            value = float(data_point["as_double"]) if "as_double" in data_point else float(data_point.get("as_int", 0))
+            data_points.append((attributes, value))
+    return data_points
 
 
 @scenarios.parametric
@@ -978,6 +997,74 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_Otel_Metrics_Asynchronous_Stale_Series:
+    """Asynchronous instruments only export the attribute sets observed during the latest callback.
+
+    The OTel metrics SDK spec says an implementation SHOULD NOT export a previously observed attribute set
+    that is not observed during a successful callback. Otherwise a series whose source went away (for example
+    a closed connection pool) keeps being exported with a frozen value.
+    """
+
+    @pytest.mark.parametrize("instrument", ["counter", "updowncounter", "gauge"])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {**LIFECYCLE_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": temporality}
+            for temporality in ("delta", "cumulative", "lowmemory")
+        ],
+    )
+    def test_unobserved_attribute_set_is_not_exported(
+        self, instrument: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        name = f"stale-asynchronous-{instrument}"
+        kept_attributes = {"pool": "kept"}
+        removed_attributes = {"pool": "removed"}
+        kept = frozenset(kept_attributes.items())
+        removed = frozenset(removed_attributes.items())
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            ASYNCHRONOUS_INSTRUMENT_CREATORS[instrument](
+                t,
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                7,
+                kept_attributes,
+            )
+            t.otel_set_asynchronous_observations(
+                name,
+                [{"value": 7, "attributes": kept_attributes}, {"value": 3, "attributes": removed_attributes}],
+            )
+            payloads_before_first_export = test_agent.otlp_metrics_fingerprints()
+            t.otel_metrics_force_flush()
+            first_export = test_agent.wait_for_new_otlp_metric(name, ignored=payloads_before_first_export)
+            assert sorted(
+                (attributes for attributes, _ in data_points_of_metric(first_export, name)), key=sorted
+            ) == sorted([kept, removed], key=sorted), (
+                f"Both observed attribute sets must be exported by the first collection, got {first_export}"
+            )
+
+            # The callback stops observing the removed attribute set, like a closed connection pool would
+            payloads_before_second_export = test_agent.otlp_metrics_fingerprints()
+            t.otel_set_asynchronous_observations(name, [{"value": 8, "attributes": kept_attributes}])
+            t.otel_metrics_force_flush()
+            second_export = test_agent.wait_for_new_otlp_metric(name, ignored=payloads_before_second_export)
+
+        second_data_points = data_points_of_metric(second_export, name)
+        # Sanity check that this export comes from the second collection: the kept series was observed as 8
+        # (exported as 8, or as 1 under delta temporality), not as 7 like in the first collection
+        assert [value for attributes, value in second_data_points if attributes == kept] in ([8.0], [1.0]), (
+            f"The second collection must export the kept attribute set with its new value, got {second_export}"
+        )
+        assert [attributes for attributes, _ in second_data_points] == [kept], (
+            f"Only the attribute set observed by the latest callback may be exported, got {second_export}"
+        )
 
 
 @scenarios.parametric

@@ -716,6 +716,40 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
 
+    @staticmethod
+    def _otlp_metrics_fingerprint(metrics_payload: dict) -> str:
+        return json.dumps(metrics_payload, sort_keys=True)
+
+    def otlp_metrics_fingerprints(self) -> set[str]:
+        """Return a fingerprint of every OTLP metrics payload received so far.
+
+        Pass the result to `wait_for_new_otlp_metric` to ignore these payloads, because the test agent
+        does not guarantee the order in which it returns them.
+        """
+        return {self._otlp_metrics_fingerprint(payload) for payload in self.metrics()}
+
+    def wait_for_new_otlp_metric(self, name: str, ignored: set[str], *, wait_loops: int = 80) -> list[dict]:
+        """Wait for an OTLP metrics payload containing the metric `name` that is not in `ignored`.
+
+        Returns every received payload whose fingerprint is not in `ignored`.
+        """
+        for _ in range(wait_loops):
+            try:
+                payloads = [p for p in self.metrics() if self._otlp_metrics_fingerprint(p) not in ignored]
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if any(
+                    metric["name"] == name
+                    for payload in payloads
+                    for resource_metrics in payload["resource_metrics"]
+                    for scope_metrics in resource_metrics["scope_metrics"]
+                    for metric in scope_metrics["metrics"]
+                ):
+                    return payloads
+            time.sleep(0.1)
+        raise ValueError(f"No new OTLP metrics payload containing {name} received from test agent")
+
     def wait_for_num_otlp_requests(self, num: int, *, wait_loops: int = 30) -> list[dict]:
         """Wait for `num` OTLP requests to be received from the test agent."""
         otlp_requests = []

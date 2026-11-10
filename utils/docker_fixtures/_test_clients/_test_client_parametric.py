@@ -1031,6 +1031,16 @@ class ParametricTestClientApi(TestClientApi):
             },
         )
 
+    def otel_set_asynchronous_observations(self, name: str, observations: list[dict]) -> None:
+        """Replace the observations reported by the callback of the asynchronous instrument `name`.
+
+        Each observation is a dict with a `value` and an `attributes` dict.
+        """
+        self._session.post(
+            self._url("/metrics/otel/set_asynchronous_observations"),
+            json={"name": name, "observations": observations},
+        ).raise_for_status()
+
     def otel_metrics_force_flush(self) -> bool:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
@@ -1285,6 +1295,9 @@ class APMLibrary:
         self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._client.otel_create_asynchronous_gauge(meter_name, name, unit, description, value, attributes)
+
+    def otel_set_asynchronous_observations(self, name: str, observations: list[dict]) -> None:
+        self._client.otel_set_asynchronous_observations(name, observations)
 
     def otel_metrics_force_flush(self) -> bool:
         return self._client.otel_metrics_force_flush()

@@ -3,7 +3,8 @@ mod dto;
 pub(crate) use dto::parse_attributes_native;
 
 use std::{
-    sync::Arc,
+    collections::HashMap,
+    sync::{Arc, Mutex},
     time::{Duration, UNIX_EPOCH},
 };
 
@@ -35,6 +36,21 @@ pub enum MeterInstrument {
     ObservableGauge(ObservableGauge<f64>),
 }
 
+/// Observations reported by asynchronous instrument callbacks, keyed by instrument name.
+pub type AsynchronousObservations = Arc<Mutex<HashMap<String, Vec<(serde_json::Number, Vec<KeyValue>)>>>>;
+
+fn get_asynchronous_observations(
+    observations: &AsynchronousObservations,
+    name: &str,
+) -> Vec<(serde_json::Number, Vec<KeyValue>)> {
+    observations
+        .lock()
+        .unwrap()
+        .get(name)
+        .cloned()
+        .unwrap_or_default()
+}
+
 pub fn app() -> Router<AppState> {
     Router::new()
         .route("/trace/otel/start_span", post(start_span))
@@ -61,6 +77,7 @@ pub fn app() -> Router<AppState> {
         .route("/metrics/otel/create_asynchronous_counter", post(otel_create_asynchronous_counter))
         .route("/metrics/otel/create_asynchronous_updowncounter", post(otel_create_asynchronous_updowncounter))
         .route("/metrics/otel/create_asynchronous_gauge", post(otel_create_asynchronous_gauge))
+        .route("/metrics/otel/set_asynchronous_observations", post(otel_set_asynchronous_observations))
         .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
         .route("/metrics/otel/shutdown", post(otel_metrics_shutdown))
         .route("/otel/logger/create", post(otel_create_logger))
@@ -696,8 +713,12 @@ async fn otel_create_asynchronous_counter(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
-    let value = args.value.as_u64().unwrap_or(0);
-    let attributes = parse_attributes(Some(&args.attributes));
+    state.otel_asynchronous_observations.lock().unwrap().insert(
+        args.name.clone(),
+        vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
+    );
+    let observations = state.otel_asynchronous_observations.clone();
+    let observations_name = args.name.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -707,7 +728,9 @@ async fn otel_create_asynchronous_counter(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            observer.observe(value, &attributes);
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+                observer.observe(value.as_u64().unwrap_or(0), &attributes);
+            }
         })
         .build();
 
@@ -736,8 +759,12 @@ async fn otel_create_asynchronous_updowncounter(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
-    let value = args.value.as_i64().unwrap_or(0);
-    let attributes = parse_attributes(Some(&args.attributes));
+    state.otel_asynchronous_observations.lock().unwrap().insert(
+        args.name.clone(),
+        vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
+    );
+    let observations = state.otel_asynchronous_observations.clone();
+    let observations_name = args.name.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -747,7 +774,9 @@ async fn otel_create_asynchronous_updowncounter(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            observer.observe(value, &attributes);
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+                observer.observe(value.as_i64().unwrap_or(0), &attributes);
+            }
         })
         .build();
 
@@ -776,8 +805,12 @@ async fn otel_create_asynchronous_gauge(
         .get(&args.meter_name)
         .expect("Meter not found in registered meters");
 
-    let value = args.value.as_f64().unwrap_or(0.0);
-    let attributes = parse_attributes(Some(&args.attributes));
+    state.otel_asynchronous_observations.lock().unwrap().insert(
+        args.name.clone(),
+        vec![(args.value.clone(), parse_attributes(Some(&args.attributes)))],
+    );
+    let observations = state.otel_asynchronous_observations.clone();
+    let observations_name = args.name.clone();
     let name = args.name.clone();
     let unit = args.unit.clone();
     let description = args.description.clone();
@@ -787,7 +820,9 @@ async fn otel_create_asynchronous_gauge(
         .with_unit(unit.clone())
         .with_description(description.clone())
         .with_callback(move |observer| {
-            observer.observe(value, &attributes);
+            for (value, attributes) in get_asynchronous_observations(&observations, &observations_name) {
+                observer.observe(value.as_f64().unwrap_or(0.0), &attributes);
+            }
         })
         .build();
 
@@ -805,6 +840,23 @@ async fn otel_create_asynchronous_gauge(
         .insert(instrument_key, MeterInstrument::ObservableGauge(observable_gauge));
 
     Json(OtelCreateAsynchronousGaugeReturn {})
+}
+
+async fn otel_set_asynchronous_observations(
+    State(state): State<AppState>,
+    Json(args): Json<OtelSetAsynchronousObservationsArgs>,
+) -> Json<OtelSetAsynchronousObservationsReturn> {
+    let observations = args
+        .observations
+        .iter()
+        .map(|o| (o.value.clone(), parse_attributes(Some(&o.attributes))))
+        .collect();
+    state
+        .otel_asynchronous_observations
+        .lock()
+        .unwrap()
+        .insert(args.name, observations);
+    Json(OtelSetAsynchronousObservationsReturn {})
 }
 
 async fn otel_metrics_force_flush(

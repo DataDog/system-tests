@@ -212,6 +212,8 @@ $otelMeters = [];
 $otelCounters = [];
 /** @var array<string, object> $otelMetricInstruments */
 $otelMetricInstruments = [];
+// Observations reported by asynchronous instrument callbacks, keyed by instrument name.
+$otelAsynchronousObservations = [];
 // Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
 // provider selection and shutdown; the app always uses the configured provider.
 $sdkMeterProvider = Globals::meterProvider();
@@ -297,7 +299,7 @@ foreach ([
     'updowncounter' => 'createObservableUpDownCounter',
     'gauge' => 'createObservableGauge',
 ] as $kind => $createMethod) {
-    $router->addRoute('POST', '/metrics/otel/create_asynchronous_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, $kind, $createMethod) {
+    $router->addRoute('POST', '/metrics/otel/create_asynchronous_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, &$otelAsynchronousObservations, $kind, $createMethod) {
         $meterName = arg($req, 'meter_name');
         if (!isset($otelMeters[$meterName])) {
             return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
@@ -307,16 +309,22 @@ foreach ([
         $name = arg($req, 'name');
         $unit = arg($req, 'unit');
         $description = arg($req, 'description');
-        $value = arg($req, 'value');
-        $attributes = arg($req, 'attributes') ?? [];
-        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use ($value, $attributes): void {
-            $observer->observe($value, $attributes);
+        $otelAsynchronousObservations[$name] = [['value' => arg($req, 'value'), 'attributes' => arg($req, 'attributes') ?? []]];
+        // The callback reports the observations currently stored for this instrument name.
+        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use (&$otelAsynchronousObservations, $name): void {
+            foreach ($otelAsynchronousObservations[$name] ?? [] as $observation) {
+                $observer->observe($observation['value'], $observation['attributes'] ?? []);
+            }
         };
         $key = json_encode([$meterName, 'asynchronous_' . $kind, $name, $unit, $description]);
         $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description, [], $callback);
         return jsonResponse(new stdClass());
     }));
 }
+$router->addRoute('POST', '/metrics/otel/set_asynchronous_observations', new ClosureRequestHandler(function (Request $req) use (&$otelAsynchronousObservations) {
+    $otelAsynchronousObservations[arg($req, 'name')] = arg($req, 'observations') ?? [];
+    return jsonResponse(new stdClass());
+}));
 $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
     // The API no-op provider has no buffered metrics or flush method.
     if ($sdkMeterProvider instanceof NoopMeterProvider) {
