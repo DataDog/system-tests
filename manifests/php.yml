@@ -1673,6 +1673,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -1760,7 +1761,7 @@ manifest:
       component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
       component_version: <1.19.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
@@ -1769,34 +1770,34 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)

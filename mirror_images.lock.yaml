@@ -210,6 +210,10 @@ images:
     digest: sha256:8d2866169a9fe29e85560fa71579197dc89b8a0404bb4c85eca768071281cc2d
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-parametric.base-c84d9fa316f4
     tag: php-parametric.base-c84d9fa316f4
+  datadog/system-tests:play.base-6ab8cfc2eec4:
+    digest: sha256:eada89afb44fc59f037be769a06db12307ee852c9cdd06f8548a8e689e64b1fe
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:play.base-6ab8cfc2eec4
+    tag: play.base-6ab8cfc2eec4
   datadog/system-tests:proxy-v1:
     digest: sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:proxy-v1
@@ -230,6 +234,10 @@ images:
     digest: sha256:abbd02d4495d83c66af12b5562ccca0077800cb920142375cd48dcfc8aeb1596
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python_buddy-v2
     tag: python_buddy-v2
+  datadog/system-tests:ratpack.base-0b869346df43:
+    digest: sha256:031c439de683e68443066ddfeb0002e7335c05413bacb405d68eec2cef371442
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ratpack.base-0b869346df43
+    tag: ratpack.base-0b869346df43
   datadog/system-tests:ruby-lambda-runtime.base-982447eea92c:
     digest: sha256:be31866b76472dc9cb854ecd6fc3cbb29eb72e3af2698b5eac593e1f13289c18
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby-lambda-runtime.base-982447eea92c
@@ -246,6 +254,14 @@ images:
     digest: sha256:e49b909d4819f43ba50d034b273341a43e3c7a6c5bee70b287e9ca661479d5a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb
     tag: uwsgi-poc.base-6c2040a5b9bb
+  datadog/system-tests:vertx3.base-0f17e2ccaa86:
+    digest: sha256:09df76a7b09f74452663d1e8f7a072d03591000b70eac130718f29b82aefb45b
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:vertx3.base-0f17e2ccaa86
+    tag: vertx3.base-0f17e2ccaa86
+  datadog/system-tests:vertx4.base-bfe3a1430c7f:
+    digest: sha256:fe4ebf611a01cf90553a6ba4ec3966da78d7c4f67899471c2cb03260b58d4b3d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:vertx4.base-bfe3a1430c7f
+    tag: vertx4.base-bfe3a1430c7f
   debian:bookworm-slim:
     digest: sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
     target: registry.ddbuild.io/system-tests/mirror/debian:bookworm-slim

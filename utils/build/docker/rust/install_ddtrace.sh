@@ -65,6 +65,13 @@ if [ -e /binaries/dd-trace-rs ]; then
     # cargo release requires a git repo; use sed to rewrite the workspace version directly
     sed -i "s/^version = \"${current_version}\"/version = \"${dev_version}\"/" /binaries/dd-trace-rs/Cargo.toml
 
+    # Internal workspace path deps (e.g. datadog-telemetry-api) pin the shared
+    # workspace version in [workspace.dependencies]. Bump those requirements too,
+    # otherwise datadog-opentelemetry inherits a requirement like "^0.6.0" that can
+    # never match the bumped pre-release version ("0.6.1-dev"), and `cargo add
+    # --path` fails with `failed to select a version for the requirement ...`.
+    sed -i "/path = \"/s/version = \"${current_version}\"/version = \"${dev_version}\"/g" /binaries/dd-trace-rs/Cargo.toml
+
     cd /usr/app
     if ! cargo add datadog-opentelemetry --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc >/dev/null 2>&1; then
         fail "could not install datadog-opentelemetry from /binaries/dd-trace-rs. Check that the checkout contains that package."
@@ -143,6 +150,56 @@ align_opentelemetry() {
     fi
 }
 align_opentelemetry
+
+# Installs the datadog-telemetry-api crate (the runtime sampling-decision API)
+# as a direct dependency of the app when the selected datadog-opentelemetry
+# ships it, and enables the app's `manual-sampling` feature so the
+# manual_keep/manual_drop endpoints call set_sampling_decision. When the
+# installed datadog-opentelemetry predates the API, any leftover direct
+# dependency is removed and the feature stays off, so the same app sources
+# build against both old and new datadog-opentelemetry.
+install_datadog_telemetry_api() {
+    local api_installed=0
+
+    if [ -d /binaries/dd-trace-rs/datadog-telemetry-api ]; then
+        echo "install datadog-telemetry-api from /binaries/dd-trace-rs"
+        if cargo add datadog-telemetry-api --path /binaries/dd-trace-rs/datadog-telemetry-api >/dev/null 2>&1; then
+            api_installed=1
+        else
+            fail "could not install datadog-telemetry-api from /binaries/dd-trace-rs. Check that the checkout contains that package."
+        fi
+    else
+        # Released datadog-opentelemetry: add datadog-telemetry-api only when the
+        # resolved datadog-opentelemetry already pulls it in, pinned to the
+        # resolved version: the API installs a process-global that must be the
+        # exact same crate instance as the tracer's, or set_sampling_decision is
+        # a silent no-op.
+        local api_version
+        if api_version=$(cargo metadata --format-version 1 2>/dev/null \
+            | jq -r '[.packages[] | select(.name == "datadog-telemetry-api") | .version] | unique | if length == 1 then .[0] else empty end') \
+            && [ -n "${api_version}" ]; then
+            echo "install datadog-telemetry-api@${api_version} from crates.io"
+            if cargo add "datadog-telemetry-api@=${api_version}" >/dev/null 2>&1; then
+                api_installed=1
+            else
+                fail "could not install datadog-telemetry-api@=${api_version} from crates.io. Check network access and the selected package version."
+            fi
+        else
+            # No datadog-telemetry-api in the graph: make sure it is not a direct
+            # dependency either, so the apps use their no-op fallbacks.
+            cargo remove datadog-telemetry-api >/dev/null 2>&1 || true
+        fi
+    fi
+
+    # Flip the feature declaring whether the sampling-decision API is available
+    # (see the [features] section of the apps' Cargo.toml).
+    if [[ "${api_installed}" == 1 ]]; then
+        sed -i 's/^default = \[\]$/default = ["manual-sampling"]/' /usr/app/Cargo.toml
+    else
+        sed -i 's/^default = \["manual-sampling"\]$/default = []/' /usr/app/Cargo.toml
+    fi
+}
+install_datadog_telemetry_api
 
 # Fails the build if more than one version of `opentelemetry` resolves in the
 # dependency graph, since duplicate versions link as distinct types with
