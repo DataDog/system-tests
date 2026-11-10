@@ -32,7 +32,7 @@ Everything you need to build images and execute test scenarios.
 - [Custom tracer versions](execute/binaries.md) -- testing with local or unmerged tracer builds
 - [Troubleshooting](execute/troubleshooting.md) -- common issues, debugging tips, tracer debug output
 - [SSI quick start](execute/ssi.md) -- choose and run Docker, AWS, or Kubernetes SSI tests
-- [SSI access](execute/ssi-access.md) -- tools, AWS profiles, AppGate, registries, and keys
+- [SSI access](execute/ssi-access.md) -- tools, AWS profiles, network access, registries, and keys
 - [End-to-end execution](execute/e2e.md) -- running end-to-end scenarios
 
 ## Writing and editing tests

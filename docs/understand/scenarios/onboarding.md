@@ -7,8 +7,8 @@ test telemetry to the system-tests Datadog organization.
 
 First, complete the
 [AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
-[AppGate steps](../../execute/ssi-access.md#configure-appgate-for-aws-ssi).
-Connect AppGate to **Commercial Green** before you start.
+[network access steps](../../execute/ssi-access.md#configure-network-access-for-aws-ssi).
+Connect to the Datadog private network before you start.
 
 Run the wizard from the repository root:
 

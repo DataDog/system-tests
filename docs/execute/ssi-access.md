@@ -32,7 +32,7 @@ docker info
 | Test suite | Extra tools | Access |
 | --- | --- | --- |
 | Docker SSI | None for most tests | Private ECR access only for `websphere-app` and `jboss-app` |
-| AWS SSI | AWS CLI, aws-vault, Pulumi 3.69 or later | AWS SSI account, AppGate, and keys for the system-tests Datadog organization |
+| AWS SSI | AWS CLI, aws-vault, and Pulumi 3.69 or later | AWS account, AppGate, and Datadog keys |
 | K8s library injection | Kind or Minikube, Helm | Private ECR access |
 | K8s injector-dev | `injector-dev`, Colima, Minikube, Helm, kubectl | A private registry. Datadog ECR is the default |
 
@@ -45,8 +45,8 @@ AWS SSI and the Kubernetes test suites use different AWS accounts.
 
 | Use | Account | aws-vault profile |
 | --- | --- | --- |
-| Run AWS SSI on EC2 | `dev-apm-dcs-system-tests` (`778997161346`) | `sso-dev-apm-dcs-system-tests-account-admin` |
-| Use SSI images in ECR | `apm-ecosystems-reliability` (`235494822917`) | `sso-apm-ecosystems-reliability-account-admin` |
+| Run AWS SSI on EC2 | `dev-apm-dcs-system-tests` | `sso-dev-apm-dcs-system-tests-account-admin` |
+| Use SSI images in ECR | `apm-ecosystems-reliability` | `sso-apm-ecosystems-reliability-account-admin` |
 
 Follow the internal
 [AWS SSO setup guide](https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started).
@@ -82,38 +82,20 @@ still missing, use the
 [Cloud Access request form](https://datadoghq.atlassian.net/jira/software/c/projects/CLOUDA/forms/form/direct/4/26949).
 Ask for access to the account and profile from the table above.
 
-## Configure AppGate for AWS SSI
+## Configure network access for AWS SSI
 
-AWS SSI creates EC2 instances on a private network. AppGate lets your machine
-reach those instances.
+AWS SSI creates EC2 instances on a private network. Datadog employees need
+access to that network through AppGate.
 
-AppGate grants this access by Datadog team. Your user must belong to at least
-one of these teams:
+The access rules and client profiles are internal. They can also change. Do
+not copy them into this public repository.
 
-- Cloud Networks
-- Ecosystems Reliability
-- Injection Platform
-- Onboarding & Enablement
-- Language Platform
+Before your first run, ask in
+[#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
+for the current setup steps. The maintainers can confirm that your Datadog team
+has access and give you the current client profile.
 
-The
-[AppGate entitlement file](https://github.com/ddoghq/appgate/blob/7c8743702a11ef4909cabcc927e3063f893d71bb/prod-6.5-003-main-configuration-vpn-services-commercial-site-dev-apm-dcs-system-tests-entitlements/dev-apm-dcs-system-tests.tf)
-is the source for this list. If your team is missing, ask in
-[#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
-The maintainers can request an entitlement update. See
-[ddoghq/appgate#2633](https://github.com/ddoghq/appgate/pull/2633) for an
-example.
-
-1. Open the internal
-   [AppGate client profile page](https://datadoghq.atlassian.net/wiki/spaces/IRFCN/pages/7405273906/AppGate+Client+Profile+Links).
-2. Add the **Commercial Green** profile to the AppGate client.
-3. Connect to **Commercial Green** before you run the AWS SSI wizard.
-
-Do not copy AppGate profile links into this repository. The internal page owns
-and updates those links.
-
-If AppGate cannot connect, use the internal
-[AppGate troubleshooting guide](https://datadoghq.atlassian.net/wiki/spaces/IRFCN/pages/4937288309/Appgate+Troubleshooting).
+Connect to the Datadog private network before you run the AWS SSI wizard.
 
 ## Configure AWS SSI secrets
 

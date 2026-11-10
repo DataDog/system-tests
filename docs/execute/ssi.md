@@ -42,7 +42,8 @@ AWS SSI is also called **onboarding**, **auto-injection**, or
 You need Bash, Git, Docker 20.10 or later, and Python 3.12.
 
 Read the [SSI access and prerequisites guide](ssi-access.md). It covers AWS
-profiles, AppGate, ECR, Pulumi, Kubernetes tools, and Datadog keys.
+profiles, private network access, ECR, Pulumi, Kubernetes tools, and Datadog
+keys.
 
 Run every command from the root of the system-tests repository.
 
@@ -71,8 +72,8 @@ AWS SSI creates an EC2 instance and installs SSI on it. It sends telemetry to
 the system-tests Datadog organization.
 
 Complete the [AWS access steps](ssi-access.md#configure-aws-access) and the
-[AppGate steps](ssi-access.md#configure-appgate-for-aws-ssi). Connect AppGate
-to **Commercial Green** before you start.
+[network access steps](ssi-access.md#configure-network-access-for-aws-ssi).
+Connect to the Datadog private network before you start.
 
 Run the wizard:
 
