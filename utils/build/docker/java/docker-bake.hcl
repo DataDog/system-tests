@@ -6,7 +6,10 @@
 
 group "default" {
   targets = [
+    "play",
+    "ratpack",
     "vertx3",
+    "vertx4",
   ]
 }
 
@@ -18,4 +21,22 @@ target "vertx3" {
   inherits   = ["_common"]
   dockerfile = "vertx3.base.Dockerfile"
   tags       = ["datadog/system-tests:vertx3.base"]
+}
+
+target "play" {
+  inherits   = ["_common"]
+  dockerfile = "play.base.Dockerfile"
+  tags       = ["datadog/system-tests:play.base"]
+}
+
+target "ratpack" {
+  inherits   = ["_common"]
+  dockerfile = "ratpack.base.Dockerfile"
+  tags       = ["datadog/system-tests:ratpack.base"]
+}
+
+target "vertx4" {
+  inherits   = ["_common"]
+  dockerfile = "vertx4.base.Dockerfile"
+  tags       = ["datadog/system-tests:vertx4.base"]
 }
