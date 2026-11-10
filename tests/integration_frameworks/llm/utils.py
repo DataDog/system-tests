@@ -322,6 +322,11 @@ def ai_guard_messages(span: dict) -> list[dict]:
     return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
 
 
+def ai_guard_mcp_servers(span: dict) -> list[dict] | None:
+    """The MCP servers AI Guard evaluated, as captured in meta_struct.ai_guard.mcp_servers (None when absent)."""
+    return span.get("meta_struct", {}).get("ai_guard", {}).get("mcp_servers")
+
+
 def _wait_for(
     test_agent: TestAgentAPI, select: Callable[[list[list[dict]]], list[dict]], wait_loops: int = 30
 ) -> list[dict]:
