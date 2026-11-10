@@ -128,12 +128,13 @@ jobs:
         max-retries: '120'
         # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection),
         # system_tests_e2e_run_pipeline_[0-2], mirror_images, build_base_images,
-        # *DOC (docker ssi), or *DO5A (docker ssi crashtracking).
+        # build_base_images_amd64, build_base_images_arm64, *DOC (docker ssi),
+        # or *DO5A (docker ssi crashtracking).
         # Also ignore the job that waits for the tests to succeed before adding
         # to the merge queue.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$)).*$(?<!DOC)(?<!DO5A)
+          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$|build_base_images_amd64$|build_base_images_arm64$)).*$(?<!DOC)(?<!DO5A)
           devflow/merge
           devflow/mergegate
           DDCI Status
