@@ -2,9 +2,10 @@
 
 from unittest.mock import patch
 
-from utils import features, interfaces, pytest, scenarios
+from utils import features, interfaces, pytest, scenario_groups, scenarios
 from utils.dd_types import DataDogAgentTrace, DataDogAgentSpan
 from utils._context.weblog_metadata import WeblogMetaData
+from utils._context._scenarios.security_smoke import SecuritySmoke
 from utils._weblog import HttpResponse
 from tests.appsec.smoke_tests.utils import assert_backend_blocked, get_backend_report
 
@@ -105,18 +106,23 @@ class Test_SecuritySmokeMatrix:
     )
     def test_one_weblog_per_topology(self, library: str, weblog: str) -> None:
         for scenario in (
-            scenarios.security_smoke,
-            scenarios.security_smoke_otel_api,
-            scenarios.security_smoke_ddot,
-            scenarios.security_smoke_runtime_activation,
-            scenarios.security_smoke_otel_api_runtime_activation,
-            scenarios.security_smoke_ddot_runtime_activation,
+            *scenario_groups.security_smoke.scenarios,
+            *scenario_groups.security_smoke_runtime_activation.scenarios,
         ):
             selected = [
                 metadata.name
                 for metadata in WeblogMetaData.load(library)
                 if metadata.support_scenario(scenario.name, scenario.weblog_categories)
             ]
-            ddot = scenario in (scenarios.security_smoke_ddot, scenarios.security_smoke_ddot_runtime_activation)
-            expected = [] if ddot and library in ("ruby", "php") else [weblog]
-            assert selected == expected
+            assert selected == [weblog]
+
+    def test_complete_matrix(self) -> None:
+        for group in (scenario_groups.security_smoke, scenario_groups.security_smoke_runtime_activation):
+            assert len(group.scenarios) == 8
+            configurations = set()
+            for scenario in group.scenarios:
+                assert isinstance(scenario, SecuritySmoke)
+                configurations.add((scenario.otel_api, scenario.otlp, scenario.otel_semantics))
+            assert configurations == {
+                (api, otlp, semantics) for api in (False, True) for otlp in (False, True) for semantics in (False, True)
+            }

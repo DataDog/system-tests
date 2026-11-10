@@ -1,6 +1,11 @@
 name: Testing the test
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      security_smoke_matrix:
+        description: "Run every security-smoke configuration on one released weblog per language, forcing all product checks"
+        type: boolean
+        default: false
 
   pull_request:
     branches:
@@ -69,7 +74,48 @@ jobs:
           echo "This PR can't be merged, due to the title specifying a target branch"
           exit 1
 
+  security_smoke_matrix:
+    name: Security smoke (${{ matrix.library }})
+    if: inputs.security_smoke_matrix
+    needs: [lint, test_the_test]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - library: python
+            weblog: flask-poc
+          - library: java
+            weblog: spring-boot
+          - library: nodejs
+            weblog: express5
+          - library: dotnet
+            weblog: poc
+          - library: golang
+            weblog: net-http-orchestrion
+          - library: php
+            weblog: apache-mod-8.2
+          - library: ruby
+            weblog: rails80
+    uses: ./.github/workflows/system-tests.yml
+    permissions:
+      contents: read
+      id-token: write
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      library: ${{ matrix.library }}
+      ref: ${{ github.sha }}
+      scenarios: ''
+      scenarios_groups: security_smoke,security_smoke_runtime_activation
+      weblogs: ${{ matrix.weblog }}
+      force_execute: tests/appsec/smoke_tests/test_security.py
+      skip_empty_scenarios: false
+      _system_tests_dev_mode: false
+      artifact_retention_days: 7
+
   system_tests:
+    if: ${{ !inputs.security_smoke_matrix }}
     name: System Tests
     needs:
     - lint
@@ -119,6 +165,7 @@ jobs:
       actions: read
     needs:
     - system_tests
+    - security_smoke_matrix
     if: '!cancelled()'
     steps:
     - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e

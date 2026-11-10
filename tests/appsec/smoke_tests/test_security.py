@@ -1,15 +1,16 @@
-"""Security product contracts at backend intake, shared by all three topologies."""
+"""Security product contracts at backend intake, shared by the complete API/export/semantics matrix."""
 
 import json
 from pathlib import Path
 
 import jsonschema
 
-from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
+from utils import context, features, interfaces, remote_config as rc, scenario_groups, scenarios, weblog
 from utils.dd_types import is_same_boolean
 from utils.dd_types import DataDogAgentSpan
 from utils._weblog import HttpResponse
 from utils._context._scenarios._core import FakeDatadogKey
+from utils._context._scenarios.security_smoke import SecuritySmoke
 from utils.telemetry_utils import TelemetryUtils
 from tests.appsec.smoke_tests.utils import (
     BaseRaspSmokeTests,
@@ -23,17 +24,13 @@ from tests.appsec.smoke_tests.utils import (
 
 
 @features.security_events_metadata
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Threats(BaseThreatsSmokeTests):
     _rc_state = rc.backend_rc_state
 
 
 @features.security_events_metadata
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_EventTags:
     def setup_event_tags(self) -> None:
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"})
@@ -52,7 +49,8 @@ class Test_SecuritySmoke_EventTags:
             assert span.meta.get("http.method") == "GET"
             assert span.get_tag("http.status_code") == str(self.r.status_code)
             assert span.meta.get("http.client_ip") == "42.42.42.42"
-            assert span.meta.get("network.client.ip")
+            # Either peer carrier is valid when the resolved AppSec client IP survives.
+            assert span.meta.get("network.client.ip") or span.meta.get("network.peer.address")
             assert "Arachni/v1" in span.meta.get("http.useragent", "")
             for tag in ("_dd.appsec.event_rules.version", "_dd.runtime_family"):
                 assert isinstance(span.meta.get(tag), str), f"Missing backend tag {tag}"
@@ -72,18 +70,14 @@ class Test_SecuritySmoke_EventTags:
 @features.rasp_server_side_request_forgery
 @features.rasp_sql_injection
 @features.rasp_shell_injection
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Rasp(BaseRaspSmokeTests):
     pass
 
 
 @features.rasp_span_tags
 @features.rasp_local_file_inclusion
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_RaspTags:
     def setup_span_tags(self) -> None:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -101,9 +95,7 @@ class Test_SecuritySmoke_RaspTags:
 
 @features.rasp_stack_trace
 @features.rasp_local_file_inclusion
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_RaspStack:
     def setup_stack_trace(self) -> None:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -132,26 +124,20 @@ class Test_SecuritySmoke_RaspStack:
 
 
 @features.waf_telemetry
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Telemetry(BaseTelemetrySmokeTests):
     pass
 
 
 @features.threats_configuration
 @features.appsec_request_blocking
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_RemoteConfig(BaseRemoteConfigSmokeTests):
     _rc_state = rc.backend_rc_state
 
 
 @features.changing_rules_using_rc
-@scenarios.security_smoke_runtime_activation
-@scenarios.security_smoke_otel_api_runtime_activation
-@scenarios.security_smoke_ddot_runtime_activation
+@scenario_groups.security_smoke_runtime_activation
 class Test_SecuritySmoke_RuntimeActivation:
     def setup_activation_cycle(self) -> None:
         state = rc.backend_rc_state
@@ -181,7 +167,8 @@ class Test_SecuritySmoke_RuntimeActivation:
             )
             assert not list(interfaces.mocked_backend.get_appsec_data(response))
         assert self.enabled.status_code == 200
-        if context.scenario == scenarios.security_smoke_ddot_runtime_activation:
+        assert isinstance(context.scenario, SecuritySmoke)
+        if context.scenario.otlp:
             assert list(interfaces.open_telemetry.get_otel_spans(self.enabled)), "Activation must use OTLP in DDOT"
             assert not list(interfaces.library.get_traces(self.enabled)), "DDOT must not fall back to native export"
         else:
@@ -190,9 +177,7 @@ class Test_SecuritySmoke_RuntimeActivation:
 
 
 @features.api_security_schemas
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_ApiSecurity:
     def setup_api_security_smoke(self) -> None:
         self.r = weblog.post(
@@ -248,9 +233,7 @@ class Test_SecuritySmoke_ApiSecurity:
 
 
 @features.auth_schemas
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_AuthSchema:
     def setup_jwt_schema(self) -> None:
         # Well-formed JWT with a synthetic signature and a single string claim.
@@ -272,17 +255,13 @@ class Test_SecuritySmoke_AuthSchema:
 
 
 @features.user_monitoring
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_UserEvents(BaseUserEventsSmokeTests):
     pass
 
 
 @features.weak_hash_vulnerability_detection
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Iast:
     def setup_iast_report(self) -> None:
         self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
@@ -302,9 +281,7 @@ class Test_SecuritySmoke_Iast:
 
 
 @features.dependencies_collected
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Sca:
     def setup_dependency_inventory(self) -> None:
         path = "/" if context.library.name in ("python", "golang", "ruby") else "/load_dependency"
@@ -339,9 +316,7 @@ class Test_SecuritySmoke_Sca:
 
 
 @features.ai_guard
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_AiGuard:
     def setup_allow(self) -> None:
         # These inputs match the existing AI Guard evaluation cassettes.
@@ -390,6 +365,8 @@ class Test_SecuritySmoke_AiGuard:
 
 @features.otel_api
 @scenarios.security_smoke_otel_api
+@scenarios.security_smoke_otel_api_semantics
+@scenarios.security_smoke_otel_api_otlp
 @scenarios.security_smoke_ddot
 class Test_SecuritySmoke_OtelContext:
     def setup_otel_context(self) -> None:
@@ -409,18 +386,42 @@ class Test_SecuritySmoke_OtelContext:
 
 
 @features.otel_api
-@scenarios.security_smoke
-@scenarios.security_smoke_otel_api
-@scenarios.security_smoke_ddot
+@scenario_groups.security_smoke
 class Test_SecuritySmoke_Transport:
     def setup_selected_transport(self) -> None:
         self.r = weblog.get("/waf")
 
     def test_selected_transport(self) -> None:
         assert self.r.status_code == 200
-        interfaces.mocked_backend.assert_trace_exists(self.r)
-        if context.scenario == scenarios.security_smoke_ddot:
-            assert list(interfaces.open_telemetry.get_otel_spans(self.r)), "DDOT smoke must actually export OTLP"
-            assert not list(interfaces.library.get_traces(self.r)), "DDOT must not fall back to native trace export"
+        assert isinstance(context.scenario, SecuritySmoke)
+        if context.scenario.otlp:
+            assert list(interfaces.open_telemetry.get_otel_spans(self.r)), (
+                "Selected OTLP export must actually emit OTLP"
+            )
+            assert not list(interfaces.library.get_traces(self.r)), (
+                "OTLP selection must not fall back to native trace export"
+            )
         else:
             assert list(interfaces.library.get_traces(self.r)), "Native smoke must actually export Datadog traces"
+
+        interfaces.mocked_backend.assert_trace_exists(self.r)
+
+
+@features.otel_api
+@scenario_groups.security_smoke
+class Test_SecuritySmoke_Semantics:
+    def setup_http_conventions(self) -> None:
+        self.r = weblog.get("/waf")
+
+    def test_http_conventions(self) -> None:
+        assert self.r.status_code == 200
+        assert isinstance(context.scenario, SecuritySmoke)
+        if context.scenario.otlp:
+            attributes = [span.get("attributes", {}) for _, _, span in interfaces.open_telemetry.get_otel_spans(self.r)]
+        else:
+            attributes = [span.meta for _, _, span in interfaces.library.get_spans(self.r)]
+        assert attributes, "No spans on the selected transport; this matrix row is not covered"
+        method = "http.request.method" if context.scenario.otel_semantics else "http.method"
+        assert any(tags.get(method) == "GET" for tags in attributes), (
+            f"Requested OTel semantics={context.scenario.otel_semantics}, but SDK did not emit {method}"
+        )

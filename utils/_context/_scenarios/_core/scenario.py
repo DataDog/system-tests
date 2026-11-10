@@ -58,6 +58,8 @@ class _ScenarioGroups:
     lib_injection_appsec = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
+    security_smoke = ScenarioGroup()
+    security_smoke_runtime_activation = ScenarioGroup()
     profiling = ScenarioGroup()
     sampling = ScenarioGroup()
     onboarding = ScenarioGroup()

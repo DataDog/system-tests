@@ -168,10 +168,20 @@ from .open_telemetry import (
 )
 from .security_smoke import (
     SecuritySmoke,
+    SecuritySmokeOtelSemantics,
     SecuritySmokeOtelApi,
+    SecuritySmokeOtelApiSemantics,
+    SecuritySmokeOtlp,
+    SecuritySmokeOtlpSemantics,
+    SecuritySmokeOtelApiOtlp,
     SecuritySmokeDdot,
     SecuritySmokeRuntimeActivation,
+    SecuritySmokeOtelSemanticsRuntimeActivation,
     SecuritySmokeOtelApiRuntimeActivation,
+    SecuritySmokeOtelApiSemanticsRuntimeActivation,
+    SecuritySmokeOtlpRuntimeActivation,
+    SecuritySmokeOtlpSemanticsRuntimeActivation,
+    SecuritySmokeOtelApiOtlpRuntimeActivation,
     SecuritySmokeDdotRuntimeActivation,
 )
 from .otel_semantics import (
@@ -312,10 +322,20 @@ class _Scenarios:
     runtime_sca_reachability = RuntimeScaReachability()
     appsec_standalone = AppsecStandalone()
     security_smoke = SecuritySmoke()
+    security_smoke_otel_semantics = SecuritySmokeOtelSemantics()
     security_smoke_otel_api = SecuritySmokeOtelApi()
+    security_smoke_otel_api_semantics = SecuritySmokeOtelApiSemantics()
+    security_smoke_otlp = SecuritySmokeOtlp()
+    security_smoke_otlp_semantics = SecuritySmokeOtlpSemantics()
+    security_smoke_otel_api_otlp = SecuritySmokeOtelApiOtlp()
     security_smoke_ddot = SecuritySmokeDdot()
     security_smoke_runtime_activation = SecuritySmokeRuntimeActivation()
+    security_smoke_otel_semantics_runtime_activation = SecuritySmokeOtelSemanticsRuntimeActivation()
     security_smoke_otel_api_runtime_activation = SecuritySmokeOtelApiRuntimeActivation()
+    security_smoke_otel_api_semantics_runtime_activation = SecuritySmokeOtelApiSemanticsRuntimeActivation()
+    security_smoke_otlp_runtime_activation = SecuritySmokeOtlpRuntimeActivation()
+    security_smoke_otlp_semantics_runtime_activation = SecuritySmokeOtlpSemanticsRuntimeActivation()
+    security_smoke_otel_api_otlp_runtime_activation = SecuritySmokeOtelApiOtlpRuntimeActivation()
     security_smoke_ddot_runtime_activation = SecuritySmokeDdotRuntimeActivation()
     appsec_apm_standalone = AppsecApmStandalone()
     appsec_standalone_apm_standalone = AppsecStandaloneApmStandalone()
