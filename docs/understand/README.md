@@ -18,6 +18,9 @@ Scenarios define what gets tested and how. See the [scenarios overview](scenario
 - [Kubernetes lib injection](scenarios/k8s_library_injection_overview.md) -- auto-instrumentation in K8s
 - [Scenario lifecycle](scenarios/README.md#scenario-lifecycle) -- how scenarios execute step by step
 
+To run any SSI test suite, use the
+[SSI quick start](../execute/ssi.md).
+
 ## Weblogs
 
 Weblogs are the test applications that tracers instrument. See the [weblogs overview](weblogs/README.md), or:

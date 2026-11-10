@@ -1,3 +1,26 @@
+# Docker SSI testing
+
+## Quick start
+
+Docker SSI is the fastest way to test library injection. If you are new to
+SSI, start here.
+
+Check the [common requirements](../../execute/ssi-access.md#common-requirements).
+Most test cases need no other access.
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/docker_ssi_wizard.sh
+```
+
+The wizard selects a valid test case and prints the final command.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run Docker SSI manually](#run-the-scenario)
+
+## Contents
+
 1. [Overall](#Overall)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
