@@ -398,8 +398,8 @@ if it's the first time you execute the Pulimi, you probably need to run the comm
 
 All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before run the tests:
 
-- Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
-- Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
+- Set up system-tests first. See the [quick start](../../../README.md#quick-start).
+- The wizard can install the Python tools. It runs `./build.sh -i runner`.
 
 ### Configure the environment variables
 

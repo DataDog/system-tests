@@ -18,7 +18,7 @@ To run the K8s Injector Dev scenarios, you need to meet the following requiremen
 
 ### System-Tests Requirements
 
-First, you must satisfy the standard system-tests requirements. For detailed information about these requirements, please refer to the [system-tests README](../README.md#minimal-requirements-end-to-end-testing).
+Set up system-tests first. See the [quick start](../../../README.md#quick-start).
 
 ### Injector-Dev Specific Requirements
 
@@ -201,5 +201,3 @@ The K8s Injector Dev tests currently support the following scenarios:
 - **K8S_INJECTOR_DEV_SINGLE_SERVICE**: Tests single-service library injection in a Kubernetes environment
 
 The scenario matrix and supported weblogs are defined in the configuration file `utils/scripts/ci_orchestrators/k8s_injector_dev.json`.
-
-<!-- Content will be added here in the future -->
