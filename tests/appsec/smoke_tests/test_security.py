@@ -47,7 +47,7 @@ class Test_SecuritySmoke_EventTags:
         assert spans, "Backend did not receive a security event"
         for span in spans:
             assert span.get_span_service() == "weblog"
-            assert span.meta.get("env") == "system-tests"
+            assert span.get_span_env() == "system-tests"
             assert span.metrics.get("_dd.appsec.enabled") == 1
             assert span.meta.get("http.method") == "GET"
             assert span.get_tag("http.status_code") == str(self.r.status_code)

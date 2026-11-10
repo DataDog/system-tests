@@ -24,6 +24,19 @@ class Test_SecuritySmokeReports:
         assert get_backend_report(self._span(trace_format, report), "appsec") == report
 
     @pytest.mark.parametrize(
+        ("trace_format", "location"), [("legacy", "meta"), ("legacy", "payload"), ("efficient", "envRef")]
+    )
+    def test_environment_encoding(self, trace_format: str, location: str) -> None:
+        span = self._span(trace_format, None)
+        if location == "meta":
+            span.meta["env"] = "system-tests"
+        elif location == "payload":
+            span.trace.data["request"] = {"content": {"env": "system-tests"}}
+        else:
+            span.raw_span["envRef"] = "system-tests"
+        assert span.get_span_env() == "system-tests"
+
+    @pytest.mark.parametrize(
         ("trace_format", "status", "location", "valid"),
         [
             ("legacy", "403", "meta", True),

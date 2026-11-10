@@ -133,6 +133,12 @@ class DataDogAgentSpan(ABC):
 
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
+    def get_span_env(self) -> str:
+        """Read the environment from its intake field, falling back to legacy metadata."""
+        if self.trace.format == AgentTraceFormat.efficient_trace_payload_format:
+            return self.raw_span.get("envRef", self.meta.get("env", ""))
+        return self.meta.get("env", self.trace.data.get("request", {}).get("content", {}).get("env", ""))
+
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
         """Return a tag using the backend's precedence of meta over metrics.
 

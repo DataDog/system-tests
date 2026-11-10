@@ -16,13 +16,13 @@ Reports must arrive in an encoding the backend consumes. Structured reports must
 
 This follows the [backend intake mapper](https://github.com/DataDog/dd-go/blob/main/trace/intake/events/mapper.go), which decodes MessagePack in `MetaStruct` separately from ordinary `Meta` tags. The [Agent OTLP mapper](https://github.com/DataDog/datadog-agent/blob/main/pkg/trace/transform/transform.go) and [SDK OTLP encoder](https://github.com/DataDog/libdatadog/blob/main/libdd-trace-utils/src/otlp_encoder/mapper.rs) are the conversion points to inspect when structured reports do not survive the DDOT path.
 
-The OTel variants also call the weblog's OTel propagation API. The propagated trace ID must match the backend attack trace. This verifies an actual API interaction; it does not replace the broader [parametric interoperability tests](../../../tests/parametric/test_otel_api_interoperability.py).
+Where the selected weblog implements the OTel propagation API, its propagated trace ID must match the backend attack trace. PHP Apache, Ruby Rails 8, and Go net/http with Orchestrion currently lack this endpoint; their API-context probes are explicitly incomplete. This check does not replace the broader [parametric interoperability tests](../../../tests/parametric/test_otel_api_interoperability.py).
 
 Each topology also has a `*_RUNTIME_ACTIVATION` variant. It runs only the activation smoke probe, starting without `DD_APPSEC_ENABLED` and with IAST disabled, as in the existing runtime activation scenario. Signed `ASM_FEATURES` configuration travels from the mocked backend through the Agent. The probe checks initial inactivity, activation and acknowledgement, an attack report at backend intake, then deactivation and absence of reports on a trace that still arrives. Configuration is cleared after the probe. These small variants keep activation independent from the main battery's explicitly enabled AppSec process.
 
 ## Bounded matrix
 
-Weblog metadata opts in one framework per language: Python Flask, Java Spring Boot, Node.js Express 5, Go net/http with Orchestrion, .NET POC, Ruby Rails 8, and PHP Apache 8.2. Ruby and PHP do not opt into the DDOT scenario because their SDKs do not export OTLP traces. Unsupported products remain explicit in manifests. PHP's inventory probe is marked as an incomplete test app because the selected plain weblog has no dependency inventory fixture. Add a topology to a caller's scenario list or select the `open_telemetry`/`appsec` group to run it; these scenarios do not expand every framework combination.
+Weblog metadata opts in one framework per language: Python Flask, Java Spring Boot, Node.js Express 5, Go net/http with Orchestrion, .NET POC, Ruby Rails 8, and PHP Apache 8.2. Ruby and PHP do not opt into the DDOT scenario because their SDKs do not export OTLP traces. Unsupported products remain explicit in manifests. PHP's inventory probe checks the existing Composer fixture; Ruby checks Bundler after a normal request. Add a topology to a caller's scenario list or select the `open_telemetry`/`appsec` group to run it; these scenarios do not expand every framework combination.
 
 ## Run
 
