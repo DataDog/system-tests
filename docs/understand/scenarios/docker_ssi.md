@@ -44,7 +44,9 @@ The Docker SSI are good for:
 
 You need Docker.
 
-A private registry is optional. The wizard asks about it. Press Enter to skip it. The tests then use public images.
+Most base images are public. Skip the private registry for those images.
+
+`websphere-app` and `jboss-app` use a private image. Both run in `DOCKER_SSI_SERVICENAMING`. Log in to the private registry before that run. The wizard can do the login.
 
 ### System-tests requirements
 
@@ -63,8 +65,8 @@ Run the wizard:
 The wizard asks you to:
 
 1. Load the system-tests requirements.
-2. Set a private registry, or skip it.
-3. Choose a language. Ruby is not supported.
+2. Skip the private registry for a public image. Log in for `websphere-app` or `jboss-app`.
+3. Choose a language.
 4. Choose a scenario, a weblog, and a base image.
 5. Choose a runtime, when the weblog needs one.
 6. Choose `prod` or `dev`. `prod` uses released components. `dev` uses snapshots.
