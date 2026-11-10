@@ -32,6 +32,7 @@ class Test_SecuritySmokeReports:
             ("efficient", "meta"),
             ("efficient", "payload"),
             ("efficient", "tracer_payload"),
+            ("efficient", "indexed_tracer_payload"),
         ],
     )
     def test_environment_encoding(self, trace_format: str, location: str) -> None:
@@ -41,6 +42,10 @@ class Test_SecuritySmokeReports:
             span.meta["env"] = "system-tests"
         elif location == "payload":
             content["env"] = "system-tests"
+        elif location == "indexed_tracer_payload":
+            content["idxTracerPayloads"] = [
+                {"strings": ["", "system-tests"], "envRef": 1, "chunks": [span.trace.raw_trace]}
+            ]
         elif location == "tracer_payload":
             content["idxTracerPayloads"] = [
                 {"envRef": "unrelated-env", "chunks": [{}]},

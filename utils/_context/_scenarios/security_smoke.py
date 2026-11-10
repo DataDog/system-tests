@@ -85,6 +85,14 @@ class SecuritySmoke(EndToEndScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
+        if self.otlp and self.weblog_infra.library_name == "java":
+            # Java only reads OTEL_* aliases with its bridge enabled. Use its native
+            # configuration keys so OTLP also works with the Datadog API selection.
+            environment = self.weblog_container.environment
+            environment["DD_TRACE_OTEL_EXPORTER"] = "otlp"
+            environment["DD_OTLP_TRACES_PROTOCOL"] = "HTTP_PROTOBUF"
+            environment["DD_OTLP_TRACES_ENDPOINT"] = environment["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"]
+            environment["DD_OTLP_TRACES_HEADERS"] = environment["OTEL_EXPORTER_OTLP_TRACES_HEADERS"]
         if self.otlp and self.weblog_infra.library_name in ("nodejs", "dotnet"):
             # HTTP/JSON also covers .NET versions predating its protobuf exporter.
             self.weblog_container.environment["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/json"

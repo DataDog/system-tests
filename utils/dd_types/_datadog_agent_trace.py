@@ -140,7 +140,11 @@ class DataDogAgentSpan(ABC):
         if self.trace.format == AgentTraceFormat.efficient_trace_payload_format:
             for payload in content.get("idxTracerPayloads", []):
                 if any(chunk is self.trace.raw_trace for chunk in payload.get("chunks", [])):
-                    fallback = payload.get("envRef") or fallback
+                    environment = payload.get("envRef")
+                    if isinstance(environment, int):
+                        strings = payload.get("strings", [])
+                        environment = strings[environment] if 0 <= environment < len(strings) else None
+                    fallback = environment or fallback
                     break
             # SpansV1Parser currently promotes env attributes and tracer-payload env,
             # but does not promote the span's envRef. Agent env is the final fallback.
