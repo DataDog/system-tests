@@ -60,7 +60,6 @@ ssi_tests:
       # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
       SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
     before_script:
-      - !reference [.base_job_onboarding, before_script]
       # Tag before provisioning, while Vault credentials are still available.
       - |
         DATADOG_API_KEY="$(read-system-tests-secret test_optimization dd_api_key)" &&

@@ -8,7 +8,7 @@ import yaml
 
 from utils import pytest, scenarios
 from utils.scripts import gitlab_finalize_job as finalizer
-from utils.scripts.ci_orchestrators.gitlab_exporter import GitLabLoader, build_ssi_gitlab_pipeline
+from utils.scripts.ci_orchestrators.gitlab_exporter import build_ssi_gitlab_pipeline
 
 BASE_JOBS_PROFILES = {
     ".base_docker_ssi_job": "docker",
@@ -173,10 +173,7 @@ def test_entry_point_runs_the_finalizer():
 
 @scenarios.test_the_test
 def test_base_jobs_call_the_finalizer_from_the_system_tests_checkout():
-    pipeline = yaml.load(
-        Path(".gitlab/ssi_gitlab-ci.yml").read_text(),
-        Loader=GitLabLoader,  # noqa: S506 - GitLabLoader extends SafeLoader.
-    )
+    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
 
     for base_job, profile in BASE_JOBS_PROFILES.items():
         assert pipeline[base_job]["variables"]["SYSTEM_TESTS_DIR"] == "$CI_PROJECT_DIR"
@@ -216,21 +213,14 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
 
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
     before_script = pipeline[".base_job_onboarding_system_tests"]["before_script"]
-    assert before_script[0] == [".base_job_onboarding", "before_script"]
-    assert "ci.framework.name:system-tests" in before_script[1]
-    generated = yaml.dump(pipeline, sort_keys=False)
-    assert "!reference [.base_job_onboarding, before_script]" in generated
-    assert yaml.load(generated, Loader=GitLabLoader) == pipeline  # noqa: S506 - GitLabLoader extends SafeLoader.
+    assert "ci.framework.name:system-tests" in before_script[0]
 
 
 @pytest.mark.parametrize(("secret_exit", "tag_exit"), [(0, 0), (2, 0), (0, 2)])
 @scenarios.test_the_test
 def test_aws_before_script_tagging_is_best_effort(secret_exit: int, tag_exit: int, tmp_path: Path) -> None:
-    pipeline = yaml.load(
-        Path(".gitlab/ssi_gitlab-ci.yml").read_text(),
-        Loader=GitLabLoader,  # noqa: S506 - GitLabLoader extends SafeLoader.
-    )
-    tag_command = pipeline[".base_job_onboarding_system_tests"]["before_script"][1]
+    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
+    tag_command = pipeline[".base_job_onboarding_system_tests"]["before_script"][0]
     secret_reader = _write(tmp_path / "read-system-tests-secret", f"#!/bin/sh\necho test-key\nexit {secret_exit}\n")
     tagger = _write(
         tmp_path / "datadog-ci",

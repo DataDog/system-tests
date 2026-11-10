@@ -7,26 +7,6 @@ from utils._context._scenarios._core.scenario import Scenario
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 
 
-class GitLabReference(list[str]):
-    """A GitLab !reference that must survive pipeline loading and generation."""
-
-
-class GitLabLoader(yaml.SafeLoader):
-    """Load GitLab CI YAML, including references to jobs in remote includes."""
-
-
-def _construct_reference(loader: GitLabLoader, node: yaml.SequenceNode) -> GitLabReference:
-    return GitLabReference(loader.construct_sequence(node))
-
-
-def _represent_reference(dumper: yaml.Dumper, reference: GitLabReference) -> yaml.SequenceNode:
-    return dumper.represent_sequence("!reference", reference, flow_style=True)
-
-
-GitLabLoader.add_constructor("!reference", _construct_reference)
-yaml.Dumper.add_representer(GitLabReference, _represent_reference)
-
-
 def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3) -> dict:
     """Generate a unique prefix for each scenario name/stage
     collect all the possible scenarios to generate unique prefixes for each scenario
@@ -105,7 +85,7 @@ def build_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
     pipeline_data = None
 
     with open(pipeline_file, encoding="utf-8") as f:
-        pipeline_data = yaml.load(f, Loader=GitLabLoader)  # noqa: S506 - GitLabLoader extends SafeLoader.
+        pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
     result_pipeline["include"] = pipeline_data["include"]
     result_pipeline["variables"] = pipeline_data["variables"]
     if (
