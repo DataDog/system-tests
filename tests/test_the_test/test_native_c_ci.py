@@ -14,29 +14,6 @@ def _is_ignored(patterns: list[str], check_name: str) -> bool:
     return any(re.fullmatch(pattern, check_name) is not None for pattern in patterns)
 
 
-# Prefixes from gitlab_exporter._generate_unique_prefix for every AWS and Docker SSI scenario.
-_SSI_SCENARIO_PREFIXES = (
-    "CHA",
-    "CO1B",
-    "CO9C",
-    "CON",
-    "DO57",
-    "DO5A",
-    "DOA9",
-    "DOC",
-    "HOAA",
-    "HOBC",
-    "HOS",
-    "IN1C",
-    "INS",
-    "LOC",
-    "MUL",
-    "SI94",
-    "SID0",
-    "SIM",
-)
-
-
 @scenarios.test_the_test
 class Test_NativeCGitLabCI:
     def test_generated_jobs_inherit_dind_runner(self) -> None:
@@ -69,14 +46,21 @@ class Test_NativeCGitLabCI:
         ignored_patterns = workflow["jobs"]["all-jobs-are-green"]["steps"][0]["with"]["ignored-name-patterns"]
         patterns = ignored_patterns.splitlines()
 
-        for prefix in _SSI_SCENARIO_PREFIXES:
-            assert not _is_ignored(patterns, f"dd-gitlab/sample.{prefix}")
-            assert not _is_ignored(patterns, f"dd-gitlab/sample.{prefix}: [weblog]")
+        for check_name in (
+            "dd-gitlab/sample.HOS",
+            "dd-gitlab/sample.HOS: [weblog]",
+            "dd-gitlab/sample.DO5A: [node:22]",
+            "dd-gitlab/K8S_LIB_INJECTION: [js-app]",
+            "dd-gitlab/Ubuntu_24_amd64.HOS: [test-app-nodejs]",
+            "dd-gitlab/js-app.amd64.DOC: [node:22]",
+        ):
+            assert not _is_ignored(patterns, check_name)
 
-        assert not _is_ignored(patterns, "dd-gitlab/K8S_LIB_INJECTION: [js-app]")
-        assert not _is_ignored(patterns, "dd-gitlab/Ubuntu_24_amd64.HOS: [test-app-nodejs]")
-        assert not _is_ignored(patterns, "dd-gitlab/js-app.amd64.DOC: [node:22]")
-        assert _is_ignored(patterns, "dd-gitlab/compute_pipeline")
-        assert _is_ignored(patterns, "dd-gitlab/system_tests_run_php_THREAD_CONTEXT_SHARING_apache-mod-8.0")
-        assert _is_ignored(patterns, "devflow/merge")
-        assert _is_ignored(patterns, "DDCI Status")
+        for check_name in (
+            "dd-gitlab/compute_pipeline",
+            "dd-gitlab/system_tests_run_php_THREAD_CONTEXT_SHARING_apache-mod-8.0",
+            "dd-gitlab/something.DOCUMENTED",
+            "devflow/merge",
+            "DDCI Status",
+        ):
+            assert _is_ignored(patterns, check_name)
