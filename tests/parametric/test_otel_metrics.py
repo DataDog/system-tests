@@ -27,6 +27,10 @@ from .otel_env_vars.utils import (
 
 
 LIFECYCLE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_METRIC_EXPORT_INTERVAL": "3600000"}
+TEMPORALITY_PREFERENCE_ENVVARS = [
+    {**LIFECYCLE_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": temporality}
+    for temporality in ("delta", "cumulative", "lowmemory")
+]
 ASYNCHRONOUS_INSTRUMENT_CREATORS = {
     "counter": APMLibrary.otel_create_asynchronous_counter,
     "updowncounter": APMLibrary.otel_create_asynchronous_updowncounter,
@@ -1007,23 +1011,28 @@ class Test_Otel_Metrics_Asynchronous_Stale_Series:
     The OTel metrics SDK spec says an implementation SHOULD NOT export a previously observed attribute set
     that is not observed during a successful callback. Otherwise a series whose source went away (for example
     a closed connection pool) keeps being exported with a frozen value.
+
+    A series that is still observed with an unchanged value is the control: a stale series would also be
+    unchanged, so its absence only proves the behavior when unchanged, still-observed series are exported.
     """
 
-    @pytest.mark.parametrize("instrument", ["counter", "updowncounter", "gauge"])
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {**LIFECYCLE_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": temporality}
-            for temporality in ("delta", "cumulative", "lowmemory")
-        ],
-    )
-    def test_unobserved_attribute_set_is_not_exported(
-        self, instrument: str, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    @staticmethod
+    def assert_unobserved_attribute_set_is_not_exported(
+        instrument: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         name = f"stale-asynchronous-{instrument}"
+        instrument_identity = (
+            DEFAULT_METER_NAME,
+            instrument,
+            name,
+            DEFAULT_INSTRUMENT_UNIT,
+            DEFAULT_INSTRUMENT_DESCRIPTION,
+        )
         kept_attributes = {"pool": "kept"}
+        steady_attributes = {"pool": "steady"}
         removed_attributes = {"pool": "removed"}
         kept = frozenset(kept_attributes.items())
+        steady = frozenset(steady_attributes.items())
         removed = frozenset(removed_attributes.items())
 
         with test_library as t:
@@ -1038,31 +1047,28 @@ class Test_Otel_Metrics_Asynchronous_Stale_Series:
                 kept_attributes,
             )
             t.otel_set_asynchronous_observations(
-                DEFAULT_METER_NAME,
-                instrument,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                [{"value": 7, "attributes": kept_attributes}, {"value": 3, "attributes": removed_attributes}],
+                *instrument_identity,
+                [
+                    {"value": 7, "attributes": kept_attributes},
+                    {"value": 5, "attributes": steady_attributes},
+                    {"value": 3, "attributes": removed_attributes},
+                ],
             )
             payloads_before_first_export = test_agent.otlp_metrics_fingerprints()
             t.otel_metrics_force_flush()
             first_export = test_agent.wait_for_new_otlp_metric(name, ignored=payloads_before_first_export)
             assert sorted(
                 (attributes for attributes, _ in data_points_of_metric(first_export, name)), key=sorted
-            ) == sorted([kept, removed], key=sorted), (
-                f"Both observed attribute sets must be exported by the first collection, got {first_export}"
+            ) == sorted([kept, steady, removed], key=sorted), (
+                f"All observed attribute sets must be exported by the first collection, got {first_export}"
             )
 
-            # The callback stops observing the removed attribute set, like a closed connection pool would
+            # The callback stops observing the removed attribute set, like a closed connection pool would,
+            # keeps observing the steady attribute set with the same value, and observes a new kept value
             payloads_before_second_export = test_agent.otlp_metrics_fingerprints()
             t.otel_set_asynchronous_observations(
-                DEFAULT_METER_NAME,
-                instrument,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                [{"value": 8, "attributes": kept_attributes}],
+                *instrument_identity,
+                [{"value": 8, "attributes": kept_attributes}, {"value": 5, "attributes": steady_attributes}],
             )
             t.otel_metrics_force_flush()
             second_export = test_agent.wait_for_new_otlp_metric(name, ignored=payloads_before_second_export)
@@ -1073,9 +1079,26 @@ class Test_Otel_Metrics_Asynchronous_Stale_Series:
         assert [value for attributes, value in second_data_points if attributes == kept] in ([8.0], [1.0]), (
             f"The second collection must export the kept attribute set with its new value, got {second_export}"
         )
-        assert [attributes for attributes, _ in second_data_points] == [kept], (
-            f"Only the attribute set observed by the latest callback may be exported, got {second_export}"
+        # Control: a still-observed series with an unchanged value is exported (as 5, or as 0 under delta
+        # temporality). Without it, the absence of the removed series below would prove nothing.
+        assert [value for attributes, value in second_data_points if attributes == steady] in ([5.0], [0.0]), (
+            f"A still-observed attribute set with an unchanged value must still be exported, got {second_export}"
         )
+        assert sorted((attributes for attributes, _ in second_data_points), key=sorted) == sorted(
+            [kept, steady], key=sorted
+        ), f"Only the attribute sets observed by the latest callback may be exported, got {second_export}"
+
+    @pytest.mark.parametrize("library_env", TEMPORALITY_PREFERENCE_ENVVARS)
+    def test_asynchronous_counter(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        self.assert_unobserved_attribute_set_is_not_exported("counter", test_agent, test_library)
+
+    @pytest.mark.parametrize("library_env", TEMPORALITY_PREFERENCE_ENVVARS)
+    def test_asynchronous_updowncounter(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        self.assert_unobserved_attribute_set_is_not_exported("updowncounter", test_agent, test_library)
+
+    @pytest.mark.parametrize("library_env", TEMPORALITY_PREFERENCE_ENVVARS)
+    def test_asynchronous_gauge(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        self.assert_unobserved_attribute_set_is_not_exported("gauge", test_agent, test_library)
 
 
 @scenarios.parametric
