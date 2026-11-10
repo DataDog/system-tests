@@ -29,6 +29,8 @@ class SecuritySmoke(EndToEndScenario):
                     "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
                     "DD_APPSEC_SCA_ENABLED": "true",
                     "DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "true",
+                    # Drain Java's class-loading queue within the smoke-test capture window.
+                    "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
                     "DD_AI_GUARD_ENABLED": "true",
                     "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
                     "DD_API_KEY": FakeDatadogKey.AI_GUARD_API,

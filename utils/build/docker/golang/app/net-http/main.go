@@ -674,7 +674,7 @@ func main() {
 		// doesn't automatically instrument at runtime (not including Orchestrion)
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
-		ctx := context.Background()
+		ctx := r.Context()
 		p := ddotel.NewTracerProvider()
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)

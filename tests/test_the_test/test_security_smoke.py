@@ -24,18 +24,28 @@ class Test_SecuritySmokeReports:
         assert get_backend_report(self._span(trace_format, report), "appsec") == report
 
     @pytest.mark.parametrize(
-        ("trace_format", "status", "valid"),
+        ("trace_format", "status", "location", "valid"),
         [
-            ("legacy", "403", True),
-            ("efficient", "403", True),
-            ("efficient", 403, True),
-            ("efficient", 403.0, True),
-            ("legacy", 403, False),
+            ("legacy", "403", "meta", True),
+            ("efficient", "403", "meta", True),
+            ("efficient", 403, "meta", True),
+            ("efficient", 403.0, "meta", True),
+            ("legacy", 403, "meta", False),
+            ("legacy", 403, "metrics", True),
+            ("legacy", 403.0, "metrics", True),
+            ("legacy", 403.5, "metrics", False),
+            ("legacy", True, "metrics", False),
         ],
     )
-    def test_blocking_status_encoding(self, trace_format: str, status: str | float, *, valid: bool) -> None:
+    def test_blocking_status_encoding(
+        self, trace_format: str, status: str | float, location: str, *, valid: bool
+    ) -> None:
         span = self._span(trace_format, None)
-        span.meta.update({"appsec.blocked": "true", "http.status_code": status})
+        span.meta["appsec.blocked"] = "true"
+        if location == "metrics":
+            span.raw_span["metrics"] = {"http.status_code": status}
+        else:
+            span.meta["http.status_code"] = status
         response = HttpResponse(
             {
                 "request": {"method": "GET", "url": "http://weblog/waf", "params": {}},

@@ -54,12 +54,18 @@ class Test_SecuritySmoke_EventTags:
             assert span.meta.get("http.client_ip") == "42.42.42.42"
             assert span.meta.get("network.client.ip")
             assert "Arachni/v1" in span.meta.get("http.useragent", "")
-            for tag in ("_dd.appsec.waf.version", "_dd.appsec.event_rules.version", "_dd.runtime_family"):
+            for tag in ("_dd.appsec.event_rules.version", "_dd.runtime_family"):
                 assert isinstance(span.meta.get(tag), str), f"Missing backend tag {tag}"
                 assert span.meta[tag], f"Empty backend tag {tag}"
             for tag in ("_dd.appsec.waf.duration", "_dd.appsec.waf.duration_ext"):
                 assert isinstance(span.metrics.get(tag), (int, float)), tag
                 assert span.metrics[tag] >= 0, tag
+        # WAF version is initialization metadata, reported at least once per runtime.
+        assert any(
+            isinstance(span.meta.get("_dd.appsec.waf.version"), str) and span.meta["_dd.appsec.waf.version"]
+            for _, span in interfaces.mocked_backend.get_spans()
+            if span.get_span_service() == "weblog"
+        ), "Backend did not receive the WAF version"
 
 
 @features.rasp_local_file_inclusion
@@ -190,8 +196,8 @@ class Test_SecuritySmoke_RuntimeActivation:
 class Test_SecuritySmoke_ApiSecurity:
     def setup_api_security_smoke(self) -> None:
         self.r = weblog.post(
-            "/tag_value/api_match_smoke/200?smoke_query=example",
-            json={"smoke_body": "example"},
+            "/tag_value/api_match_AS004/200?smoke_query=example",
+            json={"main": [{"key": "id001", "value": 1.0}], "nullable": None},
             cookies={"smoke_cookie": "example"},
         )
 
@@ -201,7 +207,7 @@ class Test_SecuritySmoke_ApiSecurity:
             ("req.headers", "user-agent"),
             ("req.query", "smoke_query"),
             ("req.params", "tag_value"),
-            ("req.body", "smoke_body"),
+            ("req.body", "main"),
             ("req.cookies", "smoke_cookie"),
         ):
             value = span.meta[f"_dd.appsec.s.{address}"][0].get(field)
@@ -210,17 +216,17 @@ class Test_SecuritySmoke_ApiSecurity:
 
     def setup_response_schemas(self) -> None:
         self.r = weblog.post(
-            "/tag_value/payload_in_response_body_smoke/200?X-option=smoke",
-            data={"smoke_body": "example"},
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_str": "example"},
         )
 
     def test_response_schemas(self) -> None:
         span = self._schema_span(self.r, "POST", ("res.headers", "res.body"))
-        assert "x-option" in span.meta["_dd.appsec.s.res.headers"][0]
+        assert "content-type" in span.meta["_dd.appsec.s.res.headers"][0]
         payload = span.meta["_dd.appsec.s.res.body"][0].get("payload")
         assert isinstance(payload, list)
         assert payload
-        assert "smoke_body" in payload[0]
+        assert "test_str" in payload[0]
 
     @staticmethod
     def _schema_span(response: HttpResponse, method: str, addresses: tuple[str, ...]) -> DataDogAgentSpan:
