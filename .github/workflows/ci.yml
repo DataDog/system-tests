@@ -126,16 +126,34 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        # Ignore GitLab jobs that will not block the merge.
-        # These jobs must pass: Kubernetes library injection (K8S_LIB*),
-        # every AWS SSI and Docker SSI scenario, system_tests_e2e_run_pipeline_[0-2],
-        # mirror_images, and the build_base_images jobs.
-        # An SSI scenario job ends with a 3 or 4 character code, then the parallel
-        # matrix. Example: Ubuntu_24_amd64.HOS: [test-app-nodejs]
+        # Ignore GitLab jobs that do not need to block the merge.
+        # All other GitLab jobs must pass. This covers every AWS SSI, Docker SSI,
+        # and Kubernetes library injection scenario.
         # Also ignore the jobs that wait for this gate before the merge queue.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$|build_base_images_amd64$|build_base_images_arm64$|.+\.[A-Z][A-Z0-9]{2,3}(?:: \[[^\]]*\])?$)).*
+          dd-gitlab/resolve_ssi_pr_title
+          dd-gitlab/compute_pipeline
+          dd-gitlab/(?:nodejs|java|dotnet|python|php|ruby)_ssi_pipeline
+          dd-gitlab/ssi_tests
+          dd-gitlab/delete_amis
+          dd-gitlab/delete_amis_by_name_or_lang
+          dd-gitlab/delete_ec2_instances
+          dd-gitlab/count_amis
+          dd-gitlab/check_merge_labels
+          dd-gitlab/update_agent_version
+          dd-gitlab/update_injector_version
+          dd-gitlab/generate_system_tests_lambda_proxy_image
+          dd-gitlab/generate_system_tests_lib_injection_images
+          dd-gitlab/Ubuntu base image check
+          dd-gitlab/delayed_(?:nodejs|java|dotnet|python|php|ruby)_trigger
+          dd-gitlab/system_tests_param
+          dd-gitlab/build_ci_image
+          dd-gitlab/system_tests_build_pipeline
+          dd-gitlab/setup
+          dd-gitlab/system_tests_build_.*
+          dd-gitlab/system_tests_run_.*
+          dd-gitlab/noop
           devflow/merge
           devflow/mergegate
           DDCI Status
