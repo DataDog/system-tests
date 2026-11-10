@@ -1296,12 +1296,12 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:
     - weblog_declaration:
         '*': v2.30.0
-        rack: irrelevant
-        sinatra14: irrelevant
-        sinatra22: irrelevant
-        sinatra32: irrelevant
-        sinatra41: irrelevant
-        uds-sinatra: irrelevant
+        rack: incomplete_test_app (endpoint not implemented)
+        sinatra14: incomplete_test_app (endpoint not implemented)
+        sinatra22: incomplete_test_app (endpoint not implemented)
+        sinatra32: incomplete_test_app (endpoint not implemented)
+        sinatra41: incomplete_test_app (endpoint not implemented)
+        uds-sinatra: incomplete_test_app (endpoint not implemented)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke: missing_feature

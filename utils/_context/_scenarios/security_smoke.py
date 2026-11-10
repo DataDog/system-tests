@@ -1,9 +1,12 @@
 """The same backend security contracts across API, export format and semantic-convention modes."""
 
+from collections.abc import Callable
+from functools import partial
+
 import pytest
 
 from ._core import EndToEndScenario, FakeDatadogKey, scenario_groups
-from utils._context.constants import ContainerPorts
+from utils._context.constants import ContainerPorts, WeblogCategory
 from utils._context.containers import AgentContainer, DdotAgentContainer, VCRCassettesContainer
 from utils.proxy.ports import ProxyPorts
 
@@ -57,8 +60,7 @@ class SecuritySmoke(EndToEndScenario):
             weblog_env["DD_APPSEC_TRACE_RATE_LIMIT"] = "10000"
         super().__init__(
             name,
-            # Explicit weblog metadata opts in one framework per language.
-            weblog_categories=[],
+            weblog_categories=[WeblogCategory.dd_trace],
             weblog_env=weblog_env,
             appsec_enabled=not runtime_activation,
             iast_enabled=not runtime_activation,
@@ -98,140 +100,48 @@ class SecuritySmoke(EndToEndScenario):
             self.weblog_container.environment["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/json"
 
 
-class SecuritySmokeOtelSemantics(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_SEMANTICS", otel_api=False, otlp=False, otel_semantics=True, runtime_activation=False
-        )
+def _create_scenarios() -> list[Callable[[], SecuritySmoke]]:
+    constructors: list[Callable[[], SecuritySmoke]] = []
+    for base_name, otel_api, otlp, otel_semantics in (
+        ("SECURITY_SMOKE", False, False, False),
+        ("SECURITY_SMOKE_OTEL_SEMANTICS", False, False, True),
+        ("SECURITY_SMOKE_OTEL_API", True, False, False),
+        ("SECURITY_SMOKE_OTEL_API_SEMANTICS", True, False, True),
+        ("SECURITY_SMOKE_OTLP", False, True, False),
+        ("SECURITY_SMOKE_OTLP_SEMANTICS", False, True, True),
+        ("SECURITY_SMOKE_OTEL_API_OTLP", True, True, False),
+        ("SECURITY_SMOKE_DDOT", True, True, True),
+    ):
+        for runtime_activation in (False, True):
+            name = f"{base_name}_RUNTIME_ACTIVATION" if runtime_activation else base_name
+            constructors.append(
+                partial(
+                    SecuritySmoke,
+                    name,
+                    otel_api=otel_api,
+                    otlp=otlp,
+                    otel_semantics=otel_semantics,
+                    runtime_activation=runtime_activation,
+                )
+            )
+    return constructors
 
 
-class SecuritySmokeOtelApi(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API", otel_api=True, otlp=False, otel_semantics=False, runtime_activation=False
-        )
-
-
-class SecuritySmokeOtelApiSemantics(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API_SEMANTICS",
-            otel_api=True,
-            otlp=False,
-            otel_semantics=True,
-            runtime_activation=False,
-        )
-
-
-class SecuritySmokeOtlp(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTLP", otel_api=False, otlp=True, otel_semantics=False, runtime_activation=False
-        )
-
-
-class SecuritySmokeOtlpSemantics(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTLP_SEMANTICS", otel_api=False, otlp=True, otel_semantics=True, runtime_activation=False
-        )
-
-
-class SecuritySmokeOtelApiOtlp(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API_OTLP", otel_api=True, otlp=True, otel_semantics=False, runtime_activation=False
-        )
-
-
-class SecuritySmokeDdot(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__("SECURITY_SMOKE_DDOT", otel_api=True, otlp=True, otel_semantics=True, runtime_activation=False)
-
-
-class SecuritySmokeRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_RUNTIME_ACTIVATION",
-            otel_api=False,
-            otlp=False,
-            otel_semantics=False,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtelSemanticsRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_SEMANTICS_RUNTIME_ACTIVATION",
-            otel_api=False,
-            otlp=False,
-            otel_semantics=True,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtelApiRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API_RUNTIME_ACTIVATION",
-            otel_api=True,
-            otlp=False,
-            otel_semantics=False,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtelApiSemanticsRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API_SEMANTICS_RUNTIME_ACTIVATION",
-            otel_api=True,
-            otlp=False,
-            otel_semantics=True,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtlpRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTLP_RUNTIME_ACTIVATION",
-            otel_api=False,
-            otlp=True,
-            otel_semantics=False,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtlpSemanticsRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTLP_SEMANTICS_RUNTIME_ACTIVATION",
-            otel_api=False,
-            otlp=True,
-            otel_semantics=True,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeOtelApiOtlpRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_OTEL_API_OTLP_RUNTIME_ACTIVATION",
-            otel_api=True,
-            otlp=True,
-            otel_semantics=False,
-            runtime_activation=True,
-        )
-
-
-class SecuritySmokeDdotRuntimeActivation(SecuritySmoke):
-    def __init__(self) -> None:
-        super().__init__(
-            "SECURITY_SMOKE_DDOT_RUNTIME_ACTIVATION",
-            otel_api=True,
-            otlp=True,
-            otel_semantics=True,
-            runtime_activation=True,
-        )
+(
+    security_smoke,
+    security_smoke_runtime_activation,
+    security_smoke_otel_semantics,
+    security_smoke_otel_semantics_runtime_activation,
+    security_smoke_otel_api,
+    security_smoke_otel_api_runtime_activation,
+    security_smoke_otel_api_semantics,
+    security_smoke_otel_api_semantics_runtime_activation,
+    security_smoke_otlp,
+    security_smoke_otlp_runtime_activation,
+    security_smoke_otlp_semantics,
+    security_smoke_otlp_semantics_runtime_activation,
+    security_smoke_otel_api_otlp,
+    security_smoke_otel_api_otlp_runtime_activation,
+    security_smoke_ddot,
+    security_smoke_ddot_runtime_activation,
+) = _create_scenarios()

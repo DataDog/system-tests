@@ -91,6 +91,23 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
+def wait_for_config_acknowledged(state: rc.RemoteConfigStateResults, config_id: str) -> bool:
+    product = state.configs[config_id]["product"]
+
+    def acknowledged(data: dict[str, Any]) -> bool:
+        if data.get("path") != "/v0.7/config":
+            return False
+        client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        return client_state.get("targets_version") == state.version and any(
+            config.get("id") == config_id
+            and config.get("product") == product
+            and config.get("apply_state") == rc.ApplyState.ACKNOWLEDGED
+            for config in client_state.get("config_states", [])
+        )
+
+    return interfaces.library.wait_for(acknowledged, timeout=rc.APPLY_TIMEOUT)
+
+
 def get_backend_report(span: DataDogAgentSpan, name: str, json_tag: str | None = None) -> dict[str, Any] | None:
     """Read decoded intake fields; ordinary string metadata is not a structured report."""
     report = span.get("metaStruct", {}).get(name)

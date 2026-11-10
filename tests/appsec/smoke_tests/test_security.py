@@ -20,6 +20,7 @@ from tests.appsec.smoke_tests.utils import (
     BaseUserEventsSmokeTests,
     assert_backend_attack,
     get_backend_report,
+    wait_for_config_acknowledged,
 )
 
 
@@ -147,7 +148,10 @@ class Test_SecuritySmoke_RuntimeActivation:
             self.enabled_state = state.set_config(
                 "datadog/2/ASM_FEATURES/asm_features_activation/config", {"asm": {"enabled": True}}
             ).apply()
-            self.enabled = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+            self.activation_acknowledged = wait_for_config_acknowledged(self.enabled_state, "asm_features_activation")
+            self.enabled = (
+                weblog.get("/waf", headers={"User-Agent": "Arachni/v1"}) if self.activation_acknowledged else None
+            )
             self.deactivated_state = state.reset().apply()
             self.deactivated = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
         finally:
@@ -156,8 +160,8 @@ class Test_SecuritySmoke_RuntimeActivation:
     def test_activation_cycle(self) -> None:
         for state in (self.reset_state, self.enabled_state, self.deactivated_state):
             assert state.state == rc.ApplyState.ACKNOWLEDGED
-        config = self.enabled_state.configs["asm_features_activation"]
-        assert config["apply_state"] == rc.ApplyState.ACKNOWLEDGED, config
+        assert self.activation_acknowledged, "Runtime activation config must be acknowledged before attack traffic"
+        assert self.enabled is not None
         for response in (self.disabled, self.deactivated):
             assert response.status_code == 200
             spans = [span for _, span in interfaces.mocked_backend.get_spans(response)]

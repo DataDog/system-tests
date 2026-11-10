@@ -134,7 +134,7 @@ class DataDogAgentSpan(ABC):
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
     def get_span_env(self) -> str:
-        """Use the backend's span, tracer-payload, then Agent environment fallbacks."""
+        """Resolve the environment from span metadata or its enclosing payloads."""
         content = self.trace.data.get("request", {}).get("content", {})
         fallback = content.get("env", "")
         if self.trace.format == AgentTraceFormat.efficient_trace_payload_format:
@@ -146,17 +146,11 @@ class DataDogAgentSpan(ABC):
                         environment = strings[environment] if 0 <= environment < len(strings) else None
                     fallback = environment or fallback
                     break
-            # SpansV1Parser currently promotes env attributes and tracer-payload env,
-            # but does not promote the span's envRef. Agent env is the final fallback.
+            # The backend ignores span envRef; only the enclosing payload supplies it.
         return self.meta.get("env", fallback)
 
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
-        """Return a tag using the backend's precedence of meta over metrics.
-
-        OTLP translation can put numeric HTTP status codes in legacy metrics. The backend
-        promotes those alongside meta. The efficient format combines both in attributes.
-        Normalize integral metrics to strings, while leaving explicit legacy meta untouched.
-        """
+        """Return metadata first, normalizing integral metrics to strings."""
 
         if self.trace.format != AgentTraceFormat.efficient_trace_payload_format:
             if key in self.meta:
