@@ -210,6 +210,14 @@ def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
     )
 
 
+def _assert_disabled_or_not_ready(result: dict[str, Any]) -> None:
+    if result.get("reason") == "DISABLED":
+        assert result.get("value") == EVALUATION_CASE["default_value"]
+        assert result.get("errorCode") in {None, ""}
+    else:
+        _assert_default_or_not_ready(result)
+
+
 @scenarios.parametric
 @features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Selection:
@@ -252,7 +260,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Absence of the FFE RC capability/product and zero mock requests after provider access
         # prove the kill switch prevents both billed delivery paths.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
         _assert_no_mock_requests(mocked_backend)
 
@@ -391,7 +399,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # No FFE RC capability/product and zero CDN requests after provider access prove the stable
         # switch wins before legacy source resolution and disables both billed delivery paths.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
         _assert_no_mock_requests(mocked_backend)
 
@@ -415,7 +423,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero agentless requests and no FFE RC capability/product after provider access prove the
         # legacy false value remains disabled instead of adopting the new default.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
@@ -486,7 +494,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero mock requests and no FFE RC capability/product after provider access prove the stable
         # kill switch blocks both default CDN activation and any RC subscription.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
@@ -502,7 +510,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero mock requests and no FFE RC capability/product after provider access prove the SDK
         # fails closed instead of guessing a billed delivery path.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
@@ -518,7 +526,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # a network fallback available, while provider access exercises source resolution. Zero CDN
         # requests and no FFE RC capability/product prove the reserved value fails closed for now.
         test_library.ffe_start()
-        _assert_default_or_not_ready(_evaluate_once(test_library))
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
