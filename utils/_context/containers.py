@@ -19,7 +19,7 @@ import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion, Version
-from utils._context.docker import get_docker_client
+from utils._context.docker import get_docker_client, log_host_diagnostics
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
 from utils.base_images.base_image import base_image_contexts
@@ -61,6 +61,9 @@ def create_network() -> Network:
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
+
+# Creating and starting a container usually takes a few seconds. Above that, log the host state.
+_SLOW_CONTAINER_START_SECONDS = 20
 
 
 def create_inject_volume():
@@ -241,7 +244,52 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = get_docker_client().containers.run(
+        started_at = time.monotonic()
+        try:
+            self._container = self._run_container(network)
+        except requests.exceptions.RequestException:
+            # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
+            log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
+            raise
+        except APIError as e:
+            if e.status_code != HTTPStatus.CONFLICT:
+                raise
+            self._container = self._replace_conflicting_container(network, e)
+
+        if (duration := time.monotonic() - started_at) > _SLOW_CONTAINER_START_SECONDS:
+            log_host_diagnostics(f"{self.container_name} took {duration:.0f}s to start")
+
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
+
+        self._container.reload()
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
+
+    def _replace_conflicting_container(self, network: Network, error: APIError) -> Container:
+        """The name is taken by a container that the previous checks didn't see: a create request that timed out
+        client-side in a previous scenario, completed by the daemon after that scenario's cleanup. Remove it, and retry.
+        """
+        logger.warning(f"{self.container_name} already exists ({error.explanation}), removing it")
+        deadline = time.monotonic() + 60
+        while True:
+            try:
+                get_docker_client().api.remove_container(self.container_name, force=True)
+            except APIError as e:
+                # 404 while the daemon is still creating it
+                logger.info(f"Can't remove {self.container_name} yet ({e.explanation})")
+
+            try:
+                return self._run_container(network)
+            except APIError as e:
+                if e.status_code != HTTPStatus.CONFLICT or time.monotonic() > deadline:
+                    raise
+
+            time.sleep(2)
+
+    def _run_container(self, network: Network) -> Container:
+        return get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -268,14 +316,6 @@ class TestedContainer:
             cgroupns=self.cgroupns,
             mounts=self.mounts,
         )
-
-        self.healthy = self.wait_for_health()
-        if self.healthy:
-            self.warmup()
-
-        self._container.reload()
-        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""

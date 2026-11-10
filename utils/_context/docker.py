@@ -8,16 +8,11 @@ from requests.exceptions import RequestException
 
 from utils._logger import logger
 
-# docker-py's default is 60s. A busy daemon (e.g. right after `docker load` of a big image on a GitHub
-# runner) can take longer to answer `containers/create`, while still creating the container: the client
-# fails, and the next scenario then fails with a 409 name conflict.
-_DOCKER_CLIENT_TIMEOUT = 300
-
 
 @lru_cache
 def get_docker_client() -> docker.DockerClient:
     try:
-        return docker.DockerClient.from_env(timeout=_DOCKER_CLIENT_TIMEOUT)
+        return docker.DockerClient.from_env()
     except DockerException as e:
         # Failed to start the default Docker client... Let's see if we have
         # better luck with docker contexts...
@@ -31,7 +26,7 @@ def get_docker_client() -> docker.DockerClient:
                 check=True,
                 text=True,
             ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint, timeout=_DOCKER_CLIENT_TIMEOUT)
+            return docker.DockerClient(base_url=endpoint)
         except (subprocess.CalledProcessError, DockerException, RequestException, ValueError):
             logger.exception("No more success with docker contexts")
 
@@ -39,3 +34,28 @@ def get_docker_client() -> docker.DockerClient:
             pytest.exit("Connection refused to docker daemon, is it running?", 1)
 
         raise
+
+
+# (command, keep the last lines instead of the first ones)
+_HOST_DIAGNOSTIC_COMMANDS: list[tuple[list[str], bool]] = [
+    (["uptime"], False),
+    (["free", "-m"], False),
+    (["df", "-h", "/"], False),
+    (["ps", "aux", "--sort=-%mem"], False),
+    (["sudo", "-n", "dmesg", "-T"], True),
+    (["docker", "ps", "-a"], False),
+]
+
+
+def log_host_diagnostics(reason: str) -> None:
+    """Log the host state when the docker daemon is slow, to tell memory/CPU starvation from a daemon issue."""
+    logger.warning(f"Host diagnostics ({reason}):")
+    for command, keep_last in _HOST_DIAGNOSTIC_COMMANDS:
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=20, check=False)
+            output = (result.stdout + result.stderr).splitlines()
+        except (OSError, subprocess.TimeoutExpired) as e:
+            output = [f"failed: {e}"]
+
+        lines = output[-40:] if keep_last else output[:40]
+        logger.warning(f"$ {' '.join(command)}\n" + "\n".join(lines))
