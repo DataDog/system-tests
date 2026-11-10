@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 import yaml
 
@@ -171,6 +172,35 @@ def test_entry_point_runs_the_finalizer():
 
 
 @scenarios.test_the_test
+def test_tag_only_does_not_run_cleanup(
+    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["gitlab_finalize_job.py", "--profile", "aws", "--tag-only"])
+    monkeypatch.setenv("CI_PROJECT_DIR", str(tmp_path))
+
+    assert finalizer.main() == 0
+
+    assert commands == [["datadog-ci", "tag", "--level", "job", "--tags", "ci.framework.name:system-tests"]]
+    assert not (tmp_path / "reports").exists()
+
+
+@pytest.mark.parametrize("failing_command", ["read-system-tests-secret", "datadog-ci"])
+@scenarios.test_the_test
+def test_tag_only_errors_do_not_fail_the_job(failing_command: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(command: list[str], **kwargs: object) -> None:  # noqa: ARG001
+        raise subprocess.CalledProcessError(2, command)
+
+    monkeypatch.setattr(sys, "argv", ["gitlab_finalize_job.py", "--profile", "aws", "--tag-only"])
+    if failing_command == "read-system-tests-secret":
+        monkeypatch.setattr(finalizer, "read_secret", lambda *path: fail([failing_command, *path]))
+    else:
+        monkeypatch.setattr(finalizer, "read_secret", lambda *_path: "test-key")
+        monkeypatch.setattr(finalizer, "run", fail)
+
+    assert finalizer.main() == 0
+
+
+@scenarios.test_the_test
 def test_base_jobs_call_the_finalizer_from_the_system_tests_checkout():
     pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
 
@@ -211,3 +241,6 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
     pipeline = build_ssi_gitlab_pipeline("php", matrix_data, "dev")
 
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
+    assert pipeline[".base_job_onboarding_system_tests"]["script"][0 if project == "system-tests" else 2] == (
+        'bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile aws --tag-only || true'
+    )

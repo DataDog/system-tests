@@ -2,7 +2,10 @@
 
 Runs in the after_script of those jobs, in system-tests and in the repositories that launch them.
 Each profile is an ordered list of steps. A failing step is reported and the next steps still run,
-so the job is always tagged and its logs are always collected and printed.
+so tagging and log collection are attempted even if another step fails.
+
+AWS SSI jobs also use --tag-only before provisioning, while credentials are still available.
+The after_script retries tagging if that initial attempt failed.
 
 To add a feature, write a step function and add it to the profiles that need it.
 
@@ -244,6 +247,9 @@ def finalize(job: Job) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Finalize a Docker SSI, AWS SSI or K8s lib injection GitLab job.")
     parser.add_argument("--profile", required=True, choices=sorted(PROFILES))
+    parser.add_argument(
+        "--tag-only", action="store_true", help="Tag the job without running cleanup or collecting logs."
+    )
     args = parser.parse_args()
 
     job = Job(
@@ -252,6 +258,9 @@ def main() -> int:
         project_dir=Path(os.environ.get("CI_PROJECT_DIR", Path.cwd())),
         system_tests_dir=SYSTEM_TESTS_DIR,
     )
+    if args.tag_only:
+        tag_official_workflow(job)
+        return 0
     return finalize(job)
 
 
