@@ -8,6 +8,7 @@ group "default" {
   targets = [
     "play",
     "ratpack",
+    "uds-spring-boot",
     "vertx3",
     "vertx4",
   ]
@@ -15,6 +16,12 @@ group "default" {
 
 target "_common" {
   context = "."
+}
+
+target "uds-spring-boot" {
+  inherits   = ["_common"]
+  dockerfile = "uds-spring-boot.base.Dockerfile"
+  tags       = ["datadog/system-tests:uds-spring-boot.base"]
 }
 
 target "vertx3" {
