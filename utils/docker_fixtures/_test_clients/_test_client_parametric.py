@@ -863,6 +863,9 @@ class ParametricTestClientApi(TestClientApi):
 
         Returns:
             dict: Evaluation result containing 'value', 'reason', and 'errorCode'.
+                'providerStatus' is the OpenFeature provider status that the SDK reports for the
+                app's client (NOT_READY, READY, STALE, ERROR, or FATAL); apps that cannot read it omit it
+                or return null.
                 When exposure_hooks=True, 'exposureHooks' contains two callback rows,
                 identified by 'hook' (0 or 1), with no required callback order.
                 Each row contains flag, subject, variant, allocationKey, metadata, value, errorCode,

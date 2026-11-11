@@ -3,7 +3,3 @@
 
 "nodejs":
   - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled
-
-"php":
-  # Passes without testing anything: the app does not wait for provider initialization.
-  - tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast

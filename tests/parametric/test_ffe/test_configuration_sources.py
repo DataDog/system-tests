@@ -46,9 +46,8 @@ MISSING_API_KEY_DEFAULT_ENDPOINT: dict[str, Any] = {
     "agentless": False,
     "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
 }
-# Fixed SDKs fail within a second. The bound stays below the shortest unfixed wait the apps allow:
-# the Go app's 15 s start deadline; the others wait out the 30 s initialization timeout, except
-# PHP, whose start does not wait.
+# Fixed SDKs fail within a second. The bound is below Go's 15 s start deadline and the
+# other OpenFeature apps' 30 s initialization timeout. PHP's start does not wait.
 MISSING_API_KEY_FAIL_FAST_SECONDS = 10.0
 
 BASE_ENVVARS = {
@@ -690,17 +689,30 @@ class Test_Feature_Flag_Configuration_Source_Missing_Api_Key:
     def test_default_endpoint_fails_fast(self, test_library: APMLibrary) -> None:
         # Agentless with no custom base URL selects the Datadog-hosted endpoint. Without a key it can
         # never deliver flags, so a provider that waits for configuration returns only after the
-        # timeout (30 s; 15 s in the Go app). Finishing start within the bound proves the provider
-        # failed at once. When start reports success, the evaluation must return the caller default.
+        # timeout (30 s; 15 s in the Go app). Whatever /ffe/start returns, the SDK must then report a
+        # failed initialization within the same bound, and evaluations must return the caller default.
         started_at = time.monotonic()
-        started = test_library.ffe_start()
+        test_library.ffe_start()
         elapsed_seconds = time.monotonic() - started_at
-
         assert elapsed_seconds < MISSING_API_KEY_FAIL_FAST_SECONDS, (
             f"provider start took {elapsed_seconds:.1f}s without DD_API_KEY; "
             f"expected under {MISSING_API_KEY_FAIL_FAST_SECONDS:.0f}s"
         )
-        _assert_cold_not_ready(test_library, started=started)
+
+        result = test_library.ffe_evaluate(
+            flag=EVALUATION_CASE["flag"],
+            variation_type=EVALUATION_CASE["variation_type"],
+            default_value=EVALUATION_CASE["default_value"],
+            targeting_key=EVALUATION_CASE["targeting_key"],
+            attributes=EVALUATION_CASE["attributes"],
+        )
+        elapsed_seconds = time.monotonic() - started_at
+        assert elapsed_seconds < MISSING_API_KEY_FAIL_FAST_SECONDS, (
+            f"start and evaluation took {elapsed_seconds:.1f}s without DD_API_KEY; "
+            f"expected under {MISSING_API_KEY_FAIL_FAST_SECONDS:.0f}s"
+        )
+        assert result.get("providerStatus") in {"ERROR", "FATAL"}, f"initialization did not fail: {result}"
+        _assert_default_or_not_ready(result)
 
     @parametrize(
         "library_env",

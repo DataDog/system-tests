@@ -16,6 +16,7 @@ import dev.openfeature.sdk.OpenFeatureAPI;
 import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
+import dev.openfeature.sdk.exceptions.OpenFeatureError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,12 @@ public class FeatureFlagEvaluatorController {
                     }
                 };
             }
-            api.setProviderAndWait(provider);
+            try {
+                api.setProviderAndWait(provider);
+            } catch (OpenFeatureError e) {
+                // Keep the client for the failed provider; /ffe/start reports its state.
+                LOGGER.warn("FFE provider initialization failed", e);
+            }
             Client client = api.getClient();
             if (CAPTURE_HOOK_FEATURES) {
                 captureHookFeatures(client);
@@ -165,6 +171,7 @@ public class FeatureFlagEvaluatorController {
         result.put("errorCode", errorCode);
         result.put("value", value);
         result.put("flagMetadata", flagMetadata);
+        result.put("providerStatus", client.getProviderState().name());
         if (request.isExposureHooks()) {
             result.put("exposureHooks", exposureRows);
         }
