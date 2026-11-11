@@ -250,6 +250,10 @@ images:
     digest: sha256:305722b96bfb70cc291fa11a717cfdc56d26ebfac386c882d59a34fcb94efac1
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-3edec3b229d1
     tag: tornado.base-3edec3b229d1
+  datadog/system-tests:uds-spring-boot.base-8fe729c0f74e:
+    digest: sha256:2dbe1edcf5f0f960702e7ee7530d877760561fb68c6457899f7f1eca076ca154
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uds-spring-boot.base-8fe729c0f74e
+    tag: uds-spring-boot.base-8fe729c0f74e
   datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb:
     digest: sha256:e49b909d4819f43ba50d034b273341a43e3c7a6c5bee70b287e9ca661479d5a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb
