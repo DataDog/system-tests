@@ -1,8 +1,12 @@
 """Decide, without a model, what happened to a review thread that a human opened.
 
-Adapted from sphinx (jb-claude-marketplace, skills/sphinx/scripts/sphinx-extract.py,
-_classify_thread_outcome). Sphinx classifies threads that it opened itself; this version
-classifies threads that a human reviewer opened, and also uses the commits of the pull request.
+Adapted from sphinx (jb-claude-marketplace, skills/sphinx/scripts/sphinx-extract.py):
+_classify_thread_outcome, _reaction_counts, _DISMISSIVE_KEYWORDS, _FIX_CONFIRMATION_KEYWORDS,
+and _SHA_RE. Changes from sphinx:
+- Sphinx classifies threads that it opened itself. This version classifies threads that a human
+  reviewer opened.
+- A thread is applied when GitHub marks it as outdated and a later commit exists.
+- Dismissive words match as whole words, so "unintended" is not "intended".
 
 Usage:
     python3 -m utils.scripts.review_learning.thread_outcome --run .review-learning/run --pr 8399

@@ -7,7 +7,8 @@ Reads filtered.json and fixes.json. Keeps only the pull requests with a signal: 
 or a fix with a culprit. Writes batches/batch-<n>.txt and batches/manifest.json.
 
 Each batch wraps its JSON in <untrusted_pr_data_<nonce>> tags. The nonce is random for each run,
-so text inside a pull request cannot close the block.
+so text inside a pull request cannot close the block. The tags come from prlore
+(src/util/untrusted.ts).
 """
 
 from __future__ import annotations

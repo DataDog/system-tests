@@ -6,10 +6,13 @@ Uses the local Git history only: system-tests squash-merges, so each commit on m
 2. link: the title or the body names the earlier pull request ("follow-up to #123").
 3. blame: git blame finds the commits that last changed the lines that the fix changes.
 
-Blame adapted from sphinx (jb-claude-marketplace, skills/sphinx/scripts/szz_core.py): it skips
-non-semantic commits, and for a file with only additions it blames the line above each insertion.
-Unlike sphinx, it also blames YAML, shell, and Dockerfiles, because manifests and scripts hold
-many system-tests defects.
+Adapted from sphinx (jb-claude-marketplace, skills/sphinx/scripts/szz_core.py): the blame loop
+that skips non-semantic commits (_blame_line), and the anchor on the line above each insertion
+for a file with only additions (_extract_changed_lines). Changes from sphinx:
+- It blames every text file, also YAML, shell, and Dockerfiles: manifests and scripts hold many
+  system-tests defects.
+- It skips only conventional-commit prefixes, and it follows the line number across blame hops.
+- It finds reverts and explicit links before it uses the blame.
 
 Usage:
     python3 -m utils.scripts.review_learning.szz --run .review-learning/run

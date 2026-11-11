@@ -4,6 +4,8 @@ Review learning reads the pull requests that were merged in a time window. It fi
 
 Review learning improves the rules that an agent uses. It does not replace human review. A person always approves each rule change.
 
+Many ideas here come from other tools and from one article. [Sources](#sources) lists them.
+
 ## Status
 
 Every step exists. The pipeline writes a report, and it never edits a rule file. A later step will apply the changes and open a draft pull request.
@@ -89,7 +91,7 @@ flowchart TD
     ABS --> DONE
 ```
 
-The blame skips commits whose subject starts with `build:`, `ci:`, `docs:`, `chore:`, or `style:`. If a file has only additions, the script blames the line above each insertion. The blame code comes from [sphinx](https://github.com/ddoghq-sandbox/jb-claude-marketplace/tree/main/sphinx).
+The blame skips commits whose subject starts with `build:`, `ci:`, `docs:`, `chore:`, or `style:`. If a file has only additions, the script blames the line above each insertion. The blame comes from sphinx. See [Sources](#sources).
 
 ### Prepare
 
@@ -231,3 +233,37 @@ The tests use no network and no model. They build their data in the test file, a
 - A pull request that turns a test on again can look like a revert. Such a pull request fixes no defect.
 - The extract step judges both cases.
 - The two model steps have not run yet on real data, so their quality is not known.
+
+## Sources
+
+Each file names its source in its header.
+
+- [sphinx](https://github.com/ddoghq-sandbox/jb-claude-marketplace/tree/main/sphinx), a Datadog plugin:
+  - the blame that skips non-semantic commits, in `szz.py`
+  - the thread outcome, in `thread_outcome.py`
+  - the `anti_pattern`, `fix_example`, and `root_cause` fields of a fix
+  - an exception only adds text, and a contradiction goes to a person
+  - the benchmark method that a later backtest will use
+- [prlore](https://github.com/costajohnt/prlore):
+  - the literal quote check, in `verify_quotes.py`
+  - the untrusted-data tags with a random nonce, in `prepare.py`
+  - the bot filter by GraphQL type, in `filter.py`
+  - the minimum of two pull requests or one maintainer correction
+- [tessl, learn-from-past-work](https://tessl.io/registry/tessl/learn-from-past-work):
+  - the search for defects that passed review, which the `miss` signal uses
+  - one clear fix is enough
+  - a merge or a resolved thread alone proves nothing
+  - a change says what to weigh, not the cases of one run
+  - zero proposals beat weak ones, with a cap for each run
+- [tacit](https://github.com/BayramAnnakov/tacit):
+  - implicit corrections, such as "why not use X here?"
+  - no candidates from nits
+  - a real fix is the strongest evidence
+- [CodeRabbit learnings](https://docs.coderabbit.ai/knowledge-base/learnings):
+  - only merged pull requests teach
+  - a person approves a change before it applies
+  - a later step will prune unused rules
+- John Allspaw, "There is more to code review than (automatable) detection":
+  - the `absence` signal
+  - the `human_only` and `context` signals, which never become rules
+- [simple-english](https://github.com/TonyCTHsu/simple-english): the `se` linter for every proposed text, in `plain_english.py`

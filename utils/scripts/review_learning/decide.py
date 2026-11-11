@@ -6,7 +6,14 @@ Usage:
 Reads verified.json, proposals/*.json, lint.json, rejected.yml, and the lens files. Writes
 decisions.json and report.md. This step never edits a rule file.
 
-The thresholds live here, not in a prompt, so the model cannot talk itself past them.
+The thresholds live here, not in a prompt, so the model cannot talk itself past them. Sources:
+- Two pull requests, or one maintainer correction: the recurrence floor of prlore
+  (src/reconciler/score.ts).
+- One clear fix is enough, and a cap on changes for each run: tessl, tune-review-lenses and
+  learn-from-review-feedback.
+- A real fix ranks first under the cap: tacit (synthesizer, "What actually broke").
+- An exception only adds text, and contradictions go to a person: sphinx, learn step 7.6
+  (jb-claude-marketplace, skills/sphinx/subskills/learn/SKILL.md).
 """
 
 from __future__ import annotations

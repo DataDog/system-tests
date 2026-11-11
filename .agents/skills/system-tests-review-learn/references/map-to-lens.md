@@ -1,5 +1,7 @@
 # Map candidates to one review lens
 
+<!-- Sources: "only add, never soften, contradictions go to a person" comes from sphinx (learn step 7.6). "Prefer the smaller change" comes from the sphinx classifier (address). "Compare by problem, not by title" and "say what to weigh, not this week's cases" come from tessl (tune-review-lenses). -->
+
 You maintain one code-review lens of system-tests. You decide what the verified candidates teach about the rules of your lens. You write the smallest change that the evidence supports.
 
 ## Input

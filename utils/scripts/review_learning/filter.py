@@ -6,6 +6,8 @@ Usage:
 Reads evidence/*.json and writes:
 - filtered.json: the pull requests to mine, with human comments only. Each thread has its outcome.
 - excluded.json: the pull requests that were left out, each with the reason.
+
+A bot is found by its GraphQL type, as prlore does, because GitHub Apps have no "[bot]" suffix.
 """
 
 from __future__ import annotations
