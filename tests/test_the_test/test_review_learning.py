@@ -5,7 +5,16 @@ from datetime import date
 from pathlib import Path
 
 from utils import features, pytest, scenarios
-from utils.scripts.review_learning import clean, collect, szz, thread_outcome
+from utils.scripts.review_learning import (
+    clean,
+    collect,
+    decide,
+    plain_english,
+    prepare,
+    szz,
+    thread_outcome,
+    verify_quotes,
+)
 from utils.scripts.review_learning import filter as filter_step
 from utils.scripts.review_learning.common import Json, load_filters, matches_any, read_json, write_json
 
@@ -333,3 +342,216 @@ class Test_ReviewLearningClean:
     def test_default_run_folder_uses_the_window(self) -> None:
         folder = collect.default_run_dir(date(2026, 10, 1), date(2026, 10, 31))
         assert folder == Path(".review-learning/2026-10-01..2026-10-31")
+
+
+def _write_run(root: Path, prs: list[Json], fixes: list[Json] | None = None) -> None:
+    write_json(root / "index.json", {"start": "2026-10-01", "end": "2026-10-31", "pull_requests": prs})
+    write_json(root / "filtered.json", prs)
+    write_json(root / "fixes.json", fixes or [])
+
+
+def _human_pr() -> Json:
+    opener = {**_comment("You must store the response in setup, not assert there."), "url": "u1"}
+    reply = {**_comment("> You must store\nDone, thanks", login="bob"), "url": "u2"}
+    thread = {**_thread(opener, reply), "outcome": thread_outcome.APPLIED}
+    return _pr(10, threads=[thread], merge_commit=None)
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningPrepare:
+    def test_keeps_only_pull_requests_with_a_signal(self, tmp_path: Path) -> None:
+        _write_run(tmp_path, [_human_pr(), _pr(11)])
+        manifest = prepare.prepare(tmp_path, tmp_path)
+        assert [batch["prs"] for batch in manifest["batches"]] == [[10]]
+        text = (tmp_path / "batches" / "batch-01.txt").read_text(encoding="utf-8")
+        assert text.startswith(f"<untrusted_pr_data_{manifest['nonce']}>\n")
+        assert text.rstrip().endswith(f"</untrusted_pr_data_{manifest['nonce']}>")
+        assert '"outcome": "applied"' in text
+
+    def test_nonce_changes_on_each_run(self, tmp_path: Path) -> None:
+        _write_run(tmp_path, [_human_pr()])
+        assert prepare.prepare(tmp_path, tmp_path)["nonce"] != prepare.prepare(tmp_path, tmp_path)["nonce"]
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningVerify:
+    def _verify(
+        self, tmp_path: Path, candidates: list[Json], fixes: list[Json] | None = None
+    ) -> tuple[list[Json], list[Json]]:
+        _write_run(tmp_path, [_human_pr()], fixes)
+        write_json(tmp_path / "candidates" / "batch-01.json", {"candidates": candidates})
+        return verify_quotes.verify_run(tmp_path)
+
+    def test_literal_quote_is_verified_and_author_comes_from_data(self, tmp_path: Path) -> None:
+        candidate = {"id": "10-1", "pr": 10, "signal": "correction", "comment_url": "u1", "author": "made-up",
+                     "quote": "store the  response in SETUP"}  # fmt: skip
+        verified, unverified = self._verify(tmp_path, [candidate])
+        assert unverified == []
+        assert verified[0]["author"] == "alice"
+        assert verified[0]["association"] == "MEMBER"
+        assert verified[0]["outcome"] == thread_outcome.APPLIED
+
+    def test_quoted_lines_are_not_the_author_s_words(self, tmp_path: Path) -> None:
+        candidate = {"id": "10-1", "pr": 10, "signal": "correction", "comment_url": "u2", "quote": "You must store"}
+        verified, unverified = self._verify(tmp_path, [candidate])
+        assert verified == []
+        assert unverified[0]["reason"] == "quote is not a literal part of the comment"
+
+    def test_rejects_unknown_url_short_quote_and_bad_culprit(self, tmp_path: Path) -> None:
+        fixes = [{"fix_pr": 10, "culprits": [{"pr": 4}], "absence": False}]
+        candidates = [
+            {"id": "a", "pr": 10, "signal": "correction", "comment_url": "nope", "quote": "store the response"},
+            {"id": "b", "pr": 10, "signal": "correction", "comment_url": "u1", "quote": "store"},
+            {"id": "c", "pr": 10, "signal": "miss", "culprit_pr": 5},
+            {"id": "d", "pr": 10, "signal": "absence", "culprit_pr": 4},
+            {"id": "e", "pr": 10, "signal": "miss", "culprit_pr": 4},
+            {"id": "f", "pr": 10, "signal": "guess"},
+        ]
+        verified, unverified = self._verify(tmp_path, candidates, fixes)
+        assert [c["id"] for c in verified] == ["e"]
+        assert [c["id"] for c in unverified] == ["a", "b", "c", "d", "f"]
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningPlainEnglish:
+    def test_lints_each_proposed_text(self, tmp_path: Path) -> None:
+        proposals = [
+            {"proposed_text": "You should wait."},
+            {"proposed_text": "Wait for the trace."},
+            {"action": "covered"},
+        ]
+        write_json(tmp_path / "proposals" / "lens.json", {"lens": "lens", "proposals": proposals})
+
+        def linter(text: str) -> list[Json]:
+            return [{"rule": "SE_MODAL_RESTRICTED", "message": "should"}] if "should" in text else []
+
+        findings = plain_english.lint_run(tmp_path, linter)
+        assert findings == {"lens#0": [{"rule": "SE_MODAL_RESTRICTED", "message": "should"}], "lens#1": []}
+
+
+LENS_TEXT = "### LIFE-001: Setup Methods Must Not Fail\n- Severity: P0\n- Detect: A setup method asserts.\n"
+
+
+def _decide_root(tmp_path: Path) -> Path:
+    lenses = tmp_path / "repo" / ".agents" / "rules" / "code-review"
+    lenses.mkdir(parents=True)
+    for lens, prefix in decide.LENS_PREFIX.items():
+        text = LENS_TEXT if prefix == "LIFE" else f"### {prefix}-001: A rule\n- Severity: P1\n"
+        (lenses / f"{lens}.md").write_text(text, encoding="utf-8")
+    (tmp_path / "repo" / "docs").mkdir()
+    (tmp_path / "repo" / "docs" / "flushing.md").write_text("decision", encoding="utf-8")
+    rejected = tmp_path / "repo" / "utils" / "scripts" / "review_learning" / "rejected.yml"
+    rejected.parent.mkdir(parents=True)
+    rejected.write_text("- {rule_id: LIFE-001, action: add_not_when, prs: [20, 21]}\n", encoding="utf-8")
+    return tmp_path / "repo"
+
+
+def _candidate(cid: str, pr: int, signal: str, association: str = "CONTRIBUTOR", outcome: str = "applied") -> Json:
+    return {"id": cid, "pr": pr, "signal": signal, "association": association, "outcome": outcome, "quote": "q"}
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningDecide:
+    sharpen = {"action": "sharpen", "rule_id": "LIFE-001", "current_text": "A setup method asserts.",
+               "proposed_text": "A setup method asserts or raises.", "reason": "r"}  # fmt: skip
+
+    def _decide(
+        self, tmp_path: Path, proposals: list[Json], candidates: list[Json], max_changes: int = 5
+    ) -> list[Json]:
+        root = _decide_root(tmp_path)
+        run = tmp_path / "run"
+        _write_run(run, [])
+        write_json(run / "verified.json", candidates)
+        write_json(
+            run / "proposals" / "lifecycle-and-isolation.json",
+            {"lens": "lifecycle-and-isolation", "proposals": proposals},
+        )
+        return decide.decide_run(run, root, max_changes)
+
+    def _statuses(
+        self, tmp_path: Path, proposals: list[Json], candidates: list[Json], max_changes: int = 5
+    ) -> list[str]:
+        return [d["status"] for d in self._decide(tmp_path, proposals, candidates, max_changes)]
+
+    def test_evidence_thresholds(self, tmp_path: Path) -> None:
+        cases = [
+            ([_candidate("a", 1, "miss")], decide.APPLY),
+            ([_candidate("a", 1, "correction", association="MEMBER")], decide.APPLY),
+            ([_candidate("a", 1, "correction")], decide.NOT_ENOUGH),
+            ([_candidate("a", 1, "correction"), _candidate("b", 2, "correction")], decide.APPLY),
+            ([_candidate("a", 1, "correction", association="MEMBER", outcome="discussed")], decide.NOT_ENOUGH),
+            ([_candidate("a", 1, "human_only")], decide.NOT_ENOUGH),
+        ]
+        for index, (candidates, expected) in enumerate(cases):
+            proposal = {**self.sharpen, "candidate_ids": [c["id"] for c in candidates]}
+            assert self._statuses(tmp_path / str(index), [proposal], candidates) == [expected], candidates
+
+    def test_add_not_when_needs_two_prs_or_a_written_decision(self, tmp_path: Path) -> None:
+        one = [_candidate("a", 1, "disagreement")]
+        base = {**self.sharpen, "action": "add_not_when", "candidate_ids": ["a"]}
+        assert self._statuses(tmp_path / "1", [base], one) == [decide.NOT_ENOUGH]
+        cited = {**base, "cited_path": "docs/flushing.md"}
+        assert self._statuses(tmp_path / "2", [cited], one) == [decide.APPLY]
+        two = [*one, _candidate("b", 2, "disagreement")]
+        assert self._statuses(tmp_path / "3", [{**base, "candidate_ids": ["a", "b"]}], two) == [decide.APPLY]
+
+    def test_invalid_proposals(self, tmp_path: Path) -> None:
+        miss = [_candidate("a", 1, "miss")]
+        proposals = [
+            {**self.sharpen, "rule_id": "LIFE-999", "candidate_ids": ["a"]},
+            {**self.sharpen, "current_text": "text that is not in the lens", "candidate_ids": ["a"]},
+            {"action": "new_rule", "rule_id": "TEST-005", "severity": "P0", "candidate_ids": ["a"]},
+            {"action": "new_rule", "rule_id": "LIFE-001", "severity": "P0", "candidate_ids": ["a"]},
+            {"action": "new_rule", "rule_id": "LIFE-005", "severity": "P2", "candidate_ids": ["a"]},
+            {"action": "rewrite", "candidate_ids": ["a"]},
+        ]
+        assert self._statuses(tmp_path, proposals, miss) == [decide.INVALID] * len(proposals)
+
+    def test_new_rule_report_actions_and_rejections(self, tmp_path: Path) -> None:
+        miss = [_candidate("a", 20, "miss"), _candidate("b", 21, "disagreement"), _candidate("c", 20, "disagreement")]
+        proposals = [
+            {
+                "action": "new_rule",
+                "rule_id": "LIFE-005",
+                "severity": "P1",
+                "proposed_text": "t",
+                "candidate_ids": ["a"],
+            },
+            {"action": "covered", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
+            {"action": "contested", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
+            {**self.sharpen, "action": "add_not_when", "candidate_ids": ["b", "c"]},
+        ]
+        statuses = self._statuses(tmp_path, proposals, miss)
+        assert statuses == [decide.APPLY, decide.REPORT_ONLY, decide.NEEDS_DECISION, decide.REJECTED_BEFORE]
+
+    def test_lint_findings_block_the_change(self, tmp_path: Path) -> None:
+        root = _decide_root(tmp_path)
+        run = tmp_path / "run"
+        _write_run(run, [])
+        write_json(run / "verified.json", [_candidate("a", 1, "miss")])
+        proposal = {**self.sharpen, "candidate_ids": ["a"]}
+        write_json(run / "proposals" / "l.json", {"lens": "lifecycle-and-isolation", "proposals": [proposal]})
+        write_json(run / "lint.json", {"lifecycle-and-isolation#0": [{"rule": "SE_NO_SEMICOLON", "message": ";"}]})
+        decision = decide.decide_run(run, root, 5)[0]
+        assert decision["status"] == decide.NEEDS_DECISION
+        assert "SE_NO_SEMICOLON" in decision["status_reason"]
+
+    def test_cap_keeps_the_strongest_changes(self, tmp_path: Path) -> None:
+        candidates = [_candidate("a", 1, "correction"), _candidate("b", 2, "correction"), _candidate("m", 3, "miss")]
+        weak = {**self.sharpen, "candidate_ids": ["a", "b"]}
+        strong = {**self.sharpen, "candidate_ids": ["m"]}
+        assert self._statuses(tmp_path, [weak, strong], candidates, max_changes=1) == [decide.OVER_CAP, decide.APPLY]
+
+    def test_report_lists_each_section(self, tmp_path: Path) -> None:
+        candidates = [_candidate("a", 1, "miss"), {**_candidate("h", 2, "human_only"), "defect": "split it"}]
+        self._decide(tmp_path, [{**self.sharpen, "candidate_ids": ["a"]}], candidates)
+        text = (tmp_path / "run" / "report.md").read_text(encoding="utf-8")
+        assert "# Review learning: 2026-10-01 to 2026-10-31" in text
+        assert "### LIFE-001 · `sharpen` · lifecycle-and-isolation" in text
+        assert "> A setup method asserts or raises." in text
+        assert "## Human-only review and outside context" in text
+        assert "- test-effectiveness: no proposals" in text

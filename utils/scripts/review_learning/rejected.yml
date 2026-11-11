@@ -1,0 +1,11 @@
+---
+# Proposals that a reviewer rejected in an earlier review-learning pull request.
+# decide.py skips a proposal with the same rule_id and action, unless it brings evidence from
+# a pull request that is not in prs.
+#
+# Example:
+# - rule_id: LIFE-002
+#   action: add_not_when
+#   prs: [8123, 8150]
+#   reason: The delay is part of the behavior under test only in the profiling scenario.
+[]

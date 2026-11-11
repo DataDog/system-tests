@@ -8,6 +8,9 @@ defaults:
   max_chars_per_pr: 12000
   max_chars_per_comment: 1500
   max_chars_per_body: 2000
+  max_changes: 5  # rule changes per run, after decide.py ranks them
+  extract_model: sonnet  # step 3: one subagent per batch
+  map_model: opus  # step 5: one subagent per lens
 
 # Pull requests that are never mined.
 exclude_prs:
