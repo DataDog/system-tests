@@ -38,7 +38,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 | [Architecture overview](docs/understand/architecture.md) | Components, containers, data flow |
 | [Scenarios](docs/understand/scenarios/README.md) | End-to-end, parametric, SSI, K8s -- what each one tests |
 | [Weblogs](docs/understand/weblogs/README.md) | The test applications instrumented by tracers |
-| [Glossary](docs/glossary.md) | Definitions of pass, fail, xpass, xfail, etc. |
+| [Glossary](docs/glossary.md) | Definitions of SSI, scenario, weblog, pass, fail, and other terms |
 
 ### Run tests
 

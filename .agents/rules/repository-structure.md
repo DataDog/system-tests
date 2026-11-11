@@ -4,22 +4,27 @@
 system-tests/
 |-- binaries/           # Users copy here the binaries of the libraries to test on end-to-end scenarios and parametric tests
 |-- docs/               # Documentation files. Folder to provide good and accurate answers. Follow the links.
-|   |-- architecture/   # Architecture documentation
+|   |-- README.md       # Main documentation index
+|   |-- glossary.md     # Shared system-tests and SSI terms
 |   |-- CI/             # CI pipelines documentation
 |   |-- edit/           # Documentation on how to edit tests
 |   |-- execute/        # Documentation on how to execute tests
+|   |   |-- ssi.md      # Quick start for all SSI test suites
+|   |   |-- ssi-access.md # SSI tools and access requirements
+|   |   |-- troubleshooting.md # General and SSI troubleshooting index
 |   |-- internals/      # Internal implementation details
-|   |-- lib-injection/  # Library injection documentation
 |   |-- RFCs/           # Request for Comments documents
-|   |-- scenarios/      # Documentation about test scenarios
-|   |   |-- README.md           # Overview of the main types of scenarios
-|   |   |-- ai_guard.md         # AI Guard scenario documentation (VCR cassettes, upgrading cassettes)
-|   |   |-- docker_ssi.md       # Docker SSI scenario documentation
-|   |   |-- k8s_lib_injection.md # Kubernetes library injection tests details
-|   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
-|   |   |-- parametric.md       # Parametric scenarios documentation
-|   |   |-- README.md # Overview of scenarios (includes IPv6, Go proxies, lifecycle)
-|   |-- weblog/         # Weblog service documentation
+|   |-- understand/     # Architecture, scenarios, test flow, and weblog concepts
+|   |   |-- scenarios/
+|   |   |   |-- README.md # Overview of the main scenario types
+|   |   |   |-- docker_ssi.md # Docker SSI reference
+|   |   |   |-- k8s_library_injection_overview.md # K8s SSI overview
+|   |   |   |-- k8s_lib_injection.md # K8s library injection reference
+|   |   |   |-- k8s_injector_dev.md # K8s injector-dev reference
+|   |   |   |-- onboarding.md # AWS SSI reference
+|   |   |   |-- onboarding_provision_section.md # AWS SSI provision format
+|   |   |   |-- parametric.md # Parametric scenario reference
+|   |   |-- weblogs/    # Weblog documentation
 |
 |-- lib-injection/      # Weblog applications used for all SSI tests: AWS SSI, Docker SSI, K8s lib injection
 |-- manifests/          # YAML config files for test activation (i.e., a test will be activated after a specific version of the tracer).
