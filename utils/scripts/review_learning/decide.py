@@ -20,6 +20,7 @@ import yaml
 
 from utils.scripts.review_learning import report
 from utils.scripts.review_learning.common import load_filters, read_json, write_json
+from utils.scripts.review_learning.plain_english import proposal_key
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -38,6 +39,7 @@ CHANGE_ACTIONS = EDIT_ACTIONS | {"new_rule"}
 REPORT_ACTIONS = {"covered", "contested", "out_of_lens"}
 MAINTAINERS = {"OWNER", "MEMBER", "COLLABORATOR"}
 FIX_SIGNALS = {"miss", "absence"}
+CHANGE_SIGNALS = FIX_SIGNALS | {"correction"}  # evidence that a pattern is a defect
 LINT_CHECKS = {"format.sh", "ruff", "mypy", "lint-imports", "yamllint", "yamlfmt", "shellcheck", "manifest parser"}
 SEVERITIES = {"P0", "P1"}
 MIN_PRS = 2  # distinct pull requests that make a pattern, not a one-off
@@ -65,7 +67,9 @@ def validate(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str
         return f"unknown action {action}"
     if action in EDIT_ACTIONS and rule_id not in ids[lens]:
         return f"{rule_id} is not a rule of {lens}"
-    if action in EDIT_ACTIONS and proposal.get("current_text") and proposal["current_text"] not in lens_text:
+    if action in EDIT_ACTIONS and not proposal.get("current_text"):
+        return "an edit needs the current_text that it replaces"
+    if action in EDIT_ACTIONS and proposal["current_text"] not in lens_text:
         return "current_text is not in the lens file"
     if action == "new_rule":
         return validate_new_rule(lens, proposal, ids)
@@ -93,8 +97,10 @@ def evidence_gap(proposal: Json, candidates: list[Json], root: Path) -> str | No
 
 
 def _change_gap(_proposal: Json, candidates: list[Json], _root: Path) -> str | None:
-    strong = any(c["signal"] in FIX_SIGNALS or is_maintainer_correction(c) for c in candidates)
-    if strong or len({c["pr"] for c in candidates}) >= MIN_PRS:
+    """A disagreement defends a pattern, so it never counts toward a stricter rule."""
+    defects = [c for c in candidates if c["signal"] in CHANGE_SIGNALS]
+    strong = any(c["signal"] in FIX_SIGNALS or is_maintainer_correction(c) for c in defects)
+    if strong or len({c["pr"] for c in defects}) >= MIN_PRS:
         return None
     return "needs a fix, an applied maintainer correction, or two PRs"
 
@@ -130,12 +136,20 @@ def cites_written_decision(path: str | None, root: Path) -> bool:
     return path is not None and path.startswith(("docs/", ".agents/")) and (root / path).is_file()
 
 
-def was_rejected(proposal: Json, prs: set[int], rejected: list[Json]) -> bool:
-    """A proposal stays rejected until it brings evidence from a pull request that the rejection did not see."""
+def was_rejected(lens: str, proposal: Json, prs: set[int], rejected: list[Json]) -> bool:
+    """A proposal stays rejected until it brings evidence from a pull request that the rejection did not see.
+
+    A new rule gets a new ID in each run, so a rejected new rule matches by lens, not by ID.
+    """
     return any(
-        r["rule_id"] == proposal.get("rule_id") and r["action"] == proposal["action"] and prs <= set(r["prs"])
-        for r in rejected
+        r["action"] == proposal["action"] and same_target(lens, proposal, r) and prs <= set(r["prs"]) for r in rejected
     )
+
+
+def same_target(lens: str, proposal: Json, rejection: Json) -> bool:
+    if proposal["action"] == "new_rule":
+        return rejection.get("lens") == lens
+    return rejection.get("rule_id") == proposal.get("rule_id")
 
 
 def strength(decision: Json) -> tuple[bool, int, bool]:
@@ -156,11 +170,32 @@ def status_of(lens: str, proposal: Json, context: Json) -> tuple[str, str]:
     candidates = context["evidence"]
     if reason := evidence_gap(proposal, candidates, context["root"]):
         return NOT_ENOUGH, reason
-    if was_rejected(proposal, {c["pr"] for c in candidates}, context["rejected"]):
+    if was_rejected(lens, proposal, {c["pr"] for c in candidates}, context["rejected"]):
         return REJECTED_BEFORE, "rejected in an earlier pull request, with no new evidence"
-    if context["lint"]:
-        return NEEDS_DECISION, "se still reports: " + ", ".join(sorted({f["rule"] for f in context["lint"]}))
+    if reason := lint_gap(context["lint"]):
+        return NEEDS_DECISION, reason
     return APPLY, proposal.get("reason", "")
+
+
+def lint_gap(findings: list[Json] | None) -> str | None:
+    """Fail closed: a text that was not linted needs a person, like a text with findings."""
+    if findings is None:
+        return "plain_english.py did not lint this text"
+    return "se still reports: " + ", ".join(sorted({f["rule"] for f in findings})) if findings else None
+
+
+def mark_duplicate_new_ids(decisions: list[Json]) -> None:
+    """Two new rules in one run cannot share an ID. The first one keeps it."""
+    seen: set[str] = set()
+    for decision in decisions:
+        if decision["action"] != "new_rule" or decision["status"] == INVALID:
+            continue
+        if decision["rule_id"] in seen:
+            decision["status"], decision["status_reason"] = (
+                INVALID,
+                f"{decision['rule_id']} is already proposed in this run",
+            )
+        seen.add(decision["rule_id"])
 
 
 def apply_cap(decisions: list[Json], max_changes: int) -> None:
@@ -182,9 +217,23 @@ def load_inputs(run_dir: Path, root: Path) -> Json:
     }
 
 
-def decide_proposal(lens: str, index: int, proposal: Json, inputs: Json) -> Json:
+def lint_findings(lens: str, proposal: Json, lint: Json) -> list[Json] | None:
+    """Return the se findings of the proposed text, an empty list when it has none, or None when it was not linted."""
+    text = proposal.get("proposed_text")
+    return lint.get(proposal_key(lens, text)) if text else []
+
+
+def decide_proposal(lens: str, proposal: Json, inputs: Json) -> Json:
     evidence = [inputs["verified"][i] for i in proposal.get("candidate_ids", []) if i in inputs["verified"]]
-    context = {**inputs, "evidence": evidence, "lint": inputs["lint"].get(f"{lens}#{index}", [])}
+    if lens not in LENS_PREFIX:
+        return {
+            "lens": lens,
+            **proposal,
+            "evidence": evidence,
+            "status": INVALID,
+            "status_reason": f"unknown lens {lens}",
+        }
+    context = {**inputs, "evidence": evidence, "lint": lint_findings(lens, proposal, inputs["lint"])}
     status, reason = status_of(lens, proposal, context)
     return {"lens": lens, **proposal, "evidence": evidence, "status": status, "status_reason": reason}
 
@@ -194,7 +243,8 @@ def decide_run(run_dir: Path, root: Path, max_changes: int) -> list[Json]:
     decisions = []
     for path in sorted((run_dir / "proposals").glob("*.json")):
         data = read_json(path)
-        decisions += [decide_proposal(data["lens"], i, p, inputs) for i, p in enumerate(data["proposals"])]
+        decisions += [decide_proposal(data["lens"], p, inputs) for p in data["proposals"]]
+    mark_duplicate_new_ids(decisions)
     apply_cap(decisions, max_changes)
     write_json(run_dir / "decisions.json", decisions)
     (run_dir / "report.md").write_text(report.render(run_dir, decisions, list(LENS_PREFIX)), encoding="utf-8")

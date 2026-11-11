@@ -354,7 +354,7 @@ def _human_pr() -> Json:
     opener = {**_comment("You must store the response in setup, not assert there."), "url": "u1"}
     reply = {**_comment("> You must store\nDone, thanks", login="bob"), "url": "u2"}
     thread = {**_thread(opener, reply), "outcome": thread_outcome.APPLIED}
-    return _pr(10, threads=[thread], merge_commit=None)
+    return _pr(10, login="carol", threads=[thread], merge_commit=None)
 
 
 @features.not_reported
@@ -369,6 +369,14 @@ class Test_ReviewLearningPrepare:
         assert text.rstrip().endswith(f"</untrusted_pr_data_{manifest['nonce']}>")
         assert '"outcome": "applied"' in text
 
+    def test_new_batches_delete_stale_model_outputs(self, tmp_path: Path) -> None:
+        _write_run(tmp_path, [_human_pr()])
+        write_json(tmp_path / "candidates" / "batch-03.json", {"candidates": []})
+        write_json(tmp_path / "verified.json", [])
+        prepare.prepare(tmp_path, tmp_path)
+        assert not (tmp_path / "candidates" / "batch-03.json").exists()
+        assert not (tmp_path / "verified.json").exists()
+
     def test_nonce_changes_on_each_run(self, tmp_path: Path) -> None:
         _write_run(tmp_path, [_human_pr()])
         assert prepare.prepare(tmp_path, tmp_path)["nonce"] != prepare.prepare(tmp_path, tmp_path)["nonce"]
@@ -381,7 +389,13 @@ class Test_ReviewLearningVerify:
         self, tmp_path: Path, candidates: list[Json], fixes: list[Json] | None = None
     ) -> tuple[list[Json], list[Json]]:
         _write_run(tmp_path, [_human_pr()], fixes)
+        write_json(
+            tmp_path / "batches" / "manifest.json", {"nonce": "n", "batches": [{"file": "batch-01.txt", "prs": [10]}]}
+        )
         write_json(tmp_path / "candidates" / "batch-01.json", {"candidates": candidates})
+        write_json(
+            tmp_path / "candidates" / "batch-09.json", {"candidates": [{"id": "old", "pr": 10, "signal": "miss"}]}
+        )
         return verify_quotes.verify_run(tmp_path)
 
     def test_literal_quote_is_verified_and_author_comes_from_data(self, tmp_path: Path) -> None:
@@ -408,10 +422,23 @@ class Test_ReviewLearningVerify:
             {"id": "d", "pr": 10, "signal": "absence", "culprit_pr": 4},
             {"id": "e", "pr": 10, "signal": "miss", "culprit_pr": 4},
             {"id": "f", "pr": 10, "signal": "guess"},
+            {"id": "g", "signal": "miss", "culprit_pr": 4},
+            {"id": "h", "pr": "10", "signal": "miss", "culprit_pr": 4},
         ]
         verified, unverified = self._verify(tmp_path, candidates, fixes)
         assert [c["id"] for c in verified] == ["e"]
-        assert [c["id"] for c in unverified] == ["a", "b", "c", "d", "f"]
+        assert [c["id"] for c in unverified] == ["a", "b", "c", "d", "f", "g", "h"]
+
+    def test_author_of_the_pull_request_cannot_correct_it(self, tmp_path: Path) -> None:
+        candidate = {"id": "10-1", "pr": 10, "signal": "correction", "comment_url": "u1", "quote": "store the response"}
+        pr = {**_human_pr(), "author": _author("alice")}
+        _write_run(tmp_path, [pr])
+        write_json(
+            tmp_path / "batches" / "manifest.json", {"nonce": "n", "batches": [{"file": "batch-01.txt", "prs": [10]}]}
+        )
+        write_json(tmp_path / "candidates" / "batch-01.json", {"candidates": [candidate]})
+        _, unverified = verify_quotes.verify_run(tmp_path)
+        assert unverified[0]["reason"].startswith("a correction must come from a reviewer")
 
 
 @features.not_reported
@@ -429,7 +456,12 @@ class Test_ReviewLearningPlainEnglish:
             return [{"rule": "SE_MODAL_RESTRICTED", "message": "should"}] if "should" in text else []
 
         findings = plain_english.lint_run(tmp_path, linter)
-        assert findings == {"lens#0": [{"rule": "SE_MODAL_RESTRICTED", "message": "should"}], "lens#1": []}
+        assert findings == {
+            plain_english.proposal_key("lens", "You should wait."): [
+                {"rule": "SE_MODAL_RESTRICTED", "message": "should"}
+            ],
+            plain_english.proposal_key("lens", "Wait for the trace."): [],
+        }
 
 
 LENS_TEXT = "### LIFE-001: Setup Methods Must Not Fail\n- Severity: P0\n- Detect: A setup method asserts.\n"
@@ -456,8 +488,13 @@ def _candidate(cid: str, pr: int, signal: str, association: str = "CONTRIBUTOR",
 @features.not_reported
 @scenarios.test_the_test
 class Test_ReviewLearningDecide:
-    sharpen = {"action": "sharpen", "rule_id": "LIFE-001", "current_text": "A setup method asserts.",
-               "proposed_text": "A setup method asserts or raises.", "reason": "r"}  # fmt: skip
+    sharpen: Json = {
+        "action": "sharpen",
+        "rule_id": "LIFE-001",
+        "current_text": "A setup method asserts.",
+        "proposed_text": "A setup method asserts or raises.",
+        "reason": "r",
+    }
 
     def _decide(
         self, tmp_path: Path, proposals: list[Json], candidates: list[Json], max_changes: int = 5
@@ -470,6 +507,7 @@ class Test_ReviewLearningDecide:
             run / "proposals" / "lifecycle-and-isolation.json",
             {"lens": "lifecycle-and-isolation", "proposals": proposals},
         )
+        plain_english.lint_run(run, lambda _text: [])
         return decide.decide_run(run, root, max_changes)
 
     def _statuses(
@@ -485,6 +523,7 @@ class Test_ReviewLearningDecide:
             ([_candidate("a", 1, "correction"), _candidate("b", 2, "correction")], decide.APPLY),
             ([_candidate("a", 1, "correction", association="MEMBER", outcome="discussed")], decide.NOT_ENOUGH),
             ([_candidate("a", 1, "human_only")], decide.NOT_ENOUGH),
+            ([_candidate("a", 1, "disagreement"), _candidate("b", 2, "disagreement")], decide.NOT_ENOUGH),
         ]
         for index, (candidates, expected) in enumerate(cases):
             proposal = {**self.sharpen, "candidate_ids": [c["id"] for c in candidates]}
@@ -501,15 +540,55 @@ class Test_ReviewLearningDecide:
 
     def test_invalid_proposals(self, tmp_path: Path) -> None:
         miss = [_candidate("a", 1, "miss")]
-        proposals = [
+        proposals: list[Json] = [
             {**self.sharpen, "rule_id": "LIFE-999", "candidate_ids": ["a"]},
             {**self.sharpen, "current_text": "text that is not in the lens", "candidate_ids": ["a"]},
             {"action": "new_rule", "rule_id": "TEST-005", "severity": "P0", "candidate_ids": ["a"]},
             {"action": "new_rule", "rule_id": "LIFE-001", "severity": "P0", "candidate_ids": ["a"]},
             {"action": "new_rule", "rule_id": "LIFE-005", "severity": "P2", "candidate_ids": ["a"]},
             {"action": "rewrite", "candidate_ids": ["a"]},
+            {**self.sharpen, "current_text": None, "candidate_ids": ["a"]},
         ]
         assert self._statuses(tmp_path, proposals, miss) == [decide.INVALID] * len(proposals)
+
+    def test_two_new_rules_cannot_share_an_id(self, tmp_path: Path) -> None:
+        rule = {
+            "action": "new_rule",
+            "rule_id": "LIFE-005",
+            "severity": "P1",
+            "proposed_text": "t",
+            "candidate_ids": ["a"],
+        }
+        statuses = self._statuses(tmp_path, [rule, {**rule, "proposed_text": "u"}], [_candidate("a", 1, "miss")])
+        assert statuses == [decide.APPLY, decide.INVALID]
+
+    def test_unknown_lens_is_invalid(self, tmp_path: Path) -> None:
+        root = _decide_root(tmp_path)
+        run = tmp_path / "run"
+        _write_run(run, [])
+        write_json(run / "verified.json", [_candidate("a", 1, "miss")])
+        write_json(
+            run / "proposals" / "x.json", {"lens": "Lifecycle", "proposals": [{**self.sharpen, "candidate_ids": ["a"]}]}
+        )
+        assert decide.decide_run(run, root, 5)[0]["status_reason"] == "unknown lens Lifecycle"
+
+    def test_rejected_new_rule_matches_by_lens(self, tmp_path: Path) -> None:
+        root = _decide_root(tmp_path)
+        rejected = root / "utils" / "scripts" / "review_learning" / "rejected.yml"
+        rejected.write_text("- {lens: lifecycle-and-isolation, action: new_rule, prs: [1]}\n", encoding="utf-8")
+        rule = {
+            "action": "new_rule",
+            "rule_id": "LIFE-006",
+            "severity": "P1",
+            "proposed_text": "t",
+            "candidate_ids": ["a"],
+        }
+        run = tmp_path / "run"
+        _write_run(run, [])
+        write_json(run / "verified.json", [_candidate("a", 1, "miss")])
+        write_json(run / "proposals" / "l.json", {"lens": "lifecycle-and-isolation", "proposals": [rule]})
+        plain_english.lint_run(run, lambda _text: [])
+        assert decide.decide_run(run, root, 5)[0]["status"] == decide.REJECTED_BEFORE
 
     def test_new_rule_report_actions_and_rejections(self, tmp_path: Path) -> None:
         miss = [_candidate("a", 20, "miss"), _candidate("b", 21, "disagreement"), _candidate("c", 20, "disagreement")]
@@ -535,10 +614,14 @@ class Test_ReviewLearningDecide:
         write_json(run / "verified.json", [_candidate("a", 1, "miss")])
         proposal = {**self.sharpen, "candidate_ids": ["a"]}
         write_json(run / "proposals" / "l.json", {"lens": "lifecycle-and-isolation", "proposals": [proposal]})
-        write_json(run / "lint.json", {"lifecycle-and-isolation#0": [{"rule": "SE_NO_SEMICOLON", "message": ";"}]})
+        key = plain_english.proposal_key("lifecycle-and-isolation", proposal["proposed_text"])
+        write_json(run / "lint.json", {key: [{"rule": "SE_NO_SEMICOLON", "message": ";"}]})
         decision = decide.decide_run(run, root, 5)[0]
         assert decision["status"] == decide.NEEDS_DECISION
         assert "SE_NO_SEMICOLON" in decision["status_reason"]
+        (run / "lint.json").unlink()
+        decision = decide.decide_run(run, root, 5)[0]
+        assert decision["status_reason"] == "plain_english.py did not lint this text"
 
     def test_cap_keeps_the_strongest_changes(self, tmp_path: Path) -> None:
         candidates = [_candidate("a", 1, "correction"), _candidate("b", 2, "correction"), _candidate("m", 3, "miss")]
@@ -555,3 +638,4 @@ class Test_ReviewLearningDecide:
         assert "> A setup method asserts or raises." in text
         assert "## Human-only review and outside context" in text
         assert "- test-effectiveness: no proposals" in text
+        assert "| Fixes that szz.py could not analyse | 0 |" in text

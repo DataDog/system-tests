@@ -135,16 +135,18 @@ One subagent for each lens reads the verified candidates, with the stronger mode
 
 | Action | Minimum evidence |
 | --- | --- |
-| `new_rule`, `sharpen` | A `miss` or an `absence`, or a correction by a maintainer that the author applied, or two pull requests |
+| `new_rule`, `sharpen` | A `miss` or an `absence`, or a correction by a maintainer that the author applied, or two pull requests with a defect |
 | `add_not_when` | Two pull requests, or one that cites a document in `docs/` or `.agents/` |
 | `lint_owned` | The name of a `format.sh` check |
+
+A `disagreement` defends a pattern, so it never counts toward a stricter rule. A correction must come from a reviewer: `verify_quotes.py` drops a correction that the author of the pull request wrote.
 
 It also does these checks:
 
 - An edited rule must exist in its lens, and its current text must be in the lens file.
-- A new rule needs a free ID with the lens prefix, and the severity `P0` or `P1`.
-- A text with `se` findings needs a human decision.
-- [`rejected.yml`](../../utils/scripts/review_learning/rejected.yml) lists proposals that a reviewer rejected. A proposal in that file needs evidence from a new pull request.
+- A new rule needs a free ID with the lens prefix, and the severity `P0` or `P1`. Two new rules in one run cannot share an ID.
+- A text with `se` findings needs a human decision. So does a text that `plain_english.py` did not lint.
+- [`rejected.yml`](../../utils/scripts/review_learning/rejected.yml) lists proposals that a reviewer rejected. A proposal in that file needs evidence from a new pull request. A rejected new rule matches by lens, because its ID changes in each run.
 - At most `max_changes` proposals get the status `apply`. The strongest ones come first.
 
 The result goes to `decisions.json` and `report.md`.
@@ -158,7 +160,7 @@ The easiest way is the skill, in Claude Code:
 /system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step map
 ```
 
-With `--step`, the skill runs one step again on an existing run folder. You can tune a prompt without a new download.
+With `--step`, the skill runs one step again on an existing run folder. You can tune a prompt without a new download. A new `prepare` deletes the outputs of the later steps, so old candidates never mix with new batches.
 
 You can also run each script by hand from the repository root, with the repository virtual environment:
 

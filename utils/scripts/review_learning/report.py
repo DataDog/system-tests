@@ -29,10 +29,12 @@ def _count(path: Path) -> int:
 
 def summary_rows(run_dir: Path, decisions: list[Json]) -> list[tuple[str, int]]:
     statuses = [d["status"] for d in decisions]
+    fixes = read_json(run_dir / "fixes.json") if (run_dir / "fixes.json").is_file() else []
     return [
         ("Merged pull requests", len(read_json(run_dir / "index.json")["pull_requests"])),
         ("Excluded as automated", _count(run_dir / "excluded.json")),
-        ("Fixes with a culprit", _count(run_dir / "fixes.json")),
+        ("Fixes with a culprit", sum("culprits" in fix for fix in fixes)),
+        ("Fixes that szz.py could not analyse", sum("error" in fix for fix in fixes)),
         ("Verified candidates", _count(run_dir / "verified.json")),
         ("Candidates with a quote that does not match", _count(run_dir / "unverified.json")),
         ("Proposals", len(decisions)),

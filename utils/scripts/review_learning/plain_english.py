@@ -3,14 +3,15 @@
 Usage:
     python3 -m utils.scripts.review_learning.plain_english --run .review-learning/run
 
-Reads proposals/*.json and writes lint.json: for each proposal key, the se findings of its
-proposed_text. An empty list means that the text passed. The skill sends the findings back to
-the model, which fixes the text. decide.py does not apply a text that still has findings.
+Reads proposals/*.json and writes lint.json: for each lens and proposed_text, the se findings.
+An empty list means that the text passed. The skill sends the findings back to the model,
+which fixes the text. decide.py does not apply a text that still has findings.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -36,20 +37,21 @@ def se_lint(text: str) -> list[Json]:
     return [{"rule": f["rule"], "message": f["message"]} for f in json.loads(result.stdout or "[]")]
 
 
-def proposal_key(lens: str, index: int) -> str:
-    return f"{lens}#{index}"
+def proposal_key(lens: str, text: str) -> str:
+    """Key a finding by its lens and text, so that a rewrite or a new order of the proposals cannot mix them up."""
+    return f"{lens}#{hashlib.sha256(text.encode()).hexdigest()[:16]}"
 
 
-def iter_proposals(run_dir: Path) -> list[tuple[str, Json]]:
+def iter_texts(run_dir: Path) -> list[tuple[str, str]]:
     pairs = []
     for path in sorted((run_dir / "proposals").glob("*.json")):
         data = read_json(path)
-        pairs += [(proposal_key(data["lens"], i), p) for i, p in enumerate(data["proposals"])]
+        pairs += [(data["lens"], p["proposed_text"]) for p in data["proposals"] if p.get("proposed_text")]
     return pairs
 
 
 def lint_run(run_dir: Path, linter: Linter = se_lint) -> Json:
-    findings = {key: linter(p["proposed_text"]) for key, p in iter_proposals(run_dir) if p.get("proposed_text")}
+    findings = {proposal_key(lens, text): linter(text) for lens, text in iter_texts(run_dir)}
     write_json(run_dir / "lint.json", findings)
     return findings
 

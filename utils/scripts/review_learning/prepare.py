@@ -109,12 +109,23 @@ def write_batches(out: Path, batches: list[list[Json]], nonce: str) -> list[Json
     return files
 
 
+def clear_model_outputs(run_dir: Path) -> None:
+    """New batches make the outputs of the later steps stale, so delete them."""
+    stale = [*(run_dir / "candidates").glob("*.json"), *(run_dir / "proposals").glob("*.json")]
+    stale += [
+        run_dir / name for name in ("verified.json", "unverified.json", "lint.json", "decisions.json", "report.md")
+    ]
+    for path in stale:
+        path.unlink(missing_ok=True)
+
+
 def prepare(run_dir: Path, root: Path) -> Json:
     fixes = {fix["fix_pr"]: fix for fix in read_json(run_dir / "fixes.json")}
     items = [compact(pr, fixes.get(pr["number"]), root) for pr in read_json(run_dir / "filtered.json")]
     items = [item for item in items if has_signal(item)]
     nonce = secrets.token_hex(8)
     batches = [items[i : i + BATCH_SIZE] for i in range(0, len(items), BATCH_SIZE)]
+    clear_model_outputs(run_dir)
     manifest = {"nonce": nonce, "batches": write_batches(run_dir / "batches", batches, nonce)}
     write_json(run_dir / "batches" / "manifest.json", manifest)
     return manifest

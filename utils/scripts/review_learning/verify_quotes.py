@@ -47,7 +47,12 @@ def all_comments(pr: Json) -> Iterator[Json]:
 
 
 def comments_by_url(prs: list[Json]) -> dict[str, Json]:
-    return {c["url"]: {**c, "pr": pr["number"]} for pr in prs for c in all_comments(pr) if c["url"]}
+    return {
+        c["url"]: {**c, "pr": pr["number"], "pr_author": pr["author"]["login"]}
+        for pr in prs
+        for c in all_comments(pr)
+        if c["url"]
+    }
 
 
 def check_quote(candidate: Json, comments: dict[str, Json]) -> tuple[str | None, Json]:
@@ -59,6 +64,8 @@ def check_quote(candidate: Json, comments: dict[str, Json]) -> tuple[str | None,
     if len(quote) < MIN_QUOTE_CHARS or quote not in normalize(comment["body"]):
         return "quote is not a literal part of the comment", candidate
     author = comment["author"]
+    if candidate["signal"] == "correction" and author["login"] == comment["pr_author"]:
+        return "a correction must come from a reviewer, not from the author of the pull request", candidate
     rebound = {"author": author["login"], "association": author["association"], "outcome": comment.get("outcome")}
     return None, {**candidate, **rebound}
 
@@ -75,6 +82,8 @@ def check_fix(candidate: Json, fixes: dict[int, Json]) -> str | None:
 
 
 def verify(candidate: Json, comments: dict[str, Json], fixes: dict[int, Json]) -> tuple[str | None, Json]:
+    if not isinstance(candidate.get("pr"), int) or isinstance(candidate.get("pr"), bool):
+        return "pr must be the number of the pull request", candidate
     if candidate.get("signal") not in SIGNALS:
         return f"unknown signal {candidate.get('signal')}", candidate
     if candidate["signal"] in FIX_SIGNALS:
@@ -83,7 +92,10 @@ def verify(candidate: Json, comments: dict[str, Json], fixes: dict[int, Json]) -
 
 
 def load_candidates(run_dir: Path) -> list[Json]:
-    return [c for path in sorted((run_dir / "candidates").glob("*.json")) for c in read_json(path)["candidates"]]
+    """Read only the candidates of the batches in the manifest, so that files from an older run never count."""
+    batches = read_json(run_dir / "batches" / "manifest.json")["batches"]
+    paths = [run_dir / "candidates" / f"{Path(batch['file']).stem}.json" for batch in batches]
+    return [c for path in paths if path.is_file() for c in read_json(path)["candidates"]]
 
 
 def verify_run(run_dir: Path) -> tuple[list[Json], list[Json]]:
