@@ -77,6 +77,19 @@ brew install awscli aws-vault
 
 For other systems, use the installation steps in the AWS SSO setup guide.
 
+### Install Pulumi
+
+AWS SSI needs Pulumi 3.69 or later. On macOS:
+
+```bash
+brew install pulumi/tap/pulumi
+pulumi version
+```
+
+For other systems, use the
+[Pulumi installation guide](https://www.pulumi.com/docs/iac/download-install/).
+The AWS SSI wizard runs `pulumi login --local`.
+
 Check AWS SSI access:
 
 ```bash
