@@ -258,7 +258,7 @@
             "os_distro": "deb",
             "os_branch": "debian",
             "os_cpu": "arm64",
-            "default_vm": false,
+            "default_vm": true,
             "disabled": false
         },
         {
