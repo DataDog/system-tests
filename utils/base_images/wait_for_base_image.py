@@ -33,6 +33,7 @@ if _BASE_IMAGE_SPEC is None or _BASE_IMAGE_SPEC.loader is None:
 _BASE_IMAGE = importlib.util.module_from_spec(_BASE_IMAGE_SPEC)
 _BASE_IMAGE_SPEC.loader.exec_module(_BASE_IMAGE)
 
+base_image_contexts = _BASE_IMAGE.base_image_contexts
 base_image_ref = _BASE_IMAGE.base_image_ref
 _LOGGER = logging.getLogger("wait_for_base_image")
 _STDERR_HANDLER = logging.StreamHandler(sys.stderr)
@@ -74,10 +75,11 @@ def _metadata_weblogs(metadata_lines: list[str]) -> tuple[set[str], dict[str, se
     return weblogs, framework_versions
 
 
-def _base_image_tag(library: str, weblog: str) -> str | None:
-    """system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
+def _dockerfile_path(library: str, weblog: str) -> Path | None:
+    """Return the weblog Dockerfile, or None when this weblog has no Dockerfile.
 
-    dockerfile: Path
+    Exits when the library or weblog name is unknown.
+    """
 
     if weblog == "parametric":
         # the parametric test client is not a weblog, and lives in its own folder
@@ -86,7 +88,7 @@ def _base_image_tag(library: str, weblog: str) -> str | None:
             logger.error(f"Error: {dockerfile} does not exists")
             sys.exit(1)
 
-        return base_image_ref(dockerfile.read_text())
+        return dockerfile
 
     metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
 
@@ -106,42 +108,46 @@ def _base_image_tag(library: str, weblog: str) -> str | None:
         dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
         if not dockerfile.exists():  # some weblog does not have any dockerfiles
             return None
-    else:
-        # integration-framework weblogs (e.g. openai-py@2.0.0) use the Dockerfile of their unversioned name
+        return dockerfile
 
-        weblog_name, _, version = weblog.partition("@")
-        is_known_weblog = weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
+    # integration-framework weblogs (e.g. openai-py@2.0.0) use the Dockerfile of their unversioned name
 
-        if not is_known_weblog:
-            logger.error(f"Error: {weblog} not found in {metadata}")
-            sys.exit(1)
+    weblog_name, _, version = weblog.partition("@")
+    is_known_weblog = weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
 
-        dockerfile = Path(f"utils/build/docker/{library}/{weblog_name}.Dockerfile")
+    if not is_known_weblog:
+        logger.error(f"Error: {weblog} not found in {metadata}")
+        sys.exit(1)
 
-        if not dockerfile.exists():
-            logger.error(f"Error: {dockerfile} does not exists")
-            sys.exit(1)
+    dockerfile = Path(f"utils/build/docker/{library}/{weblog_name}.Dockerfile")
 
-    return base_image_ref(dockerfile.read_text())
+    if not dockerfile.exists():
+        logger.error(f"Error: {dockerfile} does not exists")
+        sys.exit(1)
+
+    return dockerfile
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Wait for a weblog's base image to exist on Docker Hub")
-    parser.add_argument("library", help="Library name (e.g. nodejs, python)")
-    parser.add_argument("weblog", help="Weblog name (e.g. express4, flask-poc)")
-    parser.add_argument("--timeout", type=int, default=900, help="Max time to wait, in seconds (default: 900)")
-    parser.add_argument("--poll-interval", type=int, default=30, help="Time between polls, in seconds (default: 30)")
-    args = parser.parse_args()
+def _base_image_tags(library: str, weblog: str) -> list[str]:
+    """Every locked system-tests base image the weblog Dockerfile builds FROM."""
 
-    image_tag = _base_image_tag(args.library, args.weblog)
+    dockerfile = _dockerfile_path(library, weblog)
+    if dockerfile is None:
+        return []
 
-    if image_tag is None:
-        logger.info("%s has no Dockerfile, nothing to wait for", args.weblog)
-        return
+    return list(base_image_contexts(dockerfile.read_text()).values())
 
-    logger.info("Waiting for %s to be available on Docker Hub (timeout: %ss)", image_tag, args.timeout)
 
-    deadline = time.monotonic() + args.timeout
+def _base_image_tag(library: str, weblog: str) -> str | None:
+    """First system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
+
+    tags = _base_image_tags(library, weblog)
+    return tags[0] if tags else None
+
+
+def _wait_for_image(image_tag: str, *, deadline: float, poll_interval: int) -> None:
+    """Poll Docker Hub until ``image_tag`` exists or ``deadline`` is reached."""
+
     unexpected_errors = 0
     while True:
         result = subprocess.run(
@@ -179,10 +185,30 @@ def main() -> None:
                 logger.error("%s", error)
             sys.exit(1)
 
-        logger.info("%s not found yet, retrying in %ss...", image_tag, args.poll_interval)
+        logger.info("%s not found yet, retrying in %ss...", image_tag, poll_interval)
         if error:
             logger.error("%s", error)
-        time.sleep(args.poll_interval)
+        time.sleep(poll_interval)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Wait for a weblog's base image to exist on Docker Hub")
+    parser.add_argument("library", help="Library name (e.g. nodejs, python)")
+    parser.add_argument("weblog", help="Weblog name (e.g. express4, flask-poc)")
+    parser.add_argument("--timeout", type=int, default=900, help="Max time to wait, in seconds (default: 900)")
+    parser.add_argument("--poll-interval", type=int, default=30, help="Time between polls, in seconds (default: 30)")
+    args = parser.parse_args()
+
+    image_tags = _base_image_tags(args.library, args.weblog)
+
+    if not image_tags:
+        logger.info("%s has no Dockerfile, nothing to wait for", args.weblog)
+        return
+
+    deadline = time.monotonic() + args.timeout
+    for image_tag in image_tags:
+        logger.info("Waiting for %s to be available on Docker Hub (timeout: %ss)", image_tag, args.timeout)
+        _wait_for_image(image_tag, deadline=deadline, poll_interval=args.poll_interval)
 
 
 if __name__ == "__main__":

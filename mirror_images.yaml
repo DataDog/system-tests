@@ -44,6 +44,8 @@
 - "datadog/system-tests:golang_buddy-v2"
 - "datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57"
 - "datadog/system-tests:java_buddy-v1"
+- "datadog/system-tests:kong-build.base-b92dbfb4f024"
+- "datadog/system-tests:kong.base-1958b12da18b"
 - "datadog/system-tests:lambda-proxy-v1"
 - "datadog/system-tests:nextjs.base-5c42165eff3e"
 - "datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9"

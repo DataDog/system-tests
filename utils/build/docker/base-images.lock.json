@@ -2,6 +2,8 @@
   "version": 1,
   "images": {
     "system_tests_base_cpp_cpp_parametric": "datadog/system-tests:cpp-parametric.base-7da050dd1bcd",
+    "system_tests_base_cpp_kong_kong": "datadog/system-tests:kong.base-1958b12da18b",
+    "system_tests_base_cpp_kong_kong_build": "datadog/system-tests:kong-build.base-b92dbfb4f024",
     "system_tests_base_java_lambda_java_lambda_runtime": "datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57",
     "system_tests_base_java_play": "datadog/system-tests:play.base-6ab8cfc2eec4",
     "system_tests_base_java_ratpack": "datadog/system-tests:ratpack.base-0b869346df43",
