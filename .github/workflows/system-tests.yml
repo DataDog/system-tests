@@ -177,7 +177,9 @@ jobs:
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs != '[]'}}
-    runs-on: ubuntu-latest
+    # Temporary: ubuntu-latest is Ubuntu 26.04, and Docker builds there fail to
+    # resolve archive.ubuntu.com. Pin 24.04 until that DNS issue is fixed.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
