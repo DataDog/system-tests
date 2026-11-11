@@ -1,0 +1,37 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json",
+      "dd-ai-guard-version": "4.17.0rc1",
+      "dd-ai-guard-source": "SDK",
+      "dd-ai-guard-language": "python",
+      "datadog-entity-id": "in-28436",
+      "Content-Length": "596"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: blocked by system-tests\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_01BomzuGjzojDaw12C7sxuiG\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"blocked by system-tests\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_9d097fe19379c0dd\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_9d097fe19379c0dd\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"tools\": {\"echo\": \"echo\"}, \"command\": \"python\", \"args\": [\"integration_frameworks.mcp_echo_server\"]}]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "475",
+      "date": "Wed, 11 Nov 2026 09:50:32 GMT",
+      "x-ratelimit-limit": "700",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "692",
+      "x-ratelimit-reset": "28",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"614045b2-1fdf-4088-8112-aa9b1e5219e6\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"DENY\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"614045b2-1fdf-4088-8112-aa9b1e5219e6\"}],\"is_blocking_enabled\":true,\"reason\":\"system-tests: blocking DENY of the MCP tool call\",\"tag_probs\":{\"data-exfiltration\":0,\"destructive-or-resource-abuse\":0,\"indirect-prompt-injection\":0,\"malicious-execution\":0,\"policy-evasion\":0,\"system-and-capability-discovery\":0},\"tags\":[]}}}"
+  }
+}

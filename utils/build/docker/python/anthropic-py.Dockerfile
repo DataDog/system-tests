@@ -13,6 +13,11 @@ RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
     else \
         python -m pip install anthropic==$FRAMEWORK_VERSION; \
     fi
+# The MCP helpers (anthropic.lib.tools.mcp, anthropic>=0.84.0) need mcp, which needs pydantic 2 and so a newer FastAPI
+# pydantic is pinned too: it generates the MCP tool input schema, part of the recorded request bodies
+RUN if [ -f "$(python -c 'import anthropic, os; print(os.path.dirname(anthropic.__file__))')/lib/tools/mcp.py" ]; then \
+        python -m pip install mcp==1.30.0 fastapi==0.115.12 uvicorn==0.34.0 pydantic==2.14.3 pydantic-core==2.50.4 starlette==0.46.2; \
+    fi
 
 COPY utils/build/docker/python/anthropic_app/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
