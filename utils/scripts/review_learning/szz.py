@@ -38,10 +38,9 @@ MAX_HOPS = 5
 MAX_FILES = 10
 MAX_LINES_PER_FILE = 5
 
+# Only conventional-commit prefixes and merges: a subject such as "Fix the build for Java 21" is semantic.
 NON_SEMANTIC = re.compile(
-    r"\b(build|ci|docs?|chore|style|format|lint|release|version|bump|update\s+dep|readme|changelog|"
-    r"merge\s+branch|merge\s+pull\s+request)\b",
-    re.IGNORECASE,
+    r"^((build|ci|docs?|chore|style)(\([^)]*\))?!?:|merge (branch|pull request)\b)", re.IGNORECASE
 )
 FIX_TITLE = re.compile(r"^\s*(revert\b|fix(es|ed)?\b|fix\(|hotfix\b|follow[- ]?up\b)", re.IGNORECASE)
 LINK = re.compile(
@@ -121,11 +120,27 @@ def blame_line(sha: str, path: str, line: int, root: Path) -> str | None:
             output = run(["git", "blame", "--porcelain", "-L", f"{line},{line}", current, "--", path], cwd=root)
         except CommandError:
             return blamed
-        blamed = output.split(maxsplit=1)[0]
+        blamed, line, path = parse_blame(output)
         if not NON_SEMANTIC.search(subject(blamed, root)):
             return blamed
         current = f"{blamed}^"
     return blamed
+
+
+def parse_blame(porcelain: str) -> tuple[str, int, str]:
+    """Return the blamed commit, and the line number and path of the line in that commit."""
+    lines = porcelain.splitlines()
+    sha, original_line = lines[0].split()[:2]
+    path = next(line[len("filename ") :] for line in lines if line.startswith("filename "))
+    return sha, int(original_line), path
+
+
+def commit_exists(sha: str, root: Path) -> bool:
+    try:
+        run(["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=root)
+    except CommandError:
+        return False
+    return True
 
 
 @cache
@@ -173,7 +188,10 @@ def pr_from_title(title: str, root: Path) -> int | None:
 
 def blame_fix(sha: str, root: Path, skip_paths: tuple[str, ...]) -> tuple[Counter[int], list[FileChange]]:
     """Count, per earlier pull request, the blamed lines of the fix."""
-    diff = run(["git", "diff", "--no-ext-diff", "--no-textconv", "-U0", f"{sha}^", sha], cwd=root)
+    diff = run(
+        ["git", "diff", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/", "-U0", f"{sha}^", sha],
+        cwd=root,
+    )
     changes = [c for c in parse_diff(diff) if not matches_any(c.path, skip_paths)][:MAX_FILES]
     culprits: Counter[int] = Counter()
     for change in changes:
@@ -209,7 +227,8 @@ def find_culprits(pr: Json, blamed: Counter[int], root: Path) -> list[Json]:
 
 def absence(changes: list[FileChange], culprit: Json) -> Json:
     """The fix adds what the culprit left out: it only adds lines, or it changes files that the culprit did not."""
-    missing = sorted({change.path for change in changes} - set(culprit["files"]))
+    # Without the culprit's files, a missing file cannot be told apart from an unknown one.
+    missing = sorted({change.path for change in changes} - set(culprit["files"])) if culprit["files"] else []
     additions_only = bool(changes) and all(change.additions_only for change in changes)
     return {"absence": additions_only or bool(missing), "additions_only": additions_only, "missing_in_culprit": missing}
 
@@ -219,8 +238,12 @@ def analyse_fix(pr: Json, root: Path, skip_paths: tuple[str, ...]) -> Json | Non
     if not is_fix_candidate(pr["title"], pr["body"]):
         return None
     sha = pr.get("merge_commit") or find_pr_commit(pr["number"], root)
-    if not sha:
-        return {"fix_pr": pr["number"], "title": pr["title"], "error": "merge commit not found locally"}
+    if not sha or not commit_exists(sha, root):
+        return {
+            "fix_pr": pr["number"],
+            "title": pr["title"],
+            "error": "merge commit not found locally; run git fetch origin main",
+        }
     blamed, changes = blame_fix(sha, root, skip_paths)
     culprits = find_culprits(pr, blamed, root)
     if not culprits:

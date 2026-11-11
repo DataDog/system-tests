@@ -39,7 +39,7 @@ Each step is one script. A script reads the run folder and writes its own JSON f
 
 ### Collect
 
-`collect.py` downloads the merged pull requests of the window. It keeps the files, the commits, the reviews, the comments, and the review threads. Each pull request goes to `evidence/<number>.json`.
+`collect.py` downloads the merged pull requests of the window. It keeps the files, the commits, the reviews, the comments, and the review threads. Each pull request goes to `evidence/<number>.json`. If GitHub cuts a list at the query limit, the `truncated` field names it. A new collect in the same folder deletes the old evidence first.
 
 ### Filter
 
@@ -91,7 +91,7 @@ venv/bin/python -m utils.scripts.review_learning.filter --run .review-learning/r
 venv/bin/python -m utils.scripts.review_learning.szz --run .review-learning/run
 ```
 
-The `--window` option takes a number of days, such as `30d`, or a date range, such as `2026-10-01..2026-10-31`. Without `--out`, the run goes to `.review-learning/<start>..<end>`.
+The `--window` option takes a number of days that ends today, such as `30d`, or a date range, such as `2026-10-01..2026-10-31`. Without `--out`, the run goes to `.review-learning/<start>..<end>`.
 
 You can also look at one pull request:
 

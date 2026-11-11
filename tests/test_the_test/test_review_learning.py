@@ -54,7 +54,8 @@ class Test_ReviewLearningCommon:
 class Test_ReviewLearningCollect:
     def test_parse_window(self) -> None:
         today = date(2026, 11, 11)
-        assert collect.parse_window("30d", today) == (date(2026, 10, 12), today)
+        assert collect.parse_window("30d", today) == (date(2026, 10, 13), today)
+        assert collect.parse_window("1d", today) == (today, today)
         assert collect.parse_window("2026-10-01..2026-10-31", today) == (date(2026, 10, 1), date(2026, 10, 31))
         with pytest.raises(ValueError, match="ends before"):
             collect.parse_window("2026-10-31..2026-10-01", today)
@@ -77,16 +78,27 @@ class Test_ReviewLearningCollect:
         assert calls[0] == {"q": "repo:o/r is:pr is:merged merged:2026-10-01..2026-10-02"}
         assert calls[1]["after"] == "c1"
 
+    def test_collect_replaces_old_evidence(self, tmp_path: Path) -> None:
+        write_json(tmp_path / "evidence" / "99.json", {"number": 99})
+
+        def graphql(_query: str, _variables: dict[str, str]) -> Json:
+            page = {"issueCount": 0, "pageInfo": {"hasNextPage": False, "endCursor": None}, "nodes": []}
+            return {"data": {"search": page}}
+
+        collect.collect("o/r", date(2026, 10, 1), date(2026, 10, 2), tmp_path, graphql)
+        assert not (tmp_path / "evidence" / "99.json").exists()
+        assert read_json(tmp_path / "index.json")["pull_requests"] == []
+
     def test_normalize_flattens_nodes(self) -> None:
         reactions = [{"content": "THUMBS_UP", "users": {"totalCount": 2}}]
         node = {
             "number": 7, "title": "t", "body": None, "url": "u", "mergedAt": "m", "author": None,
-            "authorAssociation": None, "labels": {"nodes": [{"name": "x"}]}, "mergeCommit": {"oid": "abc"},
-            "files": {"nodes": [{"path": "a.py", "additions": 1, "deletions": 0}]},
-            "commits": {"nodes": [{"commit": {"oid": "c", "committedDate": "d", "messageHeadline": "h"}}]},
-            "reviews": {"nodes": []}, "comments": {"nodes": []},
-            "reviewThreads": {"nodes": [{"isResolved": True, "isOutdated": False, "path": "a.py", "line": 1,
-                "originalLine": 1, "comments": {"nodes": [{"author": {"login": "bob", "__typename": "User"},
+            "authorAssociation": None, "labels": {"totalCount": 1, "nodes": [{"name": "x"}]}, "mergeCommit": {"oid": "abc"},
+            "files": {"totalCount": 150, "nodes": [{"path": "a.py", "additions": 1, "deletions": 0}]},
+            "commits": {"totalCount": 1, "nodes": [{"commit": {"oid": "c", "committedDate": "d", "messageHeadline": "h"}}]},
+            "reviews": {"totalCount": 0, "nodes": []}, "comments": {"totalCount": 0, "nodes": []},
+            "reviewThreads": {"totalCount": 1, "nodes": [{"isResolved": True, "isOutdated": False, "path": "a.py", "line": 1,
+                "originalLine": 1, "comments": {"totalCount": 1, "nodes": [{"author": {"login": "bob", "__typename": "User"},
                 "authorAssociation": "MEMBER", "body": "b", "createdAt": "t0", "url": "u2", "diffHunk": "@@",
                 "reactionGroups": reactions}]}}]},
         }  # fmt: skip
@@ -97,6 +109,7 @@ class Test_ReviewLearningCollect:
         assert pr["commits"] == [{"oid": "c", "date": "d", "headline": "h"}]
         assert pr["threads"][0]["comments"][0]["thumbs_up"] == 2
         assert pr["threads"][0]["comments"][0]["author"]["association"] == "MEMBER"
+        assert pr["truncated"] == ["files"]
 
 
 @features.not_reported
@@ -126,6 +139,15 @@ class Test_ReviewLearningFilter:
         assert cleaned is not None
         assert [c["body"] for c in cleaned["comments"]] == ["Store it in setup"]
         assert cleaned["outcome"] == thread_outcome.IGNORED
+
+    def test_keeps_real_reviews_that_start_with_a_polite_word(self) -> None:
+        thread = _thread(
+            _comment("Nice idea, but this setup has no test"), _comment("Thanks, fixed in 1a2b3c4", login="bob")
+        )
+        cleaned = filter_step.clean_thread(thread, [], FILTERS)
+        assert cleaned is not None
+        assert len(cleaned["comments"]) == 2
+        assert cleaned["outcome"] == thread_outcome.APPLIED
 
     def test_budget_drops_weakest_threads_first(self) -> None:
         applied = {**_thread(_comment("a" * 60)), "outcome": thread_outcome.APPLIED}
@@ -162,6 +184,10 @@ class Test_ReviewLearningThreadOutcome:
         ]
         for thread, commits, expected in cases:
             assert thread_outcome.classify(thread, commits) == expected, thread
+
+    def test_unintended_is_not_a_dispute(self) -> None:
+        thread = _thread(_comment("x"), _comment("Good catch, that was unintended. Fixed in 1a2b3c4", login="bob"))
+        assert thread_outcome.classify(thread, []) == thread_outcome.APPLIED
 
     def test_commit_before_the_comment_does_not_count(self) -> None:
         early = [{"oid": "c", "date": "2026-09-30T00:00:00Z", "headline": "first version"}]
@@ -244,6 +270,27 @@ diff --git a/new.py b/new.py
         assert fix is not None
         assert fix["additions_only"] is True
         assert fix["absence"] is True
+
+    def test_non_semantic_subjects(self) -> None:
+        assert szz.NON_SEMANTIC.search("docs: update readme (#3)")
+        assert szz.NON_SEMANTIC.search("chore(ci)!: bump runner (#4)")
+        assert not szz.NON_SEMANTIC.search("[java] Fix spring-boot build for new version (#8123)")
+
+    def test_parse_blame_uses_the_line_in_the_blamed_commit(self) -> None:
+        porcelain = "a" * 40 + " 12 3 1\nauthor t\nfilename old/m.yml\n\tline\n"
+        assert szz.parse_blame(porcelain) == ("a" * 40, 12, "old/m.yml")
+
+    def test_unknown_culprit_files_give_no_absence(self) -> None:
+        changes = [szz.FileChange("a.py", (1,), additions_only=False)]
+        assert szz.absence(changes, {"files": []})["absence"] is False
+        assert szz.absence(changes, {"files": ["b.py"]})["missing_in_culprit"] == ["a.py"]
+
+    def test_missing_merge_commit_is_reported(self, tmp_path: Path) -> None:
+        _git(tmp_path, "init", "-q")
+        _commit(tmp_path, {"a.py": "x\n"}, "Add a (#1)")
+        fix = szz.analyse_fix(_pr(2, title="fix: a", merge_commit="f" * 40), tmp_path, ())
+        assert fix is not None
+        assert fix["error"].startswith("merge commit not found locally")
 
     def test_not_a_fix(self, tmp_path: Path) -> None:
         assert szz.analyse_fix(_pr(1, title="Add a test"), tmp_path, ()) is None

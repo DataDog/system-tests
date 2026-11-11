@@ -27,15 +27,9 @@ DISCUSSED = "discussed"  # humans replied, without a clear result
 RESOLVED = "resolved"  # resolved, but no later commit shows a change
 IGNORED = "ignored"  # nobody replied and nothing changed
 
-DISMISSIVE = (
-    "won't fix",
-    "wont fix",
-    "not going to",
-    "disagree",
-    "false positive",
-    "not a bug",
-    "intended",
-    "on purpose",
+DISMISSIVE = re.compile(
+    r"\b(won'?t fix|not going to (fix|change|do)|disagree|false positive|not a bug|intended|on purpose|by design)\b",
+    re.IGNORECASE,
 )
 CONFIRMATIONS = ("fixed in", "addressed in", "resolved in", "applied in", "done in", "changed in", "updated in")
 SHORT_CONFIRMATIONS = {"done", "fixed", "addressed", "updated", "changed", "good catch", "good point"}
@@ -44,8 +38,7 @@ _PUNCTUATION = re.compile(r"[^\w\s']")
 
 
 def is_dismissive(body: str) -> bool:
-    lowered = body.lower()
-    return any(keyword in lowered for keyword in DISMISSIVE)
+    return bool(DISMISSIVE.search(body))
 
 
 def is_confirmation(body: str) -> bool:

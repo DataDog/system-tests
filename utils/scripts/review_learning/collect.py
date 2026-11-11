@@ -37,14 +37,14 @@ query($q: String!, $after: String) {{
     pageInfo {{ hasNextPage endCursor }}
     nodes {{ ... on PullRequest {{
       number title body url mergedAt {_AUTHOR}
-      labels(first: 20) {{ nodes {{ name }} }}
+      labels(first: 20) {{ totalCount nodes {{ name }} }}
       mergeCommit {{ oid }}
-      files(first: 100) {{ nodes {{ path additions deletions }} }}
-      commits(first: 100) {{ nodes {{ commit {{ oid committedDate messageHeadline }} }} }}
-      reviews(first: 50) {{ nodes {{ {_AUTHOR} state body submittedAt }} }}
-      comments(first: 100) {{ nodes {{ {_AUTHOR} body createdAt url }} }}
-      reviewThreads(first: 100) {{ nodes {{ isResolved isOutdated path line originalLine
-        comments(first: 50) {{ nodes {{ {_AUTHOR} body createdAt url diffHunk
+      files(first: 100) {{ totalCount nodes {{ path additions deletions }} }}
+      commits(first: 100) {{ totalCount nodes {{ commit {{ oid committedDate messageHeadline }} }} }}
+      reviews(first: 50) {{ totalCount nodes {{ {_AUTHOR} state body submittedAt }} }}
+      comments(first: 100) {{ totalCount nodes {{ {_AUTHOR} body createdAt url }} }}
+      reviewThreads(first: 100) {{ totalCount nodes {{ isResolved isOutdated path line originalLine
+        comments(first: 50) {{ totalCount nodes {{ {_AUTHOR} body createdAt url diffHunk
           reactionGroups {{ content users {{ totalCount }} }} }} }} }} }}
     }} }}
   }}
@@ -58,7 +58,10 @@ _DAYS = re.compile(r"^(\d+)d$")
 def parse_window(window: str, today: date) -> tuple[date, date]:
     """Return the first and last merge dates, both included, for '30d' or '2026-10-01..2026-10-31'."""
     if match := _DAYS.match(window):
-        return today - timedelta(days=int(match.group(1))), today
+        days = int(match.group(1))
+        if days < 1:
+            raise ValueError("a window of days must hold at least 1 day")
+        return today - timedelta(days=days - 1), today
     if match := _RANGE.match(window):
         start, end = date.fromisoformat(match.group(1)), date.fromisoformat(match.group(2))
         if start > end:
@@ -127,9 +130,21 @@ def _commits(node: Json) -> list[Json]:
     return [{"oid": c["oid"], "date": c["committedDate"], "headline": c["messageHeadline"]} for c in commits]
 
 
+CAPPED = ("files", "commits", "reviews", "comments", "reviewThreads")
+
+
+def truncated(node: Json) -> list[str]:
+    """Name the lists that GitHub cut at the query limit, so that the later steps know data is missing."""
+    names = [name for name in CAPPED if node[name]["totalCount"] > len(node[name]["nodes"])]
+    if any(t["comments"]["totalCount"] > len(t["comments"]["nodes"]) for t in node["reviewThreads"]["nodes"]):
+        names.append("thread comments")
+    return names
+
+
 def normalize(node: Json) -> Json:
     """Keep the fields that the later steps use, in a flat shape."""
     return {
+        "truncated": truncated(node),
         "number": node["number"],
         "title": node["title"],
         "body": node.get("body") or "",
@@ -150,7 +165,14 @@ def _summary(pr: Json) -> Json:
     return {"number": pr["number"], "title": pr["title"], "author": pr["author"]["login"], "merged_at": pr["merged_at"]}
 
 
+def clear_evidence(out: Path) -> None:
+    for old in (out / "evidence").glob("*.json"):
+        old.unlink()
+
+
 def collect(repo: str, start: date, end: date, out: Path, graphql: GraphqlRunner = gh_graphql) -> Json:
+    """Download the window into out. Evidence from an earlier run in the same folder is deleted first."""
+    clear_evidence(out)
     prs = sorted(
         (normalize(node) for node in fetch_pull_requests(repo, start, end, graphql)), key=lambda pr: pr["number"]
     )

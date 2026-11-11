@@ -4,7 +4,7 @@
 
 defaults:
   window: 30d
-  batch_days: 7
+  batch_days: 7  # read by the model steps, which do not exist yet
   max_chars_per_pr: 12000
   max_chars_per_comment: 1500
   max_chars_per_body: 2000
@@ -41,12 +41,17 @@ ignore_comments:
     - copilot-pull-request-reviewer
     - "datadog-*"
     - "*[bot]"
+  # Whole-comment matches only: "Thanks, fixed in abc1234" and "Nice idea, but ..." are kept.
   body_patterns:
     - "lgtm"
     - "lgtm!"
-    - "thanks*"
-    - "thank you*"
-    - "nice*"
+    - "lgtm."
+    - "thanks"
+    - "thanks!"
+    - "thank you"
+    - "thank you!"
+    - "nice"
+    - "nice!"
     - "+1"
     - "👍"
     - "🚀"
