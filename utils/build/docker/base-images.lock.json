@@ -11,6 +11,7 @@
     "system_tests_base_java_spring_boot_payara": "datadog/system-tests:spring-boot-payara.base-721abfb362f5",
     "system_tests_base_java_spring_boot_undertow": "datadog/system-tests:spring-boot-undertow.base-39a3b48027d7",
     "system_tests_base_java_spring_boot_wildfly": "datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457",
+    "system_tests_base_java_uds_spring_boot_runtime": "datadog/system-tests:uds-spring-boot-runtime.base-d6a6ea0a0cba",
     "system_tests_base_java_vertx3": "datadog/system-tests:vertx3.base-0f17e2ccaa86",
     "system_tests_base_java_vertx4": "datadog/system-tests:vertx4.base-bfe3a1430c7f",
     "system_tests_base_nodejs_express4": "datadog/system-tests:express4.base-527c2a306057",

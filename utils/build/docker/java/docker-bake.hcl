@@ -14,6 +14,7 @@ group "default" {
     "spring-boot-payara",
     "spring-boot-undertow",
     "spring-boot-wildfly",
+    "uds-spring-boot-runtime",
     "vertx3",
     "vertx4",
   ]
@@ -87,4 +88,10 @@ target "spring-boot-wildfly" {
   dockerfile = "spring-boot.base.Dockerfile"
   args       = { MAVEN_PROFILE = "wildfly" }
   tags       = ["datadog/system-tests:spring-boot-wildfly.base"]
+}
+
+target "uds-spring-boot-runtime" {
+  inherits   = ["_common"]
+  dockerfile = "uds-spring-boot-runtime.base.Dockerfile"
+  tags       = ["datadog/system-tests:uds-spring-boot-runtime.base"]
 }

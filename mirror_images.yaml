@@ -76,6 +76,7 @@
 - "datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457"
 - "datadog/system-tests:spring-boot.base-9d7da45cd273"
 - "datadog/system-tests:tornado.base-3edec3b229d1"
+- "datadog/system-tests:uds-spring-boot-runtime.base-d6a6ea0a0cba"
 - "datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb"
 - "datadog/system-tests:vertx3.base-0f17e2ccaa86"
 - "datadog/system-tests:vertx4.base-bfe3a1430c7f"
