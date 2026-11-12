@@ -209,6 +209,16 @@ class Test_UpdateMirrorImages:
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
             update_mirror_images.main(set(), skip_lock=True, refresh=True)
 
+    def test_ci_images_keep_their_mirror_source(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        (tmp_path / "a.Dockerfile").write_text(
+            "FROM registry.ddbuild.io/system-tests/mirror/ghcr.io/org/tool:1@sha256:abc AS tool\n"
+            "FROM registry.ddbuild.io/images/docker:29.4.0-noble\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(update_mirror_images, "CI_DOCKERFILES", tmp_path)
+        monkeypatch.delenv("MIRROR_DEST_REGISTRY", raising=False)
+        assert update_mirror_images._ci_images() == {"ghcr.io/org/tool:1"}
+
     def test_collect_images_includes_parametric_images(self):
         """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
         images = set(update_mirror_images.collect_images(set()))
