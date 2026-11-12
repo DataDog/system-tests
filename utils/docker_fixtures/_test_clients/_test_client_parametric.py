@@ -823,13 +823,18 @@ class ParametricTestClientApi(TestClientApi):
         return cast("dict[str, Any]", response.json())
 
     def ffe_start(self, configuration: dict | None = None, *, flag_selection: object = None) -> bool:
-        """Initialize the FFE (Feature Flagging & Experimentation) provider.
+        """Set up the FFE (Feature Flagging & Experimentation) provider/client.
+
+        This is not a readiness or network-activation barrier: lazy SDKs may defer
+        configuration loading until the first evaluation. Tests must evaluate a flag
+        before waiting for delivery, and assert the result to establish readiness.
 
         flag_selection, unless None, is sent as is in the flag_selection field; None omits the field. The test app must
         pass it untouched to the SDK's flag selection provider option: only the SDK canonicalizes and validates it.
 
         Returns:
-            bool: True if the provider was initialized successfully, False otherwise
+            bool: True if the adapter returned a successful HTTP status, False otherwise.
+                A failed start must not substitute for assertions about evaluation behavior.
 
         """
         payload: dict[str, object] = {}

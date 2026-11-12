@@ -54,16 +54,18 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		if err != nil {
 			return err
 		}
-		if err := of.SetProviderWithContextAndWait(ctx, registered); err != nil {
-			var initErr *of.ProviderInitError
-			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
-				return err
-			}
-		}
-
+		initResult := of.SetProviderWithContextAndWait(ctx, registered)
+		// Registration precedes initialization. Keep the real client available
+		// when loading configuration fails so cold evaluations exercise it.
 		s.ddProvider = provider
 		s.ofClient = of.NewClient("system-tests-weblog-client")
 		ffeStarted = true
+		if initResult != nil {
+			var initErr *of.ProviderInitError
+			if !errors.As(initResult, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
+				return initResult
+			}
+		}
 		return nil
 	}()
 

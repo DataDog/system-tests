@@ -1,9 +1,9 @@
 """Parametric FFE configuration-source coverage for a mocked FFE agentless backend.
 
 Feature under test: server SDKs preserve legacy Remote Configuration adopters,
-load UFC flag definitions from the agentless HTTP backend by default only after
-application provider access, and honor explicit source selection and the stable
-provider kill switch.
+load UFC flag definitions from the agentless HTTP backend, and honor explicit
+source selection and the stable provider kill switch. PHP requires an explicit
+source except for legacy-only RC opt-in; other SDKs default to lazy agentless.
 
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
@@ -162,12 +162,22 @@ def _assert_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
     assert RC_PRODUCT in _remote_config_products(test_agent)
 
 
-def _assert_no_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
+def _assert_no_ffe_remote_config_activation(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
-        capabilities = test_agent.wait_for_rc_capabilities()
-        assert Capabilities.FFE_FLAG_CONFIGURATION_RULES not in capabilities
-        assert RC_PRODUCT not in _remote_config_products(test_agent)
+        assert test_library.is_alive(), "test library stopped during the negative RC observation window"
+        test_agent.assert_no_rc_subscription(RC_PRODUCT, Capabilities.FFE_FLAG_CONFIGURATION_RULES)
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
+
+
+def _evaluate_once(test_library: APMLibrary) -> dict[str, Any]:
+    # Do not retry cold-state assertions: recovery must not hide the initial fallback.
+    return test_library.ffe_evaluate(
+        flag=EVALUATION_CASE["flag"],
+        variation_type=EVALUATION_CASE["variation_type"],
+        default_value=EVALUATION_CASE["default_value"],
+        targeting_key=EVALUATION_CASE["targeting_key"],
+        attributes=EVALUATION_CASE["attributes"],
+    )
 
 
 def _evaluate(test_library: APMLibrary) -> dict[str, Any]:
@@ -200,17 +210,11 @@ def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
     )
 
 
-def _assert_cold_not_ready(test_library: APMLibrary, *, started: bool) -> None:
-    if started:
-        _assert_default_or_not_ready(_evaluate(test_library))
-
-
-def _has_status_sequence(status_codes: list[int], expected_status_codes: list[int]) -> bool:
-    expected_length = len(expected_status_codes)
-    return any(
-        status_codes[index : index + expected_length] == expected_status_codes
-        for index in range(len(status_codes) - expected_length + 1)
-    )
+def _assert_disabled_or_not_ready(result: dict[str, Any]) -> None:
+    if result.get("reason") in {"DISABLED", "STATIC", "DEFAULT"} and result.get("errorCode") in {None, ""}:
+        assert result.get("value") == EVALUATION_CASE["default_value"]
+    else:
+        _assert_default_or_not_ready(result)
 
 
 @scenarios.parametric
@@ -218,7 +222,14 @@ def _has_status_sequence(status_codes: list[int], expected_status_codes: list[in
 class Test_Feature_Flag_Configuration_Source_Selection:
     """Validate source selection for Agent RC and agentless endpoint choices."""
 
-    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": "remote_config", "response": "valid", **enabled}
+            for enabled in ({}, {"provider_enabled": True})
+        ],
+        indirect=True,
+    )
     def test_remote_config_positive_ignores_agentless_env(
         self,
         test_agent: TestAgentAPI,
@@ -255,7 +266,8 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Absence of the FFE RC capability/product and zero mock requests after provider access
         # prove the kill switch prevents both billed delivery paths.
         test_library.ffe_start()
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
         _assert_no_mock_requests(mocked_backend)
 
     @parametrize(
@@ -275,11 +287,11 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # provider access then crosses the lazy agentless activation boundary without delivering RC.
         # The advertised FFE RC capability proves RC stayed selected, while zero mock requests
         # proves payload absence never changes the configured source to agentless.
-        started = test_library.ffe_start()
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
 
         _assert_ffe_remote_config_activation(test_agent)
         _assert_no_mock_requests(mocked_backend)
-        _assert_cold_not_ready(test_library, started=started)
 
     @parametrize(
         "library_env",
@@ -298,7 +310,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # default source selection can complete. Zero startup traffic proves agentless is lazy;
         # evaluation, unauthenticated CONFIG_PATH traffic, and no RC capability prove CDN activation.
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
         assert test_library.ffe_start(), "failed to start FFE provider in default agentless mode"
         _assert_expected_value(_evaluate(test_library))
@@ -310,7 +322,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         )
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize(
         "library_env",
@@ -328,7 +340,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Startup silence proves agentless remains lazy; the expected value and CDN request after
         # provider access, plus the absent RC capability, prove default agentless remains selected.
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
         assert test_library.ffe_start(), "failed to start stable-enabled default agentless provider"
         _assert_expected_value(_evaluate(test_library))
@@ -340,7 +352,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         )
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize(
         "library_env",
@@ -393,7 +405,8 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # No FFE RC capability/product and zero CDN requests after provider access prove the stable
         # switch wins before legacy source resolution and disables both billed delivery paths.
         test_library.ffe_start()
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
         _assert_no_mock_requests(mocked_backend)
 
     @parametrize(
@@ -416,8 +429,9 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero agentless requests and no FFE RC capability/product after provider access prove the
         # legacy false value remains disabled instead of adopting the new default.
         test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize(
         "library_env",
@@ -435,7 +449,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Startup silence proves lazy activation; the expected value and backend request after access,
         # together with the absent RC capability, prove agentless wins exclusively.
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
         assert test_library.ffe_start(), "failed to start explicit agentless provider"
         _assert_expected_value(_evaluate(test_library))
@@ -444,11 +458,14 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "explicit agentless response request",
         )
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "remote_config", "legacy_provider_enabled": False, "response": "valid"}],
+        [
+            {"configuration_source": "remote_config", "legacy_provider_enabled": False, "response": "valid", **enabled}
+            for enabled in ({}, {"provider_enabled": True})
+        ],
         indirect=True,
     )
     def test_explicit_remote_config_wins_over_legacy_false(
@@ -472,7 +489,10 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": None, "provider_enabled": False, "response": "valid"}],
+        [
+            {"configuration_source": source, "provider_enabled": False, "response": "valid"}
+            for source in (None, "agentless")
+        ],
         indirect=True,
     )
     def test_provider_kill_switch_stops_agentless_polling(
@@ -486,8 +506,9 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero mock requests and no FFE RC capability/product after provider access prove the stable
         # kill switch blocks both default CDN activation and any RC subscription.
         test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize("library_env", [{"configuration_source": "invalid", "response": "valid"}], indirect=True)
     def test_invalid_configuration_source_fails_closed(
@@ -501,8 +522,9 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # Zero mock requests and no FFE RC capability/product after provider access prove the SDK
         # fails closed instead of guessing a billed delivery path.
         test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
     @parametrize("library_env", [{"configuration_source": "offline", "response": "valid"}], indirect=True)
     def test_reserved_offline_configuration_source_fails_closed(
@@ -516,8 +538,86 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # a network fallback available, while provider access exercises source resolution. Zero CDN
         # requests and no FFE RC capability/product prove the reserved value fails closed for now.
         test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
-        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+
+@scenarios.parametric
+@features.feature_flags_agentless
+class Test_Feature_Flag_Explicit_Configuration_Source:
+    """PHP requires a source unless the legacy-only RC opt-in is grandfathered."""
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": source} for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES],
+        indirect=True,
+        ids=["source-absent", "source-empty", "source-whitespace"],
+    )
+    def test_no_source_stays_inactive(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # A valid CDN endpoint is available; provider use must not opt into delivery.
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+        test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": source, "provider_enabled": True, **legacy}
+            for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES
+            for legacy in ({}, {"legacy_provider_enabled": True}, {"legacy_provider_enabled": False})
+        ],
+        indirect=True,
+    )
+    def test_canonical_true_requires_source(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # Canonical true alone selects neither delivery path, even with either legacy value.
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+        test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": "agentless", **enabled, **legacy}
+            for enabled in ({}, {"provider_enabled": True})
+            for legacy in ({}, {"legacy_provider_enabled": True}, {"legacy_provider_enabled": False})
+        ],
+        indirect=True,
+    )
+    def test_explicit_agentless_activates_delivery(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # Explicit opt-in permits startup polling. It overrides either legacy value and
+        # supplies the positive control for the inactive cases on the same CDN capture path.
+        assert test_library.ffe_start(), "failed to start explicitly selected agentless provider"
+        _assert_expected_value(_evaluate(test_library))
+        status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "explicit agentless response request",
+        )
+        assert status["observed_dd_api_key"] is None
+        assert status["last_path"] == CONFIG_PATH
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
 
 @scenarios.parametric
@@ -527,26 +627,27 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "agentless", "response": "unauthorized"}],
+        [{"configuration_source": "agentless", "response": "unauthorized", "provider_initialization_timeout_ms": 100}],
         indirect=True,
     )
     def test_unauthorized_cold(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
         # The custom endpoint explicitly returns 401 without relying on a Datadog API key. This
         # isolates endpoint authentication failure while proving the tracer did not disclose its key.
-        started = test_library.ffe_start()
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
 
         status = _wait_for_status(
             mocked_backend,
             lambda current: current["last_status_code"] in {401, 403},
             "unauthorized_cold auth failure",
         )
-        _assert_cold_not_ready(test_library, started=started)
+        _assert_default_or_not_ready(_evaluate_once(test_library))
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "agentless", "response": "malformed"}],
+        [{"configuration_source": "agentless", "response": "malformed", "provider_initialization_timeout_ms": 100}],
         indirect=True,
     )
     def test_malformed_cold(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
@@ -554,20 +655,29 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         # making the first UFC payload invalid, isolating payload validation. The unauthenticated 200
         # request to CONFIG_PATH proves delivery occurred without disclosing the Datadog API key; the
         # default/not-ready evaluation proves malformed data was not installed.
-        started = test_library.ffe_start()
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
 
         status = _wait_for_status(
             mocked_backend,
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "malformed_cold response",
         )
-        _assert_cold_not_ready(test_library, started=started)
+        _assert_default_or_not_ready(_evaluate_once(test_library))
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "agentless", "response": "timeout", "poll_interval": "5", "request_timeout": "1"}],
+        [
+            {
+                "configuration_source": "agentless",
+                "response": "timeout",
+                "poll_interval": "5",
+                "request_timeout": "1",
+                "provider_initialization_timeout_ms": 100,
+            }
+        ],
         indirect=True,
     )
     def test_request_timeout_cold(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
@@ -575,14 +685,15 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         # first fetch exceed its per-request budget before another scheduled poll can interfere.
         # The observed CONFIG_PATH request proves the correct endpoint was attempted, while the
         # default/not-ready evaluation proves a timed-out cold fetch cannot initialize the provider.
-        started = test_library.ffe_start()
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
 
         status = _wait_for_status(
             mocked_backend,
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "request_timeout_cold delayed valid response",
         )
-        _assert_cold_not_ready(test_library, started=started)
+        _assert_default_or_not_ready(_evaluate_once(test_library))
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
@@ -590,7 +701,11 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         ("library_env", "expected_status_codes"),
         [
             pytest.param(
-                {"configuration_source": "agentless", "responses": ["server_error", "valid"]},
+                {
+                    "configuration_source": "agentless",
+                    "response": "server_error",
+                    "provider_initialization_timeout_ms": 100,
+                },
                 [500, 200],
                 id="server-error-to-valid",
             ),
@@ -603,16 +718,20 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         mocked_backend: MockedBackendServer,
         expected_status_codes: list[int],
     ) -> None:
-        # The explicit agentless response sequence [server_error, valid] drives a cold 500 followed by
-        # a successful retry; expected_status_codes makes that transport order part of the test input.
-        # Observing 500 then 200 proves retry behavior, and the expected evaluation plus CONFIG_PATH
-        # prove the later valid UFC payload recovers an initially unready provider.
-        assert test_library.ffe_start(), "failed to start FFE provider for bad_to_good"
-
+        # Hold the 500 until first use has returned a fallback; only then allow recovery.
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
+        cold_status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["last_status_code"] == expected_status_codes[0],
+            "cold server error before recovery",
+        )
+        mocked_backend.client.ffe_set_response("valid")
         status = _wait_for_status(
             mocked_backend,
-            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
-            f"bad_to_good {expected_status_codes[0]} to 200 recovery",
+            lambda current: current["requests_total"] > cold_status["requests_total"]
+            and current["last_status_code"] == expected_status_codes[1],
+            "valid response after cold failure",
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["last_path"] == CONFIG_PATH
@@ -621,7 +740,11 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         ("library_env", "expected_status_codes"),
         [
             pytest.param(
-                {"configuration_source": "agentless", "responses": ["server_error", "not_modified"]},
+                {
+                    "configuration_source": "agentless",
+                    "response": "server_error",
+                    "provider_initialization_timeout_ms": 100,
+                },
                 [500, 304],
                 id="server-error-to-unchanged",
             ),
@@ -634,18 +757,22 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
         mocked_backend: MockedBackendServer,
         expected_status_codes: list[int],
     ) -> None:
-        # The explicit agentless sequence [server_error, not_modified] supplies a cold 500 followed by
-        # 304 before any last-known-good configuration exists; expected_status_codes fixes that order.
-        # Observing the sequence on CONFIG_PATH proves both polls occurred, while the default/not-ready
-        # evaluation proves 304 cannot invent state after a failed initial load.
-        started = test_library.ffe_start()
-
+        # Observe the cold fallback before serving 304, which must not invent configuration.
+        test_library.ffe_start()
+        _assert_default_or_not_ready(_evaluate_once(test_library))
+        cold_status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["last_status_code"] == expected_status_codes[0],
+            "cold server error before not-modified",
+        )
+        mocked_backend.client.ffe_set_response("not_modified")
         status = _wait_for_status(
             mocked_backend,
-            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
-            f"bad_to_unchanged {expected_status_codes[0]} to 304 cold sequence",
+            lambda current: current["requests_total"] > cold_status["requests_total"]
+            and current["last_status_code"] == expected_status_codes[1],
+            "not-modified response after cold failure",
         )
-        _assert_cold_not_ready(test_library, started=started)
+        _assert_default_or_not_ready(_evaluate_once(test_library))
         assert status["last_path"] == CONFIG_PATH
 
 
@@ -678,7 +805,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         ("library_env", "expected_status_codes"),
         [
             pytest.param(
-                {"configuration_source": "agentless", "responses": ["valid", "server_error"]},
+                {"configuration_source": "agentless", "response": "valid"},
                 [200, 500],
                 id="valid-to-server-error",
             ),
@@ -691,37 +818,43 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         mocked_backend: MockedBackendServer,
         expected_status_codes: list[int],
     ) -> None:
-        # The explicit agentless response sequence [valid, server_error] creates last-known-good state
-        # and then a 500; expected_status_codes makes the successful-to-failing transition observable.
-        # The 200-to-500 sequence on CONFIG_PATH proves the failure followed a valid load, while the
-        # expected evaluation proves the later server error did not replace warm state.
+        # Establish usable configuration before introducing a failing poll.
         assert test_library.ffe_start(), "failed to start FFE provider for good_to_bad"
-
+        _assert_expected_value(_evaluate(test_library))
+        warm_status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["last_status_code"] == expected_status_codes[0],
+            "valid response before warm failure",
+        )
+        mocked_backend.client.ffe_set_response("server_error")
         status = _wait_for_status(
             mocked_backend,
-            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
-            f"good_to_bad 200 to {expected_status_codes[1]} preservation",
+            lambda current: current["requests_total"] > warm_status["requests_total"]
+            and current["last_status_code"] == expected_status_codes[1],
+            "server error after a successful evaluation",
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["last_path"] == CONFIG_PATH
 
-    @parametrize(
-        "library_env", [{"configuration_source": "agentless", "responses": ["valid", "not_modified"]}], indirect=True
-    )
+    @parametrize("library_env", [{"configuration_source": "agentless", "response": "valid"}], indirect=True)
     def test_good_to_unchanged_etag_sequence(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
     ) -> None:
-        # Explicit agentless responses [valid, not_modified] exercise conditional polling after a
-        # successful load, making the fixture ETag and 304 behavior observable inputs.
-        # The 200-to-304 sequence and If-None-Match value prove protocol reuse, while the expected
-        # evaluation proves not-modified correctly preserves the installed configuration.
+        # Confirm a usable configuration and its ETag before allowing a 304 response.
         assert test_library.ffe_start(), "failed to start FFE provider for good_to_unchanged"
-
+        _assert_expected_value(_evaluate(test_library))
+        warm_status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["last_status_code"] == 200,
+            "valid response before not-modified",
+        )
+        mocked_backend.client.ffe_set_response("not_modified")
         status = _wait_for_status(
             mocked_backend,
-            lambda current: _has_status_sequence(current["status_codes"], [200, 304])
+            lambda current: current["requests_total"] > warm_status["requests_total"]
+            and current["last_status_code"] == 304
             and current["last_if_none_match"] == '"ufc-v1"',
-            "good_to_unchanged 200 to 304 ETag sequence",
+            "not-modified response reuses the installed ETag",
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["last_path"] == CONFIG_PATH
