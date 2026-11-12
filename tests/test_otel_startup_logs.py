@@ -1,7 +1,8 @@
 """Required OTel fields in the tracer's startup configuration JSON.
 
 Required keys are checked even when their settings are left at their defaults.
-Every required key explicitly set by the scenario also has a value test.
+Every required key explicitly set by the scenario also has a value test; endpoint
+values are compared as URLs, so equivalent forms such as an added root path match.
 Signal-specific OTLP settings belong to their signal's presence test; shared OTLP
 settings have their own test. Key order and existing startup fields are unconstrained.
 """
@@ -9,6 +10,7 @@ settings have their own test. Key order and existing startup fields are unconstr
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlsplit
 
 from utils import context, features, interfaces, pytest, scenarios
 from utils._context._scenarios.otel_semantics import OTEL_STARTUP_LOGS_ENV
@@ -59,6 +61,25 @@ _REQUIRED_KEYS = frozenset(
 )
 # OTEL_TRACES_SAMPLER_ARG only applies to these samplers.
 _RATIO_SAMPLERS = frozenset(("traceidratio", "parentbased_traceidratio"))
+_DEFAULT_PORTS = {"http": 80, "https": 443}
+
+
+def _canonical_url(url: str) -> str:
+    # Tracers may log the URL their HTTP client uses, which normalizes the case of the
+    # scheme and host, the default port, and an empty path ("http://agent:4318/").
+    parts = urlsplit(url)
+    scheme = parts.scheme.lower()
+    port = parts.port or _DEFAULT_PORTS.get(scheme)
+    return f"{scheme}://{parts.hostname}:{port}{parts.path or '/'}?{parts.query}#{parts.fragment}"
+
+
+def _is_same_url(actual: object, expected: str) -> bool:
+    if not isinstance(actual, str):
+        return False
+    try:
+        return _canonical_url(actual) == _canonical_url(expected)
+    except ValueError:  # invalid port
+        return actual == expected
 
 
 def _get_startup_configurations() -> list[dict[str, object]]:
@@ -122,7 +143,11 @@ class Test_OTEL_Startup_Logs:
             actual = configuration[config_name]
             # Environment values are strings, while startup JSON can encode booleans natively.
             normalized = str(actual).lower() if isinstance(actual, bool) else actual
-            assert normalized in accepted_values, (
+            if config_name.endswith("_ENDPOINT"):
+                matches = any(_is_same_url(normalized, value) for value in accepted_values)
+            else:
+                matches = normalized in accepted_values
+            assert matches, (
                 f"Startup configuration #{index + 1}: {config_name}={actual!r}; expected one of {accepted_values!r}"
             )
 
