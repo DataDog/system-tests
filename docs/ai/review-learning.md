@@ -199,7 +199,7 @@ venv/bin/python -m utils.scripts.review_learning.thread_outcome --run .review-le
 venv/bin/python -m utils.scripts.review_learning.szz --fix-pr 8399
 ```
 
-Git ignores the `.review-learning/` folder. A run of 30 days takes about 6 MB. To delete old runs:
+Git ignores the `.review-learning/` folder: `collect.py` writes a `.gitignore` with `*` inside it, as `.pytest_cache` does. A run of 30 days takes about 6 MB. To delete old runs:
 
 ```bash
 venv/bin/python -m utils.scripts.review_learning.clean            # keep the 3 newest runs

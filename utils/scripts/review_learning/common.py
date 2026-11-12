@@ -18,7 +18,7 @@ Json = dict[str, Any]
 
 FILTERS_PATH = Path(__file__).with_name("filters.yml")
 REPOSITORY = "DataDog/system-tests"
-RUNS_ROOT = Path(".review-learning")  # Git ignores it. clean.py deletes old runs.
+RUNS_ROOT = Path(".review-learning")  # It ignores itself, see ignore_runs_root(). clean.py deletes old runs.
 
 
 class CommandError(RuntimeError):
@@ -64,6 +64,14 @@ def load_filters(path: Path = FILTERS_PATH) -> Filters:
         comment_body_patterns=tuple(comments["body_patterns"]),
         skip_blame_paths=tuple(data["skip_blame_paths"]),
     )
+
+
+def ignore_runs_root(root: Path = RUNS_ROOT) -> None:
+    """Make Git ignore the runs folder from inside, as .pytest_cache does. The repository .gitignore stays as it is."""
+    root.mkdir(parents=True, exist_ok=True)
+    ignore = root / ".gitignore"
+    if not ignore.is_file():
+        ignore.write_text("# Created by review learning. Git ignores this whole folder.\n*\n", encoding="utf-8")
 
 
 def matches_any(value: str, patterns: Iterable[str]) -> bool:

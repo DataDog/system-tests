@@ -169,6 +169,28 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_review_learning_files_do_not_select_scenarios(self):
+        inputs = build_inputs(
+            [
+                ".agents/skills/system-tests-review-learn/SKILL.md",
+                ".claude/skills/system-tests-review-learn/SKILL.md",
+                "docs/ai/review-learning.md",
+                "tests/test_the_test/test_review_learning.py",
+                "utils/scripts/review_learning/collect.py",
+                "utils/scripts/review_learning/filters.yml",
+            ]
+        )
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
     def test_multiple_file_changes(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml", "README.md"])
 

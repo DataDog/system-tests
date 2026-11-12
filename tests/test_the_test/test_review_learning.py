@@ -16,6 +16,7 @@ from utils.scripts.review_learning import (
     verify_quotes,
 )
 from utils.scripts.review_learning import filter as filter_step
+from utils.scripts.review_learning import common
 from utils.scripts.review_learning.common import Json, load_filters, matches_any, read_json, write_json
 
 FILTERS = load_filters()
@@ -51,6 +52,14 @@ class Test_ReviewLearningCommon:
         assert matches_any("Auto-activate php easy wins for apm-lang-platform", ["Auto-activate * easy wins for *"])
         assert matches_any("LGTM", ["lgtm"])
         assert not matches_any("lgtm, but rename it", ["lgtm"])
+
+    def test_runs_root_ignores_itself(self, tmp_path: Path) -> None:
+        root = tmp_path / ".review-learning"
+        common.ignore_runs_root(root)
+        assert (root / ".gitignore").read_text(encoding="utf-8").splitlines()[-1] == "*"
+        (root / ".gitignore").write_text("custom\n", encoding="utf-8")
+        common.ignore_runs_root(root)
+        assert (root / ".gitignore").read_text(encoding="utf-8") == "custom\n"
 
     def test_write_json_reads_back(self, tmp_path: Path) -> None:
         path = tmp_path / "a" / "b.json"

@@ -19,7 +19,15 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from utils.scripts.review_learning.common import REPOSITORY, RUNS_ROOT, Json, load_filters, run, write_json
+from utils.scripts.review_learning.common import (
+    REPOSITORY,
+    RUNS_ROOT,
+    Json,
+    ignore_runs_root,
+    load_filters,
+    run,
+    write_json,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -201,6 +209,7 @@ def main() -> None:
     args = parser.parse_args()
     start, end = parse_window(args.window, datetime.now(UTC).date())
     out = args.out or default_run_dir(start, end)
+    ignore_runs_root()
     index = collect(args.repo, start, end, out)
     print(f"{len(index['pull_requests'])} pull requests merged from {start} to {end} -> {out}")
 
