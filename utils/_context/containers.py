@@ -64,6 +64,9 @@ _VOLUME_INJECTOR_NAME = "volume-inject"
 
 # Creating and starting a container usually takes a few seconds. Above that, log the host state.
 _SLOW_CONTAINER_START_SECONDS = 20
+# How long to try to replace a leftover container that holds the name of a container to start
+_CONFLICT_RECOVERY_SECONDS = 60
+_CONFLICT_RETRY_DELAY = 2
 
 
 def create_inject_volume():
@@ -246,15 +249,18 @@ class TestedContainer:
 
         started_at = time.monotonic()
         try:
-            self._container = self._run_container(network)
-        except requests.exceptions.RequestException:
-            # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
-            log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
+            try:
+                self._container = self._run_container(network)
+            except APIError as e:
+                # APIError is a RequestException: it must be handled first
+                if e.status_code != HTTPStatus.CONFLICT:
+                    raise
+                self._container = self._replace_conflicting_container(network, e)
+        except requests.exceptions.RequestException as e:
+            if not isinstance(e, APIError):
+                # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
+                log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
             raise
-        except APIError as e:
-            if e.status_code != HTTPStatus.CONFLICT:
-                raise
-            self._container = self._replace_conflicting_container(network, e)
 
         if (duration := time.monotonic() - started_at) > _SLOW_CONTAINER_START_SECONDS:
             log_host_diagnostics(f"{self.container_name} took {duration:.0f}s to start")
@@ -272,21 +278,24 @@ class TestedContainer:
         client-side in a previous scenario, completed by the daemon after that scenario's cleanup. Remove it, and retry.
         """
         logger.warning(f"{self.container_name} already exists ({error.explanation}), removing it")
-        deadline = time.monotonic() + 60
+        # No attempt starts after the deadline. Each docker call is bounded by the docker client timeout.
+        deadline = time.monotonic() + _CONFLICT_RECOVERY_SECONDS
         while True:
             try:
                 get_docker_client().api.remove_container(self.container_name, force=True)
             except APIError as e:
-                # 404 while the daemon is still creating it
+                # 404: the daemon is still creating it. 409: its removal is already in progress.
+                if e.status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.CONFLICT):
+                    raise
                 logger.info(f"Can't remove {self.container_name} yet ({e.explanation})")
 
             try:
                 return self._run_container(network)
             except APIError as e:
-                if e.status_code != HTTPStatus.CONFLICT or time.monotonic() > deadline:
+                if e.status_code != HTTPStatus.CONFLICT or time.monotonic() + _CONFLICT_RETRY_DELAY > deadline:
                     raise
 
-            time.sleep(2)
+            time.sleep(_CONFLICT_RETRY_DELAY)
 
     def _run_container(self, network: Network) -> Container:
         return get_docker_client().containers.run(
