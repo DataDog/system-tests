@@ -441,13 +441,6 @@ manifest:
       excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
-  : - weblog_declaration:
-        laravel11x: flaky (APPSEC-69699)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
-  : - weblog_declaration:
-        laravel11x: flaky (APPSEC-69699)
-        symfony7x: flaky (APPSEC-70615)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -1087,7 +1080,11 @@ manifest:
         "*": v1.24.0
         laravel11x: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
         symfony7x: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": v1.19.0
@@ -1189,7 +1186,7 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : '>=1.16.0'
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: incomplete_test_app (No /debugger/snapshot/capture-timeout endpoint)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: irrelevant (PHP captures the bounded fixture natively in well under the 10 ms budget, so it never times out; the timeout is covered by dd-trace-php's own phpt tests)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
@@ -1216,26 +1213,35 @@ manifest:
         "*": v1.19.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: v1.27.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: v1.27.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_collection_size: missing_feature (A collection truncated at maxCollectionSize reports no numeric size)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: v1.27.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
@@ -1246,8 +1252,14 @@ manifest:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: v1.27.0
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_unknown_path_prefix
+  : irrelevant (PHP matches sourceFile as a path suffix of the runtime path, so an unknown leading directory never matches)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -1388,20 +1400,45 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: v1.21.0
-  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmKafka:
+    - weblog_declaration:
+        "*": v1.27.0
+        php-fpm-8.6: missing_feature (php-rdkafka not available in the php-fpm-8.6 container)
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSNS: missing_feature
   tests/integrations/test_dsm.py::Test_DsmSQS: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature (no public manual checkpoint API)
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature (no public manual checkpoint API)
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": v1.8.0
@@ -1661,6 +1698,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -1714,6 +1752,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate
   : missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (PHP may preserve whitespace of foreign vendors trracestate (allowed per spec))
@@ -1748,7 +1789,7 @@ manifest:
       component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
       component_version: <1.19.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
@@ -1757,34 +1798,34 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
@@ -2156,6 +2197,10 @@ manifest:
         php-fpm-8.6: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
     - declaration: missing_feature
     - weblog_declaration:
@@ -2183,6 +2228,10 @@ manifest:
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
         php-fpm-8.6: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_resource_renaming.py: v1.14.0

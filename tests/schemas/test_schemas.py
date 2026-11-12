@@ -176,13 +176,13 @@ class Test_DdtraceSchemas:
 
     @irrelevant(
         not getattr(context.scenario, "include_agent", True),
-        reason="No agent: what the library sends to the backend is not described by the agent schemas",
+        reason="No agent: the mocked backend schemas describe what the agent sends, not an agentless library",
     )
     @irrelevant(
         scenario_groups.lambda_end_to_end in context.scenario.scenario_groups,
         reason="The Lambda extension is not the agent: e.g. its traces have no env and hostName",
     )
-    def test_agent(self):
+    def test_mocked_backend(self):
         # these versions send debugger snapshots without the root timestamp
         # (nodejs 6.0.0-pre is the first Node 6 version, it sorts before nodejs 6.0.0)
         snapshot_without_root_timestamp = (
@@ -298,8 +298,7 @@ class Test_DdtraceSchemas:
             ),
         ]
 
-        # what the agent sends to the backend, received by the mocked backend
-        assert_no_schema_error(interfaces.mocked_backend, known_bugs, schemas="agent")
+        assert_no_schema_error(interfaces.mocked_backend, known_bugs)
 
 
 @features.not_reported

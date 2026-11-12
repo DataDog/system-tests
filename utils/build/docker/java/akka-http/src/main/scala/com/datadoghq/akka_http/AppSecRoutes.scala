@@ -208,15 +208,15 @@ object AppSecRoutes {
                 span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
               }
               // Call downstream so that tests can assert on the sampling decision that gets propagated
-              complete(StatusCodes.OK, makeDistantCall("http://localhost:7777/"))(Marshaller.futureMarshaller(jsonMarshaller))
+              complete(StatusCodes.OK, makeDistantCall("http://localhost:7777/", "GET"))(Marshaller.futureMarshaller(jsonMarshaller))
             }
           }
         }
       } ~
       path("make_distant_call") {
         get {
-          parameter("url") { url =>
-            complete(StatusCodes.OK, makeDistantCall(url))(Marshaller.futureMarshaller(jsonMarshaller))
+          parameters("url", "method".withDefault("GET")) { (url, method) =>
+            complete(StatusCodes.OK, makeDistantCall(url, method))(Marshaller.futureMarshaller(jsonMarshaller))
           }
         }
       } ~
@@ -365,8 +365,9 @@ object AppSecRoutes {
                                   response_headers: Map[String, String]
                                 )
 
-  private def makeDistantCall(url: String): Future[DistantCallResponse] = {
-    val request = HttpRequest(uri = url)
+  private def makeDistantCall(url: String, method: String): Future[DistantCallResponse] = {
+    val httpMethod = HttpMethods.getForKey(method).getOrElse(HttpMethod.custom(method))
+    val request = HttpRequest(method = httpMethod, uri = url)
     val requestHeaders = request.headers.map(h => (h.name(), h.value())).toMap
 
     Http().singleRequest(request).map { response =>

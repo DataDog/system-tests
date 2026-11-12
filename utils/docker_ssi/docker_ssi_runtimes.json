@@ -86,6 +86,10 @@
       {
         "version_id": "JS2303",
         "version": "23.3"
+      },
+      {
+        "version_id": "JS2613",
+        "version": "26.13"
       }
     ],
     "python": [

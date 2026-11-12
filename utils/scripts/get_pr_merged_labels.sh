@@ -12,11 +12,14 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     PR_NUMBER=${BASH_REMATCH[1]:1}
     echo "Merged the PR number: [$PR_NUMBER]";
     #search for labels
-    PR_DATA=$(curl -L --fail \
+    # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -L --fail --output pr_labels.json \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels");
+    "https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels";
+    PR_DATA=$(cat pr_labels.json);
+    rm -f pr_labels.json;
 
     echo "We found PR labels: $PR_DATA"
 

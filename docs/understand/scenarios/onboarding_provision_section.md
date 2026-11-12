@@ -2,9 +2,7 @@
 
 ## Overview
 
-The provision system is a core component of the AWS SSI (Single Step Instrumentation) tests in system-tests. It allows you to define software installations, configuration changes, and commands to be executed on virtual machines in a structured and reproducible way.
-
-![Provision Flow](../images/provision_flow.png "Provision Flow")
+The provision system is a core part of the AWS SSI tests. It defines the software and commands that run on a virtual machine.
 
 There are two types of provisions:
 

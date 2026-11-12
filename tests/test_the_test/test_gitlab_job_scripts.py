@@ -17,6 +17,19 @@ def _trace(name: str, tags: list[str], *command: str) -> list[str]:
 TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_type:run"]
 
 
+def _image_list(scenario: str, library: str, weblog: str) -> list[str]:
+    return [
+        "env",
+        "PYTHONPATH=.",
+        "python",
+        "utils/scripts/get-image-list.py",
+        scenario,
+        f"--library={library}",
+        f"--weblog={weblog}",
+        "--output=compose.yaml",
+    ]
+
+
 @pytest.fixture
 def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]:
     """Record commands instead of running them, from a fake system-tests clone in $CI_PROJECT_DIR."""
@@ -54,9 +67,10 @@ class Test_GitlabJobScripts:
 
         assert Path("binaries/lib.tgz").read_text() == "lib"
         assert commands[0] == ["ls", "-la", "binaries/"]
-        assert commands[1] == TAG_RUN
+        assert commands[1] == _image_list("GO_PROXIES_DEFAULT", "golang", "envoy")
+        assert commands[2] == TAG_RUN
         # weblog and library are passed through the environment, not on the command line
-        assert commands[2] == _trace(
+        assert commands[3] == _trace(
             "run golang GO_PROXIES_DEFAULT envoy",
             [
                 "system-tests.library:golang",
@@ -66,8 +80,8 @@ class Test_GitlabJobScripts:
             "./run.sh",
             "GO_PROXIES_DEFAULT",
         )
-        assert commands[3][:5] == ["datadog-ci", "measure", "--level", "job", "--measures"]
-        assert len(commands) == 4
+        assert commands[4][:5] == ["datadog-ci", "measure", "--level", "job", "--measures"]
+        assert len(commands) == 5
 
     def test_run_scenario_loads_weblog_built_by_build_job(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -84,6 +98,7 @@ class Test_GitlabJobScripts:
         assert Path("binaries/python-flask-weblog.tar.zst").read_text() == "image"
         tags = ["system-tests.library:python", "system-tests.weblog:flask"]
         assert commands == [
+            _image_list("DEFAULT", "python", "flask"),
             TAG_RUN,
             _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
             _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
@@ -107,9 +122,34 @@ class Test_GitlabJobScripts:
         tags = ["system-tests.library:nodejs", "system-tests.weblog:express4"]
         assert commands == [
             ["ls", "-la", "binaries/"],
+            _image_list("DEFAULT", "nodejs", "express4"),
             TAG_RUN,
             _trace("build nodejs express4", tags, "./build.sh", "-i", "weblog", "-w", "express4"),
             _trace("run nodejs DEFAULT express4", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
+        ]
+
+    def test_run_scenario_pulls_images_before_running(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Like the GitHub workflow: the images listed by get-image-list.py are pulled before build.sh and run.sh."""
+
+        def record(command: list[str], **_: object) -> None:
+            commands.append(command)
+            if "utils/scripts/get-image-list.py" in command:
+                Path("compose.yaml").write_text("services:\n  agent:\n    image: datadog/agent:latest\n")
+
+        monkeypatch.setattr(_common, "run", record)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
+
+        run_scenario.main()
+
+        assert commands[:3] == [
+            _image_list("DEFAULT", "python", "flask"),
+            [".github/actions/pull_images/main.sh"],
+            TAG_RUN,
         ]
 
     def test_build_weblog(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

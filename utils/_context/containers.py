@@ -27,7 +27,7 @@ from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
-from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.mocked_backend.ffe import EVALUATION_SUITES_RELATIVE_PATH, UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -38,11 +38,6 @@ from utils.proxy.mocked_response import (
     SetObfuscationVersion,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
-)
-from utils.proxy.rc_response_builder import (
-    build_rc_configurations_protobuf,
-    build_org_data_protobuf,
-    build_org_status_protobuf,
 )
 from utils._logger import logger
 from utils._weblog import weblog
@@ -665,7 +660,8 @@ class ProxyContainer(TestedContainer):
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
-        rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
+        rc_backend_enabled: Whether the agent gets remote config from the (mocked) backend, instead of the proxy
+            mocking the tracer remote config
 
         """
 
@@ -715,34 +711,6 @@ class ProxyContainer(TestedContainer):
                     StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
                 )
 
-        # Backend mocked responses (create responses from scratch)
-        self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
-
-        if rc_backend_enabled:
-            # Set up internal backend mocks for backend endpoints
-            self.internal_mocked_backend_responses = [
-                MockedBackendResponse(
-                    path="/api/v0.1/org",
-                    content=build_org_data_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/status",
-                    content=build_org_status_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.2/echo-test",
-                    content=b"ok",
-                    content_type="text/plain",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/configurations",
-                    content=build_rc_configurations_protobuf(None),
-                    content_type="application/x-protobuf",
-                ),
-            ]
-
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -750,11 +718,6 @@ class ProxyContainer(TestedContainer):
         tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
         with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
-
-        # Write backend mocked responses JSON
-        backend_mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
-        with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
-            json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
         # in any info printed in stdout, log filename should be the same as the host.
         # In the host, they are accessible in ./logs_<scenario_name>
@@ -767,10 +730,6 @@ class ProxyContainer(TestedContainer):
 
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
-        self.volumes[backend_mocks_path] = {
-            "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
-            "mode": "ro",
-        }
 
 
 class MockedBackendContainer(TestedContainer):
@@ -807,6 +766,11 @@ class MockedBackendContainer(TestedContainer):
                 "./utils/proxy": {"bind": "/app/utils/proxy", "mode": "ro"},
                 # served as the FFE agentless configuration
                 f"./{UFC_FIXTURE_RELATIVE_PATH}": {"bind": f"/app/{UFC_FIXTURE_RELATIVE_PATH}", "mode": "ro"},
+                # served instead with client.ffe_use_suite, with the tags its flag selection matches against
+                f"./{EVALUATION_SUITES_RELATIVE_PATH}": {
+                    "bind": f"/app/{EVALUATION_SUITES_RELATIVE_PATH}",
+                    "mode": "ro",
+                },
             },
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},
