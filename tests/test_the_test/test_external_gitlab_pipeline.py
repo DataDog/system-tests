@@ -70,7 +70,7 @@ class Test_ExternalGitlabPipeline:
         assert 'git merge-base "$GITHUB_PR_BASE_SHA" "$CI_COMMIT_SHA"' in compute_script
 
         resolver = result["resolve_ssi_pr_title"]
-        assert resolver["image"] == "registry.ddbuild.io/system-tests/ci-runner:84b11051ce81"
+        assert resolver["image"] == "registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9"
         assert '$CI_PROJECT_PATH == "DataDog/system-tests"' in resolver["rules"][0]["if"]
         assert '$CI_PIPELINE_SOURCE == "push"' in resolver["rules"][0]["if"]
         assert "$SYSTEM_TESTS_SCENARIOS == null" in resolver["rules"][0]["if"]
