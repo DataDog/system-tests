@@ -28,7 +28,8 @@ variables:
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
 resolve_ssi_pr_title:
-  image: registry.ddbuild.io/system-tests/ci-runner:84b11051ce81
+  # Not $CI_IMAGE: this job runs before build_ci_image, so it must use an already published ci-runner image
+  image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
   tags: ["arch:amd64"]
   stage: configure
   id_tokens:
