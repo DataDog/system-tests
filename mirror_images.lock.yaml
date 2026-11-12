@@ -158,10 +158,10 @@ images:
     digest: sha256:2b09f33c61b2b19f4a239e4d8f10164ece66d925b72337720998ce43d7090d2f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:lambda-proxy-v1
     tag: lambda-proxy-v1
-  datadog/system-tests:nextjs.base-5c42165eff3e:
-    digest: sha256:6bd2ee0978706e19660e8ca881079f2157e85a8ea581358128856d168591a1f5
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-5c42165eff3e
-    tag: nextjs.base-5c42165eff3e
+  datadog/system-tests:nextjs.base-7af1ceda261c:
+    digest: sha256:69a302340e9e80122b85692c2f5fcbc9da4ec20956f04b1b1af68b07df7539c1
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-7af1ceda261c
+    tag: nextjs.base-7af1ceda261c
   datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9:
     digest: sha256:1f0911d1c060b4fd062f4a521edd8faa5cb677b2cb51ee465de482b8dff7ced9
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9

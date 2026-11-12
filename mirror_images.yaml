@@ -47,7 +47,7 @@
 - "datadog/system-tests:java_buddy-v1"
 - "datadog/system-tests:jersey-grizzly2.base-eda4e9f058de"
 - "datadog/system-tests:lambda-proxy-v1"
-- "datadog/system-tests:nextjs.base-5c42165eff3e"
+- "datadog/system-tests:nextjs.base-7af1ceda261c"
 - "datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9"
 - "datadog/system-tests:nodejs_buddy-v1"
 - "datadog/system-tests:openai-py.base-31091e40843e"
