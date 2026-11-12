@@ -147,6 +147,26 @@ def test_ssi_profiles_upload_junit_reports_from_any_repository(
 
 
 @scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "variable"),
+    [("docker", "ONBOARDING_FILTER_ENV"), ("aws", "ONBOARDING_FILTER_ENV"), ("k8s", "REPORT_ENVIRONMENT")],
+)
+def test_junit_reports_are_labelled_with_the_generated_job_environment(tmp_path: Path, profile: str, variable: str):
+    assert _job(profile, tmp_path, **{variable: "dev"}).ci_environment == "dev"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="custom").ci_environment == "custom"
+    assert _job(profile, tmp_path).ci_environment == "prod"
+
+
+@scenarios.test_the_test
+def test_canceled_jobs_do_not_upload_junit_reports(tmp_path: Path, commands: list[list[str]]):
+    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "reportJunit.xml", "<testsuites/>")
+    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_JOB_STATUS="canceled")
+
+    assert finalizer.finalize(job) == 0
+    assert not [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
+
+
+@scenarios.test_the_test
 def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[list[str]]):
     logs = tmp_path / "system-tests" / "logs_docker_ssi"
     _write(logs / "interfaces" / "library" / "00001.json", "{}")

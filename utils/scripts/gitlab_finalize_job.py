@@ -36,6 +36,9 @@ PUBLISH_RETRY_DELAY_SECONDS = 5
 # full feature-parity retry, stay inside the runner's 5-minute after_script timeout.
 S3_PUBLISH_ATTEMPTS = 2
 S3_PUBLISH_TIMEOUT_SECONDS = 60
+# Two JUnit attempts (65s at most), so an AWS job on system-tests main, which also publishes to S3 (125s at most)
+# and feature parity (100s at most), still prints its logs inside the 5-minute after_script timeout.
+JUNIT_PUBLISH_ATTEMPTS = 2
 
 
 @dataclass
@@ -55,6 +58,11 @@ class Job:
     @property
     def reports_dir(self) -> Path:
         return self.project_dir / "reports"
+
+    @property
+    def ci_environment(self) -> str:
+        """Environment of the run (prod, dev...): each kind of generated job passes it in its own variable."""
+        return self.env.get(self.profile.environment_variable) or self.env.get("CI_ENVIRONMENT") or "prod"
 
     @property
     def logs_pattern(self) -> str:
@@ -211,6 +219,9 @@ def publish_feature_parity(job: Job) -> None:
 
 
 def upload_junit_reports(job: Job) -> None:
+    if job.env.get("CI_JOB_STATUS") == "canceled":
+        print("Job canceled; skipping Test Optimization upload of a partial report")
+        return
     reports = sorted(job.reports_dir.glob("logs*/reportJunit.xml"))
     if not reports:
         print("No reports/logs*/reportJunit.xml found; skipping Test Optimization upload")
@@ -231,8 +242,9 @@ def upload_junit_reports(job: Job) -> None:
         ],
         env={
             **job.datadog_env(),
-            "DD_TAGS": f"test.configuration.ci_environment:{job.env.get('CI_ENVIRONMENT', 'prod')}",
+            "DD_TAGS": f"test.configuration.ci_environment:{job.ci_environment}",
         },
+        attempts=JUNIT_PUBLISH_ATTEMPTS,
     )
 
 
@@ -247,6 +259,7 @@ def print_logs(job: Job) -> None:
 @dataclass(frozen=True)
 class Profile:
     scenario_variable: str
+    environment_variable: str
     logs_pattern: str
     feature_parity_pattern: str
     steps: tuple[Step, ...]
@@ -255,12 +268,14 @@ class Profile:
 PROFILES: dict[str, Profile] = {
     "docker": Profile(
         scenario_variable="SCENARIO",
+        environment_variable="ONBOARDING_FILTER_ENV",
         logs_pattern="logs_{scenario}",
         feature_parity_pattern="feature_parity.json",
         steps=(tag_official_workflow, collect_logs, publish_feature_parity, upload_junit_reports, print_logs),
     ),
     "aws": Profile(
         scenario_variable="SCENARIO",
+        environment_variable="ONBOARDING_FILTER_ENV",
         logs_pattern="logs_{scenario}",
         feature_parity_pattern="*_feature_parity.json",
         steps=(
@@ -275,6 +290,7 @@ PROFILES: dict[str, Profile] = {
     ),
     "k8s": Profile(
         scenario_variable="K8S_SCENARIO",
+        environment_variable="REPORT_ENVIRONMENT",
         logs_pattern="logs_*",
         feature_parity_pattern="feature_parity.json",
         steps=(
