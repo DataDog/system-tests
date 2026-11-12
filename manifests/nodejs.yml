@@ -2045,6 +2045,8 @@ manifest:
       weblog: [google_genai-js@1.34.0]
     - declaration: bug (MLOB-5070)
       excluded_weblog: [google_genai-js@1.34.0]
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
+  : 'missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)'
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools:  # TODO: a lower version might be supported
     - declaration: bug (MLOB-5070)
       component_version: <6.19.0
@@ -2065,6 +2067,7 @@ manifest:
       weblog: [openai-js@6.0.0]
     - declaration: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [openai-js@6.0.0]
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
@@ -2770,6 +2773,9 @@ manifest:
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:

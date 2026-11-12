@@ -88,7 +88,7 @@ ask_for_test_language() {
         echo "2) Node.js"
         echo "3) Python"
         echo "4) .NET"
-        echo "5) Ruby (not supported by docker-ssi)"
+        echo "5) Ruby"
         echo "6) PHP"
 
         while true; do

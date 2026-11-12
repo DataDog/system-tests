@@ -126,14 +126,10 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection),
-        # system_tests_e2e_run_pipeline_[0-2], mirror_images, build_base_images,
-        # *DOC (docker ssi), or *DO5A (docker ssi crashtracking).
-        # Also ignore the job that waits for the tests to succeed before adding
-        # to the merge queue.
+        # Every GitLab job must pass. Ignore the merge-queue checks that wait
+        # for this gate and the aggregate DDCI status.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$|mirror_images$|build_base_images$)).*$(?<!DOC)(?<!DO5A)
           devflow/merge
           devflow/mergegate
           DDCI Status

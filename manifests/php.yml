@@ -1400,20 +1400,45 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: v1.21.0
-  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmKafka:
+    - weblog_declaration:
+        "*": v1.27.0
+        php-fpm-8.6: missing_feature (php-rdkafka not available in the php-fpm-8.6 container)
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSNS: missing_feature
   tests/integrations/test_dsm.py::Test_DsmSQS: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature (no public manual checkpoint API)
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature (no public manual checkpoint API)
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": v1.8.0
@@ -1727,6 +1752,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate
   : missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (PHP may preserve whitespace of foreign vendors trracestate (allowed per spec))

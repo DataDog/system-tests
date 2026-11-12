@@ -9,7 +9,7 @@ RUN /binaries/install_ddtrace.sh "-o -Dmaven.repo.local=/maven"
 RUN mvn -o -Dmaven.repo.local=/maven -B package
 
 # The base image is eclipse-temurin:11-jre with socat installed
-FROM system_tests_base_java_uds_spring_boot_runtime
+FROM system_tests_base_java_uds_spring_boot
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
