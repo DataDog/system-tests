@@ -279,6 +279,7 @@ patterns:
         scenario_groups: null
     utils/scripts/get-workflow-summary.py:
         scenario_groups: null
+    utils/scripts/gitlab_libraries.py: # run all: it changes what the GitLab end-to-end pipeline runs
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
     utils/scripts/libraries_and_scenarios_rules.yml:
@@ -396,7 +397,7 @@ patterns:
       libraries: null
     utils/ci/github/*:
       scenarios: DEFAULT
-    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs these libraries on PRs (see GITLAB_PR_LIBRARIES)
+    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs these libraries on PRs (see utils/scripts/gitlab_libraries.py)
       libraries: [c, php, python]
 
 ############################ Library-specific rules ############################

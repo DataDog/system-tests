@@ -407,6 +407,19 @@ class Test_ComputeLibrariesAndScenarios:
             "all",
         )
 
+    def test_gitlab_libraries_config_runs_all(self):
+        inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "all",
+        )
+
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 

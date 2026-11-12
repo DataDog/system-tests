@@ -17,6 +17,7 @@ from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
+from utils.scripts.gitlab_libraries import GITLAB_MAIN, GITLAB_PR_LIBRARIES
 
 if TYPE_CHECKING:
     from utils.manifest import ManifestData
@@ -46,28 +47,6 @@ OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentio
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 
-# Libraries run by GitLab end-to-end on PRs. The value is either None, to run the scenarios selected from the diff
-# on every weblog of the library, or a {weblog: [scenario or scenario group, ...]} map, to run only these
-# weblogs/scenarios when the library is activated.
-GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
-    "c": None,
-    # THREAD_CONTEXT_SHARING needs a dedicated runner pool: checks that this setup works. One weblog is enough.
-    "php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]},
-    # GitLab runs containers on the default bridge network: checks that the mocked backend network aliases work there
-    "python": {
-        "flask-poc": [
-            "APM_TRACING_E2E_SINGLE_SPAN",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
-        ]
-    },
-}
-# Libraries run by GitLab end-to-end on main pushes, same format as GITLAB_PR_LIBRARIES
-GITLAB_MAIN: dict[str, dict[str, list[str]] | None] = {
-    "php": GITLAB_PR_LIBRARIES["php"],
-    "python": None,
-}
 GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
 
 

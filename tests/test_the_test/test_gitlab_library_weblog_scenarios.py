@@ -8,7 +8,7 @@ import yaml
 from utils import pytest, scenarios
 from utils.ci.gitlab.build_pipeline import main, merge_params, parse_library_weblog_scenarios, split_weblog_entries
 from utils.ci.gitlab.validate_param_env import validate_comma_lower_hyphen, validate_library_weblog_scenarios
-from utils.scripts.compute_libraries_and_scenarios import GITLAB_MAIN, GITLAB_PR_LIBRARIES
+from utils.scripts.gitlab_libraries import GITLAB_MAIN, GITLAB_PR_LIBRARIES
 
 
 def _params(weblog: str, scenario_names: list[str], *, parametric: bool = False) -> dict:
