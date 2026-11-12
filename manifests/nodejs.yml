@@ -1999,7 +1999,7 @@ manifest:
       weblog: [anthropic-js@0.71.0]
     - declaration: missing_feature (APPSEC-69630, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [anthropic-js@0.71.0]
-  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: incomplete_test_app (anthropic-js weblog is missing the /mcp/create endpoint)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released

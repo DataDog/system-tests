@@ -1,5 +1,6 @@
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
+import importlib.util
 import os
 
 from fastapi import FastAPI, HTTPException
@@ -19,12 +20,12 @@ import anthropic
 client = anthropic.Anthropic(base_url=f"{os.getenv('DD_TRACE_AGENT_URL')}/vcr/anthropic")
 async_client = anthropic.AsyncAnthropic(base_url=f"{os.getenv('DD_TRACE_AGENT_URL')}/vcr/anthropic")
 
-try:
+# anthropic<0.84.0 has no MCP helpers; when they exist, mcp is installed and a broken install fails at startup.
+MCP_HELPERS = importlib.util.find_spec("anthropic.lib.tools.mcp") is not None
+if MCP_HELPERS:
     from anthropic.lib.tools.mcp import async_mcp_tool
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
-except ImportError:  # anthropic<0.84.0 has no MCP helpers, and mcp is only installed for those that do
-    async_mcp_tool = None
 
 # The env and the arguments after the module carry a secret marker that must never reach AI Guard.
 MCP_ECHO_SERVER = dict(
@@ -78,15 +79,15 @@ def stream(request: StreamRequest):
 
 class McpCreateRequest(BaseModel):
     model: str
-    messages: list[dict]
-    parameters: dict
-    tools: list[dict] = []
+    messages: list[dict[str, Any]]
+    parameters: dict[str, Any]
+    tools: list[dict[str, Any]] = []
 
 
 @app.post("/mcp/create")
-async def mcp_create(request: McpCreateRequest):
+async def mcp_create(request: McpCreateRequest):  # no return type: FastAPI would use it as response_model
     """messages.create with the tools of a stdio MCP echo server, then run each MCP tool_use of the response."""
-    if async_mcp_tool is None:
+    if not MCP_HELPERS:
         raise HTTPException(status_code=501, detail="this anthropic version has no MCP helpers")
 
     async with stdio_client(StdioServerParameters(**MCP_ECHO_SERVER)) as (read_stream, write_stream):
