@@ -10,12 +10,17 @@ Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base6
 """
 
 from collections.abc import Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 import base64
 import gzip
 import hashlib
 import json
+import time
 from pathlib import Path
 from typing import Any
+
+from utils.dd_constants import Capabilities, RemoteConfigApplyState
+from utils.docker_fixtures import ParametricTestClientApi, TestAgentAPI
 
 # Varint encoding constants
 VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
@@ -175,3 +180,106 @@ def ffe_events_from_requests(requests: Sequence[Mapping[str, Any]], flag: str) -
         payload = json.loads(body)
         events[destination].extend(event for event in payload[field] if event.get("flag", {}).get("key") == flag)
     return events
+
+
+def assert_dependent_flag_capability(requests: list[dict[str, Any]], *, supported: bool) -> None:
+    assert requests, "No FFE_FLAGS RC requests observed; absence of traffic is not evidence of compatibility"
+    capability = Capabilities.FFE_FLAG_DEPENDENT_FLAG_VARIANT_KEY_V1
+    for request in requests:
+        client = request["body"]["client"]
+        raw = client.get("capabilities", "")
+        decoded = bytes(raw) if isinstance(raw, list) else base64.b64decode(raw)
+        mask = int.from_bytes(decoded, byteorder="big")
+        assert bool(mask & (1 << capability)) is supported, (
+            f"FFE RC client {client.get('id')} must advertise bit {capability}={supported}; got {mask:#x}"
+        )
+
+
+RC_PRODUCT = "FFE_FLAGS"
+
+
+def ffe_requests(test_agent: TestAgentAPI) -> list[dict[str, Any]]:
+    return [
+        request for request in test_agent.rc_requests() if RC_PRODUCT in request["body"]["client"].get("products", [])
+    ]
+
+
+def observe_polls(test_agent: TestAgentAPI, *, supported: bool, minimum: int = 3) -> None:
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        requests = ffe_requests(test_agent)
+        if requests:
+            assert_dependent_flag_capability(requests, supported=supported)
+        if len(requests) >= minimum:
+            return
+        time.sleep(0.1)
+    raise AssertionError(f"Expected at least {minimum} FFE_FLAGS RC polls, got {len(requests)}")
+
+
+def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any], version: int) -> None:
+    path = f"datadog/2/{RC_PRODUCT}/{config_id}/config"
+    previous_requests = test_agent.rc_requests()
+    previous_target = next(
+        (
+            target
+            for request in reversed(previous_requests)
+            for target in (request["body"].get("cached_target_files") or [])
+            if target["path"] == path
+        ),
+        None,
+    )
+    test_agent.set_remote_config(path=path, payload=payload, version=version)
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        # A stale ACK for the same ID must not acknowledge new content. Keep all
+        # requests for capability checks, but require a new target and its versioned ACK together.
+        for request in test_agent.rc_requests()[len(previous_requests) :]:
+            body = request["body"]
+            changed = any(
+                target["path"] == path and target != previous_target
+                for target in (body.get("cached_target_files") or [])
+            )
+            acknowledged = any(
+                state["product"] == RC_PRODUCT
+                and state["id"] == config_id
+                and state.get("version") == version
+                and state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+                for state in (body["client"]["state"].get("config_states") or [])
+            )
+            if changed and acknowledged:
+                return
+        time.sleep(0.05)
+    raise AssertionError(f"The SDK did not acknowledge new configuration content for {config_id}")
+
+
+def start_and_deliver(
+    test_agent: TestAgentAPI,
+    test_library: ParametricTestClientApi,
+    *,
+    config_id: str,
+    payload: dict[str, Any],
+    version: int,
+    supported: bool,
+) -> None:
+    # .NET waits for configuration inside /ffe/start; Java can return not-ready
+    # before delivery. Trigger startup without requiring readiness until after RC.
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        started = executor.submit(test_library.ffe_start)
+        try:
+            observe_polls(test_agent, supported=supported)
+            deliver(test_agent, config_id=config_id, payload=payload, version=version)
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline:
+                if started.result(timeout=max(0, deadline - time.monotonic())):
+                    return
+                time.sleep(0.1)
+                started = executor.submit(test_library.ffe_start)
+            raise AssertionError("Failed to initialize the provider after RC delivery")
+        except BaseException as error:
+            # Stop the server before the executor joins its worker: /ffe/start
+            # may still be waiting for configuration that will never arrive.
+            try:
+                test_library.terminate()
+            except Exception as cleanup_error:
+                error.add_note(f"Failed to terminate the test application: {cleanup_error}")
+            raise
