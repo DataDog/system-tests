@@ -246,6 +246,30 @@ images:
     digest: sha256:939d3828d85666a598c0349a6dd933fe1d92c5daa5d01438512d950ea3ccc258
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
     tag: ruby_buddy-v2
+  datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4:
+    digest: sha256:c1e460779469a688b1f6d8dca24aaf48e9d77a33c64a1533c44498157f223d25
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4
+    tag: spring-boot-jetty.base-db426f0fcfc4
+  datadog/system-tests:spring-boot-openliberty.base-e3d2e225f5be:
+    digest: sha256:4392eb8c9c1541e85716cae8f042d91013dd49805a058d33f1b6bbdf4228fd69
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-openliberty.base-e3d2e225f5be
+    tag: spring-boot-openliberty.base-e3d2e225f5be
+  datadog/system-tests:spring-boot-payara.base-721abfb362f5:
+    digest: sha256:6429529c21d74532841463267657a8d2b527dfb723f3ba3447e0bb4f5a46f281
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-payara.base-721abfb362f5
+    tag: spring-boot-payara.base-721abfb362f5
+  datadog/system-tests:spring-boot-undertow.base-39a3b48027d7:
+    digest: sha256:3a82e7ed765a29f9f1db779a344140bfd690bd8b0ec2dedb6e1f37de4ffd1382
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-undertow.base-39a3b48027d7
+    tag: spring-boot-undertow.base-39a3b48027d7
+  datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457:
+    digest: sha256:31493becc3ca70b6dd637c29efb15dda6decc53580af7a4d29e3ea3e083be4b0
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457
+    tag: spring-boot-wildfly.base-fb57a2e96457
+  datadog/system-tests:spring-boot.base-9d7da45cd273:
+    digest: sha256:0b42458813b53fcfdd23c92850c2a3ed5fa39ab958a3ba281769370206b4b8ee
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot.base-9d7da45cd273
+    tag: spring-boot.base-9d7da45cd273
   datadog/system-tests:tornado.base-3edec3b229d1:
     digest: sha256:305722b96bfb70cc291fa11a717cfdc56d26ebfac386c882d59a34fcb94efac1
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-3edec3b229d1
