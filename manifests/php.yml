@@ -581,6 +581,10 @@ manifest:
         "*": v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk:
+    - declaration: flaky (APPSEC-71652)
+      component_version: '>=1.27.1'
+      weblog: apache-mod-7.4
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_auto:
     - weblog_declaration:
