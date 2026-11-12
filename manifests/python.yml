@@ -2399,6 +2399,7 @@ manifest:
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : bug (MLOB-5071)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: v4.10.0
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: v4.17.0-rc1  # Easy win for openai-py@2.0.0 and version 4.16.4
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
@@ -3161,6 +3162,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -3221,6 +3223,9 @@ manifest:
       component_version: <2.3.3
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v2.8.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : v4.16.1  # Verified baseline; earlier versions may also support this flag
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:

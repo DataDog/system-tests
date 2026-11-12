@@ -34,7 +34,6 @@ class _LambdaScenario(DockerScenario):
         name: str,
         *,
         github_workflow: str = "endtoend",
-        doc: str,
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
@@ -50,7 +49,6 @@ class _LambdaScenario(DockerScenario):
         super().__init__(
             name,
             github_workflow=github_workflow,
-            doc=doc,
             scenario_groups=scenario_groups,
             weblog_categories=[WeblogCategory.dd_trace_lambda],
         )
@@ -202,26 +200,32 @@ class _LambdaScenario(DockerScenario):
 
 # Appsec Lambda Scenarios
 class AppsecLambdaDefault(_LambdaScenario):
+    """Default Lambda scenario"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_DEFAULT",
-            doc="Default Lambda scenario",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
 
 class AppsecLambdaBlocking(_LambdaScenario):
+    """Misc tests for appsec blocking in Lambda"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_BLOCKING",
             weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
             weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-            doc="Misc tests for appsec blocking in Lambda",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
 
 class AppsecLambdaApiSecurity(_LambdaScenario):
+    """Scenario for API Security feature in lambda, testing schema types sent into span tags if
+    DD_API_SECURITY_ENABLED is set to true.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_API_SECURITY",
@@ -232,25 +236,24 @@ class AppsecLambdaApiSecurity(_LambdaScenario):
                 "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
                 "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
             },
-            doc="""
-        Scenario for API Security feature in lambda, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
 
 class AppsecLambdaSca(_LambdaScenario):
+    """SCA dependency metadata and runtime reachability in Lambda with AppSec disabled"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_SCA",
             weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
-            doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
 
 class AppsecLambdaRasp(_LambdaScenario):
+    """Enable APPSEC RASP"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_RASP",
@@ -264,7 +267,6 @@ class AppsecLambdaRasp(_LambdaScenario):
             weblog_volumes={
                 "./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}
             },
-            doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[
                 scenario_groups.appsec_rasp,
@@ -282,10 +284,11 @@ class AppsecLambdaRasp(_LambdaScenario):
 
 
 class AppsecLambdaInferredSpans(_LambdaScenario):
+    """Lambda scenario with managed services tracing enabled"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_INFERRED_SPANS",
-            doc="Lambda scenario with managed services tracing enabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
             trace_managed_services=True,
         )

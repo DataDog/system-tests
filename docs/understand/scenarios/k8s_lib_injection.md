@@ -1,44 +1,67 @@
 # Testing K8s library injection feature
 
-1. [Run the tests](#run-the-tests)
-   * [Run K8s library injection tests using the Wizard (Recommended)](#run-k8s-library-injection-tests-using-the-wizard-recommended)
-   * [Run K8s library injection tests manually](#run-k8s-library-injection-tests-manually)
-     - [Prerequisites](#prerequisites)
-     - [Configure Private ECR Registry](#configure-private-ecr-registry)
-     - [Configure tested components versions](#configure-tested-components-versions)
-     - [Execute a test scenario](#execute-a-test-scenario)
-2. [How to use a MiniKube implementation](#how-to-use-a-minikube-implementation)
-3. [Component Version Matrix Configuration](#component-version-matrix-configuration)
-   * [Matrix Structure](#matrix-structure)
-   * [Modifying Component Versions](#modifying-component-versions)
-   * [CI Pipeline Filtering](#ci-pipeline-filtering)
-4. [How to develop a test case](#how-to-develop-a-test-case)
-   * [Folders and Files structure](#folders-and-files-structure)
-   * [Implement a new test case](#implement-a-new-test-case)
-5. [How to debug your kubernetes environment and tests results](#how-to-debug-your-kubernetes-environment-and-tests-results)
-6. [How to debug your kubernetes environment at runtime](#how-to-debug-your-kubernetes-environment-at-runtime)
+## Quick start
+
+Use this suite for the normal Kubernetes library injection flow. It tests the
+Admission Controller, injector, lib-init, and Cluster Agent.
+
+First, complete the
+[AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
+[ECR steps](../../execute/ssi-access.md#configure-the-private-ecr-registry).
+Install kubectl before you run the wizard.
+
+The `K8S_LIB_INJECTION_OPERATOR` scenario also needs the
+[Datadog keys](../../execute/ssi-access.md#configure-datadog-keys).
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
+```
+
+The wizard prepares a local Kind or Minikube cluster. It also selects a valid
+set of test components.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run K8s library injection manually](#run-k8s-library-injection-tests-manually)
+- [Debug K8s test results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+
+## Contents
+
+- [Run the tests](#run-the-tests)
+  - [Run with the wizard](#run-k8s-library-injection-tests-using-the-wizard-recommended)
+  - [Run manually](#run-k8s-library-injection-tests-manually)
+- [Use Minikube](#use-minikube)
+- [Component version matrix](#component-version-matrix-configuration)
+  - [Configuration files](#configuration-files)
+  - [How it works](#how-it-works)
+  - [File structure examples](#file-structure-examples)
+  - [Version selection logic](#version-selection-logic)
+  - [Modify the configuration](#modifying-configurations)
+  - [Implementation details](#implementation-details)
+- [Develop a test](#how-to-develop-a-test-case)
+- [Debug test results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+- [Debug a running cluster](#how-to-debug-your-kubernetes-environment-at-runtime)
 
 ## Run the tests
 
 ### Run K8s library injection tests using the Wizard (Recommended)
 
-The easiest way to run K8s library injection tests is using the wizard script. The wizard will guide you through all the configuration steps interactively.
+The wizard guides you through one valid test combination:
 
-```sh
+```bash
 ./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
 ```
 
-The wizard will:
+The wizard:
 
-1. Check and install system-tests requirements
-2. Let you choose a Kubernetes provider (Kind or Minikube)
-3. Configure the private ECR registry authentication
-4. Select the test language (Java, Node.js, Python, .NET, Ruby, PHP)
-5. Select the scenario and weblog to test
-6. Configure the weblog image (optionally build and push a custom one)
-7. Select the cluster agent, lib-init, and injector images
-8. Select the Datadog Helm chart version and Datadog Operator Helm chart version
-9. Execute the tests
+1. Installs the system-tests runner.
+2. Selects Kind or Minikube.
+3. Logs in to the private ECR registry.
+4. Selects the language, scenario, and weblog.
+5. Selects the weblog and injection component images.
+6. Selects the Helm chart versions.
+7. Prints and runs the final command.
 
 ### Run K8s library injection tests manually
 
@@ -46,56 +69,30 @@ If you prefer to run the tests manually, follow the sections below.
 
 #### Prerequisites
 
-- Docker environment
-- Kubernetes environment (Kind or Minikube)
-- AWS CLI and aws-vault (for ECR access)
+Complete the
+[K8s access requirements](../../execute/ssi-access.md#requirements-by-test-suite).
+Use Kind or Minikube as the local cluster provider.
 
-##### Docker environment
+On macOS:
 
-You should install Docker Desktop on your laptop.
-
-##### Kubernetes environment
-
-You should install Kind (or Minikube) and Helm Chart tool.
-Kind is a tool for running local Kubernetes clusters using Docker container.
-Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.
-
-In order to install the Kind kubernetes tool you should execute this script:
-
-```sh
-KIND_VERSION='v0.17.0'
-KUBECTL_VERSION='v1.25.3'
-
-# Download appropriate version (Mac M1 arm64 arch or linux amd64)
-echo "[build] Download installable artifacts"
-ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-if [ "$ARCH" = "arm64" ]; then
-    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
-    KUBECTL_DOWNLOAD="darwin/arm64/kubectl"
-else
-    curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
-    KUBECTL_DOWNLOAD="linux/amd64/kubectl"
-fi
-curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${KUBECTL_DOWNLOAD}"
-
-echo "[build] Installing kind"
-chmod +x ./kind
-sudo mv ./kind /usr/local/bin/kind
-echo "[build] kind install complete"
-
-echo "[build] Installing kubectl..."
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-echo "[build] kubectl install complete"
+```bash
+brew install kubectl helm
+brew install kind # Or: brew install minikube
 ```
 
-You also need the Helm Chart utility:
+Check the tools:
 
-```sh
-echo "[build] Installing helm"
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
+```bash
+docker info
+kubectl version --client
+helm version --short
+kind version # Or: minikube version
 ```
+
+For other systems, use the provider installation guide:
+
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 
 #### Configure Private ECR Registry
 
@@ -169,7 +166,7 @@ If you want to build and push your own custom version of the weblog:
 
 ##### Component Version Configuration
 
-All K8s component versions (lib-init images, cluster agent, injector, helm charts) are now centrally managed in [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json).
+All K8s component versions (lib-init images, cluster agent, injector, helm charts) are now centrally managed in [`utils/k8s/k8s_components.json`](../../../utils/k8s/k8s_components.json).
 
 **Available Component Versions:**
 
@@ -277,7 +274,7 @@ The following image illustrates the DJM scenario:
 
 ![DJM Scenario](../images/k8s_djm.png "DJM Scenario")
 
-## How to use a MiniKube implementation
+## Use Minikube
 
 The K8s lib injection tests use the Kind cluster by default, but you can change this behaviour in order to use a MiniKube implementation. To do that you only need:
 
@@ -303,8 +300,8 @@ K8s library injection tests use a two-file configuration system to define what g
 
 | File | Purpose | Location |
 |------|---------|----------|
-| **Scenario-Weblog Matrix** | Maps scenarios to weblogs by language | [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json) |
-| **Component Versions** | Defines K8s component images/versions | [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json) |
+| **Scenario-Weblog Matrix** | Maps scenarios to weblogs by language | [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../../utils/scripts/ci_orchestrators/k8s_ssi.json) |
+| **Component Versions** | Defines K8s component images/versions | [`utils/k8s/k8s_components.json`](../../../utils/k8s/k8s_components.json) |
 
 ### How It Works
 
@@ -416,9 +413,9 @@ export K8S_LIB_INIT_IMG="my-registry/my-lib-init:my-tag"
 
 ### Implementation Details
 
-- **Parser**: [`utils/k8s/k8s_components_parser.py`](../../utils/k8s/k8s_components_parser.py) - Singleton that reads `k8s_components.json`
-- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI. Image values in the job name are the path without the registry host (`ssi/cluster-agent:7.84.3`). The job prepends `PRIVATE_DOCKER_REGISTRY` before `./run.sh`.
-- **Scenario Configuration**: [`utils/_context/_scenarios/k8s_lib_injection.py`](../../utils/_context/_scenarios/k8s_lib_injection.py) - Uses parser to load default versions
+- **Parser**: [`utils/k8s/k8s_components_parser.py`](../../../utils/k8s/k8s_components_parser.py) - Singleton that reads `k8s_components.json`
+- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI. Image values in the job name are the path without the registry host (`ssi/cluster-agent:7.84.3`). The job prepends `PRIVATE_DOCKER_REGISTRY` before `./run.sh`.
+- **Scenario Configuration**: [`utils/_context/_scenarios/k8s_lib_injection.py`](../../../utils/_context/_scenarios/k8s_lib_injection.py) - Uses parser to load default versions
 
 
 

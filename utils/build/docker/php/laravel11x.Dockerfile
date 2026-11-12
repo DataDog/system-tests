@@ -1,29 +1,21 @@
-ARG PHP_VERSION=8.2
-ARG VARIANT=release
-
-FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
+# The base image holds apache, the PHP extensions and the composer dependencies of laravel11x/composer.json
+FROM system_tests_base_php_laravel11x
 
 ENV PHP_VERSION=8.2
-ENV DD_TRACE_ENABLED=1
-ENV DD_TRACE_GENERATE_ROOT_SPAN=1
-ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
-ENV DD_TRACE_HEADER_TAGS=user-agent
-
-EXPOSE 7777/tcp
 
 ADD binaries* /binaries/
-ADD utils/build/docker/php /tmp/php
+# The sources are added on top of the vendor/ directory installed in the base image, and the optimized
+# autoloader is regenerated for them (no network access needed)
+ADD utils/build/docker/php/weblogs/laravel11x /var/www/html
+RUN cd /var/www/html && composer dump-autoload --optimize --no-interaction && rm .apache.conf
 
 # Pre-create .env with APP_KEY and in-memory session (no DB, no file I/O that would trigger RASP LFI evals)
-RUN mkdir -p /var/www/html && \
-    php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" > /var/www/html/.env && \
+RUN php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" > /var/www/html/.env && \
     echo "SESSION_DRIVER=file" >> /var/www/html/.env && \
     echo "APP_DEBUG=true" >> /var/www/html/.env
-
-RUN chmod +x /tmp/php/apache-mod/build.sh
-RUN /tmp/php/apache-mod/build.sh laravel11x
 # Use Laravel-specific Apache config (DocumentRoot public/, AllowOverride All) — mirrors apache-mod Dockerfiles pattern
-RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /etc/apache2/mods-available/php.conf && \
+ADD utils/build/docker/php/weblogs/laravel11x/.apache.conf /etc/apache2/mods-available/php.conf
+RUN \
     sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.conf && \
     ln -sf /etc/apache2/mods-available/php.conf /etc/apache2/mods-enabled/php.conf
 # dom and pdo_sqlite are needed by Laravel but are built-in on older PHP, so we add them only here
@@ -42,8 +34,6 @@ RUN /install_ddtrace.sh 1
 RUN mkdir -p /var/log/system-tests && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache && \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-RUN rm -rf /tmp/php/
 
 ADD utils/build/docker/php/apache-mod/entrypoint.sh /
 WORKDIR /binaries

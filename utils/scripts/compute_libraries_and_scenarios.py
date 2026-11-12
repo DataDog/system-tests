@@ -17,6 +17,7 @@ from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
+from utils.scripts.gitlab_libraries import GITLAB_MAIN, GITLAB_PR_LIBRARIES
 
 if TYPE_CHECKING:
     from utils.manifest import ManifestData
@@ -46,22 +47,7 @@ OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentio
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 
-# Libraries run by GitLab end-to-end on PRs. The value is either None, to run the scenarios selected from the diff
-# on every weblog of the library, or a {weblog: [scenario or scenario group, ...]} map, to run only these
-# weblogs/scenarios when the library is activated.
-GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
-    "c": None,
-    # GitLab runs containers on the default bridge network: checks that the mocked backend network aliases work there
-    "python": {
-        "flask-poc": [
-            "APM_TRACING_E2E_SINGLE_SPAN",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
-        ]
-    },
-}
-GITLAB_MAIN = {"python"}
+GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -74,6 +60,20 @@ def check_scenario_groups(val: set[str]) -> bool:
 
 def check_libraries(val: set[str]) -> bool:
     return all(library in ALL_LIBRARIES for library in val)
+
+
+def get_gitlab_ssi_library(pr_title: str) -> str | None:
+    normalized_title = pr_title.lower()
+    for library in GITLAB_SSI_LIBRARIES:
+        if normalized_title.startswith(f"[{library}]"):
+            return library
+    return None
+
+
+def get_gitlab_ssi_libraries(pr_title: str, impacted_libraries: set[str]) -> set[str]:
+    if library := get_gitlab_ssi_library(pr_title):
+        return {library}
+    return impacted_libraries.intersection(GITLAB_SSI_LIBRARIES)
 
 
 def _setify(value: list[str] | set[str] | str | None) -> set[str]:
@@ -209,15 +209,15 @@ def is_gitlab_pr_pipeline(inputs: Inputs) -> bool:
     return inputs.ref != "refs/heads/main" and inputs.event_name in ("pull_request", "push")
 
 
-def filter_gitlab_libraries(inputs: Inputs, libraries: set[str]) -> set[str]:
-    """Limit the GitLab end-to-end rollout by pipeline context."""
+def get_gitlab_libraries(inputs: Inputs) -> dict[str, dict[str, list[str]] | None]:
+    """Libraries of the GitLab end-to-end rollout for the pipeline context (see GITLAB_PR_LIBRARIES for the format)"""
     if inputs.ref == "refs/heads/main" and inputs.event_name != "schedule":
-        return libraries & GITLAB_MAIN
+        return GITLAB_MAIN
 
     if is_gitlab_pr_pipeline(inputs):
-        return libraries & set(GITLAB_PR_LIBRARIES)
+        return GITLAB_PR_LIBRARIES
 
-    return set()
+    return {}
 
 
 def _expand_scenario_entries(entries: Iterable[str]) -> set[str]:
@@ -232,18 +232,21 @@ def _expand_scenario_entries(entries: Iterable[str]) -> set[str]:
 
 
 def get_gitlab_library_weblog_scenarios(
-    libraries: set[str], scenario_names: set[str], scenario_group_names: set[str]
+    gitlab_libraries: dict[str, dict[str, list[str]] | None],
+    libraries: set[str],
+    scenario_names: set[str],
+    scenario_group_names: set[str],
 ) -> dict[str, dict[str, list[str]]]:
-    """Return the library_weblog_scenarios map of the GitLab PR pipeline, for the libraries with a weblog map.
+    """Return the library_weblog_scenarios map of the GitLab pipeline, for the selected libraries with a weblog map.
 
-    The weblog maps of GITLAB_PR_LIBRARIES are filtered by the scenarios selected from the diff: only selected
-    scenarios are kept, and weblogs (and libraries) with no scenario left are removed.
+    The weblog maps of gitlab_libraries are filtered by the selected scenarios: only selected scenarios are kept,
+    and weblogs (and libraries) with no scenario left are removed.
     """
     selected = _expand_scenario_entries(scenario_names | scenario_group_names)
 
     result: dict[str, dict[str, list[str]]] = {}
-    for library in sorted(libraries):
-        weblog_map = GITLAB_PR_LIBRARIES[library]
+    for library in sorted(libraries & set(gitlab_libraries)):
+        weblog_map = gitlab_libraries[library]
         if not weblog_map:
             continue
         filtered_map: dict[str, list[str]] = {}
@@ -403,17 +406,16 @@ class Inputs:
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
+        self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
         if "GITLAB_CI" in os.environ:
             source = os.environ.get("CI_PIPELINE_SOURCE", "push")
             self.event_name = "pull_request" if source == "merge_request_event" else source
             branch = os.environ.get("CI_COMMIT_REF_NAME", "")
             self.ref = f"refs/heads/{branch}" if branch else ""
-            self.pr_title = ""
             self.is_gitlab = True
         else:
             self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
             self.ref = os.environ.get("GITHUB_REF", "")
-            self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
 
     def load_raw_impacts(self) -> None:
         # Gets the raw pattern matching data that maps file to impacted
@@ -500,7 +502,8 @@ def process(inputs: Inputs) -> list[str]:
         scenario_processor.process_manifests(inputs)
         scenario_processor.compute_scenarios_by_files(inputs)
 
-        library_processor.process_pr_title(inputs)
+        if not inputs.is_gitlab:
+            library_processor.process_pr_title(inputs)
 
         assert inputs.modified_files is not None
         for file in inputs.modified_files:
@@ -518,16 +521,23 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
-        gitlab_libraries = filter_gitlab_libraries(inputs, library_processor.selected)
-        if is_gitlab_pr_pipeline(inputs):
-            library_weblog_scenarios = get_gitlab_library_weblog_scenarios(
-                gitlab_libraries, scenario_processor.scenarios, scenario_processor.scenario_groups
-            )
-            if library_weblog_scenarios:
-                # JSON in a JSON string, so the output can still be sourced by a shell
-                outputs["library_weblog_scenarios"] = json.dumps(library_weblog_scenarios)
-            # libraries with a weblog map are only run through library_weblog_scenarios
-            gitlab_libraries = {library for library in gitlab_libraries if not GITLAB_PR_LIBRARIES[library]}
+        if inputs.selects_scenarios_from_diff():
+            ssi_libraries = get_gitlab_ssi_libraries(inputs.pr_title, library_processor.selected)
+            outputs["ssi_libraries"] = " ".join(sorted(ssi_libraries))
+
+        rollout = get_gitlab_libraries(inputs)
+        library_weblog_scenarios = get_gitlab_library_weblog_scenarios(
+            rollout, library_processor.selected, scenario_processor.scenarios, scenario_processor.scenario_groups
+        )
+        if library_weblog_scenarios:
+            # JSON in a JSON string, so the output can still be sourced by a shell
+            outputs["library_weblog_scenarios"] = json.dumps(library_weblog_scenarios)
+        # libraries with a weblog map are only run through library_weblog_scenarios
+        gitlab_libraries = {
+            library
+            for library, weblog_map in rollout.items()
+            if library in library_processor.selected and not weblog_map
+        }
         if gitlab_libraries:
             outputs["libraries"] = " ".join(sorted(gitlab_libraries))
         # also used by the SSI pipeline (compute_pipeline job)

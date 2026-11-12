@@ -13,6 +13,7 @@ command_exists() {
 }
 
 ask_load_k8s_requirements(){
+    wizard_usage_step provider
     # 📌 Step: Ask user for Kubernetes provider
     echo -e "${YELLOW}📌 Step: Choose a Kubernetes provider${NC}"
     select K8S_PROVIDER in "minikube" "kind"; do
@@ -34,9 +35,9 @@ ask_load_k8s_requirements(){
                 # Download appropriate version (Mac M1 arm64 arch or linux amd64)
                 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
                 if [ "$ARCH" = "arm64" ]; then
-                    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
                 else
-                    curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
                 fi
                 chmod +x ./kind
                 sudo mv ./kind /usr/local/bin/kind
@@ -50,10 +51,10 @@ ask_load_k8s_requirements(){
                 echo "Installing Minikube..."
                 ARCH=$(uname -m)
                 if [[ "$ARCH" == "arm64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
                     sudo install minikube-darwin-arm64 /usr/local/bin/minikube
                 elif [[ "$ARCH" == "x86_64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
                     sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
                 fi
                 echo -e "${GREEN}✅ Minikube installed successfully.${NC}"
@@ -66,7 +67,7 @@ ask_load_k8s_requirements(){
         read -p "⚠️  Helm is not installed. Do you want to install it? (y/n): " INSTALL_HELM
         if [[ "$INSTALL_HELM" == "y" ]]; then
             echo "Installing Helm..."
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+            curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
             if command_exists helm; then
                 echo -e "${GREEN}✅ Helm installed successfully.${NC}"
             else
@@ -79,6 +80,7 @@ ask_load_k8s_requirements(){
 }
 
 configure_private_registry() {
+    wizard_usage_step registry
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
     echo "Configuring ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)..."
@@ -94,6 +96,7 @@ configure_private_registry() {
 }
 
 select_weblog_img(){
+    wizard_usage_step weblog_image
     spacer
     echo -e "${YELLOW}📌 Step: Select Weblog Image${NC}"
     echo ""
@@ -434,6 +437,7 @@ print(parser.get_default_component_version('injector'))
 }
 
 review_and_customize_components() {
+    wizard_usage_step components
     spacer
     echo -e "${YELLOW}📋 Component Configuration Summary${NC}"
     echo ""
@@ -616,6 +620,7 @@ print(' '.join(versions))
 
 run_the_tests(){
     spacer
+    wizard_usage_step keep_alive
     # 📌 Step: Confirm and execute
     echo ""
     echo "==============================================="
@@ -655,14 +660,38 @@ run_the_tests(){
     fi
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
+
+    wizard_usage_step confirm
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}" \
+        "provider=${K8S_PROVIDER}" \
+        "keep_alive=$([[ ${KEEP_ALIVE:-} == y ]] && echo true || echo false)"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start rc
+        run_start=$(date +%s)
         "${CMD[@]}"
+        rc=$?
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
+            "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${rc}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
+        return "${rc}"
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
+wizard_usage_begin k8s-lib-injection
 welcome "K8s lib-injection Tests"
 load_requirements
 ask_load_k8s_requirements

@@ -48,12 +48,12 @@ def validate_comma_lower(name: str, value: str) -> list[str]:
 
 
 def validate_comma_lower_hyphen(name: str, value: str) -> list[str]:
-    """Comma-separated lowercase identifiers allowing hyphens, e.g. 'flask,django-realworld'."""
+    """Comma-separated lowercase identifiers allowing hyphens and dots, e.g. 'flask,django-realworld,apache-mod-8.0'."""
     errors = []
     for item in (i.strip() for i in value.split(",")):
-        if item and not re.match(r"^[a-z][a-z0-9_-]*$", item):
+        if item and not re.match(r"^[a-z][a-z0-9._-]*$", item):
             errors.append(
-                _error(name, item, "expected comma-separated lowercase identifiers (e.g. 'flask,django-realworld')")
+                _error(name, item, "expected comma-separated lowercase identifiers (e.g. 'flask,apache-mod-8.0')")
             )
     return errors
 
@@ -117,7 +117,8 @@ def validate_library_weblog_scenarios(name: str, value: str) -> list[str]:
             errors.append(_error(name, library, f"weblogs must be a JSON object, {expected}"))
             continue
         for weblog, scenarios in weblogs.items():
-            if not re.match(r"^[a-z][a-z0-9_-]*$", weblog):
+            # dots are allowed: e.g. apache-mod-8.0, python3.12
+            if not re.match(r"^[a-z][a-z0-9._-]*$", weblog):
                 errors.append(_error(name, weblog, "invalid weblog name"))
             if not isinstance(scenarios, list):
                 errors.append(_error(name, weblog, f"scenarios must be a list, {expected}"))

@@ -41,7 +41,6 @@ class DockerScenario(Scenario):
         name: str,
         *,
         github_workflow: str | None,
-        doc: str,
         weblog_categories: list[WeblogCategory] | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
@@ -56,7 +55,6 @@ class DockerScenario(Scenario):
     ) -> None:
         super().__init__(
             name,
-            doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
             weblog_categories=weblog_categories,
@@ -209,7 +207,6 @@ class EndToEndScenario(DockerScenario):
         self,
         name: str,
         *,
-        doc: str,
         github_workflow: str = "endtoend",
         weblog_categories: list[WeblogCategory],
         scenario_groups: list[ScenarioGroup] | None = None,
@@ -241,7 +238,6 @@ class EndToEndScenario(DockerScenario):
 
         super().__init__(
             name,
-            doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
             weblog_categories=weblog_categories,
@@ -584,7 +580,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         self,
         name: str,
         *,
-        doc: str,
         additional_trace_header_tags: tuple[str, ...] = (),
         agent_env: dict[str, str | None] | None = None,
         agent_interface_timeout: int = 5,
@@ -615,7 +610,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             agent_interface_timeout=agent_interface_timeout,
             appsec_enabled=appsec_enabled,
             client_drop_p0s=client_drop_p0s,
-            doc=doc,
             iast_enabled=iast_enabled,
             include_agent=include_agent,
             include_opentelemetry=include_opentelemetry,

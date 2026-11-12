@@ -552,7 +552,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
-                    return [{"function": method}]
+                    # When the recursion is deeper than the max captured frames, a tracer capturing the innermost
+                    # frames (e.g. Java) has no snapshot for the entry method: it is only present in the stack.
+                    stack_frames = [
+                        {"function": frame.get("function", "").split(".")[-1]} for frame in snapshot.get("stack", [])
+                    ]
+                    return [{"function": method}, *stack_frames]
 
             return snapshot.get("stack", [])
 

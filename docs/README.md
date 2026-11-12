@@ -17,7 +17,7 @@ Learn what system-tests is, how it works, and what the key concepts are.
 - [Scenarios](understand/scenarios/README.md) -- the different types of tests: end-to-end, parametric, SSI, Kubernetes
 - [Weblogs](understand/weblogs/README.md) -- the test applications that get instrumented by tracer libraries
 - [Test flow](understand/test-flow.md) -- the full test execution flow (setup, wait, test)
-- [Glossary](glossary.md) -- definitions of terms like pass, fail, xpass, xfail, enabled, disabled
+- [Glossary](glossary.md) -- definitions of SSI, scenario, weblog, pass, fail, and other terms
 
 ## Running tests
 
@@ -31,7 +31,8 @@ Everything you need to build images and execute test scenarios.
 - [Replay mode](execute/replay.md) -- re-run test methods without rebuilding the environment
 - [Custom tracer versions](execute/binaries.md) -- testing with local or unmerged tracer builds
 - [Troubleshooting](execute/troubleshooting.md) -- common issues, debugging tips, tracer debug output
-- [SSI execution](execute/ssi.md) -- running SSI-specific scenarios
+- [SSI quick start](execute/ssi.md) -- choose and run Docker, AWS, or Kubernetes SSI tests
+- [SSI access](execute/ssi-access.md) -- tools, AWS profiles, network access, registries, and keys
 - [End-to-end execution](execute/e2e.md) -- running end-to-end scenarios
 
 ## Writing and editing tests
@@ -58,6 +59,7 @@ How to add, modify, enable, and disable tests.
 
 Deep dives into each scenario type.
 
+- **SSI start here**: [quick start](execute/ssi.md) and [access requirements](execute/ssi-access.md)
 - **End-to-end**: covered in [scenarios overview](understand/scenarios/README.md) and [architecture](understand/architecture.md)
 - **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](edit/parametric_contributing.md)
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
@@ -104,5 +106,5 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 - [Cursor guide](ai/cursor-ai-comprehensive-guide.md) -- comprehensive Cursor AI guide
 - [Cursor examples](ai/cursor-practical-examples.md) -- practical usage examples
 - [Prompt validation](ai/ai-tools-prompt-validation.md) -- testing AI prompts with promptfoo
-- [GitHub MCP server](ai/ai-github-mcp-server.md) -- GitHub MCP server integration
+- [Datadog MCP server](ai/datadog-mcp-server.md) -- Datadog MCP server integration
 - [Java endpoint prompt](ai/ai-prompt-java-endpoint-prompt.md) -- Java endpoint creation prompt
