@@ -269,6 +269,7 @@ PROFILES: dict[str, Profile] = {
             delete_large_log_files,
             collect_logs,
             publish_feature_parity,
+            upload_junit_reports,
             print_logs,
         ),
     ),
@@ -276,7 +277,14 @@ PROFILES: dict[str, Profile] = {
         scenario_variable="K8S_SCENARIO",
         logs_pattern="logs_*",
         feature_parity_pattern="feature_parity.json",
-        steps=(tag_official_workflow, delete_kind_clusters, collect_logs, publish_feature_parity, print_logs),
+        steps=(
+            tag_official_workflow,
+            delete_kind_clusters,
+            collect_logs,
+            publish_feature_parity,
+            upload_junit_reports,
+            print_logs,
+        ),
     ),
 }
 

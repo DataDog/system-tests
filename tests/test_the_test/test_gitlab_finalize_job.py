@@ -121,6 +121,32 @@ def test_k8s_profile_deletes_clusters_and_collects_every_log_folder(tmp_path: Pa
 
 
 @scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "env"),
+    [
+        ("aws", {"SCENARIO": "SIMPLE_INSTALLER_AUTO_INJECTION", "VM": "Ubuntu_22_amd64", "WEBLOG": "test-app-java"}),
+        ("k8s", {"K8S_SCENARIO": "K8S_LIB_INJECTION"}),
+    ],
+)
+def test_ssi_profiles_upload_junit_reports_from_any_repository(
+    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, profile: str, env: dict[str, str]
+):
+    """Test failures must reach Test Optimization, else Green CI counts them as infra failures."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    folder = f"logs_{(env.get('SCENARIO') or env['K8S_SCENARIO']).lower()}"
+    _write(tmp_path / "system-tests" / folder / "reportJunit.xml", "<testsuites/>")
+    job = _job(
+        profile, tmp_path, CI_PIPELINE_ID="42", CI_PROJECT_NAME="dd-trace-java", CI_COMMIT_BRANCH="master", **env
+    )
+
+    assert finalizer.finalize(job) == 0
+
+    uploads = [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
+    assert len(uploads) == 1
+    assert str(tmp_path / "project" / "reports" / folder / "reportJunit.xml") in uploads[0]
+
+
+@scenarios.test_the_test
 def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[list[str]]):
     logs = tmp_path / "system-tests" / "logs_docker_ssi"
     _write(logs / "interfaces" / "library" / "00001.json", "{}")
