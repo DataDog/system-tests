@@ -134,7 +134,18 @@ class DataDogAgentSpan(ABC):
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
-        """Return metadata first, normalizing integral metrics to strings."""
+        """Returns a span tag, normalized to the string form the legacy format guarantees.
+
+        In the efficient trace payload format, meta and metrics are merged into a single typed
+        `attributes` map. A tag that a tracer reports both as a string tag and as a numeric metric
+        (http.status_code, for instance) therefore collides, and the numeric value is the one that
+        survives. Normalize integral numbers back to their string form so tests can assert on the
+        tag value without caring which of the two the tracer happened to send.
+
+        The legacy format keeps meta and metrics separate. Explicit metadata is returned untouched:
+        a numeric value in meta remains a failure, as it should. If metadata is absent, fall back to
+        metrics and normalize integral numbers there too.
+        """
 
         value = self.meta.get(key, default)
         if self.trace.format == AgentTraceFormat.legacy:
