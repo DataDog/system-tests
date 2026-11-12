@@ -113,6 +113,7 @@ refs:
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
   - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
   - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
+  - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1214,14 +1215,17 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
+    - weblog_declaration:
+        nextjs: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_59_0
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": *ref_4_16_0
@@ -1243,16 +1247,16 @@ manifest:
         nextjs: v6.19.0  # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_25_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: *ref_5_17_0
@@ -1394,7 +1398,7 @@ manifest:
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor::test_fingerprinting_endpoint_blocking:
     - weblog_declaration:
-        nextjs: missing_feature (Blocking on querystring is not supported)
+        nextjs: *ref_6_25_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: *ref_5_24_0
@@ -1462,7 +1466,7 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature (can not block by query param in nextjs yet)
+        nextjs: *ref_6_25_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: *ref_3_9_0
