@@ -223,10 +223,14 @@ def _server_span(request: HttpResponse) -> HttpSpan:
         f"could not correlate a SERVER span to request {request_id} by user agent; "
         f"the correlated OTLP payloads contained {server_span_count} SERVER spans"
     )
-    assert len(matched_spans) == 1, (
-        f"expected exactly one SERVER span correlated to request {request_id}, found {len(matched_spans)}"
+    # HTTP instrumentation can wrap a framework SERVER span for the same request.
+    # Select the outer span independently of the order in which they were exported.
+    span_ids = {(span["traceId"], span["spanId"]) for span in matched_spans}
+    outer_spans = [span for span in matched_spans if (span["traceId"], span.get("parentSpanId")) not in span_ids]
+    assert len(outer_spans) == 1, (
+        f"expected one outermost SERVER span correlated to request {request_id}, found {len(outer_spans)}"
     )
-    return matched_spans[0]
+    return outer_spans[0]
 
 
 def _client_span(request: HttpResponse) -> HttpSpan:
