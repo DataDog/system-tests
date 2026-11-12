@@ -5,6 +5,10 @@ ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
 ADD . /src
+# The base image's pip 23.0.1 crashes on JSON simple API pages that serve dist-info-metadata as a dict.
+# Upgrade it to a hash-pinned pip first: hash checking skips the metadata lookup that crashes.
+RUN echo "pip==24.0 --hash=sha256:ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc" > /tmp/pip-requirements.txt && \
+    pip install --require-hashes -r /tmp/pip-requirements.txt
 RUN pip install django
 EXPOSE 18080
 CMD python -m django runserver 0.0.0.0:18080
