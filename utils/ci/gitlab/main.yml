@@ -93,7 +93,7 @@ variables:
   #   + utils/ci/gitlab/validate_param_env.py, which is copied into the image)
   # Update this when any of these files changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt utils/ci/gitlab/validate_param_env.py | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:84b11051ce81"
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:ff6ff6ba2012"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:

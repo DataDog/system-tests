@@ -223,7 +223,10 @@ def test_gitlab_library_selections_are_valid(selection: dict[str, dict[str, list
 
     for library, weblogs in library_weblog_scenarios.items():
         for weblog in weblogs:
-            assert Path(f"utils/build/docker/{library}/{weblog}.Dockerfile").is_file(), f"{library}/{weblog}"
+            if weblog == "parametric":  # the parametric app is a folder, not a weblog Dockerfile
+                assert Path(f"utils/build/docker/{library}/parametric").is_dir(), f"{library}/{weblog}"
+            else:
+                assert Path(f"utils/build/docker/{library}/{weblog}.Dockerfile").is_file(), f"{library}/{weblog}"
 
 
 @scenarios.test_the_test

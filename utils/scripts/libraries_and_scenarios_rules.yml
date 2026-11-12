@@ -400,8 +400,12 @@ patterns:
       libraries: null
     utils/ci/github/*:
       scenarios: DEFAULT
-    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs these libraries on PRs (see utils/scripts/gitlab_libraries.py)
+    # end-to-end GitLab pipeline, which only runs these libraries on PRs (see utils/scripts/gitlab_libraries.py)
+    # all non-SSI scenarios, the same as utils/scripts/gitlab_libraries.py
+    utils/ci/gitlab/*:
       libraries: [c, php, python]
+      scenario_groups: [end_to_end, exotics, ffe, integration_frameworks, open_telemetry]
+      scenarios: PARAMETRIC
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the

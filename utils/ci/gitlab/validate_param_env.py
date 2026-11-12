@@ -53,7 +53,7 @@ def validate_comma_lower_hyphen(name: str, value: str) -> list[str]:
     for item in (i.strip() for i in value.split(",")):
         if item and not re.match(r"^[a-z][a-z0-9._-]*$", item):
             errors.append(
-                _error(name, item, "expected comma-separated lowercase identifiers (e.g. 'flask,django-realworld')")
+                _error(name, item, "expected comma-separated lowercase identifiers (e.g. 'flask,apache-mod-8.0')")
             )
     return errors
 

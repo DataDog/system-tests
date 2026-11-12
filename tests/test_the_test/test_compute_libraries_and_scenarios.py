@@ -421,10 +421,11 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,exotics,ffe,integration_frameworks,open_telemetry",
         )
 
-    def test_gitlab_libraries_config_scenarios(self):
-        """The rule of gitlab_libraries.py selects every scenario of the all group but the SSI ones"""
+    @pytest.mark.parametrize("pattern", ["utils/scripts/gitlab_libraries.py", "utils/ci/gitlab/*"])
+    def test_gitlab_libraries_config_scenarios(self, pattern: str):
+        """The rules of the GitLab end-to-end pipeline select every scenario of the all group but the SSI ones"""
         ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
-        param = build_inputs([]).impacts["utils/scripts/gitlab_libraries.py"]
+        param = build_inputs([]).impacts[pattern]
         selected = {
             scenario.name for group in param.scenario_groups for scenario in all_scenario_groups[group].scenarios
         }
