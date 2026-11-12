@@ -112,6 +112,7 @@ patterns:
         scenario_groups: null
     .gitignore:
         scenario_groups: null
+        libraries: null
     .gitlab-ci.yml:
         scenario_groups: null
     .shellcheck:
@@ -292,6 +293,9 @@ patterns:
         scenarios: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
+    utils/scripts/review_learning/*:
+        scenario_groups: null
+        libraries: null
     utils/scripts/slack/send_changelog.sh:
         scenario_groups: null
         libraries: null
