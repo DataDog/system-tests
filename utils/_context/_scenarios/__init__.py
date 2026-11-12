@@ -113,6 +113,7 @@ from .docker_ssi import (
 from .agentless_endtoend import (
     FeatureFlaggingAndExperimentationAgentless,
     FeatureFlaggingAndExperimentationAgentlessDirect,
+    FeatureFlaggingAndExperimentationAgentlessExplicit,
     FeatureFlaggingAndExperimentationAgentlessServerless,
 )
 from .test_the_test import (
@@ -316,6 +317,7 @@ class _Scenarios:
     remote_config_mocked_backend_asm_dd = RemoteConfigMockedBackendAsmDd()
     feature_flagging_and_experimentation = FeatureFlaggingAndExperimentation()
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
+    feature_flagging_and_experimentation_agentless_explicit = FeatureFlaggingAndExperimentationAgentlessExplicit()
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
