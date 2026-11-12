@@ -27,6 +27,7 @@ This skill only writes a report. It never edits a file in `.agents/rules/`.
 
 Run every command from the repository root with `venv/bin/python -m utils.scripts.review_learning.<step>`. If a command fails, stop and report its error. If `--step` is given, run only that step.
 
+0. **check**: run `venv/bin/python --version`, `gh auth status`, `git rev-parse --is-shallow-repository`, and `se --help`. If a check fails, stop. Name the missing tool, and point to the "Requirements" section of [docs/ai/review-learning.md](../../../docs/ai/review-learning.md). If the clone is shallow, stop too.
 1. **collect**: `collect --window <window>`. Without `--out`, the run goes to `.review-learning/<start>..<end>`. Use that folder as `<run>` below.
 2. **filter**: `filter --run <run>`.
 3. **szz**: `szz --run <run>`. Run `git fetch origin main` first, so that the local history holds every merge commit.

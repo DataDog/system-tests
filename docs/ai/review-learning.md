@@ -6,6 +6,18 @@ Review learning improves the rules that an agent uses. It does not replace human
 
 Many ideas here come from other tools and from one article. [Sources](#sources) lists them.
 
+## Requirements
+
+| Tool | Why | Check |
+| --- | --- | --- |
+| The repository virtual environment | Every script runs with `venv/bin/python`. Build it with `./build.sh -i runner`. | `venv/bin/python --version` |
+| `gh`, signed in | `collect.py` reads pull requests from GitHub. Read access is enough. | `gh auth status` |
+| A full Git clone with a recent `main` | `szz.py` blames the local history. A shallow clone misses culprits. | `git rev-parse --is-shallow-repository` prints `false`, then `git fetch origin main` |
+| `se` | `plain_english.py` lints every proposed text. Without it, every proposal needs a human decision. | `se --help` |
+| Claude Code | The skill starts the subagents of the model steps. | `/system-tests-review-learn` is in the skill list |
+
+To install `se`, use `brew install TonyCTHsu/tap/simple-english`, or `gem install simple_english` with Ruby 3.3 or later. The scripts are tested with `se` 0.6.0. A newer version can add rules, and then the same text can get new findings.
+
 ## Status
 
 Every step exists. The pipeline writes a report, and it never edits a rule file. A later step will apply the changes and open a draft pull request.
