@@ -82,6 +82,7 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
         "golang": "weblog",
         "java": "java",
         "nodejs": "node",
+        "php": "apache2",
         "python": "python",
         "ruby": "ruby",
     }[library_name]
@@ -411,6 +412,29 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
 @scenarios.test_the_test
 def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology() -> None:
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
+
+
+@pytest.mark.parametrize(
+    "command", ["apache2 -D FOREGROUND", "php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"]
+)
+@scenarios.test_the_test
+def test_feature_flagging_direct_runtime_evidence_accepts_php_servers(command: str) -> None:
+    evidence = _direct_runtime_evidence("php")
+    evidence["containers"][1]["pid1_command"] = command
+    evidence["containers"][1]["processes"][0]["command"] = command
+
+    assert_direct_evp_runtime_evidence(evidence, library_name="php")
+
+
+@pytest.mark.parametrize("command", ["tail -f /var/log/php.log", "bash /entrypoint.sh", "apache2-wrapper app"])
+@scenarios.test_the_test
+def test_feature_flagging_direct_runtime_evidence_rejects_php_wrappers(command: str) -> None:
+    evidence = _direct_runtime_evidence("php")
+    evidence["containers"][1]["pid1_command"] = command
+    evidence["containers"][1]["processes"][0]["command"] = command
+
+    with pytest.raises(AssertionError, match="expected one of"):
+        assert_direct_evp_runtime_evidence(evidence, library_name="php")
 
 
 @pytest.mark.parametrize("executable", ["python3.11", "python3.12"])

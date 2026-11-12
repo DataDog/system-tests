@@ -42,6 +42,13 @@ export _DD_DEBUG_SIDECAR_LOG_METHOD="file://$SYSTEM_TESTS_LOGS/sidecar.log"
 export _DD_SHARED_LIB_DEBUG=0
 export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
 
+if [[ "${SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED:-}" == "true" ]]; then
+  # The direct-EVP scenario inspects the server as PID 1, without an init wrapper.
+  # shellcheck disable=SC1091
+  source /etc/apache2/envvars
+  exec apache2 -D FOREGROUND
+fi
+
 service apache2 start
 
 exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "$SYSTEM_TESTS_LOGS/appsec.log" "$SYSTEM_TESTS_LOGS/helper.log" "$SYSTEM_TESTS_LOGS/php_error.log"
