@@ -1072,13 +1072,42 @@ manifest:
         php-fpm-7.2: v1.23.3  # TODO: a lower version might be supported
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: '>=1.20.0'
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
-  tests/auto_inject: bug (APMSP-4038)
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
-  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.9.0
-  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: v1.9.0
-  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
-  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
+  tests/auto_inject/test_auto_inject_chaos.py: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_guardrail.py: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScript: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScript: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_auto_inject_install.py::TestInstallerAutoInjectManual: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestLocalAutoInjectInstallScript: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual: bug (APMSP-4038)
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualOriginDetection::test_origin_detection:
+    - declaration: bug (APMSP-4038)
+      weblog: [test-app-php-multialpine, test-app-php-multicontainer]
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling:
+    - declaration: bug (APMSP-4038)
+    - declaration: missing_feature (PHP SSI feature available from v1.9.0)
+      component_version: '<1.9.0'
+  tests/auto_inject/test_blocklist_auto_inject.py: bug (APMSP-4038)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - weblog_declaration:
         "*": v1.24.0
