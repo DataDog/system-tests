@@ -27,7 +27,7 @@ RUN printf "extension=dom.so\nextension=pdo_sqlite.so\nextension=tokenizer.so\n"
 # Create log directory before running PHP (php.ini writes error_log there)
 RUN mkdir -p /var/log/system-tests
 
-# Create SQLite database and seed test users (script is at /var/www/html/bin/init-db.php via build.sh)
+# Create SQLite database and seed test users (script is at /var/www/html/bin/init-db.php, added above)
 RUN SYMFONY_DB_PATH=/tmp/symfony.db php /var/www/html/bin/init-db.php && \
     chmod 666 /tmp/symfony.db
 
