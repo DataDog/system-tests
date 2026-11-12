@@ -12,6 +12,7 @@ from utils.scripts.compute_libraries_and_scenarios import (
     process,
 )
 from utils import scenarios
+from utils._context._scenarios import get_all_scenarios
 
 
 default_libs_with_prod = [
@@ -407,7 +408,17 @@ class Test_ComputeLibrariesAndScenarios:
             "all",
         )
 
-    def test_gitlab_libraries_config_runs_all(self):
+    @staticmethod
+    def _non_ssi_scenario_groups() -> set[str]:
+        """Scenario groups with at least one scenario, none of them being an SSI one"""
+        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
+        groups: dict[str, set[str | None]] = {}
+        for scenario in get_all_scenarios():
+            for group in scenario.scenario_groups:
+                groups.setdefault(group.name, set()).add(scenario.github_workflow)
+        return {name for name, workflows in groups.items() if not workflows & ssi_workflows}
+
+    def test_gitlab_libraries_config_runs_all_but_ssi(self):
         inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
 
         assert_github_processor(
@@ -417,7 +428,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT",
-            "all",
+            ",".join(sorted(self._non_ssi_scenario_groups())),
         )
 
     def test_test_file(self):

@@ -279,7 +279,35 @@ patterns:
         scenario_groups: null
     utils/scripts/get-workflow-summary.py:
         scenario_groups: null
-    utils/scripts/gitlab_libraries.py: # run all: it changes what the GitLab end-to-end pipeline runs
+    # all libraries and all scenario groups but the SSI ones: it changes what the GitLab end-to-end pipeline runs
+    utils/scripts/gitlab_libraries.py:
+        scenario_groups:
+          - agentless
+          - ai_guard
+          - appsec
+          - appsec_lambda
+          - appsec_low_waf_timeout
+          - appsec_rasp
+          - appsec_rasp_scenario
+          - debugger
+          - docker_fixtures
+          - end_to_end
+          - essentials
+          - exotics
+          - ffe
+          - graphql
+          - integration_frameworks
+          - integrations
+          - ipv6
+          - lambda_end_to_end
+          - open_telemetry
+          - profiling
+          - remote_config
+          - sampling
+          - telemetry
+          - thread_context_sharing
+          - tracer_release
+          - tracing_config
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
     utils/scripts/libraries_and_scenarios_rules.yml:
