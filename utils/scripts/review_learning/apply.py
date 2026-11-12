@@ -45,7 +45,7 @@ def rule_block(lines: list[str], rule_id: str) -> tuple[int, int]:
 def check_edit(decision: Json) -> None:
     """An edit changes one line. An exception only adds text to the existing one."""
     value, current = decision["proposed_text"], decision.get("current_text")
-    if "\n" in value:
+    if value.splitlines() != [value]:  # any line separator, also a lone carriage return
         raise ApplyError("the new value of a field must be one line")
     if decision["action"] != "add_not_when":
         return
@@ -154,6 +154,12 @@ def apply_run(run_dir: Path, root: Path) -> list[Json]:
     return results
 
 
+def edited_files(results: list[Json]) -> list[str]:
+    """The lens files that this run changed. Undo only these, never the whole folder."""
+    lenses = sorted({r["lens"] for r in results if r["result"] == "applied"})
+    return [str(LENSES_DIR / f"{lens}.md") for lens in lenses]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--run", type=Path, required=True)
@@ -161,7 +167,10 @@ def main() -> None:
     args = parser.parse_args()
     results = apply_run(args.run, args.repo_root.resolve())
     applied = sum(r["result"] == "applied" for r in results)
-    print(f"{applied} of {len(results)} changes applied. Review them with: git diff {LENSES_DIR}")
+    print(f"{applied} of {len(results)} changes applied.")
+    if files := " ".join(edited_files(results)):
+        print(f"Review them with: git diff -- {files}")
+        print(f"Undo them with:   git checkout -- {files}")
     for result in results:
         if result["result"] != "applied":
             print(f"  skipped {result['rule_id']} {result['action']}: {result['reason']}")

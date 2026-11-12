@@ -174,7 +174,7 @@ The result goes to `decisions.json` and `report.md`. If a lens left no proposals
 - `add_not_when` only changes the `Not when` line. It keeps the current text and adds to it. Without `current_text`, it adds a `Not when` line to the rule.
 - `new_rule` adds the whole rule block after the last rule of the lens.
 
-After each edit, every rule must keep a unique ID, a `Severity` line, and a `Flag` line. `decide.py` runs the same edit on a copy of the lens, so a decision with the status `apply` always matches the file. If an edit does not match the file, the script skips it and writes the reason to `applied.json`. It never edits a lens file with local changes, so `git checkout -- .agents/rules/code-review/` undoes exactly this step.
+After each edit, every rule must keep a unique ID, a `Severity` line, and a `Flag` line. `decide.py` runs the same edit on a copy of the lens, so a decision with the status `apply` always matches the file. If an edit does not match the file, the script skips it and writes the reason to `applied.json`. It never edits a lens file with local changes. It prints a `git checkout` command that names only the files that it edited, so the command undoes this step and keeps your other changes.
 
 ## Run it
 
@@ -183,7 +183,7 @@ The easiest way is the skill, in Claude Code:
 ```text
 /system-tests-review-learn 30d
 /system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step map
-/system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step apply
+/system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step apply --apply
 ```
 
 With `--step`, the skill runs one step again on an existing run folder. You can tune a prompt without a new download. A new `prepare` deletes the outputs of the later steps, so old candidates never mix with new batches.
@@ -200,8 +200,7 @@ venv/bin/python -m utils.scripts.review_learning.verify_quotes --run .review-lea
 # map: the model writes proposals/<lens>.json
 venv/bin/python -m utils.scripts.review_learning.plain_english --run .review-learning/run
 venv/bin/python -m utils.scripts.review_learning.decide --run .review-learning/run
-venv/bin/python -m utils.scripts.review_learning.apply --run .review-learning/run
-git diff .agents/rules/code-review/
+venv/bin/python -m utils.scripts.review_learning.apply --run .review-learning/run  # prints the review and undo commands
 ```
 
 The `--window` option takes a number of days that ends today, such as `30d`, or a date range, such as `2026-10-01..2026-10-31`. Without `--out`, the run goes to `.review-learning/<start>..<end>`.

@@ -801,6 +801,21 @@ class Test_ReviewLearningApply:
         text = apply_step.apply_one(LENS, {**replaced, "proposed_text": f"{current} It is parametric."})
         assert f"- Not when: {current} It is parametric.\n" in text
 
+    def test_a_lone_carriage_return_is_refused(self) -> None:
+        for separator in ("\r", "\r\n", "\u2028"):
+            injected = _edit(proposed_text=f"x{separator}### LIFE-777: evil")
+            with pytest.raises(apply_step.ApplyError, match="must be one line"):
+                apply_step.apply_one(LENS, injected)
+
+    def test_undo_names_only_the_edited_files(self) -> None:
+        results = [
+            {"lens": "lifecycle-and-isolation", "result": "applied"},
+            {"lens": "lifecycle-and-isolation", "result": "applied"},
+            {"lens": "test-effectiveness", "result": "skipped"},
+        ]
+        assert apply_step.edited_files(results) == [".agents/rules/code-review/lifecycle-and-isolation.md"]
+        assert apply_step.edited_files([]) == []
+
     def test_a_value_must_be_one_line(self) -> None:
         injected = _edit(proposed_text="x\n### LIFE-777: evil\n- Severity: P0\n- Flag: z")
         with pytest.raises(apply_step.ApplyError, match="must be one line"):

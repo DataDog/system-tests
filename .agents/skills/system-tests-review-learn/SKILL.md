@@ -13,7 +13,7 @@ The scripts are in `utils/scripts/review_learning/`. [docs/ai/review-learning.md
 
 - A window: a number of days that ends today, such as `30d`, or a date range, such as `2026-10-01..2026-10-31`. The default is in `utils/scripts/review_learning/filters.yml`.
 - `--run <folder>`: reuse a run folder that already exists. Do not download again.
-- `--step <name>`: run only this step on the `--run` folder. The names are `check`, `collect`, `filter`, `szz`, `prepare`, `extract`, `verify`, `map`, `lint`, `decide`, and `apply`.
+- `--step <name>`: run only this step on the `--run` folder. The names are `check`, `collect`, `filter`, `szz`, `prepare`, `extract`, `verify`, `map`, `lint`, `decide`, and `apply`. The `apply` step also needs `--apply`: without it, refuse to run the step.
 - `--apply`: after `decide`, edit the lens files with the changes that have the status `apply`.
 
 Without `--apply`, this skill only writes a report. It never commits, and it never edits a file outside `.agents/rules/code-review/`.
@@ -49,8 +49,11 @@ Run every command from the repository root with `venv/bin/python -m utils.script
    Delete each output file before you start its subagent. If a lens fails, leave its file absent. The report then marks the run as incomplete.
 8. **lint**: `plain_english --run <run>`. It writes `<run>/lint.json`. If a proposal has findings, send them back to the subagent of its lens. Ask it to rewrite only the `proposed_text` of those proposals and to write the file again. Then run `plain_english` again. Do this two times at most.
 9. **decide**: `decide --run <run>`. It writes `<run>/decisions.json` and `<run>/report.md`.
-10. **apply**: only with `--apply`. Run `apply --run <run>`. It edits the lens files, and writes `<run>/applied.json`. It skips a lens file with local changes. Then show `git diff --stat .agents/rules/code-review/`.
+10. **apply**: only with `--apply`. Run `apply --run <run>`. It edits the lens files, and writes `<run>/applied.json`. It skips a lens file with local changes. It prints the review and undo commands for the files that it edited.
 
 ## Report to the user
 
-Give the path of `report.md`, and copy its summary table. List the proposals with the status `apply` and the ones with `needs_decision`. With `--apply`, list every change that `apply` skipped, with its reason. Tell the user to review the edits with `git diff`, and to undo them with `git checkout -- .agents/rules/code-review/`. Name every batch or lens that did not complete. If a step did not complete, say `Run incomplete`.
+- Give the path of `report.md`, and copy its summary table.
+- List the proposals with the status `apply` and the ones with `needs_decision`.
+- Name every batch or lens that did not complete. If a step did not complete, say `Run incomplete`.
+- With `--apply`, list every change that `apply` skipped, with its reason. Then give the review and undo commands that `apply` printed. They name only the files that this run edited, so other local changes stay.
