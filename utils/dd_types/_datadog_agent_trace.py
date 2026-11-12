@@ -134,30 +134,44 @@ class DataDogAgentSpan(ABC):
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
     def get_span_env(self) -> str:
-        """Resolve the environment from span metadata or its enclosing payloads."""
+        """Read the environment from the span, its tracer payload, or the Agent payload."""
+        if "env" in self.meta:
+            return self.meta["env"]
+
         content = self.trace.data.get("request", {}).get("content", {})
-        fallback = content.get("env", "")
-        efficient = self.trace.format == AgentTraceFormat.efficient_trace_payload_format
-        for payload in content.get("idxTracerPayloads" if efficient else "tracerPayloads", []):
-            if any(chunk is self.trace.raw_trace for chunk in payload.get("chunks", [])):
-                environment = payload.get("envRef" if efficient else "env")
-                if efficient and isinstance(environment, int):
-                    strings = payload.get("strings", [])
-                    environment = strings[environment] if 0 <= environment < len(strings) else None
-                fallback = environment or fallback
-                break
-        # The backend ignores span envRef; only the enclosing payload supplies it.
-        return self.meta.get("env", fallback)
+        agent_environment = content.get("env", "")
+        if self.trace.format == AgentTraceFormat.legacy:
+            payloads = content.get("tracerPayloads", [])
+        else:
+            payloads = content.get("idxTracerPayloads", [])
+
+        for payload in payloads:
+            # Use the payload containing this trace, not another tracer's environment.
+            if not any(chunk is self.trace.raw_trace for chunk in payload.get("chunks", [])):
+                continue
+
+            if self.trace.format == AgentTraceFormat.legacy:
+                return payload.get("env") or agent_environment
+
+            # Efficient payloads may contain a string or an index into their string table.
+            environment = payload.get("envRef")
+            if isinstance(environment, int):
+                strings = payload.get("strings", [])
+                if 0 <= environment < len(strings):
+                    return strings[environment] or agent_environment
+                return agent_environment
+            return environment or agent_environment
+
+        return agent_environment
 
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
         """Return metadata first, normalizing integral metrics to strings."""
 
-        if self.trace.format != AgentTraceFormat.efficient_trace_payload_format:
+        value = self.meta.get(key, default)
+        if self.trace.format == AgentTraceFormat.legacy:
             if key in self.meta:
-                return self.meta[key]
+                return value
             value = self.metrics.get(key, default)
-        else:
-            value = self.meta.get(key, default)
 
         if isinstance(value, bool):
             return value
