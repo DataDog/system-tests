@@ -6,9 +6,13 @@
 
 group "default" {
   targets = [
+    "akka-http",
+    "jersey-grizzly2",
     "play",
     "ratpack",
+    "resteasy-netty3",
     "spring-boot",
+    "spring-boot-3-native",
     "spring-boot-jetty",
     "spring-boot-openliberty",
     "spring-boot-payara",
@@ -94,4 +98,28 @@ target "spring-boot-wildfly" {
   dockerfile = "spring-boot.base.Dockerfile"
   args       = { MAVEN_PROFILE = "wildfly" }
   tags       = ["datadog/system-tests:spring-boot-wildfly.base"]
+}
+
+target "akka-http" {
+  inherits   = ["_common"]
+  dockerfile = "akka-http.base.Dockerfile"
+  tags       = ["datadog/system-tests:akka-http.base"]
+}
+
+target "jersey-grizzly2" {
+  inherits   = ["_common"]
+  dockerfile = "jersey-grizzly2.base.Dockerfile"
+  tags       = ["datadog/system-tests:jersey-grizzly2.base"]
+}
+
+target "resteasy-netty3" {
+  inherits   = ["_common"]
+  dockerfile = "resteasy-netty3.base.Dockerfile"
+  tags       = ["datadog/system-tests:resteasy-netty3.base"]
+}
+
+target "spring-boot-3-native" {
+  inherits   = ["_common"]
+  dockerfile = "spring-boot-3-native.base.Dockerfile"
+  tags       = ["datadog/system-tests:spring-boot-3-native.base"]
 }
