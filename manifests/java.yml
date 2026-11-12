@@ -3886,6 +3886,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.1
+        spring-boot-openliberty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.2  # TODO: a lower version might be supported
+        uds-spring-boot: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.2  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": irrelevant
