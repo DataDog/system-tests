@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 import yaml
 
 from utils.scripts.review_learning import report
-from utils.scripts.review_learning.common import load_filters, read_json, write_json
+from utils.scripts.review_learning.common import FIELD_PREFIX, load_filters, read_json, write_json
 from utils.scripts.review_learning.plain_english import proposal_key
 
 if TYPE_CHECKING:
@@ -69,19 +69,29 @@ def rule_ids(lenses_dir: Path) -> dict[str, set[str]]:
 
 def validate(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str) -> str | None:
     """Return why the proposal cannot be applied to the lens file, or None."""
-    action, rule_id = proposal.get("action"), proposal.get("rule_id") or ""
+    action = proposal.get("action")
     if action not in CHANGE_ACTIONS | REPORT_ACTIONS:
         return f"unknown action {action}"
     if action in CHANGE_ACTIONS and not proposal.get("proposed_text"):
         return "a change needs a proposed_text"
-    if action in EDIT_ACTIONS and rule_id not in ids[lens]:
-        return f"{rule_id} is not a rule of {lens}"
-    if action in EDIT_ACTIONS and not proposal.get("current_text"):
-        return "an edit needs the current_text that it replaces"
-    if action in EDIT_ACTIONS and proposal["current_text"] not in lens_text:
-        return "current_text is not in the lens file"
+    if action in EDIT_ACTIONS:
+        return validate_edit(lens, proposal, ids, lens_text)
     if action == "new_rule":
         return validate_new_rule(lens, proposal, ids)
+    return None
+
+
+def validate_edit(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str) -> str | None:
+    """An edit names a rule and a field. Only add_not_when can add a field, so it alone can omit current_text."""
+    current = proposal.get("current_text")
+    if proposal.get("rule_id") not in ids[lens]:
+        return f"{proposal.get('rule_id')} is not a rule of {lens}"
+    if proposal.get("field") not in FIELD_PREFIX:
+        return f"field must be one of {', '.join(FIELD_PREFIX)}"
+    if not current and proposal["action"] != "add_not_when":
+        return "an edit needs the current_text that it replaces"
+    if current and current not in lens_text:
+        return "current_text is not in the lens file"
     return None
 
 

@@ -15,6 +15,7 @@ from utils.scripts.review_learning import (
     thread_outcome,
     verify_quotes,
 )
+from utils.scripts.review_learning import apply as apply_step
 from utils.scripts.review_learning import filter as filter_step
 from utils.scripts.review_learning.common import Json, load_filters, matches_any, read_json, write_json
 
@@ -511,6 +512,7 @@ class Test_ReviewLearningDecide:
     sharpen: Json = {
         "action": "sharpen",
         "rule_id": "LIFE-001",
+        "field": "Detect",
         "current_text": "A setup method asserts.",
         "proposed_text": "A setup method asserts or raises.",
         "reason": "r",
@@ -553,7 +555,7 @@ class Test_ReviewLearningDecide:
         one = [_candidate("a", 1, "disagreement")]
         base = {**self.sharpen, "action": "add_not_when", "candidate_ids": ["a"]}
         assert self._statuses(tmp_path / "1", [base], one) == [decide.NOT_ENOUGH]
-        cited = {**base, "cited_path": "docs/flushing.md"}
+        cited = {**base, "cited_path": "docs/flushing.md", "field": "Not when", "current_text": None}
         assert self._statuses(tmp_path / "2", [cited], one) == [decide.APPLY]
         two = [*one, _candidate("b", 2, "disagreement")]
         assert self._statuses(tmp_path / "3", [{**base, "candidate_ids": ["a", "b"]}], two) == [decide.APPLY]
@@ -569,6 +571,7 @@ class Test_ReviewLearningDecide:
             {"action": "rewrite", "candidate_ids": ["a"]},
             {**self.sharpen, "current_text": None, "candidate_ids": ["a"]},
             {**self.sharpen, "proposed_text": None, "candidate_ids": ["a"]},
+            {**self.sharpen, "field": "Ref", "candidate_ids": ["a"]},
         ]
         assert self._statuses(tmp_path, proposals, miss) == [decide.INVALID] * len(proposals)
 
@@ -672,3 +675,102 @@ class Test_ReviewLearningDecide:
         assert "- lifecycle-and-isolation: 1 proposals" in text
         assert "**Run incomplete**: no output from test-effectiveness" in text
         assert "| Fixes that szz.py could not analyse | 0 |" in text
+
+
+LENS = """### LIFE-001: Setup Methods Must Not Fail
+- Severity: P0
+- Flag: Do not assert in setup.
+- Detect: A setup method asserts.
+- Ref: [doc](x.md)
+
+### LIFE-002: Avoid fixed sleeps
+- Severity: P1
+- Flag: Do not sleep.
+- Not when: The delay is the behavior under test.
+"""
+
+
+def _edit(**extra: object) -> Json:
+    return {"lens": "lifecycle-and-isolation", "action": "sharpen", "rule_id": "LIFE-001", "field": "Detect",
+            "current_text": "A setup method asserts.", "proposed_text": "A setup method asserts or raises.", **extra}  # fmt: skip
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningApply:
+    def test_edit_replaces_one_field_line(self) -> None:
+        text = apply_step.apply_one(LENS, _edit())
+        assert "- Detect: A setup method asserts or raises.\n" in text
+        assert "- Detect: A setup method asserts.\n" not in text
+        assert text.count("### ") == 2
+
+    def test_add_not_when_inserts_the_field(self) -> None:
+        decision = _edit(action="add_not_when", field="Not when", current_text=None, proposed_text="It is parametric.")
+        lines = apply_step.apply_one(LENS, decision).splitlines()
+        assert lines[lines.index("- Detect: A setup method asserts.") + 1] == "- Not when: It is parametric."
+
+    def test_new_rule_goes_at_the_end(self) -> None:
+        block = "### LIFE-003: Match the reply\n- Severity: P0\n- Flag: Match the request id."
+        text = apply_step.apply_one(
+            LENS, _edit(action="new_rule", rule_id="LIFE-003", severity="P0", proposed_text=block)
+        )
+        assert text.endswith(block + "\n")
+
+    def test_mismatches_are_refused(self) -> None:
+        cases = [
+            (_edit(current_text="A setup method raises."), "appears 0 times"),
+            (_edit(rule_id="LIFE-009"), "appears 0 times in the lens file"),
+            (_edit(field="Ref"), "unknown field"),
+            (_edit(rule_id="LIFE-002", field="Not when", current_text=None), "already has a '- Not when:' line"),
+            (_edit(action="new_rule", rule_id="LIFE-003", severity="P0", proposed_text="LIFE-003 text"), "must start"),
+            (
+                _edit(
+                    action="new_rule",
+                    rule_id="LIFE-003",
+                    severity="P1",
+                    proposed_text="### LIFE-003: x\n- Severity: P0\n- Flag: y",
+                ),
+                "Severity line",
+            ),
+            (
+                _edit(
+                    action="new_rule",
+                    rule_id="LIFE-001",
+                    severity="P0",
+                    proposed_text="### LIFE-001: x\n- Severity: P0\n- Flag: y",
+                ),
+                "share an ID",
+            ),
+        ]
+        for decision, message in cases:
+            with pytest.raises(apply_step.ApplyError, match=message):
+                apply_step.apply_one(LENS, decision)
+
+    def _repo(self, tmp_path: Path) -> Path:
+        _git(tmp_path, "init", "-q")
+        lens = tmp_path / ".agents" / "rules" / "code-review" / "lifecycle-and-isolation.md"
+        lens.parent.mkdir(parents=True)
+        lens.write_text(LENS, encoding="utf-8")
+        _git(tmp_path, "add", ".")
+        _git(tmp_path, "commit", "-q", "-m", "Add lens (#1)")
+        return lens
+
+    def test_apply_run_edits_and_records(self, tmp_path: Path) -> None:
+        lens = self._repo(tmp_path)
+        run = tmp_path / "run"
+        bad = _edit(rule_id="LIFE-009")
+        skipped = {**bad, "status": "not_enough_evidence"}
+        write_json(run / "decisions.json", [{**_edit(), "status": "apply"}, {**bad, "status": "apply"}, skipped])
+        results = apply_step.apply_run(run, tmp_path)
+        assert [r["result"] for r in results] == ["applied", "skipped"]
+        assert "asserts or raises" in lens.read_text(encoding="utf-8")
+        assert read_json(run / "applied.json") == results
+
+    def test_lens_with_local_changes_is_not_touched(self, tmp_path: Path) -> None:
+        lens = self._repo(tmp_path)
+        lens.write_text(LENS + "\nlocal note\n", encoding="utf-8")
+        run = tmp_path / "run"
+        write_json(run / "decisions.json", [{**_edit(), "status": "apply"}])
+        results = apply_step.apply_run(run, tmp_path)
+        assert results[0]["reason"] == "the lens file has local changes"
+        assert "asserts or raises" not in lens.read_text(encoding="utf-8")

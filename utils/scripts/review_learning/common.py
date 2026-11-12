@@ -20,6 +20,15 @@ FILTERS_PATH = Path(__file__).with_name("filters.yml")
 REPOSITORY = "DataDog/system-tests"
 RUNS_ROOT = Path(".review-learning")  # Git ignores it. clean.py deletes old runs.
 
+# The rule fields that an edit can change, and the start of their line in a lens file.
+FIELD_PREFIX = {
+    "Flag": "- Flag: ",
+    "Detect": "- Detect: ",
+    "Not when": "- Not when: ",
+    "✅": "- ✅ ",
+    "❌": "- ❌ ",
+}
+
 
 class CommandError(RuntimeError):
     """A command returned a non-zero exit code."""
