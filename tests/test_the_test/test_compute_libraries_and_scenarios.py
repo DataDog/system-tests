@@ -12,7 +12,7 @@ from utils.scripts.compute_libraries_and_scenarios import (
     process,
 )
 from utils import scenarios
-from utils._context._scenarios import get_all_scenarios
+from utils._context._scenarios import scenario_groups as all_scenario_groups
 
 
 default_libs_with_prod = [
@@ -408,16 +408,6 @@ class Test_ComputeLibrariesAndScenarios:
             "all",
         )
 
-    @staticmethod
-    def _non_ssi_scenario_groups() -> set[str]:
-        """Scenario groups with at least one scenario, none of them being an SSI one"""
-        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
-        groups: dict[str, set[str | None]] = {}
-        for scenario in get_all_scenarios():
-            for group in scenario.scenario_groups:
-                groups.setdefault(group.name, set()).add(scenario.github_workflow)
-        return {name for name, workflows in groups.items() if not workflows & ssi_workflows}
-
     def test_gitlab_libraries_config_runs_all_but_ssi(self):
         inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
 
@@ -427,9 +417,24 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT",
-            ",".join(sorted(self._non_ssi_scenario_groups())),
+            "DEFAULT,PARAMETRIC",
+            "end_to_end,exotics,ffe,integration_frameworks,open_telemetry",
         )
+
+    def test_gitlab_libraries_config_scenarios(self):
+        """The rule of gitlab_libraries.py selects every scenario of the all group but the SSI ones"""
+        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
+        param = build_inputs([]).impacts["utils/scripts/gitlab_libraries.py"]
+        selected = {
+            scenario.name for group in param.scenario_groups for scenario in all_scenario_groups[group].scenarios
+        }
+        selected |= param.scenarios
+        all_group = all_scenario_groups.all.scenarios
+
+        assert selected >= {scenario.name for scenario in all_group if scenario.github_workflow not in ssi_workflows}
+        assert not selected & {scenario.name for scenario in all_group if scenario.github_workflow in ssi_workflows}
+        # the exotics job of .github/workflows/ci.yml runs on the exotics or all group only
+        assert "exotics" in param.scenario_groups
 
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
