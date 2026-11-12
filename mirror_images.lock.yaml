@@ -34,6 +34,10 @@ images:
     digest: sha256:bddfb45339ab796c2cbf7df6d679a85a128acb007b246b42f47ea59aa2b5f8e7
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:aiohttp.base-8697afadfeae
     tag: aiohttp.base-8697afadfeae
+  datadog/system-tests:akka-http.base-7a2a9f8fd189:
+    digest: sha256:23dbcf5ceed039e393ebc45435d37a444898e3f8924b0d7e0dc25fbbf398e479
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:akka-http.base-7a2a9f8fd189
+    tag: akka-http.base-7a2a9f8fd189
   datadog/system-tests:apache-mod-7.0-zts.base-b9591a427d2d:
     digest: sha256:9eb7c2ccf3fe786e76ae423030c0b0934776c4c203b7f45e23750fce03a42022
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-b9591a427d2d
@@ -146,6 +150,10 @@ images:
     digest: sha256:67aac2b7c0c88b40da498fbc74b48f0a62702148e5c9256c5752a9e624d972ce
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java_buddy-v1
     tag: java_buddy-v1
+  datadog/system-tests:jersey-grizzly2.base-eda4e9f058de:
+    digest: sha256:878c013df01f891e3244b373765126757b4595a4d18fb940a68d4105fca3195d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:jersey-grizzly2.base-eda4e9f058de
+    tag: jersey-grizzly2.base-eda4e9f058de
   datadog/system-tests:lambda-proxy-v1:
     digest: sha256:2b09f33c61b2b19f4a239e4d8f10164ece66d925b72337720998ce43d7090d2f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:lambda-proxy-v1
@@ -238,6 +246,10 @@ images:
     digest: sha256:031c439de683e68443066ddfeb0002e7335c05413bacb405d68eec2cef371442
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ratpack.base-0b869346df43
     tag: ratpack.base-0b869346df43
+  datadog/system-tests:resteasy-netty3.base-e10519cb90d3:
+    digest: sha256:65b653aa0d9268198cac00f8e6441cc4f4aa13ac5faecfe71ac2ab8e747ef4d2
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:resteasy-netty3.base-e10519cb90d3
+    tag: resteasy-netty3.base-e10519cb90d3
   datadog/system-tests:ruby-lambda-runtime.base-982447eea92c:
     digest: sha256:be31866b76472dc9cb854ecd6fc3cbb29eb72e3af2698b5eac593e1f13289c18
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby-lambda-runtime.base-982447eea92c
@@ -246,6 +258,10 @@ images:
     digest: sha256:939d3828d85666a598c0349a6dd933fe1d92c5daa5d01438512d950ea3ccc258
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
     tag: ruby_buddy-v2
+  datadog/system-tests:spring-boot-3-native.base-ee5c57800899:
+    digest: sha256:df492ab30eec1f2e307cef35e4b43a0e192bfc048dbbfac288edbb3aef5e6bae
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-3-native.base-ee5c57800899
+    tag: spring-boot-3-native.base-ee5c57800899
   datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4:
     digest: sha256:c1e460779469a688b1f6d8dca24aaf48e9d77a33c64a1533c44498157f223d25
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4
