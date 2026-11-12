@@ -4,6 +4,8 @@ from utils._context.containers import InternalServerContainer
 
 
 class _AppsecRaspScenario(EndToEndScenario):
+    """Enable APPSEC RASP"""
+
     def __init__(
         self,
         name: str,
@@ -33,7 +35,6 @@ class _AppsecRaspScenario(EndToEndScenario):
                 "./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}
             }
             | weblog_volumes,
-            doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
             weblog_categories=[WeblogCategory.dd_trace],

@@ -19,7 +19,6 @@ class OtelCollectorScenario(DockerScenario):
         super().__init__(
             "OTEL_COLLECTOR",
             github_workflow="endtoend",
-            doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
         )
