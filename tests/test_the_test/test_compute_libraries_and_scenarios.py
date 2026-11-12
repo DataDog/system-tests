@@ -169,10 +169,24 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_gitignore_does_not_select_scenarios(self):
+        inputs = build_inputs([".gitignore"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
     def test_review_learning_files_do_not_select_scenarios(self):
         inputs = build_inputs(
             [
                 ".agents/skills/system-tests-review-learn/SKILL.md",
+                ".gitignore",
                 ".claude/skills/system-tests-review-learn/SKILL.md",
                 "docs/ai/review-learning.md",
                 "tests/test_the_test/test_review_learning.py",

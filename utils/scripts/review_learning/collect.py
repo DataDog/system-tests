@@ -23,7 +23,6 @@ from utils.scripts.review_learning.common import (
     REPOSITORY,
     RUNS_ROOT,
     Json,
-    ignore_runs_root,
     load_filters,
     run,
     write_json,
@@ -209,7 +208,6 @@ def main() -> None:
     args = parser.parse_args()
     start, end = parse_window(args.window, datetime.now(UTC).date())
     out = args.out or default_run_dir(start, end)
-    ignore_runs_root()
     index = collect(args.repo, start, end, out)
     print(f"{len(index['pull_requests'])} pull requests merged from {start} to {end} -> {out}")
 
