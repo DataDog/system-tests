@@ -380,7 +380,13 @@ class BaseApiSecuritySmokeTests:
             assert isinstance(schema[0], dict), "Backend header schema must describe an object"
             user_agent_schema = schema[0].get("user-agent")
             assert isinstance(user_agent_schema, list)
-            assert user_agent_schema[0] == 8, "Backend schema must describe the request's user-agent string"
+            assert user_agent_schema, "Backend user-agent schema must not be empty"
+            # HTTP headers may be represented as scalar strings or lists of strings.
+            value_schemas = user_agent_schema[0] if isinstance(user_agent_schema[0], list) else [user_agent_schema]
+            assert value_schemas, "Backend user-agent schema must describe at least one value"
+            assert all(isinstance(value, list) and value and value[0] == 8 for value in value_schemas), (
+                "Backend schema must describe the request's user-agent string values"
+            )
             return
         raise AssertionError("Backend did not receive a request header schema")
 

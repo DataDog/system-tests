@@ -8,7 +8,12 @@ from utils import features, interfaces, pytest, remote_config as rc, scenario_gr
 from utils.dd_types import DataDogAgentTrace, DataDogAgentSpan
 from utils._context._scenarios.security_smoke import SecuritySmoke
 from utils._weblog import HttpResponse
-from tests.appsec.smoke_tests.utils import assert_backend_blocked, get_backend_report, wait_for_config_acknowledged
+from tests.appsec.smoke_tests.utils import (
+    BaseApiSecuritySmokeTests,
+    assert_backend_blocked,
+    get_backend_report,
+    wait_for_config_acknowledged,
+)
 
 
 @features.not_reported
@@ -124,6 +129,50 @@ class Test_SecuritySmokeReports:
             DataDogAgentTrace.from_agent_v1 if trace_format == "efficient" else DataDogAgentTrace.from_agent_legacy
         )
         return builder({}, {"spans": [raw]}).spans[0]
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_SecuritySmokeApiSecurity:
+    @pytest.mark.parametrize(
+        ("user_agent_schema", "valid"),
+        [
+            ([8], True),
+            ([8, {"category": "test"}], True),
+            ([[[8]], {"len": 1}], True),
+            ([[[8, {"category": "test"}]], {"len": 1}], True),
+            ([4], False),
+            ([[[4]], {"len": 1}], False),
+            ([[[8], [4]], {"len": 2}], False),
+            (None, False),
+            ([], False),
+            ([[], {"len": 0}], False),
+        ],
+    )
+    def test_header_schema(self, user_agent_schema: object, *, valid: bool) -> None:
+        span = DataDogAgentTrace.from_agent_legacy(
+            {},
+            {
+                "spans": [
+                    {"meta": {"http.method": "GET", "_dd.appsec.s.req.headers": [{"user-agent": user_agent_schema}]}}
+                ]
+            },
+        ).spans[0]
+        smoke = BaseApiSecuritySmokeTests()
+        smoke.r = HttpResponse(
+            {
+                "request": {"method": "GET", "url": "http://weblog/waf", "params": {}},
+                "status_code": 200,
+                "text": "",
+                "cookies": {},
+            }
+        )
+        with patch.object(interfaces.mocked_backend, "get_spans", return_value=[({}, span)]):
+            if valid:
+                smoke.test_api_security_smoke()
+            else:
+                with pytest.raises(AssertionError):
+                    smoke.test_api_security_smoke()
 
 
 @features.not_reported
