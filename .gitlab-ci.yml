@@ -1,3 +1,4 @@
+---
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.12.1/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
@@ -19,13 +20,13 @@ stages:
   - system-tests-utils
 
 variables:
-    TEST: 1
-    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs, and
-    # picked up by update_mirror_images.py, which reads it from the environment.
-    # Keep in sync with the default in utils/scripts/update_mirror_images.py.
-    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py"
-    # Destination registry for mirrored CI images.
-    MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
+  TEST: 1
+  # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs, and
+  # picked up by update_mirror_images.py, which reads it from the environment.
+  # Keep in sync with the default in utils/scripts/update_mirror_images.py.
+  MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py"
+  # Destination registry for mirrored CI images.
+  MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
 resolve_ssi_pr_title:
   image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
@@ -36,12 +37,7 @@ resolve_ssi_pr_title:
       aud: dd-octo-sts
   rules:
     - if: >-
-        $CI_PROJECT_PATH == "DataDog/system-tests" &&
-        $CI_PIPELINE_SOURCE == "push" &&
-        $CI_COMMIT_BRANCH &&
-        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
-        ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") &&
-        ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
+        $CI_PROJECT_PATH == "DataDog/system-tests" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") && ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
     - when: never
   script:
     - bash utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh
@@ -50,7 +46,7 @@ resolve_ssi_pr_title:
       dotenv: pr-title.env
 
 compute_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:152564854@sha256:d956ef129392f49f8dfcbe4a8581be59bef77bc5ceaa7c47599d915194ab1293
   tags: ["arch:amd64"]
   stage: configure
   needs:
@@ -253,9 +249,9 @@ delete_amis:
     AMI_RETENTION_DAYS: 10
     AMI_LAST_LAUNCHED_DAYS: 10
   script:
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
@@ -266,27 +262,27 @@ delete_amis_by_name_or_lang:
   stage: system-tests-utils
   allow_failure: false
   script:
-        - |
-          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
-            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
-            exit 1
-          fi
-          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - source venv/bin/activate
-        - |
-          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
+    - |
+      if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+        echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+        exit 1
+      fi
+      echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+    - source venv/bin/activate
+    - |
+      CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
 
-          if [ -n "$AMI_NAME" ]; then
-            CMD="$CMD --ami-name $AMI_NAME"
-          fi
+      if [ -n "$AMI_NAME" ]; then
+        CMD="$CMD --ami-name $AMI_NAME"
+      fi
 
-          if [ -n "$AMI_LANG" ]; then
-            CMD="$CMD --ami-lang $AMI_LANG"
-          fi
+      if [ -n "$AMI_LANG" ]; then
+        CMD="$CMD --ami-lang $AMI_LANG"
+      fi
 
-          echo "Running: $CMD"
-          eval $CMD
+      echo "Running: $CMD"
+      eval $CMD
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
   after_script: echo "Finish"
@@ -298,9 +294,9 @@ delete_ec2_instances:
   variables:
     EC2_AGE_MINUTES: 45
   script:
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
   rules:
     - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
   after_script: echo "Finish"
@@ -310,9 +306,9 @@ count_amis:
   stage: system-tests-utils
   allow_failure: false
   script:
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component amis_count
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component amis_count
   rules:
     - if: '$SCHEDULED_JOB == "count_amis"'
   after_script: echo "Finish"
@@ -387,7 +383,7 @@ update_injector_version:
     - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
 
 generate_system_tests_lambda_proxy_image:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  image: registry.ddbuild.io/ci/libdatadog-build/packaging:152564854@sha256:c983eb194a6d0cd5c14e299291e80581e9813f83d9abbb8d1f50815260229031
   tags: ["docker-in-docker:amd64"]
   needs: []
   stage: system-tests-utils
@@ -397,8 +393,8 @@ generate_system_tests_lambda_proxy_image:
     - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
-      - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i lambda-proxy
-      - docker push datadog/system-tests:lambda-proxy-v1
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i lambda-proxy
+    - docker push datadog/system-tests:lambda-proxy-v1
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
       changes:
@@ -414,19 +410,19 @@ generate_system_tests_lib_injection_images:
     PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
     PRIVATE_DOCKER_REGISTRY_USER: AWS
   script:
-      - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
-      - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
+    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+    - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
   rules:
     - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
     - when: manual
 
 .delayed_base_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
-    tags: ["arch:amd64"]
-    script:
-        - echo "⏳ Waiting before triggering the child pipeline..."
-    when: delayed
-    start_in: 5 minutes
+  image: registry.ddbuild.io/ci/libdatadog-build/packaging:152564854@sha256:c983eb194a6d0cd5c14e299291e80581e9813f83d9abbb8d1f50815260229031
+  tags: ["arch:amd64"]
+  script:
+    - echo "⏳ Waiting before triggering the child pipeline..."
+  when: delayed
+  start_in: 5 minutes
 
 # ──────────────────────────────────────────────
 # End-to-end pipeline — only for the system-tests repo
