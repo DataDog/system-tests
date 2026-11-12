@@ -1,32 +1,148 @@
-## Requirements
+# Run SSI tests
 
-### MacOS
+SSI means Single Step Instrumentation. It installs and injects a Datadog tracer
+without changes to the application code.
 
-Pulumi is infrastructure-as-code that allow you to manage AWS instance.
+This page covers all local SSI test suites in system-tests.
 
-```sh
-brew install pulumi/tap/pulumi
+## Choose a test suite
+
+| Test suite | Use it to test | Runs on | Validation |
+| --- | --- | --- | --- |
+| Docker SSI | Tracer versions, guardrails, service naming, and other fast checks | Local Docker | APM Test Agent |
+| AWS SSI | Host and container injection on real virtual machines | AWS EC2 | Datadog backend |
+| K8s library injection | Kubernetes injection components | Local Kind or Minikube | APM Test Agent (Datadog backend for Operator) |
+| K8s injector-dev | Changes to the `injector-dev` tool | Local Colima and Minikube | APM Test Agent |
+
+If you are new to SSI, start with Docker SSI. It has the fewest access
+requirements.
+
+Use K8s library injection for normal Kubernetes injection tests. Use K8s
+injector-dev only when your change depends on the `injector-dev` tool.
+
+## Learn the terms
+
+Read the [SSI glossary](../glossary.md#ssi-and-library-injection) before your
+first run. It defines scenario, weblog, provision, injector, lib-init, and the
+other terms used in these guides.
+
+AWS SSI is also called **onboarding**, **auto-injection**, or
+**auto-instrumentation** in this repository.
+
+## Before you start
+
+You need Bash, Git, Docker 20.10 or later, and Python 3.12.
+
+Read the [SSI access and prerequisites guide](ssi-access.md). It covers AWS
+profiles, private network access, ECR, Pulumi, Kubernetes tools, and Datadog
+keys.
+
+Run every command from the root of the system-tests repository.
+
+## Docker SSI
+
+Docker SSI is the fastest SSI test suite. Most test cases use public images.
+
+Run the wizard:
+
+```bash
+./utils/scripts/ssi_wizards/docker_ssi_wizard.sh
 ```
 
-### Check if your AWS client is correctly configured
+The wizard selects a language, scenario, weblog, base image, architecture, and
+runtime. It prints the final `./run.sh` command before it starts.
 
+The `websphere-app` and `jboss-app` weblogs need private ECR access. The wizard
+can perform that login.
 
-```sh
-aws-vault exec sso-sandbox-account-admin -- aws s3 ls
+See the [Docker SSI reference](../understand/scenarios/docker_ssi.md) for the
+manual command and development details.
+
+## AWS SSI
+
+AWS SSI creates an EC2 instance and installs SSI on it. It sends telemetry to
+the system-tests Datadog organization.
+
+Complete the [AWS access steps](ssi-access.md#configure-aws-access) and the
+[network access steps](ssi-access.md#configure-network-access-for-aws-ssi).
+Connect to the Datadog private network before you start.
+
+Run the wizard:
+
+```bash
+./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh
 ```
 
-* `credentials missing` -> Somebody (who? fresh-service?) needs to check that you belong to the good group in AWS
-* need to `modify ~/.aws/config` ?
+The wizard checks Pulumi and AWS access. It also configures the local `.env`
+file. You then select a language, scenario, weblog, virtual machine, and
+released or development components.
 
-##  Run
+The wizard shuts down the EC2 instance after the run. If you keep the instance
+for debugging, follow its `pulumi destroy` reminder.
 
-* You need AppGate
-* `./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh`
+See the [AWS SSI reference](../understand/scenarios/onboarding.md) for manual
+execution, logs, and troubleshooting.
 
+## K8s library injection
 
-## Miscs infos
+This suite tests the normal Kubernetes library injection flow. It uses the
+Datadog Admission Controller or pod annotations.
 
-* The account `Datadog - apm-ecosystems-reliability / 235494822917` is used in CIs, not locally
-* The account `Datadog Sandbox / 601427279990` is used locally
-* https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#AWS-CLI%3A-Datadog-SandBox-Account
-* https://system-tests.datadoghq.com/dashboard/nsk-tpd-u6q/aws-ec2-overview-system-tests?fromUser=false&refresh_mode=sliding&from_ts=1744813553852&to_ts=1744817153852&live=true
+Complete the [AWS access steps](ssi-access.md#configure-aws-access) and the
+[ECR steps](ssi-access.md#configure-the-private-ecr-registry).
+
+If you select `K8S_LIB_INJECTION_OPERATOR`, also complete the
+[Datadog key steps](ssi-access.md#configure-datadog-keys). This scenario uses
+the real Datadog Agent and backend. Other K8s injection scenarios use the APM
+Test Agent.
+
+Run the wizard:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
+```
+
+The wizard installs the system-tests runner. It can also install Kind,
+Minikube, and Helm. It does not install kubectl. You then select the scenario,
+weblog, and component versions.
+
+See the
+[K8s library injection reference](../understand/scenarios/k8s_lib_injection.md)
+for manual execution, component versions, logs, and debugging.
+
+## K8s injector-dev
+
+This suite tests the `injector-dev` binary. It is not the default K8s SSI test
+suite.
+
+Complete the injector-dev steps in the
+[access guide](ssi-access.md#requirements-by-test-suite).
+
+Run the wizard:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_injector_dev_wizard.sh
+```
+
+The wizard checks the binary and the local Kubernetes tools. It then
+configures a private registry and selects the test components.
+
+See the [K8s injector-dev reference](../understand/scenarios/k8s_injector_dev.md)
+for manual execution and all command options.
+
+## Read the result
+
+The terminal shows the pytest result. A successful run ends with exit code
+zero.
+
+Each scenario writes its files to a folder such as `logs_docker_ssi`. The
+folder name uses the scenario name in lowercase. Use these pages:
+
+- [Test outcomes](test-outcomes.md)
+- [Log files](logs.md)
+- [General troubleshooting](troubleshooting.md)
+- [AWS SSI troubleshooting](../understand/scenarios/onboarding.md#troubleshooting)
+- [K8s logs](../understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results)
+
+If you are still blocked, ask in
+[#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).

@@ -37,10 +37,18 @@ from .utils import extra_hosts_at_start
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None:
+@pytest.mark.parametrize("capability_query", ["", "&cap_dependent-flags-variant-key=v1"])
+def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(capability_query: str) -> None:
     server = MockedBackendServer()
     try:
-        for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
+        for invalid_query in (
+            "",
+            "?dd_env=",
+            "?dd_env=wrong",
+            f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong",
+            "?cap_dependent-flags-variant-key=v1",
+            "?dd_env=wrong&cap_dependent-flags-variant-key=v1",
+        ):
             response = requests.get(
                 server.base_url + CONFIG_PATH + invalid_query,
                 timeout=5,
@@ -48,7 +56,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
             assert response.status_code == 404
 
         response = requests.get(
-            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}{capability_query}",
             timeout=5,
         )
         response.raise_for_status()
@@ -67,7 +75,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
 
         server.client.ffe_set_response("unauthorized")
         response = requests.get(
-            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}{capability_query}",
             timeout=5,
         )
         assert response.status_code == 401

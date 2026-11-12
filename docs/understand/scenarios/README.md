@@ -46,17 +46,21 @@ End-To-End scenarios are good for testing real-world scenarios -- they support t
 
 Parametric scenarios are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. You can find dedicated parametric instructions in [parametric.md](parametric.md).
 
-### Auto-Inject/OnBoarding/SSI scenarios
+### SSI scenarios
 
-Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and containerized environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The Onboarding scenarios reproduce different environments and check that the library injection is done correctly. The SSI scenario can be splitted in two scenarios:
-* AWS SSI tests: Run an AWS EC2 instance and install a provision. A provision usually is a Datadog SSI software  installation and a weblog installation. We check that the weblog is auto instrumented. More detailed documentation can be found [here](onboarding.md).
-* Docker SSI tests: Run on docker and install a provision. A provision usually is a Datadog SSI software installation and a weblog instalation. We check that the weblog is auto instrumented. More detailled documentation can be found [here](docker_ssi.md).
+Single Step Instrumentation (SSI) injects a Datadog tracer without application
+code changes. This repository also uses the terms **onboarding**,
+**auto-injection**, and **library injection**.
 
-### Kubernetes Auto-Inject/SSI scenarios
+Start with the [SSI quick start](../../execute/ssi.md). It helps you choose and
+run a test suite.
 
-The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
-
-This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](k8s_library_injection_overview.md).
+| Test suite | Purpose | Reference |
+| --- | --- | --- |
+| AWS SSI | Test host and container injection on real EC2 virtual machines | [AWS SSI](onboarding.md) |
+| Docker SSI | Run fast injection checks in local Docker containers | [Docker SSI](docker_ssi.md) |
+| K8s library injection | Test the normal Kubernetes injection flow | [K8s library injection](k8s_lib_injection.md) |
+| K8s injector-dev | Test changes that need the `injector-dev` tool | [K8s injector-dev](k8s_injector_dev.md) |
 
 ### AI Guard scenario
 

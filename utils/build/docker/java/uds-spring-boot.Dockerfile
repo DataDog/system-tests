@@ -1,20 +1,15 @@
-FROM maven:3.9-eclipse-temurin-11 as build
-
-ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+# The base image holds a maven repository filled from spring-boot/pom.xml (tomcat profile): maven runs offline here
+FROM system_tests_base_java_spring_boot AS build
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
-
-WORKDIR /app
-
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
-
 COPY ./utils/build/docker/java/spring-boot/src ./src
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
-RUN mvn -Dmaven.repo.local=/maven package
+RUN /binaries/install_ddtrace.sh "-o -Dmaven.repo.local=/maven"
+RUN mvn -o -Dmaven.repo.local=/maven -B package
 
-FROM eclipse-temurin:11-jre
+# The base image is eclipse-temurin:11-jre with socat installed
+FROM system_tests_base_java_uds_spring_boot
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
@@ -27,7 +22,6 @@ ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-RUN apt-get update && apt-get install socat -y
 ENV UDS_WEBLOG=1
 COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY utils/build/docker/java/spring-boot/app.sh app.sh
