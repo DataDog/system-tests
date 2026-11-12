@@ -1680,9 +1680,9 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.28.0-dev
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.28.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
-  : v1.28.0-dev
+  : irrelevant (PHP requires explicit source selection and permits eager fetching after opt-in)
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_agentless_wins_over_legacy_true
-  : v1.28.0-dev
+  : irrelevant (PHP requires explicit source selection and permits eager fetching after opt-in)
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_remote_config_wins_over_legacy_false
   : v1.28.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_provider_kill_switch_overrides_legacy_true
@@ -1692,8 +1692,9 @@ manifest:
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
   : v1.28.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
-  : v1.28.0-dev
+  : irrelevant (PHP requires explicit source selection and permits eager fetching after opt-in)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.28.0-dev
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Explicit_Configuration_Source: v1.28.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

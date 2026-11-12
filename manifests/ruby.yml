@@ -2726,6 +2726,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.46.0-dev
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Explicit_Configuration_Source: irrelevant (PHP-specific explicit-source activation contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

@@ -1,9 +1,9 @@
 """Parametric FFE configuration-source coverage for a mocked FFE agentless backend.
 
 Feature under test: server SDKs preserve legacy Remote Configuration adopters,
-load UFC flag definitions from the agentless HTTP backend by default only after
-application provider access, and honor explicit source selection and the stable
-provider kill switch.
+load UFC flag definitions from the agentless HTTP backend, and honor explicit
+source selection and the stable provider kill switch. PHP requires an explicit
+source except for legacy-only RC opt-in; other SDKs default to lazy agentless.
 
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
@@ -223,7 +223,14 @@ def _assert_disabled_or_not_ready(result: dict[str, Any]) -> None:
 class Test_Feature_Flag_Configuration_Source_Selection:
     """Validate source selection for Agent RC and agentless endpoint choices."""
 
-    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": "remote_config", "response": "valid", **enabled}
+            for enabled in ({}, {"provider_enabled": True})
+        ],
+        indirect=True,
+    )
     def test_remote_config_positive_ignores_agentless_env(
         self,
         test_agent: TestAgentAPI,
@@ -456,7 +463,10 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "remote_config", "legacy_provider_enabled": False, "response": "valid"}],
+        [
+            {"configuration_source": "remote_config", "legacy_provider_enabled": False, "response": "valid", **enabled}
+            for enabled in ({}, {"provider_enabled": True})
+        ],
         indirect=True,
     )
     def test_explicit_remote_config_wins_over_legacy_false(
@@ -480,7 +490,10 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": None, "provider_enabled": False, "response": "valid"}],
+        [
+            {"configuration_source": source, "provider_enabled": False, "response": "valid"}
+            for source in (None, "agentless")
+        ],
         indirect=True,
     )
     def test_provider_kill_switch_stops_agentless_polling(
@@ -528,6 +541,83 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         test_library.ffe_start()
         _assert_disabled_or_not_ready(_evaluate_once(test_library))
         _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+
+@scenarios.parametric
+@features.feature_flags_agentless
+class Test_Feature_Flag_Explicit_Configuration_Source:
+    """PHP requires a source unless the legacy-only RC opt-in is grandfathered."""
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": source} for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES],
+        indirect=True,
+        ids=["source-absent", "source-empty", "source-whitespace"],
+    )
+    def test_no_source_stays_inactive(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # A valid CDN endpoint is available; provider use must not opt into delivery.
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+        test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": source, "provider_enabled": True, **legacy}
+            for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES
+            for legacy in ({}, {"legacy_provider_enabled": True}, {"legacy_provider_enabled": False})
+        ],
+        indirect=True,
+    )
+    def test_canonical_true_requires_source(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # Canonical true alone selects neither delivery path, even with either legacy value.
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+        test_library.ffe_start()
+        _assert_disabled_or_not_ready(_evaluate_once(test_library))
+        _assert_no_mock_requests(mocked_backend)
+        _assert_no_ffe_remote_config_activation(test_agent, test_library)
+
+    @parametrize(
+        "library_env",
+        [
+            {"configuration_source": "agentless", **enabled, **legacy}
+            for enabled in ({}, {"provider_enabled": True})
+            for legacy in ({}, {"legacy_provider_enabled": True}, {"legacy_provider_enabled": False})
+        ],
+        indirect=True,
+    )
+    def test_explicit_agentless_activates_delivery(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mocked_backend: MockedBackendServer,
+    ) -> None:
+        # Explicit opt-in permits startup polling. It overrides either legacy value and
+        # supplies the positive control for the inactive cases on the same CDN capture path.
+        assert test_library.ffe_start(), "failed to start explicitly selected agentless provider"
+        _assert_expected_value(_evaluate(test_library))
+        status = _wait_for_status(
+            mocked_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "explicit agentless response request",
+        )
+        assert status["observed_dd_api_key"] is None
+        assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent, test_library)
 
 
