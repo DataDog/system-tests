@@ -216,7 +216,7 @@ def observe_polls(test_agent: TestAgentAPI, *, supported: bool, minimum: int = 3
     raise AssertionError(f"Expected at least {minimum} FFE_FLAGS RC polls, got {len(requests)}")
 
 
-def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]) -> None:
+def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any], version: int) -> None:
     path = f"datadog/2/{RC_PRODUCT}/{config_id}/config"
     previous_requests = test_agent.rc_requests()
     previous_target = next(
@@ -228,11 +228,11 @@ def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]
         ),
         None,
     )
-    test_agent.set_remote_config(path=path, payload=payload)
+    test_agent.set_remote_config(path=path, payload=payload, version=version)
     deadline = time.monotonic() + 10
     while time.monotonic() < deadline:
         # A stale ACK for the same ID must not acknowledge new content. Keep all
-        # requests for capability checks, but require a new target and ACK together.
+        # requests for capability checks, but require a new target and its versioned ACK together.
         for request in test_agent.rc_requests()[len(previous_requests) :]:
             body = request["body"]
             changed = any(
@@ -242,6 +242,7 @@ def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]
             acknowledged = any(
                 state["product"] == RC_PRODUCT
                 and state["id"] == config_id
+                and state.get("version") == version
                 and state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
                 for state in (body["client"]["state"].get("config_states") or [])
             )
@@ -257,6 +258,7 @@ def start_and_deliver(
     *,
     config_id: str,
     payload: dict[str, Any],
+    version: int,
     supported: bool,
 ) -> None:
     # .NET waits for configuration inside /ffe/start; Java can return not-ready
@@ -265,7 +267,7 @@ def start_and_deliver(
         started = executor.submit(test_library.ffe_start)
         try:
             observe_polls(test_agent, supported=supported)
-            deliver(test_agent, config_id=config_id, payload=payload)
+            deliver(test_agent, config_id=config_id, payload=payload, version=version)
             deadline = time.monotonic() + 10
             while time.monotonic() < deadline:
                 if started.result(timeout=max(0, deadline - time.monotonic())):

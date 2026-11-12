@@ -315,8 +315,14 @@ class TestAgentAPI:
         self._write_log("metrics", resp_json)
         return cast("list[Any]", resp_json)
 
-    def set_remote_config(self, path: str, payload: dict):
-        resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
+    def set_remote_config(self, path: str, payload: dict, *, version: int | None = None) -> None:
+        if version is None:
+            resp = self._session.post(
+                self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload}
+            )
+        else:
+            response = self._build_config_path_response([{"path": path, "msg": payload}], version=version)
+            resp = self._session.post(self._url("/test/session/responses/config"), data=response)
         assert resp.status_code == HTTPStatus.ACCEPTED
 
     def get_remote_config(self):
@@ -339,7 +345,7 @@ class TestAgentAPI:
         assert resp.status_code == HTTPStatus.ACCEPTED
 
     @staticmethod
-    def _build_config_path_response(config: list) -> str:
+    def _build_config_path_response(config: list, *, version: int = 0) -> str:
         expires_date = datetime.datetime.strftime(
             datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
@@ -380,7 +386,7 @@ class TestAgentAPI:
             }
             target_files.append(tf)
             targets_tmp[item["path"]] = {
-                "custom": {"c": [""], "v": 0},
+                "custom": {"c": [""], "v": version},
                 "hashes": {"sha256": hashlib.sha256(item["msg_enc"]).hexdigest()},
                 "length": len(item["msg_enc"]),
             }
@@ -393,7 +399,7 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
-                "version": 0,
+                "version": version,
             },
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")

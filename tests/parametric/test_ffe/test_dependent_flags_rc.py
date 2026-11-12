@@ -92,6 +92,7 @@ class Test_FFE_Dependent_Flags_RC:
             test_library,
             config_id="dependent-flags",
             payload=_config(parent_variant="approved", dependent=True),
+            version=1,
             supported=True,
         )
         _assert_value(test_library, "child", "matched")
@@ -99,7 +100,12 @@ class Test_FFE_Dependent_Flags_RC:
         observe_polls(test_agent, supported=True, minimum=previous_count + 2)
 
         assert_dependent_flag_capability(ffe_requests(test_agent), supported=True)
-        deliver(test_agent, config_id="dependent-flags", payload=_config(parent_variant="rejected", dependent=True))
+        deliver(
+            test_agent,
+            config_id="dependent-flags",
+            payload=_config(parent_variant="rejected", dependent=True),
+            version=2,
+        )
         _assert_value(test_library, "child", "unmatched")
         previous_count = len(ffe_requests(test_agent))
         observe_polls(test_agent, supported=True, minimum=previous_count + 2)
@@ -116,6 +122,7 @@ class Test_FFE_Without_Dependent_Flags_RC:
             test_library,
             config_id="ordinary-flags",
             payload=_config(parent_variant="approved", dependent=False),
+            version=1,
             supported=False,
         )
         _assert_value(test_library, "parent", "not-the-variant-key")

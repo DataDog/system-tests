@@ -1,6 +1,8 @@
 """Regressions for RC capability assertions, gated startup, and update acknowledgement."""
 
 import base64
+import hashlib
+import json
 from concurrent.futures import Future
 from threading import Event
 from typing import Any
@@ -55,7 +57,9 @@ class Test_FFE_RC_Capability_Assertion:
 RC_PATH = "datadog/2/FFE_FLAGS/flags/config"
 
 
-def _poll(*, content: str = "", acknowledged: bool = False, product: str = "FFE_FLAGS") -> dict[str, Any]:
+def _poll(
+    *, content: str = "", acknowledged: bool = False, product: str = "FFE_FLAGS", version: int = 1
+) -> dict[str, Any]:
     request = _request(FLAG_CONFIGURATION_MASK | DEPENDENT_FLAG_MASK, byte_array=False)
     request["method"] = "GET"
     request["body"]["client"].update(
@@ -65,6 +69,7 @@ def _poll(*, content: str = "", acknowledged: bool = False, product: str = "FFE_
                 {
                     "id": "flags",
                     "product": product,
+                    "version": version,
                     "apply_state": (
                         RemoteConfigApplyState.ACKNOWLEDGED.value
                         if acknowledged
@@ -83,6 +88,30 @@ def _poll(*, content: str = "", acknowledged: bool = False, product: str = "FFE_
 @scenarios.test_the_test
 @features.not_reported
 class Test_FFE_RC_Delivery:
+    def test_versioned_publication_preserves_payload_and_versions(self) -> None:
+        agent = object.__new__(TestAgentAPI)
+        agent.host = "localhost"
+        agent.host_port = 8126
+        session = MagicMock()
+        session.post.return_value.status_code = 202
+        with patch.object(agent, "_session", session, create=True):
+            for version in (1, 2):
+                payload = {"flags": {"revision": version}}
+                agent.set_remote_config(path=RC_PATH, payload=payload, version=version)
+                args, kwargs = session.post.call_args
+                assert args == ("http://localhost:8126/test/session/responses/config",)
+                response = json.loads(kwargs["data"])
+                metadata = json.loads(base64.b64decode(response["targets"]))["signed"]
+                assert metadata["version"] == version
+                target = metadata["targets"][RC_PATH]
+                assert target["custom"]["v"] == version
+                assert response["client_configs"] == [RC_PATH]
+                assert response["target_files"][0]["path"] == RC_PATH
+                raw = base64.b64decode(response["target_files"][0]["raw"])
+                assert json.loads(raw) == payload
+                assert target["hashes"]["sha256"] == hashlib.sha256(raw).hexdigest()
+                assert target["length"] == len(raw)
+
     def test_get_and_post_polls_keep_product_filter(self) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         get = _poll()
@@ -96,19 +125,22 @@ class Test_FFE_RC_Delivery:
     def test_update_requires_new_content_and_ack_in_same_poll(self) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         old = _poll(content="old", acknowledged=True)
-        new_without_ack = _poll(content="new")
-        wrong_product = _poll(content="new", acknowledged=True, product="APM_TRACING")
-        new_ack = _poll(content="new", acknowledged=True)
+        new_without_ack = _poll(content="new", version=2)
+        wrong_product = _poll(content="new", acknowledged=True, product="APM_TRACING", version=2)
+        new_with_stale_ack = _poll(content="new", acknowledged=True, version=1)
+        new_ack = _poll(content="new", acknowledged=True, version=2)
         agent.rc_requests.side_effect = [
             [old],
             [old, old],
             [old, old, new_without_ack],
             [old, old, new_without_ack, wrong_product],
-            [old, old, new_without_ack, wrong_product, new_ack],
+            [old, old, new_without_ack, wrong_product, new_with_stale_ack],
+            [old, old, new_without_ack, wrong_product, new_with_stale_ack, new_ack],
         ]
         with patch("tests.parametric.test_ffe.utils.time.sleep"):
-            deliver(agent, config_id="flags", payload={"flags": {}})
-        assert agent.rc_requests.call_count == 5
+            deliver(agent, config_id="flags", payload={"flags": {}}, version=2)
+        agent.set_remote_config.assert_called_once_with(path=RC_PATH, payload={"flags": {}}, version=2)
+        assert agent.rc_requests.call_count == 6
         agent.clear.assert_not_called()
 
     def test_null_rc_state_waits_for_new_content_and_ack(self) -> None:
@@ -126,20 +158,22 @@ class Test_FFE_RC_Delivery:
             [empty, empty, new_without_state, new_ack],
         ]
         with patch("tests.parametric.test_ffe.utils.time.sleep"):
-            deliver(agent, config_id="flags", payload={"flags": {}})
+            deliver(agent, config_id="flags", payload={"flags": {}}, version=1)
         assert agent.rc_requests.call_count == 4
         agent.clear.assert_not_called()
 
-    def test_stale_ack_times_out(self) -> None:
+    @pytest.mark.parametrize("content", ["old", "new"])
+    def test_stale_ack_times_out(self, content: str) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         old = _poll(content="old", acknowledged=True)
-        agent.rc_requests.side_effect = [[old], [old, old]]
+        stale = _poll(content=content, acknowledged=True, version=1)
+        agent.rc_requests.side_effect = [[old], [old, stale]]
         with (
             patch("tests.parametric.test_ffe.utils.time.monotonic", side_effect=[0, 0, 11]),
             patch("tests.parametric.test_ffe.utils.time.sleep"),
             pytest.raises(AssertionError, match="did not acknowledge new configuration content"),
         ):
-            deliver(agent, config_id="flags", payload={"flags": {}})
+            deliver(agent, config_id="flags", payload={"flags": {}}, version=2)
 
     @pytest.mark.parametrize("blocking", [True, False])
     @pytest.mark.parametrize("supported", [True, False])
@@ -165,7 +199,8 @@ class Test_FFE_RC_Delivery:
             observed.append(poll)
             return list(observed)
 
-        def configure(*, path: str, payload: dict[str, Any]) -> None:
+        def configure(*, path: str, payload: dict[str, Any], version: int) -> None:
+            assert version == 1
             assert path == RC_PATH
             assert payload == {"flags": {}}
             assert len(observed) >= 3, "Configuration delivered before observing capabilities"
@@ -174,7 +209,7 @@ class Test_FFE_RC_Delivery:
         library.ffe_start.side_effect = start
         agent.rc_requests.side_effect = polls
         agent.set_remote_config.side_effect = configure
-        start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, supported=supported)
+        start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, version=1, supported=supported)
         assert delivered.is_set()
         library.terminate.assert_not_called()
         assert library.ffe_start.call_count == (1 if blocking else 2)
@@ -232,7 +267,7 @@ class Test_FFE_RC_Delivery:
             patch.object(Future, "result", result),
             pytest.raises((AssertionError, TimeoutError)) as raised,
         ):
-            start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, supported=True)
+            start_and_deliver(agent, library, config_id="flags", payload={"flags": {}}, version=1, supported=True)
         assert raised.value is failure
         library.terminate.assert_called_once_with()
         assert finished.is_set(), "Startup worker leaked beyond the helper"
