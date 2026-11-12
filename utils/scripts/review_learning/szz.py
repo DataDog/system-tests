@@ -45,7 +45,11 @@ MAX_LINES_PER_FILE = 5
 NON_SEMANTIC = re.compile(
     r"^((build|ci|docs?|chore|style)(\([^)]*\))?!?:|merge (branch|pull request)\b)", re.IGNORECASE
 )
-FIX_TITLE = re.compile(r"^\s*(revert\b|fix(es|ed)?\b|fix\(|hotfix\b|follow[- ]?up\b)", re.IGNORECASE)
+# An optional prefix, such as "[php] ", "AWS SSI: ", or "test(otel): ", then the fix keyword.
+FIX_TITLE = re.compile(
+    r"^\s*(\[[^\]]+\]\s*|[\w .-]+(\([^)]*\))?!?:\s*)?(revert\b|fix(es|ed)?\b|fix\(|hotfix\b|follow[- ]?up\b)",
+    re.IGNORECASE,
+)
 LINK = re.compile(
     r"(follow[- ]?up (?:to|of|for|on)|fix(?:es|ed)? (?:for|from)|regression (?:from|in|of)|introduced (?:in|by)|"
     r"broken (?:in|by)|reverts?)\s+(?:#|https://github\.com/DataDog/system-tests/pull/)(\d+)",
@@ -117,17 +121,17 @@ def _file_changes(lines_by_path: dict[str, set[int]], *, additions_only: bool) -
 
 def blame_line(sha: str, path: str, line: int, root: Path) -> str | None:
     """Return the commit that last changed this line before sha, skipping non-semantic commits."""
-    current, blamed = f"{sha}^", None
+    current = f"{sha}^"
     for _ in range(MAX_HOPS):
         try:
             output = run(["git", "blame", "--porcelain", "-L", f"{line},{line}", current, "--", path], cwd=root)
         except CommandError:
-            return blamed
+            return None  # the loop only goes on after a non-semantic commit
         blamed, line, path = parse_blame(output)
         if not NON_SEMANTIC.search(subject(blamed, root)):
             return blamed
         current = f"{blamed}^"
-    return blamed
+    return None  # every hop was non-semantic: no culprit is better than a docs or CI commit
 
 
 def parse_blame(porcelain: str) -> tuple[str, int, str]:

@@ -87,15 +87,24 @@ def human_only(run_dir: Path) -> list[str]:
     return [*lines, "", *[f"- {pr_link(c['pr'])} `{c['signal']}`: {c.get('defect', '')}" for c in items], ""]
 
 
-def coverage(decisions: list[Json], lenses: list[str]) -> list[str]:
-    answered = {d["lens"] for d in decisions}
-    return ["## Coverage", "", *[f"- {lens}: {'proposals' if lens in answered else 'no proposals'}" for lens in lenses]]
+def missing_lenses(run_dir: Path, lenses: list[str]) -> list[str]:
+    """A lens without its proposals file did not complete. It is not the same as a lens with zero proposals."""
+    return [lens for lens in lenses if not (run_dir / "proposals" / f"{lens}.json").is_file()]
+
+
+def coverage(run_dir: Path, decisions: list[Json], lenses: list[str]) -> list[str]:
+    missing = missing_lenses(run_dir, lenses)
+    counts = {lens: sum(d["lens"] == lens for d in decisions) for lens in lenses}
+    rows = [f"- {lens}: {'no output' if lens in missing else f'{counts[lens]} proposals'}" for lens in lenses]
+    return ["## Coverage", "", *rows]
 
 
 def render(run_dir: Path, decisions: list[Json], lenses: list[str]) -> str:
     lines = [*summary(run_dir, decisions), ""]
+    if missing := missing_lenses(run_dir, lenses):
+        lines += [f"**Run incomplete**: no output from {', '.join(missing)}.", ""]
     for status, heading in SECTIONS:
         blocks = [block for d in decisions if d["status"] == status for block in change_block(d)]
         lines += [f"## {heading}", "", *(blocks or ["None.", ""])]
-    lines += [*not_applied(decisions), *human_only(run_dir), *coverage(decisions, lenses)]
+    lines += [*not_applied(decisions), *human_only(run_dir), *coverage(run_dir, decisions, lenses)]
     return "\n".join(lines) + "\n"

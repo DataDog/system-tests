@@ -72,6 +72,8 @@ def validate(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str
     action, rule_id = proposal.get("action"), proposal.get("rule_id") or ""
     if action not in CHANGE_ACTIONS | REPORT_ACTIONS:
         return f"unknown action {action}"
+    if action in CHANGE_ACTIONS and not proposal.get("proposed_text"):
+        return "a change needs a proposed_text"
     if action in EDIT_ACTIONS and rule_id not in ids[lens]:
         return f"{rule_id} is not a rule of {lens}"
     if action in EDIT_ACTIONS and not proposal.get("current_text"):

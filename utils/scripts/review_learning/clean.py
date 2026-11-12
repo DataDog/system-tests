@@ -25,7 +25,9 @@ DEFAULT_KEEP = 3
 
 
 def find_runs(root: Path) -> list[Path]:
-    """Return the run folders, the newest first."""
+    """Return the run folders, the newest first. A symbolic link as the root is refused."""
+    if root.is_symlink():
+        raise ValueError(f"{root} is a symbolic link; clean.py only deletes inside a real folder")
     if not root.is_dir():
         return []
     runs = [

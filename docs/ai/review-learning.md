@@ -163,7 +163,7 @@ It also does these checks:
 - [`rejected.yml`](../../utils/scripts/review_learning/rejected.yml) lists proposals that a reviewer rejected. A proposal in that file needs evidence from a new pull request. A rejected new rule matches by lens, because its ID changes in each run.
 - At most `max_changes` proposals get the status `apply`. The strongest ones come first.
 
-The result goes to `decisions.json` and `report.md`.
+The result goes to `decisions.json` and `report.md`. If a lens left no proposals file, the report says `Run incomplete`. A lens that ran and found nothing shows `0 proposals`.
 
 ## Run it
 

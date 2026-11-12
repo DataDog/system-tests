@@ -248,6 +248,10 @@ diff --git a/new.py b/new.py
         assert szz.is_fix_candidate("Make it work", "Follow-up to #8143")
         assert szz.is_fix_candidate('Revert "x"', "Reverts DataDog/system-tests#8052")
         assert not szz.is_fix_candidate("Add a quick start", "Fixes the docs")
+        assert szz.is_fix_candidate("[php] Fix Laravel 11 builds", "")
+        assert szz.is_fix_candidate("AWS SSI: fix CentOS 7 Docker install", "")
+        assert szz.is_fix_candidate("test(otel): fix gRPC assertion", "")
+        assert not szz.is_fix_candidate("test(debugger): enable fixed Go and Java tests", "")
         assert szz.linked_prs("t", "regression from https://github.com/DataDog/system-tests/pull/12 and #13") == [12]
         assert szz.pr_from_subject("Enable DSM tests for PHP (#8202)") == 8202
         assert szz.pr_from_subject("Merge branch main") is None
@@ -294,6 +298,15 @@ diff --git a/new.py b/new.py
         assert szz.absence(changes, {"files": []})["absence"] is False
         assert szz.absence(changes, {"files": ["b.py"]})["missing_in_culprit"] == ["a.py"]
 
+    def test_blame_gives_no_culprit_after_only_non_semantic_hops(self, tmp_path: Path) -> None:
+        _git(tmp_path, "init", "-q")
+        _commit(tmp_path, {"m.yml": "a\n"}, "Add manifest (#1)")
+        for number in range(2, 2 + szz.MAX_HOPS):
+            _commit(tmp_path, {"m.yml": f"a{number}\n"}, f"docs: reword (#{number})")
+        sha = _commit(tmp_path, {"m.yml": "fixed\n"}, "fix: manifest (#99)")
+        assert szz.blame_line(sha, "m.yml", 1, tmp_path) is None
+        assert szz.blame_line(f"{sha}~{szz.MAX_HOPS - 1}", "m.yml", 1, tmp_path) is not None
+
     def test_missing_merge_commit_is_reported(self, tmp_path: Path) -> None:
         _git(tmp_path, "init", "-q")
         _commit(tmp_path, {"a.py": "x\n"}, "Add a (#1)")
@@ -332,6 +345,13 @@ class Test_ReviewLearningClean:
         (tmp_path / "link").symlink_to(target)
         assert clean.clean(tmp_path, keep=0, dry_run=False) == []
         assert (tmp_path / "notes").exists()
+        assert target.exists()
+
+    def test_refuses_a_symlinked_root(self, tmp_path: Path) -> None:
+        target = _run_folder(tmp_path / "outside", "precious", "2026-09-01T00:00:00+00:00")
+        (tmp_path / "root").symlink_to(target.parent)
+        with pytest.raises(ValueError, match="symbolic link"):
+            clean.clean(tmp_path / "root", keep=0, dry_run=False)
         assert target.exists()
 
     def test_missing_root_and_bad_keep(self, tmp_path: Path) -> None:
@@ -548,6 +568,7 @@ class Test_ReviewLearningDecide:
             {"action": "new_rule", "rule_id": "LIFE-005", "severity": "P2", "candidate_ids": ["a"]},
             {"action": "rewrite", "candidate_ids": ["a"]},
             {**self.sharpen, "current_text": None, "candidate_ids": ["a"]},
+            {**self.sharpen, "proposed_text": None, "candidate_ids": ["a"]},
         ]
         assert self._statuses(tmp_path, proposals, miss) == [decide.INVALID] * len(proposals)
 
@@ -629,6 +650,16 @@ class Test_ReviewLearningDecide:
         strong = {**self.sharpen, "candidate_ids": ["m"]}
         assert self._statuses(tmp_path, [weak, strong], candidates, max_changes=1) == [decide.OVER_CAP, decide.APPLY]
 
+    def test_report_is_complete_when_every_lens_answered(self, tmp_path: Path) -> None:
+        run = tmp_path / "run"
+        for lens in decide.LENS_PREFIX:
+            if lens != "lifecycle-and-isolation":
+                write_json(run / "proposals" / f"{lens}.json", {"lens": lens, "proposals": []})
+        self._decide(tmp_path, [], [])
+        text = (run / "report.md").read_text(encoding="utf-8")
+        assert "Run incomplete" not in text
+        assert "- test-effectiveness: 0 proposals" in text
+
     def test_report_lists_each_section(self, tmp_path: Path) -> None:
         candidates = [_candidate("a", 1, "miss"), {**_candidate("h", 2, "human_only"), "defect": "split it"}]
         self._decide(tmp_path, [{**self.sharpen, "candidate_ids": ["a"]}], candidates)
@@ -637,5 +668,7 @@ class Test_ReviewLearningDecide:
         assert "### LIFE-001 · `sharpen` · lifecycle-and-isolation" in text
         assert "> A setup method asserts or raises." in text
         assert "## Human-only review and outside context" in text
-        assert "- test-effectiveness: no proposals" in text
+        assert "- test-effectiveness: no output" in text
+        assert "- lifecycle-and-isolation: 1 proposals" in text
+        assert "**Run incomplete**: no output from test-effectiveness" in text
         assert "| Fixes that szz.py could not analyse | 0 |" in text

@@ -41,7 +41,7 @@ query($q: String!, $after: String) {{
       mergeCommit {{ oid }}
       files(first: 100) {{ totalCount nodes {{ path additions deletions }} }}
       commits(first: 100) {{ totalCount nodes {{ commit {{ oid committedDate messageHeadline }} }} }}
-      reviews(first: 50) {{ totalCount nodes {{ {_AUTHOR} state body submittedAt }} }}
+      reviews(first: 50) {{ totalCount nodes {{ {_AUTHOR} state body submittedAt url }} }}
       comments(first: 100) {{ totalCount nodes {{ {_AUTHOR} body createdAt url }} }}
       reviewThreads(first: 100) {{ totalCount nodes {{ isResolved isOutdated path line originalLine
         comments(first: 50) {{ totalCount nodes {{ {_AUTHOR} body createdAt url diffHunk
