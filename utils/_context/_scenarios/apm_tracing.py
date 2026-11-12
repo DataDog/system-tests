@@ -9,7 +9,6 @@ class ApmTracingE2eOtel(DdTraceEndToEndScenario):
         super().__init__(
             "APM_TRACING_E2E_OTEL",
             weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-            doc="",
         )
 
 
@@ -23,7 +22,6 @@ class ApmTracingE2eSingleSpan(DdTraceEndToEndScenario):
                 ),
                 "DD_TRACE_SAMPLE_RATE": "0",
             },
-            doc="",
         )
 
 
@@ -41,11 +39,12 @@ class ApmTracingOtlp(DdTraceEndToEndScenario):
             },
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
-            doc="",
         )
 
 
 class ApmTracingEfficientPayload(DdTraceEndToEndScenario):
+    """End-to-end testing scenario focused on efficient payload handling and v1 trace format validation"""
+
     def __init__(self) -> None:
         super().__init__(
             "APM_TRACING_EFFICIENT_PAYLOAD",
@@ -56,5 +55,4 @@ class ApmTracingEfficientPayload(DdTraceEndToEndScenario):
             agent_env={
                 "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
             },
-            doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
         )
