@@ -170,11 +170,11 @@ The result goes to `decisions.json` and `report.md`. If a lens left no proposals
 
 `apply.py` edits `.agents/rules/code-review/<lens>.md` with each decision that has the status `apply`. Each field of a rule is one line, so an edit replaces one line, and it never rewrites the rest of the rule:
 
-- `sharpen`, `lint_owned`, and `add_not_when` replace the line whose value is `current_text`.
-- `add_not_when` without `current_text` adds a `Not when` line to the rule.
-- `new_rule` adds the whole rule block at the end of the lens.
+- `sharpen` and `lint_owned` replace the line whose value is `current_text`. The new value must be one line.
+- `add_not_when` only changes the `Not when` line. It keeps the current text and adds to it. Without `current_text`, it adds a `Not when` line to the rule.
+- `new_rule` adds the whole rule block after the last rule of the lens.
 
-After each edit, every rule must keep a unique ID, a `Severity` line, and a `Flag` line. If an edit does not match the file, the script skips it and writes the reason to `applied.json`. It never edits a lens file with local changes, so `git checkout -- .agents/rules/code-review/` undoes exactly this step.
+After each edit, every rule must keep a unique ID, a `Severity` line, and a `Flag` line. `decide.py` runs the same edit on a copy of the lens, so a decision with the status `apply` always matches the file. If an edit does not match the file, the script skips it and writes the reason to `applied.json`. It never edits a lens file with local changes, so `git checkout -- .agents/rules/code-review/` undoes exactly this step.
 
 ## Run it
 
