@@ -11,9 +11,6 @@ manifest:
     - declaration: flaky (APMSP-3059)
       component_version: '<7.87.0-0'
       weblog: [test-app-java-alpine, test-app-java-container]
-    - declaration: flaky (APMSP-3059)
-      component_version: '<7.87.0-0'
-      weblog: [test-app-php-alpine, test-app-php-container-83]
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - declaration: bug (APPSEC-70532)
       component_version: '<7.85.0'
