@@ -46,6 +46,7 @@ if [[ "${SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED:-}" == "true" ]]; then
   # The direct-EVP scenario inspects the server as PID 1, without an init wrapper.
   # shellcheck disable=SC1091
   source /etc/apache2/envvars
+  install -d -o "$APACHE_RUN_USER" -g "$APACHE_RUN_GROUP" "$APACHE_RUN_DIR" "$APACHE_LOCK_DIR"
   exec apache2 -D FOREGROUND
 fi
 
