@@ -116,7 +116,7 @@ class Test_AwsLambdaAccessKeyId_NoSecret:
 @features.appsec_aws_lambda_access_key_id
 @scenarios.appsec_lambda_aws_access_key_id_default
 class Test_AwsLambdaAccessKeyId_DefaultOff:
-    """S2: valid credentials, DD_APPSEC_AWS_ACCESS_KEY_ID_ENABLED unset: no span carries the tag"""
+    """S2: valid credentials, DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED unset: no span carries the tag"""
 
     def setup_no_tag_by_default(self):
         self.r = weblog.get("/")

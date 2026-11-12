@@ -305,7 +305,7 @@ class AppsecLambdaAwsAccessKeyId(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID",
-            weblog_env=_AWS_CREDENTIALS_ENV | {"DD_APPSEC_AWS_ACCESS_KEY_ID_ENABLED": "true"},
+            weblog_env=_AWS_CREDENTIALS_ENV | {"DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED": "true"},
             doc="Tracer AppSec in Lambda tags invocation spans with the AWS access key ID",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
@@ -317,7 +317,7 @@ class AppsecLambdaAwsAccessKeyIdExtension(_LambdaScenario):
             "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_EXTENSION",
             weblog_env=_AWS_CREDENTIALS_ENV
             | {
-                "DD_APPSEC_AWS_ACCESS_KEY_ID_ENABLED": "true",
+                "DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED": "true",
                 # extension AppSec: the wrapper proxies the Runtime API, and turns tracer AppSec off (extension v102+)
                 "DD_SERVERLESS_APPSEC_ENABLED": "true",
                 "AWS_LAMBDA_EXEC_WRAPPER": "/opt/datadog_wrapper",
@@ -332,6 +332,6 @@ class AppsecLambdaAwsAccessKeyIdDefault(_LambdaScenario):
         super().__init__(
             "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_DEFAULT",
             weblog_env=_AWS_CREDENTIALS_ENV,
-            doc="Valid AWS credentials, DD_APPSEC_AWS_ACCESS_KEY_ID_ENABLED unset: no access key ID tag",
+            doc="Valid AWS credentials, DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED unset: no access key ID tag",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
