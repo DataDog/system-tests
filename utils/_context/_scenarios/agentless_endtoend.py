@@ -674,7 +674,7 @@ class FeatureFlaggingAndExperimentationAgentlessExplicit(FeatureFlaggingAgentles
     def __init__(self) -> None:
         super().__init__(
             "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_EXPLICIT",
-            weblog_env={"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless"},
+            weblog_env={"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless", "DD_SITE": MOCKED_BACKEND_DOMAIN},
         )
 
 
