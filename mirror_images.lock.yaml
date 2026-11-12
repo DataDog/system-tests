@@ -154,6 +154,14 @@ images:
     digest: sha256:878c013df01f891e3244b373765126757b4595a4d18fb940a68d4105fca3195d
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:jersey-grizzly2.base-eda4e9f058de
     tag: jersey-grizzly2.base-eda4e9f058de
+  datadog/system-tests:kong-build.base-698006651256:
+    digest: sha256:89ae80f53368056c1abedfb3f8354ddeab60bfa9bdb686e2483df5457d9db15a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:kong-build.base-698006651256
+    tag: kong-build.base-698006651256
+  datadog/system-tests:kong-runtime.base-09b8b7120e77:
+    digest: sha256:6880f4f80798b632da16243b50c673afd7147e90b0341fc13ab6e7decab46532
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:kong-runtime.base-09b8b7120e77
+    tag: kong-runtime.base-09b8b7120e77
   datadog/system-tests:lambda-proxy-v1:
     digest: sha256:2b09f33c61b2b19f4a239e4d8f10164ece66d925b72337720998ce43d7090d2f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:lambda-proxy-v1
