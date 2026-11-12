@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "vuln_id": "system-tests-sca",
+      "artifact": "com.github.junrar:junrar",
+      "version_ranges": [
+        ">=0"
+      ],
+      "symbols": [
+        {
+          "class": "com/github/junrar/LocalFolderExtractor",
+          "method": "createDirectory"
+        }
+      ]
+    }
+  ]
+}

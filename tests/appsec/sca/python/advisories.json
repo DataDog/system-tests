@@ -1,0 +1,20 @@
+{
+  "targets": [
+    {
+      "id": "system-tests-sca",
+      "lang": "python",
+      "dependency_name": "requests",
+      "package_versions": [
+        ">=0"
+      ],
+      "targets": [
+        "requests.sessions:Session.send"
+      ],
+      "vulnerability": {
+        "id": "system-tests-sca",
+        "severity": "LOW",
+        "description": "Synthetic requests target for system-tests SCA reachability coverage."
+      }
+    }
+  ]
+}
