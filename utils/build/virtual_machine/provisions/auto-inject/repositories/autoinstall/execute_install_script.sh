@@ -76,7 +76,10 @@ if [ -f "${AGENT_INSTALL_SCRIPT}" ]; then
     chmod +x install_script.sh
 else
     echo "Download installation script from S3"
-    curl --fail --retry 3 --retry-delay 5 -L "$INSTALLER_URL" -o install_script.sh
+    if ! curl --fail --retry 3 --retry-delay 5 -L "$INSTALLER_URL" -o install_script.sh; then
+        echo "Failed to download the installation script from ${INSTALLER_URL}" >&2
+        exit 1
+    fi
 fi
 
 # STRICT is the mode the install script actually applies (host or docker).
