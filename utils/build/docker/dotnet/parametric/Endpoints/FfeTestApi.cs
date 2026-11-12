@@ -20,13 +20,26 @@ public abstract class FfeTestApi
         app.MapPost("/ffe/evaluate", EvaluateFfe);
     }
 
-    private static async Task<IResult> StartFfe()
+    private static async Task<IResult> StartFfe(HttpRequest httpRequest)
     {
         try
         {
             _logger?.LogInformation("Initializing FFE provider");
 
-            var provider = new Datadog.FeatureFlags.OpenFeature.DatadogProvider();
+            JsonElement? flagSelection = null;
+            if (httpRequest.ContentLength is > 0)
+            {
+                using var body = await JsonDocument.ParseAsync(httpRequest.Body);
+                if (body.RootElement.ValueKind == JsonValueKind.Object
+                    && body.RootElement.TryGetProperty("flag_selection", out var selection))
+                {
+                    flagSelection = selection.Clone();
+                }
+            }
+
+            var provider = flagSelection is { } raw
+                ? CreateProviderWithFlagSelection(raw)
+                : new Datadog.FeatureFlags.OpenFeature.DatadogProvider();
 
             // Only the async call runs InitializeAsync, which waits for the first configuration.
             await Api.Instance.SetProviderAsync(provider);
@@ -39,6 +52,37 @@ public abstract class FfeTestApi
             _logger?.LogError(e, "Error starting FFE provider");
             return Results.Json(new { error = e.Message }, statusCode: 500);
         }
+    }
+
+    // Reflection keeps the app building against provider versions without DatadogProviderOptions;
+    // those versions ignore the selection, so flag selection tests fail when forced on them.
+    private static Datadog.FeatureFlags.OpenFeature.DatadogProvider CreateProviderWithFlagSelection(JsonElement raw)
+    {
+        var assembly = typeof(Datadog.FeatureFlags.OpenFeature.DatadogProvider).Assembly;
+        var optionsType = assembly.GetType("Datadog.FeatureFlags.OpenFeature.DatadogProviderOptions");
+        var selectionType = assembly.GetType("Datadog.FeatureFlags.OpenFeature.FlagSelection");
+        if (optionsType is null || selectionType is null)
+        {
+            return new Datadog.FeatureFlags.OpenFeature.DatadogProvider();
+        }
+
+        var selection = Activator.CreateInstance(selectionType)!;
+        if (raw.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var (json, property) in new[] { ("tags", "Tags"), ("keyPatterns", "KeyPatterns") })
+            {
+                if (raw.TryGetProperty(json, out var values) && values.ValueKind == JsonValueKind.Array)
+                {
+                    var list = values.EnumerateArray().Select(v => v.ValueKind == JsonValueKind.String ? v.GetString() : null).ToArray();
+                    selectionType.GetProperty(property)!.SetValue(selection, list);
+                }
+            }
+        }
+
+        var options = Activator.CreateInstance(optionsType)!;
+        optionsType.GetProperty("FlagSelection")!.SetValue(options, selection);
+        return (Datadog.FeatureFlags.OpenFeature.DatadogProvider)Activator.CreateInstance(
+            typeof(Datadog.FeatureFlags.OpenFeature.DatadogProvider), options)!;
     }
 
     private static async Task<IResult> EvaluateFfe(EvaluateRequest request)

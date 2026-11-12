@@ -44,6 +44,28 @@ public class FeatureFlagEvaluatorController {
     private static final boolean CAPTURE_HOOK_FEATURES =
             Boolean.parseBoolean(System.getenv("SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES"));
     private static final ThreadLocal<Object> HOOK_FEATURES = new ThreadLocal<>();
+    private static volatile Object FLAG_SELECTION;
+
+    // Reflection keeps the app building against dd-openfeature versions without FlagSelection.
+    private static void applyFlagSelection(final Provider.Options options, final Object raw) {
+        if (!(raw instanceof Map<?, ?> selection)) {
+            return;
+        }
+        try {
+            final Class<?> selectionClass = Class.forName("com.datadog.openfeature.FlagSelection");
+            Object flagSelection = selectionClass.getConstructor().newInstance();
+            if (selection.containsKey("tags")) {
+                flagSelection = selectionClass.getMethod("tags", List.class).invoke(flagSelection, selection.get("tags"));
+            }
+            if (selection.containsKey("keyPatterns")) {
+                flagSelection = selectionClass.getMethod("keyPatterns", List.class)
+                        .invoke(flagSelection, selection.get("keyPatterns"));
+            }
+            options.getClass().getMethod("flagSelection", selectionClass).invoke(options, flagSelection);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Flag selection tests require the FlagSelection provider option", e);
+        }
+    }
 
     private static void captureHookFeatures(Client client) {
         // Load the optional public API only for tests whose manifest requires it.
@@ -77,7 +99,9 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
+                final Provider.Options options = new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS);
+                applyFlagSelection(options, FLAG_SELECTION);
+                provider = new Provider(options);
             } else {
                 provider = new NoOpProvider() {
                     @Override
@@ -100,7 +124,11 @@ public class FeatureFlagEvaluatorController {
     private Client client;
 
     @PostMapping(value = "/start")
-    public ResponseEntity<Boolean> start() {
+    public ResponseEntity<Boolean> start(@RequestBody(required = false) final Map<String, Object> body) {
+        // The client bean is lazy: record the selection before its first use builds the provider.
+        if (body != null && body.containsKey("flag_selection")) {
+            FLAG_SELECTION = body.get("flag_selection");
+        }
         final ProviderState state = client.getProviderState();
         if (state == ProviderState.READY) {
             return ResponseEntity.ok(true);
