@@ -162,7 +162,6 @@ It also does these checks:
 - An edited rule must exist in its lens, and its current text must be in the lens file.
 - A new rule needs a free ID with the lens prefix, and the severity `P0` or `P1`. Two new rules in one run cannot share an ID.
 - A text with `se` findings needs a human decision. So does a text that `plain_english.py` did not lint.
-- [`rejected.yml`](../../utils/scripts/review_learning/rejected.yml) lists proposals that a reviewer rejected. A proposal in that file needs evidence from a new pull request. A rejected new rule matches by lens, because its ID changes in each run.
 - At most `max_changes` proposals get the status `apply`. The strongest ones come first.
 
 The result goes to `decisions.json` and `report.md`. If a lens left no proposals file, the report says `Run incomplete`. A lens that ran and found nothing shows `0 proposals`.
@@ -234,7 +233,7 @@ The `review_learning` job in [`.gitlab-ci.yml`](../../.gitlab-ci.yml) runs once 
 
 There is only one pull request at a time. If the last one is still open, `open_pr.py` publishes nothing, so a reviewer never loses work.
 
-The model never holds the write token. `open_pr.py` publishes only `.agents/rules/code-review/*.md`, and it refuses any other change. The pull request never merges by itself: a person from `system-tests-core` reviews it. To reject a change, revert it in the pull request, and add it to `rejected.yml`.
+The model never holds the write token. `open_pr.py` publishes only `.agents/rules/code-review/*.md`, and it refuses any other change. The pull request never merges by itself: a person from `system-tests-core` reviews it. To reject a change, revert it in the pull request. If the reason holds for the future, write it in the rule, for example as `Not when:`. The map step reads the rules, so it never proposes the opposite again.
 
 - **Schedule:** a GitLab pipeline schedule on `main` sets `SCHEDULED_JOB=review-learning`. You can also start it by hand from the GitLab UI, with the same variable. This schedule never runs the end-to-end pipeline.
 - **Image:** [`review-learning.Dockerfile`](../../utils/ci/gitlab/docker/review-learning.Dockerfile) holds Python 3.12, the Claude Code CLI, `gh`, `se`, `dd-octo-sts`, and `commit-headless`. The `build_ci_image` job builds and signs it. The job installs `requirements.txt` when it starts, so a change to `requirements.txt` never rebuilds this image.

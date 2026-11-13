@@ -3,7 +3,7 @@
 Usage:
     python3 -m utils.scripts.review_learning.decide --run .review-learning/run
 
-Reads verified.json, proposals/*.json, lint.json, rejected.yml, and the lens files. Writes
+Reads verified.json, proposals/*.json, lint.json, and the lens files. Writes
 decisions.json and report.md. This step never edits a rule file.
 
 The thresholds live here, not in a prompt, so the model cannot talk itself past them. Sources:
@@ -21,8 +21,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-import yaml
 
 from utils.scripts.review_learning import report
 from utils.scripts.review_learning import apply as apply_step
@@ -62,7 +60,6 @@ NEEDS_DECISION = "needs_decision"
 NOT_ENOUGH = "not_enough_evidence"
 INVALID = "invalid"
 REPORT_ONLY = "report_only"
-REJECTED_BEFORE = "rejected_before"
 OVER_CAP = "over_cap"
 
 
@@ -167,22 +164,6 @@ def cites_written_decision(path: str | None, root: Path) -> bool:
     return path is not None and path.startswith(("docs/", ".agents/")) and (root / path).is_file()
 
 
-def was_rejected(lens: str, proposal: Json, prs: set[int], rejected: list[Json]) -> bool:
-    """A proposal stays rejected until it brings evidence from a pull request that the rejection did not see.
-
-    A new rule gets a new ID in each run, so a rejected new rule matches by lens, not by ID.
-    """
-    return any(
-        r["action"] == proposal["action"] and same_target(lens, proposal, r) and prs <= set(r["prs"]) for r in rejected
-    )
-
-
-def same_target(lens: str, proposal: Json, rejection: Json) -> bool:
-    if proposal["action"] == "new_rule":
-        return rejection.get("lens") == lens
-    return rejection.get("rule_id") == proposal.get("rule_id")
-
-
 def strength(decision: Json) -> tuple[bool, int, bool]:
     candidates = decision["evidence"]
     return (
@@ -201,8 +182,6 @@ def status_of(lens: str, proposal: Json, context: Json) -> tuple[str, str]:
     candidates = context["evidence"]
     if reason := evidence_gap(proposal, candidates, context["root"]):
         return NOT_ENOUGH, reason
-    if was_rejected(lens, proposal, {c["pr"] for c in candidates}, context["rejected"]):
-        return REJECTED_BEFORE, "rejected in an earlier pull request, with no new evidence"
     if reason := lint_gap(context["lint"]):
         return NEEDS_DECISION, reason
     return APPLY, proposal.get("reason", "")
@@ -236,12 +215,10 @@ def apply_cap(decisions: list[Json], max_changes: int) -> None:
 
 
 def load_inputs(run_dir: Path, root: Path) -> Json:
-    rejected_path = root / "utils/scripts/review_learning/rejected.yml"
     lenses_dir = root / LENSES_DIR
     return {
         "verified": {c["id"]: c for c in read_json(run_dir / "verified.json")},
         "lint": read_json(run_dir / "lint.json") if (run_dir / "lint.json").is_file() else {},
-        "rejected": yaml.safe_load(rejected_path.read_text(encoding="utf-8")) or [],
         "ids": rule_ids(lenses_dir),
         "lens_text": {lens: (lenses_dir / f"{lens}.md").read_text(encoding="utf-8") for lens in LENS_PREFIX},
         "root": root,

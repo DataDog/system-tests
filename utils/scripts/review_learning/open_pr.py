@@ -36,8 +36,8 @@ It only edits `.agents/rules/code-review/`.
 
 **How to review**
 - The report below lists the evidence of each change: the pull requests and the verified quotes.
-- To reject a change, revert it in this pull request. Then add it to `utils/scripts/review_learning/rejected.yml`
-  with the reason, so that the job never proposes it again without new evidence.
+- To reject a change, revert it in this pull request. If the reason holds for the future, write it in the rule,
+  for example as `Not when:`. The job reads the rules, so it never proposes the opposite again.
 - This pull request never merges by itself. A person from `system-tests-core` approves it.
 - The next monthly run publishes nothing while this pull request is open.
 """

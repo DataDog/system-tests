@@ -497,9 +497,6 @@ def _decide_root(tmp_path: Path) -> Path:
         (lenses / f"{lens}.md").write_text(text, encoding="utf-8")
     (tmp_path / "repo" / "docs").mkdir()
     (tmp_path / "repo" / "docs" / "flushing.md").write_text("decision", encoding="utf-8")
-    rejected = tmp_path / "repo" / "utils" / "scripts" / "review_learning" / "rejected.yml"
-    rejected.parent.mkdir(parents=True)
-    rejected.write_text("- {rule_id: LIFE-001, action: add_not_when, prs: [20, 21]}\n", encoding="utf-8")
     return tmp_path / "repo"
 
 
@@ -635,26 +632,8 @@ class Test_ReviewLearningDecide:
         )
         assert decide.decide_run(run, root, 5)[0]["status_reason"] == "unknown lens Lifecycle"
 
-    def test_rejected_new_rule_matches_by_lens(self, tmp_path: Path) -> None:
-        root = _decide_root(tmp_path)
-        rejected = root / "utils" / "scripts" / "review_learning" / "rejected.yml"
-        rejected.write_text("- {lens: lifecycle-and-isolation, action: new_rule, prs: [1]}\n", encoding="utf-8")
-        rule = {
-            "action": "new_rule",
-            "rule_id": "LIFE-006",
-            "severity": "P1",
-            "proposed_text": _new_rule("LIFE-006"),
-            "candidate_ids": ["a"],
-        }
-        run = tmp_path / "run"
-        _write_run(run, [])
-        write_json(run / "verified.json", [_candidate("a", 1, "miss")])
-        write_json(run / "proposals" / "l.json", {"lens": "lifecycle-and-isolation", "proposals": [rule]})
-        plain_english.lint_run(run, lambda _text: [])
-        assert decide.decide_run(run, root, 5)[0]["status"] == decide.REJECTED_BEFORE
-
-    def test_new_rule_report_actions_and_rejections(self, tmp_path: Path) -> None:
-        miss = [_candidate("a", 20, "miss"), _candidate("b", 21, "disagreement"), _candidate("c", 20, "disagreement")]
+    def test_new_rule_and_report_actions(self, tmp_path: Path) -> None:
+        miss = [_candidate("a", 20, "miss")]
         proposals = [
             {
                 "action": "new_rule",
@@ -665,16 +644,9 @@ class Test_ReviewLearningDecide:
             },
             {"action": "covered", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
             {"action": "contested", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
-            {
-                **self.sharpen,
-                "action": "add_not_when",
-                "field": "Not when",
-                "current_text": None,
-                "candidate_ids": ["b", "c"],
-            },
         ]
         statuses = self._statuses(tmp_path, proposals, miss)
-        assert statuses == [decide.APPLY, decide.REPORT_ONLY, decide.NEEDS_DECISION, decide.REJECTED_BEFORE]
+        assert statuses == [decide.APPLY, decide.REPORT_ONLY, decide.NEEDS_DECISION]
 
     def test_lint_findings_block_the_change(self, tmp_path: Path) -> None:
         root = _decide_root(tmp_path)
