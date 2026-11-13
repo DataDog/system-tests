@@ -205,14 +205,17 @@ class EndToEndWeblogInfra(WeblogInfra):
         ]
 
     def get_containers(self) -> tuple[TestedContainer, ...]:
+        return (*self.get_weblog_containers(), *self._other_containers)
+
+    def get_weblog_containers(self) -> tuple[TestedContainer, ...]:
+        """The weblog itself, without the other containers it uses (databases, ...)"""
         if self._is_proxy_weblog:
             return (
                 self._processor_container,
                 self._proxy_runtime_container,
                 self._dummy_server_container,
-                *self._other_containers,
             )
-        return (self.http_container, *self._other_containers)
+        return (self.http_container,)
 
     def stop(self, *, flush: bool = True, stop_timeout: int | None = None) -> None:
         if self._is_proxy_weblog:

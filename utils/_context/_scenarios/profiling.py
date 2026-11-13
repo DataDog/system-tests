@@ -1,14 +1,15 @@
 import pytest
 
 from utils._context.constants import WeblogCategory
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 class ProfilingScenario(EndToEndScenario):
-    def __init__(self, name: str) -> None:
+    """Test profiling feature. Not included in default scenario because is quite slow"""
+
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "PROFILING",
             library_interface_timeout=160,
             weblog_env={
                 "DD_PROFILING_ENABLED": "true",
@@ -20,7 +21,6 @@ class ProfilingScenario(EndToEndScenario):
                 "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
             },
-            doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],
             weblog_categories=[WeblogCategory.dd_trace],
         )

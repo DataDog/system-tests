@@ -208,15 +208,48 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-To view the available HTTP endpoints , follow these steps:
-Note: These are based off of the Python tracer's http server which should be held as the standard example interface across implementations.
+The HTTP interface every parametric server implements (startup, readiness, and all endpoints with their request and
+response fields) is described in [Parametric weblogs: HTTP interface](../weblogs/parametric_weblog.md). When you add
+or change an endpoint, update that document in the same PR.
 
+The Python server is the reference implementation. To browse its OpenAPI documentation:
 
 1. `./utils/scripts/parametric/run_reference_http.sh`
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
-Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
+#### Feature Flag evaluation provider status
+
+`test_library.ffe_evaluate(...)` returns `providerStatus`: the OpenFeature provider status that the SDK reports for the app's client (`NOT_READY`, `READY`, `STALE`, `ERROR`, or `FATAL`). Apps read it from their OpenFeature SDK (for example `client.providerStatus` in Node.js or `get_provider_status()` in Python) and never derive it from the evaluation result. The Ruby app reads the SDK's private provider state on openfeature-sdk 0.5.x, the newest its image's Ruby supports. An app whose SDK cannot report it omits the field or returns `null`. Tests use it as positive evidence of a provider state, for example that initialization failed when `/ffe/start` returns success.
+
+#### Standalone Rules Configuration
+
+`test_library.ffe_fetch_rules_configuration(options)` calls `POST /ffe/fetch-rules-configuration` (currently implemented in Node.js only). It fetches and serializes configuration using the public standalone FFE helpers in a fresh process, without initializing a tracer or OpenFeature provider. The response is either `{ "wire": "...", "diagnostics": [] }` or `{ "error": { "name": "ConfigurationFetchError", "code": "...", "message": "...", "status": 403 }, "diagnostics": [] }`. `status` is present only for HTTP failures. The adapter captures the helper's logger messages in `diagnostics` so tests can assert dropped or server-ignored selection diagnostics. Unexpected failures return HTTP 500.
+
+Options use the Node helper's names (`distributionChannel`, `apiKey`, `clientToken`, `env`, `site`, `flagSelection`, `timeoutMs`). The test-only `abort` option supplies an already-aborted signal; `abortAfterMs` cancels an in-flight operation after the specified delay. `SYSTEM_TESTS_FFE_RULES_BASE_URL` routes the helper's custom Fetch transport to the mock backend, preserving paths, queries, headers, and redirect/cancellation options. No browser handoff is performed.
+
+The shared `mocked_backend` fixture serves these protobuf responses. Import shared FFE constants and fixture helpers from `utils.mocked_backend.ffe`. On the server distribution endpoint, explicitly accepting `application/protobuf` selects protobuf, including in comma-separated `Accept` lists with a positive quality value. Wildcard-only requests and existing agentless provider tests continue to receive JSON.
+
+Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history, serves the root UFC again instead of an `ffe_use_suite` suite, and clears `ffe_set_flag_selection_ignored_reason`. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
+
+The protobuf response IDs `selection_ignored_empty`, `selection_ignored_tag_load_failed`, and `selection_ignored_unknown` return the full rules fixture with a `DD-Flag-Selection-Ignored` header set to an empty string, `tag_load_failed`, or `future_reason`, respectively. Use these shared responses to test selection diagnostics without replacing the rules endpoint handler. The `valid` response omits the header.
+
+#### Effective OpenTelemetry configuration
+
+Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
+For Node.js it calls the diagnostic endpoint `GET /otel/effective_config`; for other
+SDKs it reads the existing `/trace/config` endpoint. The returned dictionary contains:
+
+- `otel_exporter_otlp_traces_timeout_ms`
+- `otel_exporter_otlp_metrics_timeout_ms`
+- `otel_exporter_otlp_logs_timeout_ms`
+
+Values are strings in milliseconds, or `None` when the SDK does not expose the setting.
+Zero values are preserved. The Node.js endpoint adapts private SDK configuration fields
+to this contract and reports the SDK's resolved values, including its validation and
+defaults. Its `/trace/config` endpoint continues to return an empty configuration.
+The existing `test_library.config()` method also reads Node.js timeout fields from
+the diagnostic endpoint, so tests using that method can inspect these values.
 
 ### Architecture: How System-tests work
 

@@ -5,8 +5,16 @@ set -euvo pipefail
 export GONOSUMDB="github.com/DataDog/*"
 export GOPRIVATE="github.com/DataDog/*"
 
+go_mod_tidy_with_retry() {
+    if ! go mod tidy; then
+        echo "go mod tidy failed, retrying in 10 seconds..."
+        sleep 10
+        go mod tidy
+    fi
+}
+
 # Run go mod tidy once to make sure go list does not fail.
-go mod tidy
+go_mod_tidy_with_retry
 
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
 CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ' || true)"
@@ -54,7 +62,7 @@ else
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
-go mod tidy
+go_mod_tidy_with_retry
 
 # Read the library version out of the version.go file
 lib_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)

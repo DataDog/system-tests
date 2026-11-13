@@ -38,7 +38,7 @@ else
     #       with no AppSec
     URL="https://github.com/DataDog/datadog-lambda-rb/releases/latest/download/datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
     echo "${URL}"
-    curl -fsSLO "${URL}"
+    curl -fsSLO --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors "${URL}"
     ZIPFILE="datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
     if [ ! -f "${ZIPFILE}" ]; then
         echo "Failed to download ${ZIPFILE}"
@@ -51,3 +51,6 @@ cd /binaries
 gem install faraday --install-dir "${GEM_DIR}" --no-document
 
 rm -rf "${GEM_DIR}/cache"
+
+# read by build.sh, to label the image with it, like the healthcheck reports it (Datadog::Lambda::VERSION::STRING)
+GEM_PATH="${GEM_DIR}" ruby -e "require 'datadog/lambda/version'; print Datadog::Lambda::VERSION::STRING" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

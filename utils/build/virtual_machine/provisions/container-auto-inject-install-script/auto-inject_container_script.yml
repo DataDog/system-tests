@@ -3,6 +3,10 @@
   copy_files:
       - name: copy-auto-install-script
         local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+      - name: copy-installer-versions-script
+        local_path: utils/build/ssi/base/installer_versions.sh
+      - name: copy-auto-inject-lock
+        local_path: utils/build/auto_inject.lock
       - name: copy-docker-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
       - name: copy-tracer-debug-config
@@ -14,17 +18,27 @@
       - name: copy-binaries
         local_path: binaries/
   remote-command: |
-    #Env variables set on the scenario definition. Write to file and load  
+    #Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs) 
-    
+    export $(cat scenario_agent.env | xargs)
+
     sudo mkdir -p /var/run/datadog-installer
     sudo mkdir -p /opt/datadog/apm/inject/run
     sudo chmod 777 /opt/datadog/apm/inject/run
     printf "DD_APM_RECEIVER_SOCKET=/opt/datadog/apm/inject/run/apm.socket\nDD_DOGSTATSD_SOCKET=/opt/datadog/apm/inject/run/dsd.socket\nDD_USE_DOGSTATSD=true\n" | sudo tee /var/run/datadog-installer/environment
-    DD_APM_INSTRUMENTATION_ENABLED=docker bash execute_install_script.sh
+    DD_APM_INSTRUMENTATION_ENABLED=docker DD_APM_INSTRUMENTATION_STRICT=docker bash execute_install_script.sh
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+
+    if [ -n "${DD_AGENT_BACKEND_URL}" ]; then
+        # Point the agent to the mocked backend. The SSH reverse tunnel to it only listens on the VM loopback, so
+        # the agent container must use the host network. Compose override used by the weblog scripts starting
+        # the agent
+        printf 'services:\n  datadog:\n    network_mode: host\n    environment:\n      - DD_DD_URL=%s\n      - DD_APM_DD_URL=%s\n      - DD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
+            "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
+            > docker-compose-agent-mocked-backend.yml \
+            || echo "Warning: Could not point the agent to the mocked backend"
+    fi

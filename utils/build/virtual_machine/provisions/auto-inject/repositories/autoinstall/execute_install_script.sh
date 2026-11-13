@@ -46,13 +46,15 @@ if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
    export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
 fi
 
+# shellcheck source=utils/build/ssi/base/installer_versions.sh
+source ./installer_versions.sh
+
 if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
     # Special case for Node.js, the staging major version is 1 above the prod major (7 here)
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="7"
 fi
 
 if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-    export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
@@ -74,12 +76,19 @@ if [ -f "${AGENT_INSTALL_SCRIPT}" ]; then
     chmod +x install_script.sh
 else
     echo "Download installation script from S3"
-    curl -L "$INSTALLER_URL" -o install_script.sh
+    if ! curl --fail --retry 3 --retry-delay 5 -L "$INSTALLER_URL" -o install_script.sh; then
+        echo "Failed to download the installation script from ${INSTALLER_URL}" >&2
+        exit 1
+    fi
 fi
 
+# STRICT is the mode the install script actually applies (host or docker).
+# It must match ENABLED, and an SSI failure then stops the script.
+echo "SSI instrumentation mode: ${DD_APM_INSTRUMENTATION_ENABLED}"
 # shellcheck disable=SC2154
 DD_REPO_URL="$DD_injection_repo_url" \
 DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" \
+DD_APM_INSTRUMENTATION_STRICT="${DD_APM_INSTRUMENTATION_ENABLED}" \
 bash -c "$(cat install_script.sh)"
 
 sudo cp /tmp/datadog-installer-*.log /var/log/datadog

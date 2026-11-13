@@ -94,6 +94,13 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
         rc, out = test_library.container_exec_run("pidof node")
         assert rc
         pid = int(out)
+    elif context.library.name == "golang":
+        # The Go parametric container wraps the server in a shell so the
+        # crashtracker monitor keeps the container alive while it uploads the
+        # crash report. The server is the only direct child of PID 1.
+        rc, out = test_library.container_exec_run("pgrep -P 1")
+        assert rc
+        pid = int(out)
     memfds = find_dd_memfds(test_library, pid)
     assert len(memfds) == 1
     rc, tracer_metadata = read_memfd(test_library, memfds[0])

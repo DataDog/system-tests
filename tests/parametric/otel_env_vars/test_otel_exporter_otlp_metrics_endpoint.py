@@ -118,3 +118,23 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
+
+    @pytest.mark.parametrize("otlp_signal", ["metrics"])
+    @pytest.mark.parametrize(
+        "base_path", ["/mycollector", "/mycollector/"], ids=["no_trailing_slash", "trailing_slash"]
+    )
+    @pytest.mark.parametrize("endpoint_value", [pytest.param("unset", id="unset")])
+    def test_generic_endpoint_with_base_path(
+        self,
+        base_path: str,  # noqa: ARG002
+        otlp_base_path_library_env: dict[str, str | None],  # noqa: ARG002
+        endpoint_value: str,  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        """The base path of OTEL_EXPORTER_OTLP_ENDPOINT is kept: metrics go to <base path>/v1/metrics."""
+        with test_library as library:
+            _emit_metric(library)
+
+        # The proxy only forwards requests received on <base path>/v1/metrics, so any metric payload here proves it.
+        test_agent.wait_for_num_otlp_metrics(num=1)

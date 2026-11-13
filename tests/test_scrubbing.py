@@ -110,7 +110,7 @@ class Test_EnvVar:
 
     def test_agent(self):
         assert scenarios.default.agent_container.environment.get("SOME_SECRET_ENV") == "leaked-env-var"
-        interfaces.agent.validate_all(validate_no_leak("leaked-env-var"), allow_no_data=True)
+        interfaces.mocked_backend.validate_all(validate_no_leak("leaked-env-var"), allow_no_data=True)
 
     def test_logs(self):
         interfaces.library_stdout.assert_absence("leaked-env-var")

@@ -7,8 +7,11 @@ import json
 import os
 import re
 import subprocess
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -22,8 +25,32 @@ REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
 GITHUB_API_URL = "https://api.github.com"
 AUTO_MERGE_ALREADY_ENABLED = "auto merge is already enabled"
+PUSH_ATTEMPTS = 3
+PUSH_RETRY_DELAY_SECONDS = 30
 
 AGENT_VERSION_LOCK = Path("utils/build/virtual_machine/agent.lock")
+
+
+@dataclass(frozen=True)
+class PinUpdate:
+    """Where an automated pin update is committed and how its pull request is described."""
+
+    name: str
+    lock_path: Path
+    branch: str
+    body: str
+
+    def title(self, version: str) -> str:
+        return f"Update {self.name} to {version}"
+
+
+AGENT_PIN_UPDATE = PinUpdate(
+    name="Agent",
+    lock_path=AGENT_VERSION_LOCK,
+    branch=AUTOMATION_BRANCH,
+    body="Automated daily update of the Agent version pinned by SSI tests. "
+    "The PR will merge automatically after all required checks pass.",
+)
 
 
 def normalize_version(version: str) -> str:
@@ -59,10 +86,21 @@ def run_command(
     root: Path,
     args: Sequence[str],
     *,
-    capture_output: bool = False,
+    capture_stdout: bool = False,
+    quiet: bool = False,
     env: Mapping[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(args, cwd=root, check=True, capture_output=capture_output, text=True, env=env)
+    # stderr goes to the job log, as it is the only explanation of a failure: only quiet commands,
+    # whose output may echo a secret, keep it out.
+    return subprocess.run(
+        args,
+        cwd=root,
+        check=True,
+        stdout=subprocess.PIPE if capture_stdout or quiet else None,
+        stderr=subprocess.PIPE if quiet else None,
+        text=True,
+        env=env,
+    )
 
 
 class GitHubApi:
@@ -81,8 +119,13 @@ class GitHubApi:
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )
-        with urllib.request.urlopen(request) as response:  # noqa: S310
-            return json.load(response)
+        try:
+            with urllib.request.urlopen(request) as response:  # noqa: S310
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            # The status alone rarely explains a failure: GitHub details it in the response body.
+            error.add_note(f"{method} {path}: {error.read().decode(errors='replace')}")
+            raise
 
 
 def latest_agent_version(github: GitHubApi) -> str:
@@ -115,29 +158,83 @@ def enable_auto_merge(github: GitHubApi, pull_request_node_id: str) -> None:
         raise RuntimeError("GitHub failed to enable pull request auto-merge")
 
 
-def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str, str]) -> None:
-    run_command(root, ["git", "remote", "set-url", "origin", f"https://github.com/{REPOSITORY}.git"], env=env)
-    run_command(root, ["git", "switch", "--force-create", AUTOMATION_BRANCH], env=env)
-    run_command(root, ["git", "add", str(AGENT_VERSION_LOCK)], env=env)
-    run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
-    run_command(root, ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], env=env)
-    run_command(
+def remote_branch_exists(github: GitHubApi, branch: str = AUTOMATION_BRANCH) -> bool:
+    try:
+        github.request("GET", f"/repos/{REPOSITORY}/git/ref/heads/{branch}")
+    except urllib.error.HTTPError as error:
+        not_found = 404
+        if error.code == not_found:
+            return False
+        raise
+    return True
+
+
+def push_signed_commit_once(root: Path, base_sha: str, github: GitHubApi, env: Mapping[str, str], branch: str) -> str:
+    # The branch is (re)created from main on every run, so its remote counterpart, if any, always
+    # needs a force-update: only its very first push can fast-forward via --create-branch. It is
+    # checked on every attempt, as a failed attempt may already have created it.
+    flag = "--force" if remote_branch_exists(github, branch) else "--create-branch"
+    result = run_command(
         root,
-        ["git", "config", "credential.helper", "!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f"],
+        [
+            "commit-headless",
+            "push",
+            "-T",
+            REPOSITORY,
+            "--branch",
+            branch,
+            "--head-sha",
+            base_sha,
+            flag,
+        ],
+        capture_stdout=True,
         env=env,
     )
-    run_command(root, ["git", "commit", "-m", f"Update Agent to {version}"], env=env)
-    run_command(root, ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH], env=env)
+    return result.stdout.strip()
 
-    head = urllib.parse.quote(f"DataDog:{AUTOMATION_BRANCH}", safe="")
+
+def push_signed_commit(
+    root: Path, base_sha: str, github: GitHubApi, env: Mapping[str, str], branch: str = AUTOMATION_BRANCH
+) -> str:
+    for attempt in range(1, PUSH_ATTEMPTS):
+        try:
+            return push_signed_commit_once(root, base_sha, github, env, branch)
+        except subprocess.CalledProcessError as error:
+            print(
+                f"commit-headless failed with exit code {error.returncode} (attempt {attempt}/{PUSH_ATTEMPTS}), "
+                f"retrying in {PUSH_RETRY_DELAY_SECONDS}s",
+                flush=True,
+            )
+            time.sleep(PUSH_RETRY_DELAY_SECONDS)
+    return push_signed_commit_once(root, base_sha, github, env, branch)
+
+
+def publish_update(
+    root: Path,
+    version: str,
+    github: GitHubApi,
+    env: Mapping[str, str],
+    pin: PinUpdate = AGENT_PIN_UPDATE,
+) -> None:
+    base_sha = run_command(root, ["git", "rev-parse", "HEAD"], capture_stdout=True, env=env).stdout.strip()
+    run_command(root, ["git", "switch", "--force-create", pin.branch], env=env)
+    run_command(root, ["git", "add", str(pin.lock_path)], env=env)
+    run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
+    run_command(
+        root,
+        ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
+        env=env,
+    )
+    run_command(root, ["git", "commit", "-m", pin.title(version)], env=env)
+
+    signed_sha = push_signed_commit(root, base_sha, github, env, pin.branch)
+    print(f"Pushed signed commit {signed_sha} to {pin.branch}")
+
+    head = urllib.parse.quote(f"DataDog:{pin.branch}", safe="")
     pull_requests = github.request("GET", f"/repos/{REPOSITORY}/pulls?head={head}&state=open")
     if not isinstance(pull_requests, list):
         raise TypeError("GitHub returned an invalid pull request list")
-    description: dict[str, object] = {
-        "title": f"Update Agent to {version}",
-        "body": "Automated daily update of the Agent version pinned by SSI tests. "
-        "The PR will merge automatically after all required checks pass.",
-    }
+    description: dict[str, object] = {"title": pin.title(version), "body": pin.body}
     if pull_requests:
         # The branch is force-pushed, so the open PR now describes the previous version: overwrite it.
         existing = pull_requests[0]
@@ -148,7 +245,7 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
         pull_request = github.request(
             "POST",
             f"/repos/{REPOSITORY}/pulls",
-            {"base": "main", "head": AUTOMATION_BRANCH, **description},
+            {"base": "main", "head": pin.branch, **description},
         )
     if not isinstance(pull_request, dict) or not isinstance(pull_request.get("node_id"), str):
         raise TypeError("GitHub returned an invalid pull request")
@@ -175,16 +272,21 @@ def automate_update(root: Path, github: GitHubApi, env: Mapping[str, str], versi
 
 def revoke_token(root: Path, token: str) -> None:
     try:
-        run_command(root, ["dd-octo-sts", "revoke", "-t", token], capture_output=True)
+        run_command(root, ["dd-octo-sts", "revoke", "-t", token], quiet=True)
     except subprocess.CalledProcessError as error:
-        raise RuntimeError(f"dd-octo-sts token revocation failed with exit code {error.returncode}") from None
+        returncode = error.returncode
+    else:
+        return
+    # Raised outside the except clause: chaining the CalledProcessError would print its command line,
+    # which holds the token, while `from None` would also hide the failure the revocation follows, if any.
+    raise RuntimeError(f"dd-octo-sts token revocation failed with exit code {returncode}")
 
 
 def run_automation(root: Path, version: str | None = None) -> bool:
     scope_args = ["--scope", REPOSITORY, "--policy", OCTO_STS_POLICY]
     run_command(root, ["dd-octo-sts", "version"])
     run_command(root, ["dd-octo-sts", "debug", *scope_args])
-    token = run_command(root, ["dd-octo-sts", "token", *scope_args], capture_output=True).stdout.strip()
+    token = run_command(root, ["dd-octo-sts", "token", *scope_args], capture_stdout=True).stdout.strip()
     if not token:
         raise RuntimeError("dd-octo-sts returned an empty GitHub token")
 

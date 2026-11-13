@@ -1,5 +1,10 @@
 
 FROM python:3.11-slim
+
+# BuildKit's docker-container driver (used in GitLab CI) injects OTEL_TRACES_EXPORTER=otlp and a unix:// gRPC
+# endpoint into RUN steps. Tracers honoring it can fail at build time. ARG only applies at build time.
+ARG OTEL_TRACES_EXPORTER=none
+
 ARG FRAMEWORK_VERSION
 
 # install bin dependancies

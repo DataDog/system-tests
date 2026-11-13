@@ -1,6 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
+# Pass [version] to pin local SDK packages exactly; a plain version is a minimum.
+ARG DD_TRACE_PACKAGE_VERSION=*
+ARG DD_OPENFEATURE_PACKAGE_VERSION=*
+
 # Copy binaries folder for local NuGet packages (for testing with local builds)
 COPY binaries/ /binaries/
 RUN if ls /binaries/*.nupkg 1> /dev/null 2>&1; then \
@@ -9,13 +13,23 @@ RUN if ls /binaries/*.nupkg 1> /dev/null 2>&1; then \
 
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
-RUN dotnet restore
+RUN dotnet restore \
+    -p:DatadogTracePackageVersion="$DD_TRACE_PACKAGE_VERSION" \
+    -p:DatadogOpenFeaturePackageVersion="$DD_OPENFEATURE_PACKAGE_VERSION"
 
 # dotnet publish
 COPY utils/build/docker/dotnet/weblog/* .
-RUN dotnet publish --no-restore -c Release -f net8.0 -o out
+RUN dotnet publish --no-restore -c Release -f net8.0 -o out \
+    -p:DatadogTracePackageVersion="$DD_TRACE_PACKAGE_VERSION" \
+    -p:DatadogOpenFeaturePackageVersion="$DD_OPENFEATURE_PACKAGE_VERSION"
 
 #########
+
+# reads the version of an assembly, like the weblog healthcheck does for Datadog.Trace
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
+WORKDIR /src
+COPY utils/build/docker/dotnet/GetAssemblyVersion ./
+RUN dotnet publish -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
@@ -49,6 +63,10 @@ ENV DOTNET_ThreadPool_ForceMinIOCompletionThreads=32
 
 # copy the dotnet app (built above)
 COPY --from=build-app /app/out .
+
+# read by build.sh, to label the image with it: the version of the installed Datadog.Trace, that the healthcheck loads
+COPY --from=build-version-tool /out /opt/system-tests-version-tool
+RUN dotnet /opt/system-tests-version-tool/GetAssemblyVersion.dll /opt/datadog/net6.0/Datadog.Trace.dll > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 CMD [ "./app.sh" ]

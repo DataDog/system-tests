@@ -10,7 +10,7 @@ from utils import features, interfaces, scenarios, weblog
 from .utils import CWS_EVENTS_PATH, cws_event_mentioning, cws_self_test_succeeded
 
 
-@features.not_reported
+@features.thread_context_sharing
 @scenarios.thread_context_sharing
 class Test_ThreadContextSharing:
     """A tracer that shares the trace_id/span_id of the span active on a thread with system-probe
@@ -22,13 +22,13 @@ class Test_ThreadContextSharing:
     def setup_open_file_carries_trace_context(self):
         # CWS drops events generated before its pipeline is live, so hold the request back
         # until the agent's self test reports success.
-        self.cws_ready = interfaces.agent.wait_for(cws_self_test_succeeded, timeout=50)
+        self.cws_ready = interfaces.mocked_backend.wait_for(cws_self_test_succeeded, timeout=50)
 
         self.canary_path = f"/tmp/system-tests-thread-context-sharing-{uuid.uuid4()}"
         self.response = weblog.get("/security/thread_context_sharing", params={"path": self.canary_path})
 
         # unique per request so we can pick out this test's own event among concurrent tests
-        interfaces.agent.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: cws_event_mentioning(data, self.canary_path) is not None,
             timeout=35,
         )
@@ -43,7 +43,7 @@ class Test_ThreadContextSharing:
         expected_span_id = str(body["span_id"])
 
         event = None
-        for data in interfaces.agent.get_data(CWS_EVENTS_PATH):
+        for data in interfaces.mocked_backend.get_data(CWS_EVENTS_PATH):
             event = cws_event_mentioning(data, self.canary_path)
             if event is not None:
                 break

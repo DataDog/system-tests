@@ -40,7 +40,7 @@ class Test_Client_Stats:
         ok_top_hits = 0
         no_content_hits = 0
         no_content_top_hits = 0
-        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
+        for s in interfaces.mocked_backend.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -71,7 +71,7 @@ class Test_Client_Stats:
     def test_obfuscation(self):
         hits = 0
         top_hits = 0
-        for s in interfaces.agent.get_stats():
+        for s in interfaces.mocked_backend.get_stats():
             if s["Type"] != "sql" or "?" not in s["Resource"]:
                 continue
             logger.debug(f"asserting on {s}")
@@ -85,7 +85,7 @@ class Test_Client_Stats:
         assertions to `test_client_stats` method.
         """
         root_found = False
-        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
+        for s in interfaces.mocked_backend.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
@@ -327,7 +327,7 @@ class Test_Stats_Service_Source:
     def test_srv_src(self):
         """Test that at least one stat bucket has the srv_src field set"""
         srv_src_found = False
-        for s in interfaces.agent.get_stats():
+        for s in interfaces.mocked_backend.get_stats():
             logger.debug(f"asserting on {s}")
             if s.get("srv_src"):
                 srv_src_found = True
@@ -427,7 +427,7 @@ class Test_Peer_Tags:
         client_stats_found = False
         server_stats_found = False
 
-        for s in interfaces.agent.get_stats():
+        for s in interfaces.mocked_backend.get_stats():
             resource = s.get("Resource", "")
             span_kind = s.get("SpanKind", "")
             peer_tags = s.get("PeerTags", [])
@@ -705,7 +705,7 @@ class Test_Time_Bucketing:
     def test_agent_aggregated_stats(self):
         """Test that agent-aggregated stats use 2-second buckets with 1-second offset"""
 
-        for data in interfaces.agent.get_data(path_filters="/api/v0.2/stats"):
+        for data in interfaces.mocked_backend.get_data(path_filters="/api/v0.2/stats"):
             payload = data["request"]["content"]
             if not payload["ClientComputed"] or not payload["Stats"]:
                 continue

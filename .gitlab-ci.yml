@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.12.1/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
     inputs:
       stage: "e2e"
@@ -27,10 +27,37 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
-compute_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+resolve_ssi_pr_title:
+  # Not $CI_IMAGE: this job runs before build_ci_image, so it must use an already published ci-runner image
+  image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
   tags: ["arch:amd64"]
   stage: configure
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  rules:
+    - if: >-
+        $CI_PROJECT_PATH == "DataDog/system-tests" &&
+        $CI_PIPELINE_SOURCE == "push" &&
+        $CI_COMMIT_BRANCH &&
+        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
+        ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") &&
+        ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
+    - when: never
+  script:
+    - bash utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh
+  artifacts:
+    reports:
+      dotenv: pr-title.env
+
+compute_pipeline:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
+  tags: ["arch:amd64"]
+  stage: configure
+  needs:
+    - job: resolve_ssi_pr_title
+      artifacts: true
+      optional: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
@@ -44,7 +71,15 @@ compute_pipeline:
         git fetch --all  # Ensure all branches are available
         git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
         git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
-        if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        if [ -n "${GITHUB_PR_BASE_SHA:-}" ]; then
+          git cat-file -e "${GITHUB_PR_BASE_SHA}^{commit}" 2>/dev/null || git fetch origin "$GITHUB_PR_BASE_SHA"
+          if ! BASE_COMMIT=$(git merge-base "$GITHUB_PR_BASE_SHA" "$CI_COMMIT_SHA"); then
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --unshallow origin
+            fi
+            BASE_COMMIT=$(git merge-base "$GITHUB_PR_BASE_SHA" "$CI_COMMIT_SHA")
+          fi
+        elif [ "$CI_COMMIT_REF_NAME" = "main" ]; then
           # merge-base with origin/main is the tip itself, so that diff is empty.
           # Diff the commits introduced by this push.
           if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] && [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
@@ -61,11 +96,9 @@ compute_pipeline:
           BASE_COMMIT=$(git merge-base origin/main "$CI_COMMIT_REF_NAME")
         fi
         echo "Branch was created from commit--> $BASE_COMMIT"
-        if [ "$CI_COMMIT_REF_NAME" = "main" ] && [ "$CI_PIPELINE_SOURCE" = "push" ]; then
-          # Compare manifests from this push with the same base used for modified_files.txt.
-          rm -rf original/manifests
-          git archive "$BASE_COMMIT" -- manifests/ | tar -xC original/
-        fi
+        # Compare manifests with the same base used for modified_files.txt.
+        rm -rf original/manifests
+        git archive "$BASE_COMMIT" -- manifests/ | tar -xC original/
         git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
         # Deliberate AWS SSI opt-in; shared callers keep the full matrix on main.
@@ -86,12 +119,21 @@ compute_pipeline:
            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
           source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      for library in nodejs java dotnet python php ruby; do
+        selected_scenarios="$scenarios"
+        selected_scenario_groups="$scenarios_groups"
+        if [ "${ssi_libraries+x}" = "x" ] && [[ " $ssi_libraries " != *" $library "* ]]; then
+          selected_scenarios=""
+          selected_scenario_groups=""
+        fi
+        python utils/scripts/compute-workflow-parameters.py "$library" \
+          -s "$selected_scenarios" \
+          -g "$selected_scenario_groups" \
+          --parametric-job-count 1 \
+          --ci-environment "${CI_ENVIRONMENT}" \
+          --format gitlab
+      done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
@@ -113,6 +155,7 @@ nodejs_ssi_pipeline:
   needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: nodejs_ssi_gitlab_pipeline.yml
@@ -128,6 +171,7 @@ java_ssi_pipeline:
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: java_ssi_gitlab_pipeline.yml
@@ -143,6 +187,7 @@ dotnet_ssi_pipeline:
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: dotnet_ssi_gitlab_pipeline.yml
@@ -158,6 +203,7 @@ python_ssi_pipeline:
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: python_ssi_gitlab_pipeline.yml
@@ -173,6 +219,7 @@ php_ssi_pipeline:
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: php_ssi_gitlab_pipeline.yml
@@ -188,6 +235,7 @@ ruby_ssi_pipeline:
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: ruby_ssi_gitlab_pipeline.yml
@@ -212,7 +260,7 @@ delete_amis:
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
-  timeout: 3h
+  timeout: 6h
 
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
@@ -289,8 +337,8 @@ check_merge_labels:
     - dd-octo-sts version
     - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
     - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
   script:
     - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
@@ -319,6 +367,26 @@ update_agent_version:
   rules:
     - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
 
+update_injector_version:
+  image: $CI_IMAGE
+  tags:
+    - arch:amd64
+  stage: system-tests-utils
+  resource_group: update-injector-version
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  script:
+    # The updater reuses the Agent updater's publishing code, which it imports from the repository.
+    - source /system-tests/venv/bin/activate
+    - PYTHONPATH=$(pwd) python utils/scripts/update_injector_version.py
+  rules:
+    - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
+
 generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags: ["docker-in-docker:amd64"]
@@ -326,8 +394,8 @@ generate_system_tests_lambda_proxy_image:
   stage: system-tests-utils
   allow_failure: false
   before_script:
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
       - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i lambda-proxy
@@ -385,17 +453,23 @@ system_tests_param:
       python3 -c "
       import json, shlex
       with open('raw_params.txt') as f:
-          for line in f:
-              line = line.strip()
-              if '=' not in line: continue
-              key, val = line.split('=', 1)
-              val = json.loads(val)
-              if key == 'libraries': print('export LIBRARIES=' + shlex.quote(str(val)))
-              elif key == 'scenarios': print('export SCENARIOS=' + shlex.quote(str(val)))
-              elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
+          params = dict(line.strip().split('=', 1) for line in f if '=' in line)
+      params = {key: json.loads(val) for key, val in params.items()}
+      if 'library_weblog_scenarios' in params and 'libraries' not in params:
+          # alongside library_weblog_scenarios, build_pipeline.py needs libraries for scenarios/scenarios_groups
+          params.pop('scenarios', None)
+          params.pop('scenarios_groups', None)
+      variables = {
+          'LIBRARIES': 'libraries',
+          'SCENARIOS': 'scenarios',
+          'SCENARIO_GROUPS': 'scenarios_groups',
+          'LIBRARY_WEBLOG_SCENARIOS': 'library_weblog_scenarios',
+      }
+      for variable, key in variables.items():
+          if key in params: print('export ' + variable + '=' + shlex.quote(str(params[key])))
       " > set_vars.sh
       source set_vars.sh
-    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,OTEL_COLLECTOR_E2E'
+    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:
@@ -410,10 +484,15 @@ build_ci_image:
   script:
     - python3 utils/ci/gitlab/build_ci_image.py
   rules:
+    # Compared to main, not to the previous push: a build skipped on a push (e.g. a failed pipeline) must run on the next
+    # one, otherwise jobs using the new $CI_IMAGE can't pull it. It only builds the images missing from the registry.
     - changes:
-        - utils/ci/gitlab/docker/**/*
-        - requirements.txt
-        - utils/ci/gitlab/main.yml
+        paths:
+          - utils/ci/gitlab/docker/**/*
+          - requirements.txt
+          - utils/ci/gitlab/main.yml
+          - utils/ci/gitlab/validate_param_env.py
+        compare_to: refs/heads/main
 
 # ──────────────────────────────────────────────
 # Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
@@ -456,11 +535,13 @@ mirror_images:
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
-    - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
+    # Download to a file so retries discard partial responses before extraction.
+    - curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -sSL --output /tmp/crane.tar.gz "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+    - tar -xzf /tmp/crane.tar.gz -C /usr/local/bin crane
     # This is the only job that pulls from Docker Hub (the mirror sources), so it
     # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
     - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
   script:
     # Shares its CI_IMAGE-vs-computed-tag check with the build_ci_image job.
@@ -497,26 +578,51 @@ mirror_images:
 # overwrites existing ones), so it is safe to build ahead of merge. Since new tags never
 # replace old ones. A stale committed base-images.lock.json makes the job fail after
 # publishing the missing images, with instructions for the follow-up lock update.
+#
+# Images are multi-arch (linux/amd64 + linux/arm64, see PLATFORMS in build_base_images.py)
+# so they also run natively on Apple Silicon. docker-in-docker runners cannot build
+# multi-platform images, so each architecture is built natively on its own runner and
+# pushed as <tag>-<arch>; build_base_images then merges them into the multi-arch <tag>.
+# build_base_images.py is stdlib-only, so these jobs use the multi-arch docker image from
+# DataDog/images (docker/29.4.0-noble-py3: docker, buildx, python3, git) instead of the
+# amd64-only $CI_IMAGE, and need no venv. That image has no AWS CLI, so it is installed first.
 # ──────────────────────────────────────────────
 
+.build_base_images_base:
+  image: registry.ddbuild.io/images/docker:29.4.0-noble-py3
+  stage: e2e
+  needs: []
+  before_script:
+    - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+    # Needed by --changed-only for the merge-base (CI clones are shallow); fails open if missing.
+    - git fetch origin main
+  rules:
+    - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
+
+build_base_images_amd64:
+  extends: .build_base_images_base
+  tags:
+    - docker-in-docker:amd64
+  script:
+    - python3 utils/base_images/build_base_images.py --changed-only --platform linux/amd64
+
+build_base_images_arm64:
+  extends: .build_base_images_base
+  tags:
+    - docker-in-docker:arm64
+  script:
+    - python3 utils/base_images/build_base_images.py --changed-only --platform linux/arm64
+
 build_base_images:
-  image: $CI_IMAGE
+  extends: .build_base_images_base
   tags:
     - docker-in-docker:amd64
   needs:
-    - job: build_ci_image
+    - job: build_base_images_amd64
       artifacts: false
-      optional: true
-  stage: e2e
-  before_script:
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-    - ln -sf /system-tests/venv venv
-    - source venv/bin/activate
-    # Needed by --changed-only for the merge-base (CI clones are shallow); fails open if missing.
-    - git fetch origin main
+    - job: build_base_images_arm64
+      artifacts: false
   script:
-    - python utils/base_images/build_base_images.py --changed-only
-  rules:
-    - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
+    - python3 utils/base_images/build_base_images.py --changed-only --merge

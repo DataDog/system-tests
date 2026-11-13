@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import stat
@@ -252,8 +253,7 @@ def process_activation_branch(
         _resolve_bot_review_threads(options.github.repository, pr_number, runner)
 
     if should_enable_auto_merge(owner, library, options.auto_merge_opt_outs):
-        print(f"Enabling auto-merge on PR #{pr_number}")  # noqa: T201
-        _run_checked(["gh", "pr", "merge", pr_number, "--auto", "--squash"], runner)
+        _enable_auto_merge(pr_number, runner)
 
 
 def owner_from_branch(branch_name: str) -> str:
@@ -376,6 +376,39 @@ mutation($threadId: ID!) {
             ["gh", "api", "graphql", "-f", f"query={mutation}", "-F", f"threadId={thread_id}"],
             runner,
         )
+
+
+def _enable_auto_merge(pr_number: str, runner: CommandRunner) -> None:
+    """Enable squash auto-merge on a PR without ever attempting a direct merge on stale state.
+
+    `gh pr merge --auto` merges directly when it believes the PR is already mergeable. Right after a
+    force-push it reads the state of the previous commit (approved, green), and GitHub then rejects the
+    direct merge because the push dismissed the approval and restarted the checks. Instead:
+    - skip PRs that already have auto-merge enabled, since it survives pushes;
+    - otherwise call the enablePullRequestAutoMerge mutation directly. If GitHub refuses because the PR
+      is already in clean status (mergeable right now), merge it normally.
+    """
+    pr_state = json.loads(_run_checked(["gh", "pr", "view", pr_number, "--json", "id,autoMergeRequest"], runner).stdout)
+    if pr_state.get("autoMergeRequest") is not None:
+        print(f"Auto-merge is already enabled on PR #{pr_number}")  # noqa: T201
+        return
+
+    print(f"Enabling auto-merge on PR #{pr_number}")  # noqa: T201
+    mutation = """
+mutation($pullRequestId: ID!) {
+  enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: SQUASH}) {
+    pullRequest { number }
+  }
+}
+"""
+    enable = runner.run(["gh", "api", "graphql", "-f", f"query={mutation}", "-f", f"pullRequestId={pr_state['id']}"])
+    if enable.returncode == 0:
+        return
+    if "clean status" not in f"{enable.stderr}\n{enable.stdout}".lower():
+        raise RuntimeError(_command_error("Command failed", enable))
+
+    print(f"PR #{pr_number} is already mergeable, merging it directly")  # noqa: T201
+    _run_checked(["gh", "pr", "merge", pr_number, "--squash"], runner)
 
 
 def _api_count(command: Sequence[str], runner: CommandRunner) -> int:

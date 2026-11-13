@@ -98,3 +98,11 @@ class FrameworkTestClientApi(TestClientApi):
         if raise_for_status:
             resp.raise_for_status()
         return resp
+
+    def close_connections(self) -> None:
+        """Drop the pooled keep-alive connections, so the next request opens a fresh one.
+
+        Needed after a response the server closes the connection behind (e.g. uvicorn after an
+        unhandled exception), which the pool would otherwise reuse and fail with RemoteDisconnected.
+        """
+        self._session.close()

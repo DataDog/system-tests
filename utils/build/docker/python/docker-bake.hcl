@@ -13,7 +13,9 @@ group "default" {
     "flask-poc",
     "uwsgi-poc",
     "tornado",
+    "aiohttp",
     "openai-py",
+    "parametric",
   ]
 }
 
@@ -63,8 +65,20 @@ target "tornado" {
   tags       = ["datadog/system-tests:tornado.base"]
 }
 
+target "aiohttp" {
+  inherits   = ["_common"]
+  dockerfile = "aiohttp.base.Dockerfile"
+  tags       = ["datadog/system-tests:aiohttp.base"]
+}
+
 target "openai-py" {
   inherits   = ["_common"]
   dockerfile = "openai-py.base.Dockerfile"
   tags       = ["datadog/system-tests:openai-py.base"]
+}
+
+target "parametric" {
+  inherits   = ["_common"]
+  dockerfile = "parametric.base.Dockerfile"
+  tags       = ["datadog/system-tests:python-parametric.base"]
 }

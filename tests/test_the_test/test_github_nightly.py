@@ -54,6 +54,37 @@ def result(stdout: str = "", returncode: int = 0, stderr: str = "") -> CommandRe
     return CommandResult(args=[], returncode=returncode, stdout=stdout, stderr=stderr)
 
 
+def commands(runner: FakeRunner) -> list[list[str]]:
+    return [command.args for command in runner.commands]
+
+
+NEW_PR_RESULTS = (
+    result(""),  # no existing PR
+    result(),  # git checkout
+    result("main-sha\n"),  # git rev-parse main
+    result("commit-sha\n"),  # git log
+    result(returncode=2),  # remote branch does not exist
+    result("signed-sha\n"),  # commit-headless
+    result(),  # gh pr create
+    result("456\n"),  # gh pr list after create
+    result(),  # gh pr ready
+    result(),  # no bot review threads
+)
+
+EXISTING_PR_UPDATE_RESULTS = (
+    result("123\n"),  # existing PR
+    result(),  # no bot review threads
+    result("0\n"),  # human comments
+    result("0\n"),  # human reviews
+    result("1\n"),  # commit count
+    result(),  # git checkout
+    result("main-sha\n"),  # git rev-parse main
+    result("commit-sha\n"),  # git log
+    result(),  # remote branch exists
+    result("signed-sha\n"),  # commit-headless --force
+)
+
+
 def options(tmp_path: Path) -> NightlyOptions:
     commit_headless = tmp_path / "commit-headless"
     commit_headless.write_text("#!/bin/sh\n", encoding="utf-8")
@@ -264,6 +295,8 @@ class Test_GithubNightly:
                 result("789\n"),  # gh pr list after create
                 result(),  # gh pr ready
                 result(),  # no bot review threads
+                result('{"id": "PR_789", "autoMergeRequest": null}'),  # gh pr view
+                result(),  # enablePullRequestAutoMerge
             ]
         )
 
@@ -301,7 +334,8 @@ class Test_GithubNightly:
         )
 
         assert ["git", "checkout", "easy-win/asm-libraries/python"] not in [command.args for command in runner.commands]
-        assert ["gh", "pr", "merge", "123", "--auto", "--squash"] not in [command.args for command in runner.commands]
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))
+        assert not any("enablePullRequestAutoMerge" in " ".join(command) for command in commands(runner))
         assert [command.args[-1] for command in runner.commands if command.args[-1].startswith("threadId=")] == [
             "threadId=thread-1",
             "threadId=thread-2",
@@ -313,17 +347,9 @@ class Test_GithubNightly:
     def test_auto_merge_runs_for_non_opted_out_pair(self, tmp_path: Path) -> None:
         runner = FakeRunner(
             [
-                result(""),  # no existing PR
-                result(),  # git checkout
-                result("main-sha\n"),  # git rev-parse main
-                result("commit-sha\n"),  # git log
-                result(returncode=2),  # remote branch does not exist
-                result("signed-sha\n"),  # commit-headless
-                result(),  # gh pr create
-                result("456\n"),  # gh pr list after create
-                result(),  # gh pr ready
-                result(),  # no bot review threads
-                result(),  # gh pr merge --auto --squash
+                *NEW_PR_RESULTS,
+                result('{"id": "PR_456", "autoMergeRequest": null}'),  # gh pr view
+                result(),  # enablePullRequestAutoMerge
             ]
         )
 
@@ -334,7 +360,91 @@ class Test_GithubNightly:
             runner,
         )
 
-        assert ["gh", "pr", "merge", "456", "--auto", "--squash"] in [command.args for command in runner.commands]
+        assert ["gh", "pr", "view", "456", "--json", "id,autoMergeRequest"] in commands(runner)
+        enable_command = runner.commands[-1].args
+        assert "enablePullRequestAutoMerge" in " ".join(enable_command)
+        assert "mergeMethod: SQUASH" in " ".join(enable_command)
+        assert enable_command[-1] == "pullRequestId=PR_456"
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))
+
+    def test_auto_merge_not_re_enabled_on_updated_pr(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                *EXISTING_PR_UPDATE_RESULTS,
+                result('{"id": "PR_123", "autoMergeRequest": {"mergeMethod": "SQUASH"}}'),  # gh pr view
+            ]
+        )
+
+        process_activation_branch(
+            "easy-win/asm-libraries/python",
+            "python",
+            options(tmp_path),
+            runner,
+        )
+
+        assert runner.commands[-1].args == ["gh", "pr", "view", "123", "--json", "id,autoMergeRequest"]
+        assert not any("enablePullRequestAutoMerge" in " ".join(command) for command in commands(runner))
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))
+
+    def test_auto_merge_enabled_on_updated_pr_without_auto_merge(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                *EXISTING_PR_UPDATE_RESULTS,
+                result('{"id": "PR_123", "autoMergeRequest": null}'),  # gh pr view
+                result(),  # enablePullRequestAutoMerge
+            ]
+        )
+
+        process_activation_branch(
+            "easy-win/asm-libraries/python",
+            "python",
+            options(tmp_path),
+            runner,
+        )
+
+        assert "enablePullRequestAutoMerge" in " ".join(runner.commands[-1].args)
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))
+
+    def test_auto_merge_clean_status_falls_back_to_direct_merge(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                *NEW_PR_RESULTS,
+                result('{"id": "PR_456", "autoMergeRequest": null}'),  # gh pr view
+                result(
+                    returncode=1,
+                    stderr="GraphQL: Pull request Pull request is in clean status (enablePullRequestAutoMerge)",
+                ),
+                result(),  # gh pr merge --squash
+            ]
+        )
+
+        process_activation_branch(
+            "easy-win/asm-libraries/python",
+            "python",
+            options(tmp_path),
+            runner,
+        )
+
+        assert runner.commands[-1].args == ["gh", "pr", "merge", "456", "--squash"]
+
+    def test_auto_merge_other_errors_are_raised(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                *NEW_PR_RESULTS,
+                result('{"id": "PR_456", "autoMergeRequest": null}'),  # gh pr view
+                result(returncode=1, stderr="GraphQL: Base branch was modified (enablePullRequestAutoMerge)"),
+            ]
+        )
+
+        with pytest.raises(RuntimeError, match="Base branch was modified"):
+            process_activation_branch(
+                "easy-win/asm-libraries/python",
+                "python",
+                options(tmp_path),
+                runner,
+            )
+
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))
 
     def test_auto_merge_skipped_for_opted_out_pair(self, tmp_path: Path) -> None:
         runner = FakeRunner(
@@ -360,4 +470,6 @@ class Test_GithubNightly:
         )
 
         assert runner.commands[6].args[:3] == ["gh", "pr", "create"]
-        assert ["gh", "pr", "merge", "456", "--auto", "--squash"] not in [command.args for command in runner.commands]
+        assert ["gh", "pr", "view", "456", "--json", "id,autoMergeRequest"] not in commands(runner)
+        assert not any("enablePullRequestAutoMerge" in " ".join(command) for command in commands(runner))
+        assert not any(command[:3] == ["gh", "pr", "merge"] for command in commands(runner))

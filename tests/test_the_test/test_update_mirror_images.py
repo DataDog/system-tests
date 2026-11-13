@@ -129,7 +129,9 @@ class Test_UpdateMirrorImages:
         def fake_run_mirror_images(*args: str) -> None:
             if args[0] != "add":
                 return
-            body = "".join(f'- "{image}"\n' for image in args[1:])
+            # Like the real tool, `add` merges into whatever the file already lists.
+            existing = yaml.safe_load(mirror_yaml.read_text(encoding="utf-8")) or []
+            body = "".join(f'- "{image}"\n' for image in sorted({*existing, *args[1:]}))
             if serializer_emits_marker:
                 body = "---\n" + body
             mirror_yaml.write_text(body, encoding="utf-8")  # comments dropped, as the real tool does
@@ -150,14 +152,37 @@ class Test_UpdateMirrorImages:
 
     def test_main_canonicalizes_an_unchanged_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
-        monkeypatch.setattr(update_mirror_images, "_run_mirror_images", lambda *_args: None)  # adds nothing
-        original = '# manually edited header\n- "redis:7"\n'
-        mirror_yaml.write_text(original, encoding="utf-8")
+        mirror_yaml.write_text('# manually edited header\n- "redis:7"\n', encoding="utf-8")
 
         update_mirror_images.main(set(), skip_lock=True)
 
         content = mirror_yaml.read_text(encoding="utf-8")
         assert content == update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+
+    def test_main_replaces_the_image_list(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Images no longer required by any scenario are dropped, not kept around."""
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        mirror_yaml.write_text(
+            update_mirror_images.MIRROR_YAML_HEADER + '- "alpine:3.22"\n- "redis:6"\n- "redis:7"\n',
+            encoding="utf-8",
+        )
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content == update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+
+    def test_main_refuses_an_empty_image_set(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """An empty image set means the enumeration is broken: fail without touching the manifest."""
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        monkeypatch.setattr(update_mirror_images, "collect_images", lambda _excluded: [])
+        original = update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+        mirror_yaml.write_text(original, encoding="utf-8")
+
+        with pytest.raises(SystemExit, match="no mirrorable images"):
+            update_mirror_images.main(set(), skip_lock=True)
+
+        assert mirror_yaml.read_text(encoding="utf-8") == original
 
     def test_main_writes_the_default_header_on_first_run(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
@@ -183,3 +208,17 @@ class Test_UpdateMirrorImages:
     def test_main_rejects_refresh_with_skip_lock(self):
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
             update_mirror_images.main(set(), skip_lock=True, refresh=True)
+
+    def test_collect_images_includes_parametric_images(self):
+        """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
+        images = set(update_mirror_images.collect_images(set()))
+
+        # public image, and system-tests base image resolved from its alias
+        assert "golang:1.26" in images
+        assert any(image.startswith("datadog/system-tests:python-parametric.base-") for image in images)
+
+    def test_collect_images_skips_parametric_images_when_excluded(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(update_mirror_images, "_parametric_images", lambda: {"parametric:only"})
+
+        assert "parametric:only" in update_mirror_images.collect_images(set())
+        assert "parametric:only" not in update_mirror_images.collect_images({"PARAMETRIC"})

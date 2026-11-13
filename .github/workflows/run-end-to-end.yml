@@ -107,7 +107,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
-      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
+      SYSTEM_TESTS_WEBLOG: ${{ inputs.weblog }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -127,7 +127,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
-      if : ${{ inputs.binaries_artifact != '' }}
+      if: ${{ inputs.binaries_artifact != '' }}
       uses: ./.github/actions/download_artifact
       with:
         name: ${{ inputs.binaries_artifact }}
@@ -302,9 +302,18 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION
+    - name: Run FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT"')
+      run: ./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT
+    - name: Run FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED"')
+      run: ./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+    - name: Run FEATURE_FLAGGING_EVP_STRESS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_STRESS"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_STRESS
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
@@ -475,45 +484,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run OTEL_TRACING_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_TRACING_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_METRIC_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_METRIC_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_LOG_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_LOG_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
@@ -523,12 +493,18 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_SCA scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_SCA"')
+      run: ./run.sh APPSEC_LAMBDA_SCA
     - name: Run APPSEC_LAMBDA_RASP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
       run: ./run.sh APPSEC_LAMBDA_RASP
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
+    - name: Run OTEL_STARTUP_LOGS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_STARTUP_LOGS"')
+      run: ./run.sh OTEL_STARTUP_LOGS
     - name: Run OTEL_SEMANTICS_OTLP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP"')
       run: ./run.sh OTEL_SEMANTICS_OTLP
@@ -544,13 +520,6 @@ jobs:
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
-    - name: Run OTEL_COLLECTOR_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_COLLECTOR_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
@@ -595,9 +564,12 @@ jobs:
         path: artifact.tar.gz
         retention-days: ${{ inputs.artifact_retention_days }}
 
-    - name: Push results to Test Optimization
-      if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-      uses: ./.github/actions/push_to_test_optim
+    - name: Send data to datadog CI
+      if: "!cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)"
+      continue-on-error: true
+      uses: ./.github/actions/datadog_ci
       with:
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}
+        push_to_test_optimization: ${{ steps.build.outcome == 'success' && inputs.push_to_test_optimization }}
+        _is_official_system_tests_job: true

@@ -284,9 +284,11 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
-        # Build protobuf on test runner side, send bytes to proxy
-        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
-        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+        # Build protobuf on test runner side, send bytes to the backend the agent polls
+        rc_response = MockedBackendResponse(
+            path="/api/v0.1/configurations", content=build_rc_configurations_protobuf(raw_payload)
+        )
+        context.scenario.mocked_backend_container.client.set_mocked_responses([rc_response])  # type: ignore[attr-defined]
     elif target == "tracer":
         assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
@@ -432,7 +434,12 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     extra_timeout = 10  # give more room for startup
     timeout = len(commands) * rc_poll_interval + extra_timeout
     logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
-    library.wait_for(all_payload_sent, timeout=timeout)
+    wait_started = time.monotonic()
+    completed = library.wait_for(all_payload_sent, timeout=timeout)
+    elapsed = time.monotonic() - wait_started
+    logger.info(
+        f"RC sequence wait {'completed' if completed else 'timed out'} after {elapsed:.3f}s (timeout={timeout}s)"
+    )
 
 
 def _create_base_rcm():
@@ -645,8 +652,9 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
-# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
+# The per-setting capabilities replaced by the unified SDK_CONFIGURATION contract. Their presence
+# alongside bit 49 is ambiguous: Node.js intentionally advertises both families, while libdatadog
+# uses bit 49 for ASM_RAW_RESPONSE_BODY and still consumes the legacy lib_config payload.
 LEGACY_APM_TRACING_CAPABILITIES = frozenset(
     {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
@@ -659,30 +667,29 @@ LEGACY_APM_TRACING_CAPABILITIES = frozenset(
 )
 
 
-def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
+def resolve_sdk_configuration_contract(
+    capabilities: set[Capabilities], *, library_name: str | None = None
+) -> bool | None:
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
     far cannot tell, so the caller should look again later.
 
-    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
-    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
-    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
-    dd-trace-php advertises it while still reading `lib_config`.
-
-    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
-    is what distinguishes the two. Absence only counts once the library has actually registered its
-    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
-    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
-    and would otherwise be mistaken for the unified contract.
+    Waiting for an APM capability prevents an unrelated product that registers first from deciding
+    which APM_TRACING payload shape to use. When bit 49 appears with legacy per-setting bits, only
+    Node.js treats it as SDK_CONFIGURATION; libdatadog libraries use the same bit for
+    ASM_RAW_RESPONSE_BODY and still consume lib_config.
     """
     if not capabilities & APM_TRACING_CAPABILITIES:
         return None
 
-    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+    if Capabilities.SDK_CONFIGURATION not in capabilities:
         return False
 
-    return Capabilities.SDK_CONFIGURATION in capabilities
+    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+        return library_name == "nodejs"
+
+    return True
 
 
 # Memoized once the capabilities are conclusive, both to skip re-scanning the whole /v0.7/config
@@ -691,11 +698,14 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
 _sdk_configuration_support: dict[str, bool] = {}
 
 
-def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabilities]]) -> bool:
+def resolve_sdk_configuration_support(
+    get_capabilities: Callable[[], set[Capabilities]], *, library_name: str | None = None
+) -> bool:
     """Whether the library reads its APM_TRACING settings from `sdk_config` instead of `lib_config`.
 
-    `get_capabilities` returns the capabilities the library currently advertises. How to obtain
-    them, and how long to wait for them, differs between the end-to-end interface and the
+    `get_capabilities` returns the capabilities the library currently advertises. `library_name`
+    resolves bit 49 when it appears alongside legacy per-setting capabilities. How to obtain the
+    capabilities, and how long to wait for them, differs between the end-to-end interface and the
     parametric test agent, so that part stays with the caller; everything after it is shared.
 
     Falls back to `lib_config` whenever the answer is not yet knowable, which is the safe
@@ -711,7 +721,7 @@ def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabil
         logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
         return False
 
-    supported = resolve_sdk_configuration_contract(capabilities)
+    supported = resolve_sdk_configuration_contract(capabilities, library_name=library_name)
     if supported is None:
         logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
         return False
@@ -732,7 +742,7 @@ def library_supports_sdk_configuration() -> bool:
         logger.warning("No remote config request seen, assuming the library does not support SDK_CONFIGURATION")
         return False
 
-    return resolve_sdk_configuration_support(library.get_rc_capabilities)
+    return resolve_sdk_configuration_support(library.get_rc_capabilities, library_name=context.library.name)
 
 
 def build_apm_tracing_command(
@@ -911,11 +921,13 @@ def send_combined_apm_tracing_and_debugger_command(
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
     version: int = 1,
+    wait_for_acknowledged_status: bool = True,
 ) -> RemoteConfigStateResults:
     """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
     Note: This function updates prev_payloads in place with the new config, replacing
     all previous entries. This allows callers to track state across sequential calls.
+    wait_for_acknowledged_status is passed to send_state.
     """
     raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command(
         version,
@@ -937,7 +949,7 @@ def send_combined_apm_tracing_and_debugger_command(
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def _json_to_base64(json_object: dict) -> str:

@@ -48,9 +48,17 @@ def normalize_approval_data(data: object) -> object:
     as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
     relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
     comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
+
+    The ``_dd.sdk.otlp_export`` tag describes trace export routing, and the ``_dd.appsec.normalized_route``
+    tag describes the API Security route, not exception replay. Their presence varies across tracer
+    versions, so exclude them from both sides of the approval comparison too.
     """
     if isinstance(data, dict):
-        return {key: normalize_approval_data(value) for key, value in data.items() if key != "_dd.convertedv1"}
+        return {
+            key: normalize_approval_data(value)
+            for key, value in data.items()
+            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export", "_dd.appsec.normalized_route"}
+        }
 
     if isinstance(data, list):
         return [normalize_approval_data(item) for item in data]
@@ -74,6 +82,7 @@ _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 _max_retries = 2
 _timeout_first = 5
 _timeout_next = 30
+_python_capture_timeout = 2
 
 
 @features.debugger_exception_replay
@@ -99,6 +108,25 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             timeout = _timeout_next
 
             retries += 1
+
+    def _send_request_until_captured(self, request_path: str, exception_message: str, timeout: int) -> bool:
+        """Send a weblog request and wait for the snapshot of the exception it raises."""
+        if self.get_tracer()["language"] != "python":
+            self.send_weblog_request(request_path, reset=False)
+            return self.wait_for_all_snapshots(exception_message, timeout)
+
+        # The Python tracer rate limits exception captures to 1/s, with a jitter that can
+        # refill as little as half the budget per elapsed second, so a request sent right
+        # after a capture may be skipped. Resend the request until its snapshot shows up.
+        # This cannot produce duplicates, as the tracer captures the same exception at most
+        # once per hour, and rate-limited requests do not count towards that limit.
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            self.send_weblog_request(request_path, reset=False)
+            if self.wait_for_all_snapshots(exception_message, _python_capture_timeout):
+                return True
+
+        return False
 
     ############ assert ############
     def _assert(self, test_name: str, expected_exception_messages: list[str]):
@@ -524,7 +552,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
-                    return [{"function": method}]
+                    # When the recursion is deeper than the max captured frames, a tracer capturing the innermost
+                    # frames (e.g. Java) has no snapshot for the entry method: it is only present in the stack.
+                    stack_frames = [
+                        {"function": frame.get("function", "").split(".")[-1]} for frame in snapshot.get("stack", [])
+                    ]
+                    return [{"function": method}, *stack_frames]
 
             return snapshot.get("stack", [])
 
@@ -649,6 +682,14 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 9)
 
+    def setup_exception_replay_recursion_20_entry_frame(self):
+        self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
+
+    def test_exception_replay_recursion_20_entry_frame(self):
+        self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
+        # The outermost user frame is captured on top of DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES frames
+        self._validate_recursion_snapshots(self.snapshots, 10)
+
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
@@ -680,11 +721,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     continue
 
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
-                self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_all_snapshots(shape, timeout)
-                if self.get_tracer()["language"] == "python":
-                    time.sleep(1)
+                shapes[shape] = self._send_request_until_captured(f"/exceptionreplay/rps?shape={shape}", shape, timeout)
 
                 timeout = _timeout_next
 

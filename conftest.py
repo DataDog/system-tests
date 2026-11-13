@@ -256,7 +256,13 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         for key, value in flatten(properties, {}).items():
             xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
 
-        xml.add_global_property("dd_tags[test.parameters]", json.dumps(properties))
+        # test.parameters is part of the Test Optimization fingerprint: exclude agent and library
+        # versions, so that the test identity is stable across dev builds
+        parameters = {key: value for key, value in properties.items() if key != "agent"}
+        if isinstance(library := parameters.get("library"), dict):
+            parameters["library"] = {key: value for key, value in library.items() if key != "version"}
+
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(parameters))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -598,6 +604,26 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         if session.config.option.xmlpath:
             # Test optimization needs to have the full name in name attribute
             junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
+
+            # irrelevant tests are noise for test optimization, remove them from the report
+            for testsuite in junit_report.iter("testsuite"):
+                irrelevant_testcases = [
+                    testcase
+                    for testcase in testsuite.findall("testcase")
+                    if testcase.find(
+                        "properties/property[@name='dd_tags[systest.case.declaration]'][@value='irrelevant']"
+                    )
+                    is not None
+                ]
+
+                for testcase in irrelevant_testcases:
+                    testsuite.remove(testcase)
+
+                if irrelevant_testcases:
+                    for attr in ("tests", "skipped"):
+                        if attr in testsuite.attrib:
+                            count = int(testsuite.attrib[attr]) - len(irrelevant_testcases)
+                            testsuite.attrib[attr] = str(count)
 
             for testcase in junit_report.iter("testcase"):
                 if "classname" in testcase.attrib:

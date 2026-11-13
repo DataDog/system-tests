@@ -203,9 +203,6 @@ ignore = [
     "S108",      # hardcoded-temp-file: test code may contains weird things
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
-"tests/auto_inject/*" = [
-    "SLF001",  # private-member-access: TODO
-]
 "tests/fuzzer/*" = [
     "T201",     # print: fuzzer use prints...
 ]
@@ -245,8 +242,5 @@ ignore = [
 ]
 "utils/virtual_machine/virtual_machine_provider.py" = [
     "PLC0415", # import-outside-top-level: lazy imports avoid circular dependencies between providers
-]
-"utils/virtual_machine/virtual_machine_provisioner.py" = [
-    "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file

@@ -51,7 +51,19 @@ jobs:
       - compute_libraries_and_scenarios
     if: needs.compute_libraries_and_scenarios.outputs.has-target-branch == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      # to convert the PR to draft: the mutation requires both. The job doesn't run any code of the PR
+      contents: write
+      pull-requests: write
     steps:
+      - name: Convert the PR to draft
+        # it can't be merged: it must not ask for reviews either
+        if: github.event.pull_request.draft == false
+        # the token is read-only on PRs from forks: the next step fails the job anyway
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr ready --undo "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}"
       - name: Fail if PR title contains a target branch
         run: |
           echo "This PR can't be merged, due to the title specifying a target branch"
@@ -78,7 +90,6 @@ jobs:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
       scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
-      excluded_scenarios: OTEL_COLLECTOR_E2E  # rely on real backend
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       desired_execution_time: ${{ needs.compute_libraries_and_scenarios.outputs.desired_execution_time }}
@@ -115,14 +126,10 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection),
-        # system_tests_e2e_run_pipeline_[0-2], *DOC (docker ssi), or *DO5A
-        # (docker ssi crashtracking).
-        # Also ignore the job that waits for the tests to succeed before adding
-        # to the merge queue.
+        # Every GitLab job must pass. Ignore the merge-queue checks that wait
+        # for this gate and the aggregate DDCI status.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$)).*$(?<!DOC)(?<!DO5A)
           devflow/merge
           devflow/mergegate
           DDCI Status

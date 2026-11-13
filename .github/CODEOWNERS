@@ -12,7 +12,10 @@
 /tests/ @DataDog/system-tests-reviewers
 
 # FFE
-/utils/docker_fixtures/_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/.github/chainguard/self.update-ffe-fixtures.create-pr.sts.yaml @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/.github/workflows/update-ffe-fixtures.yml @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/utils/scripts/update_ffe_fixtures.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/utils/mocked_backend/_backend_ffe.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/dotnet/parametric/Endpoints/FfeTestApi.cs @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/dotnet/weblog/Controllers/FeatureFlagEvaluatorController.cs @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/golang/app/_shared/common/ffe.go @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
@@ -22,7 +25,9 @@
 /utils/build/docker/nodejs/nextjs/src/app/ffe/route.js @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/php/common/ffe.php @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /tests/ffe/ @DataDog/feature-flagging-and-experimentation-sdk
+/tests/test_the_test/test_ffe_tests.py @DataDog/feature-flagging-and-experimentation-sdk
 /tests/test_the_test/test_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk
+/tests/test_the_test/test_update_ffe_fixtures.py @DataDog/feature-flagging-and-experimentation-sdk
 /tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk
 
 # SDK cap
@@ -36,7 +41,6 @@
 /tests/parametric/test_llm_observability @DataDog/ml-observability
 
 # Otel
-/tests/otel_tracing_e2e/ @DataDog/opentelemetry
 
 # Remote config
 /tests/remote_config/ @DataDog/remote-config
@@ -47,6 +51,9 @@
 /utils/scripts/generate-ai-guard-cassettes.sh @DataDog/k9-ai-guard @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries
 /tests/ai_guard/ @DataDog/k9-ai-guard
+/tests/integration_frameworks/llm/**/test_*_ai_guard*.py @DataDog/asm-libraries @DataDog/k9-ai-guard
+/tests/integration_frameworks/utils/vcr-cassettes/aiguard/ @DataDog/asm-libraries @DataDog/k9-ai-guard
+/tests/integration_frameworks/utils/vcr-cassettes/*/test_ai_guard_* @DataDog/asm-libraries @DataDog/k9-ai-guard
 /tests/external_processing/ @DataDog/asm-libraries
 /tests/stream_processing_offload/ @DataDog/asm-libraries
 

@@ -1,0 +1,23 @@
+target-version = "py314"
+
+line-length = 120
+indent-width = 4
+
+[format]
+quote-style = "double"
+indent-style = "space"
+
+[lint]
+ignore = [
+    "D100",   # undocumented-public-module
+    "D101",   # undocumented-public-function
+    "D102",   # undocumented-public-method
+    "D103",   # undocumented-public-function
+    "D203",   # incorrect-blank-line-before-class (redundant when using ruff as a formatter)
+    "D213",   # multi-line-summary-second-line (incompatible with D212)
+    "COM812", # missing-trailing-comma (redundant when using ruff as a formatter)
+    "ARG001", # unused-function-argument (aiohttp handlers must accept the request)
+    "ASYNC221", # run-process-in-async-function (sinks must call the blocking functions the tracer hooks)
+    "ASYNC230", # blocking-open-call-in-async-function (same reason)
+]
+select = ["ALL"]

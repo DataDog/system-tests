@@ -115,15 +115,18 @@ jobs:
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
+      - name: Wait for parametric base image
+        if: github.repository == 'DataDog/system-tests'
+        run: python3 ./utils/scripts/wait-for-base-images.py ${{ inputs.library }} parametric --timeout 900 --poll-interval 30
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Run PARAMETRIC scenario
         run: |
-          ./run.sh PARAMETRIC\
-            -L ${{ inputs.library }}\
-            --splits=${{ inputs.job_count }}\
+          ./run.sh PARAMETRIC \
+            -L ${{ inputs.library }} \
+            --splits=${{ inputs.job_count }} \
             --group=${{ matrix.job_instance }} \
-            --github-token-file="$RUNNER_TEMP/github_token.txt"
+            --github-token-file="$RUNNER_TEMP/github_token.txt" \
             ${{inputs.force_execute_tests != '' && format('-F {0}', join(fromJSON(inputs.force_execute_tests), ' -F ')) || ''}}
       - name: Remove secrets
         if: always()
@@ -155,9 +158,12 @@ jobs:
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - name: Push results to Test Optimization
-        if: inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: ./.github/actions/push_to_test_optim
+      - name: Send data to datadog CI
+        if: "!cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)"
+        continue-on-error: true
+        uses: ./.github/actions/datadog_ci
         with:
           datadog_site: ${{ inputs.test_optimization_datadog_site }}
           ci_environment: ${{ inputs.ci_environment }}
+          push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+          _is_official_system_tests_job: true

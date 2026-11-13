@@ -10,15 +10,16 @@ import requests
 from utils import pytest
 
 from utils import features, interfaces, scenarios
-from utils._context.containers import ServerlessInitContainer
+from utils._context.containers import MockedBackendContainer, ProxyContainer, ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
-from utils._context._scenarios import endtoend as endtoend_scenarios
+from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
+from utils.mocked_backend import MockedBackendServer
+
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
     EXPECTED_DD_ENV,
-    MockFFEAgentlessBackendServer,
     UFC_RESPONSE_TYPE,
 )
 from utils._context._scenarios.agentless_endtoend import (
@@ -27,16 +28,27 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CA_BUNDLE_SOURCE,
     DIRECT_EVP_CAPTURE_SETTLE_SECONDS,
     DIRECT_EVP_CAPTURE_WAIT_SECONDS,
+    JAVA_TRUSTSTORE_CONTAINER_PATH,
+    JAVA_TRUSTSTORE_SOURCE,
     FeatureFlaggingAgentlessEndToEndScenario,
 )
-from utils.proxy.ports import ProxyPorts
+
+from .utils import extra_hosts_at_start
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+@pytest.mark.parametrize("capability_query", ["", "&cap_dependent-flags-variant-key=v1"])
+def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(capability_query: str) -> None:
+    server = MockedBackendServer()
     try:
-        for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
+        for invalid_query in (
+            "",
+            "?dd_env=",
+            "?dd_env=wrong",
+            f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong",
+            "?cap_dependent-flags-variant-key=v1",
+            "?dd_env=wrong&cap_dependent-flags-variant-key=v1",
+        ):
             response = requests.get(
                 server.base_url + CONFIG_PATH + invalid_query,
                 timeout=5,
@@ -44,7 +56,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
             assert response.status_code == 404
 
         response = requests.get(
-            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}{capability_query}",
             timeout=5,
         )
         response.raise_for_status()
@@ -55,55 +67,55 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
-        status = server.status()
+        status = server.client.ffe_get_status()
         assert status["requests_total"] == 1
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
 
-        server.set_response("unauthorized")
+        server.client.ffe_set_response("unauthorized")
         response = requests.get(
-            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}{capability_query}",
             timeout=5,
         )
         assert response.status_code == 401
 
-        status = server.status()
+        status = server.client.ffe_get_status()
         assert status["requests_total"] == 2
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_status_code"] == 401
     finally:
         server.close()
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch, worker_id: str) -> None:
+def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", raising=False)
 
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+    server = MockedBackendServer()
     try:
-        assert server.library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
+        assert server.ffe_library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
+        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.ffe_library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
     finally:
         server.close()
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
+    server = MockedBackendServer()
     try:
-        status = server.status()
+        status = server.client.ffe_get_status()
         assert set(status) == {
             "requests_total",
             "in_flight",
             "max_in_flight",
             "last_path",
             "last_if_none_match",
-            "last_auth_present",
+            "observed_dd_api_key",
             "last_status_code",
             "status_codes",
         }
@@ -115,27 +127,42 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> N
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
+def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E")
 
-    try:
-        assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-        scenario._start_mock_backend()  # noqa: SLF001 - focused lifecycle test
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.mocked_backend_container in scenario._containers  # noqa: SLF001 - focused topology test
 
-        environment = scenario.weblog_infra.library_container.environment
-        assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
-        assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
-        assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
-        base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
-        assert isinstance(base_url, str)
-        assert base_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        assert scenario.weblog_infra.library_container.extra_hosts == HOST_GATEWAY_EXTRA_HOSTS
+    library_container = scenario.weblog_infra.library_container
+    environment = library_container.environment
+    assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
+    assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
+    assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
+    assert environment["DD_API_KEY"] == scenario.weblog_api_key
+    assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] == (
+        f"https://mocked-backend.invalid{CONFIG_PATH}?{CONFIG_QUERY}"
+    )
+    # it serves HTTPS, with a certificate signed by the CA of the mounted bundle
+    assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
+    assert library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] == {
+        "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        "mode": "ro",
+    }
+    # the JVM gets the CA in its own trust store
+    assert library_container.volumes[JAVA_TRUSTSTORE_SOURCE] == {"bind": JAVA_TRUSTSTORE_CONTAINER_PATH, "mode": "ro"}
+    assert f"-Djavax.net.ssl.trustStore={JAVA_TRUSTSTORE_CONTAINER_PATH}" in str(environment["JDK_JAVA_OPTIONS"])
+    # reached by its name on the scenario network: no mapping to the docker host
+    assert extra_hosts_at_start(monkeypatch, library_container) is None
 
-        status = scenario.mock_backend_status()
-        assert status is not None
-        assert status["requests_total"] == 0
-    finally:
-        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+@scenarios.test_the_test
+def test_agentless_end_to_end_scenario_reads_live_backend_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_LIVE_STATUS")
+    container = MagicMock(spec=MockedBackendContainer)
+    container.client.ffe_get_status.return_value = {"requests_total": 0}
+    monkeypatch.setattr(scenario, "mocked_backend_container", container)
+
+    assert scenario.mock_backend_status() == {"requests_total": 0}
 
 
 @scenarios.test_the_test
@@ -155,27 +182,23 @@ def test_default_agentless_scenario_leaves_source_selection_implicit() -> None:
 @pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])
 @scenarios.test_the_test
 @features.not_reported
-def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
+def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     exposure_egress: Literal["direct", "sidecar"],
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_EXPOSURES",
-        doc="test",
         exposure_egress=exposure_egress,
     )
 
     environment = scenario.weblog_infra.library_container.environment
-    serverless_init_containers = tuple(
-        container
-        for container in scenario.weblog_infra.get_containers()
-        if isinstance(container, ServerlessInitContainer)
-    )
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    # the intake hostnames derived from DD_SITE are network aliases of the mocked backend: no proxy in between
+    assert not any(isinstance(container, ProxyContainer) for container in scenario._containers)  # noqa: SLF001
+    assert scenario.mocked_backend_container.tls
     assert scenario.get_libraries() is None
-    assert environment["DD_SITE"] == "mock-intake.invalid"
-    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
-    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in environment
+    assert "HTTPS_PROXY" not in environment
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
 
@@ -187,20 +210,21 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
         }
         for name in DIRECT_EVP_AGENT_VARIABLES:
             assert name not in environment
-        assert not serverless_init_containers
+        assert scenario.serverless_init_container is None
         return
 
-    assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
     serverless_init = scenario.serverless_init_container
-    assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
+    assert serverless_init in scenario._containers  # noqa: SLF001 - focused topology test
     assert serverless_init.image.original_name == "datadog/serverless-init:1.10.4"
     assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
     assert serverless_init.healthcheck is not None
-    assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
-    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
-    assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
+    assert serverless_init.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert serverless_init.environment["DD_API_KEY"] == scenario.sidecar_api_key
+    assert "DD_PROXY_HTTPS" not in serverless_init.environment
+    assert serverless_init.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
+    assert serverless_init.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
 
 
 @scenarios.test_the_test
@@ -208,7 +232,6 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
 def test_agentless_evp_capture_registry_allows_unregistered_and_rejects_unknown_paths() -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_CAPTURE_REGISTRY",
-        doc="test",
         exposure_egress="direct",
     )
 
@@ -268,14 +291,15 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_CAPTURE_WAIT",
-        doc="test",
         exposure_egress="direct",
     )
     expected_paths = ("/api/v2/exposures", "/api/v2/flagevaluation")
     for path in expected_paths:
         scenario.register_expected_evp_capture(path)
 
-    captures = iter({"path": path} for path in expected_paths)
+    captures = iter(
+        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.weblog_api_key)]}} for path in expected_paths
+    )
     wait_timeouts: list[int] = []
 
     def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int) -> bool:
@@ -283,8 +307,8 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
         return matcher(next(captures))
 
     wait = MagicMock()
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", wait)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", wait)
 
     scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
 
@@ -294,10 +318,33 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
 
 @scenarios.test_the_test
 @features.not_reported
+def test_sidecar_stops_right_after_the_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
+    """serverless-init must flush to the mocked backend before it is stopped by the base scenario"""
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_SIDECAR_STOP_ORDER",
+        exposure_egress="sidecar",
+    )
+    lifecycle: list[str] = []
+
+    def stop_weblog(self: object, *, is_empty_test_run: bool) -> None:
+        assert self is scenario
+        assert is_empty_test_run is False
+        lifecycle.append("weblog")
+
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_stop_weblog", stop_weblog)
+    assert scenario.serverless_init_container is not None
+    monkeypatch.setattr(scenario.serverless_init_container, "stop", lambda: lifecycle.append("serverless-init"))
+
+    scenario._stop_weblog(is_empty_test_run=False)  # noqa: SLF001
+
+    assert lifecycle == ["weblog", "serverless-init"]
+
+
+@scenarios.test_the_test
+@features.not_reported
 def test_agentless_evp_capture_wait_happens_before_container_stop(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_CAPTURE_ORDER",
-        doc="test",
         exposure_egress="direct",
     )
     lifecycle: list[str] = []
@@ -330,7 +377,6 @@ def test_direct_evp_replay_skips_missing_runtime_evidence(
     monkeypatch.chdir(tmp_path)
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_EMPTY_REPLAY",
-        doc="test",
         exposure_egress="direct",
     )
     Path(scenario.host_log_folder).mkdir()
@@ -338,21 +384,12 @@ def test_direct_evp_replay_skips_missing_runtime_evidence(
     is_empty_test_run = run_selection == "empty"
 
     stop_containers = MagicMock()
-    load_interfaces = MagicMock()
-    sidecar_errors = MagicMock()
-    direct_errors = MagicMock()
     monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_wait_and_stop_containers", stop_containers)
-    monkeypatch.setattr(scenario, "_load_telemetry_interfaces", load_interfaces)
-    monkeypatch.setattr(interfaces.datadog_sidecar, "check_deserialization_errors", sidecar_errors)
-    monkeypatch.setattr(interfaces.datadog_direct, "check_deserialization_errors", direct_errors)
 
     scenario._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)  # noqa: SLF001
 
     assert scenario._last_direct_evp_runtime_evidence is None  # noqa: SLF001
     stop_containers.assert_called_once_with(is_empty_test_run=is_empty_test_run)
-    load_interfaces.assert_called_once_with()
-    sidecar_errors.assert_called_once_with()
-    direct_errors.assert_called_once_with()
 
 
 @scenarios.test_the_test
@@ -364,7 +401,6 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     monkeypatch.chdir(tmp_path)
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_SHUTDOWN",
-        doc="test",
         exposure_egress="direct",
     )
     Path(scenario.host_log_folder).mkdir()
@@ -403,6 +439,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0000.json",
         "request": {
             "timestamp_start": "2099-09-09T11:59:59+00:00",
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -418,6 +455,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0001.json",
         "request": {
             "timestamp_start": "2099-09-09T12:00:01+00:00",
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -433,11 +471,13 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
             [priming_capture],
             [priming_capture],
             [priming_capture],
+            [priming_capture],
             [priming_capture, capture],
         )
     )
 
-    def get_data() -> list[dict[str, Any]]:
+    def get_data(*, with_api_key: str) -> list[dict[str, Any]]:
+        assert with_api_key == scenario.weblog_api_key
         lifecycle.append("capture-snapshot")
         return next(snapshots)
 
@@ -447,9 +487,11 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         return any(matcher(candidate) for candidate in (priming_capture, capture))
 
     settle = MagicMock(side_effect=lambda _: lifecycle.append("settle"))
-    monkeypatch.setattr(interfaces.datadog_direct, "get_data", get_data)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", settle)
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", settle)
+    # the priming capture is polled from the recorded files, without the watchdog latency
+    monkeypatch.setattr(interfaces.mocked_backend, "ingest_all_files", lambda: lifecycle.append("capture-ingest"))
 
     runtime_container = MagicMock()
     runtime_container.status = "exited"
@@ -478,7 +520,8 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     assert lifecycle == [
         "runtime-evidence",
         "evaluate",
-        "capture-wait",
+        "capture-ingest",
+        "capture-snapshot",
         "capture-snapshot",
         "capture-snapshot",
         "evaluate",
@@ -504,37 +547,19 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
-    monkeypatch: pytest.MonkeyPatch,
+def test_agentless_end_to_end_scenario_stops_backend_when_status_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.reset.side_effect = RuntimeError("reset failed")
-
-    def create_backend() -> MagicMock:
-        return backend
-
-    monkeypatch.setattr(agentless_endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
-
-    with pytest.raises(RuntimeError, match="reset failed"):
-        scenario.configure(MagicMock(spec=pytest.Config))
-
-    backend.close.assert_called_once_with()
-    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
-
-
-@scenarios.test_the_test
-def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.status.side_effect = RuntimeError("status failed")
-    scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+    monkeypatch.chdir(tmp_path)
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE")
+    container = MagicMock(spec=MockedBackendContainer)
+    container.client.ffe_get_status.side_effect = RuntimeError("status failed")
+    monkeypatch.setattr(scenario, "mocked_backend_container", container)
 
     with pytest.raises(RuntimeError, match="status failed"):
-        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+        scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
-    backend.close.assert_called_once_with()
-    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
+    container.stop.assert_called_once_with()
 
 
 @scenarios.test_the_test
@@ -544,8 +569,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
 ) -> None:
     monkeypatch.chdir(tmp_path)
 
-    recording_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
-    recording_scenario._mock_backend_status_path.parent.mkdir()  # noqa: SLF001 - focused lifecycle test
+    recording_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY")
 
     expected_status = {
         "requests_total": 1,
@@ -553,23 +577,25 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
         "max_in_flight": 1,
         "last_path": CONFIG_PATH,
         "last_if_none_match": None,
-        "last_auth_present": True,
+        "observed_dd_api_key": recording_scenario.dd_api_key,
         "last_status_code": 200,
         "status_codes": [200],
     }
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.status.return_value = expected_status
-    recording_scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+    container = MagicMock(spec=MockedBackendContainer)
+    container.client.ffe_get_status.return_value = expected_status
+    monkeypatch.setattr(recording_scenario, "mocked_backend_container", container)
 
-    recording_scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+    recording_scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
-    replay_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
+    container.stop.assert_called_once_with()
+    assert recording_scenario.mock_backend_status() == expected_status
+
+    replay_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY")
     replay_scenario.replay = True
     base_configure = MagicMock()
     monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "configure", base_configure)
     config = MagicMock(spec=pytest.Config)
     replay_scenario.configure(config)
 
-    backend.close.assert_called_once_with()
     base_configure.assert_called_once_with(config)
     assert replay_scenario.mock_backend_status() == expected_status

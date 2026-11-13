@@ -22,7 +22,7 @@ RUN apt-get update \
 
 RUN mkdir -p /opt/nginx-src \
     && cd /opt/nginx-src \
-    && curl -fsSL https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx.tar.gz \
+    && curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx.tar.gz \
     && tar -xzf nginx.tar.gz \
     && rm nginx.tar.gz
 
@@ -88,6 +88,7 @@ COPY utils/build/docker/cpp_nginx/nginx/headers.txt /builds/headers.txt
 COPY utils/build/docker/cpp_nginx/nginx/app.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddtrace.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddprof.sh /builds/
+COPY utils/build/docker/github.sh /builds/github.sh
 COPY utils/build/docker/cpp_nginx/ binaries* /builds/
 COPY binaries/* /binaries/
 COPY utils/build/docker/cpp_nginx/nginx/backend.c /tmp/
@@ -100,9 +101,9 @@ RUN gcc -O0 -g -o /usr/local/bin/backend /tmp/backend.c -lmicrohttpd && rm /tmp/
 WORKDIR /builds
 
 # NGINX Plugin setup
-RUN ./install_ddtrace.sh
+RUN --mount=type=secret,id=github_token ./install_ddtrace.sh
 
 # Profiling setup
-RUN ./install_ddprof.sh /usr/local/bin
+RUN --mount=type=secret,id=github_token ./install_ddprof.sh /usr/local/bin
 
 CMD ["./app.sh"]

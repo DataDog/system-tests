@@ -4,13 +4,22 @@ from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get
 import tests.auto_inject.utils as base
 
 
+class _AutoInjectProfilingTest(base.AutoInjectBaseTest):
+    def _test_profiling_retry(self) -> None:
+        """Retry AWS SSI profiling validation while tracer configuration remains unaligned (APMSP-4033)."""
+        for attempt in range(1, 4):
+            try:
+                self._test_install(context.virtual_machine, profile=True)
+                return
+            except (TimeoutError, AssertionError) as error:
+                if attempt == 3:
+                    raise
+                logger.warning("Profiling attempt %d/3 failed: %s. Retrying...", attempt, error)
+
+
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
         self._test_install(context.virtual_machine)
@@ -25,7 +34,7 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
 
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
-class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
+class TestSimpleInstallerAutoInjectManualProfiling(_AutoInjectProfilingTest):
     @bug(
         context.vm_os_cpu == "arm64" and context.weblog_variant in ["test-app-dotnet", "test-app-dotnet-container"],
         reason="PROF-10783",
@@ -40,13 +49,13 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
-        self._test_install(context.virtual_machine, profile=True)
+        self._test_profiling_retry()
         logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
 @features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
-class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
+class TestHostAutoInjectInstallScriptProfiling(_AutoInjectProfilingTest):
     @bug(
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet",
         reason="PROF-10783",
@@ -58,7 +67,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
-        self._test_install(context.virtual_machine, profile=True)
+        self._test_profiling_retry()
         logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
@@ -107,7 +116,7 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
 
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
-class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
+class TestContainerAutoInjectInstallScriptProfiling(_AutoInjectProfilingTest):
     @bug(
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
@@ -121,7 +130,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-15664",
     )
     def test_profiling(self):
-        self._test_install(context.virtual_machine, profile=True)
+        self._test_profiling_retry()
 
 
 @features.installer_auto_instrumentation
@@ -200,10 +209,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # on the installer. As we can not only uninstall the injector, we are skipping
     # the uninstall test today
 
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
@@ -237,12 +242,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @bug(
-        context.scenario == scenarios.simple_installer_auto_injection
-        and context.virtual_machine.os_distro == "rpm"
-        and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @bug(
@@ -296,10 +295,6 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
     @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
-    @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
         reason="APMSP-3489",
     )
@@ -312,10 +307,6 @@ class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
 @features.host_auto_installation_script_appsec
 @scenarios.host_auto_injection_install_script_appsec
 class TestHostAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")

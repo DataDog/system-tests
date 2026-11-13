@@ -2,7 +2,23 @@
 ---
 manifest:
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
-  tests/appsec/api_security/test_schemas.py: missing_feature
+  tests/appsec/api_security/test_schemas.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        nodejs-apigw-http: '>=12.143.0'
+        nodejs-apigw-rest: '>=12.143.0'
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
+    - weblog_declaration:
+        nodejs-apigw-http: missing_feature
+        nodejs-apigw-rest: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
+    - weblog_declaration:
+        nodejs-apigw-http: v12.144.0  # TODO: a lower version might be supported
+        nodejs-apigw-rest: v12.144.0  # TODO: a lower version might be supported
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
+    - weblog_declaration:
+        nodejs-apigw-http: missing_feature
+        nodejs-apigw-rest: missing_feature
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/rasp/test_api10.py: missing_feature (rasp endpoints not implemented)
   tests/appsec/rasp/test_cmdi.py: missing_feature (rasp endpoints not implemented)
@@ -123,6 +139,7 @@ manifest:
   tests/appsec/test_reports.py::Test_RequestHeaders: '>=12.142.0'  # TODO: a lower version might be supported
   tests/appsec/test_reports.py::Test_StatusCode: missing_feature
   tests/appsec/test_reports.py::Test_TagsFromRule: '>=12.142.0'  # TODO: a lower version might be supported
+  tests/appsec/test_sca_reachability.py: missing_feature (SCA runtime reachability is not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -155,7 +172,9 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
+  tests/ffe/test_evaluation_telemetry_opt_out.py: irrelevant (This server weblog scenario does not apply to Lambda)
   tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant
   tests/test_v1_payloads.py: missing_feature

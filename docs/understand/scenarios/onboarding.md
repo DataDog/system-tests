@@ -1,52 +1,161 @@
-1. [Overall](#Overall)
-   * [Library Injection testing scenarios](#Library-Injection-testing-scenarios)
-   * [Knowledge concepts](#Knowledge-concepts)
-     - [Virtual Machine scenario](#Virtual-Machine-scenario)
-     - [Virtual Machine](#Virtual-Machine)
-     - [Provision](#Provision)
-     - [Provider](#Provider)
-2. [Run the tests](#Run-the-tests)
-   * [Prerequisites](#Prerequisites)
+# AWS SSI testing
 
-     - [AWS](#AWS)
-     - [Vagrant](#Vagrant)
-     - [Pulumi](#Pulumi)
-     - [System-tests requirements](#System-tests-requirements)
+## Quick start
 
-     * [Configure the environment variables](#Configure-the-environment-variables)
-   * [Run the scenario using the wizard](#run-the-scenario-using-the-wizard)
-   * [Run the scenario manually](#run-the-scenario-manually)
-3. [How to develop tests](#How-to-develop-a-test-case)
-   * [Folders and Files structure](#Folders-and-Files-structure)
-   * [Define a new virtual machine](#Create-a-new-virtual-machine)
-   * [Create a new provision](#Create-a-new-provision)
-   * [Create a new weblog](#Create-a-new-weblog)
-   * [Create a new test case](#Create-a-new-test-case)
-4. [How to debug your environment and tests results](#How-to-debug-your-environment-and-tests-results)
-5. [How to debug a virtual machine at runtime](#How-to-debug-a-virtual-machine-at-runtime)
-6. [Troubleshooting](#Troubleshooting)
+AWS SSI runs library injection tests on EC2 virtual machines. It sends the
+test telemetry to the system-tests Datadog organization.
 
-# Overall
+First, complete the
+[AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
+[network access steps](../../execute/ssi-access.md#configure-network-access-for-aws-ssi).
+Connect to the Datadog private network before you start.
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies, also called SSI (Single Step Instrumentation) the APM onboarding experience for customers auto-intrumenting Java, Python, Node.js, .NET, PHP or Ruby applications running on host or in docker environments.
+Run the wizard from the repository root:
 
-The target of this testing feature is to test the distinct injection environments.
+```bash
+./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh
+```
 
-> Check Datadog lib injection capabilities [public documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection).
+The wizard prepares the local environment and selects a valid test case.
 
-## Library Injection testing scenarios
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run AWS SSI manually](#run-manually)
+- [Troubleshoot AWS SSI](#troubleshooting)
 
-The automatic libray injection is tested on three possible scenarios:
+## Contents
 
-* Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=host)).
-* Datadog Agent deployed on the host, your application deployed on containers ([agent on host and app in containers documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentonhostappincontainers)).
-* Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentandappinseparatecontainers)).
+- [Overview](#overview)
+  - [Library injection environments](#library-injection-environments)
+- [Run the AWS SSI tests](#run-the-aws-ssi-tests)
+  - [Prerequisites](#prerequisites)
+  - [Configure a manual run](#configure-a-manual-run)
+  - [Run with the wizard](#run-with-the-wizard)
+  - [Run manually](#run-manually)
+- [AWS SSI concepts](#aws-ssi-concepts)
+  - [Virtual machine scenario](#virtual-machine-scenario)
+  - [Virtual machine](#virtual-machine)
+  - [Provision](#provision)
+  - [Provider](#provider)
+  - [AMI cache](#ami-cache)
+- [Develop AWS SSI tests](#how-to-develop-tests)
+- [Debug test results](#how-to-debug-your-environment-and-tests-results)
+- [Debug a running virtual machine](#how-to-debug-a-virtual-machine-at-runtime)
+- [Troubleshooting](#troubleshooting)
 
-> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](k8s_library_injection_overview.md).
+# Overview
 
-## Knowledge concepts
+Single Step Instrumentation (SSI) injects a Datadog tracer without application
+code changes. AWS SSI tests this process on EC2 virtual machines.
 
-Before start with the onboarding tests, we need to know some terms:
+See the
+[public library injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/)
+for the product behavior.
+
+## Library injection environments
+
+AWS SSI covers three environments:
+
+- The Datadog Agent and application run on the same host.
+- The Agent runs on the host and the application runs in a container.
+- The Agent and application run in separate containers.
+
+For Kubernetes, use the
+[K8s library injection tests](k8s_library_injection_overview.md).
+
+# Run the AWS SSI tests
+
+## Prerequisites
+
+Complete the [AWS SSI access guide](../../execute/ssi-access.md). It covers
+Docker, Python 3.12, AWS access, aws-vault, AppGate, Pulumi, and Datadog keys.
+
+### Optional legacy Vagrant provider
+
+Vagrant is not required for AWS SSI. Its support is discontinued and remains
+only for existing local configurations. New users must use AWS.
+
+### System-tests requirements
+
+The wizard can prepare the Python environment. It runs:
+
+```bash
+./build.sh -i runner
+```
+
+## Configure a manual run
+
+Skip this section when you use the wizard.
+
+For a manual run, set:
+
+- **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet ID.
+- **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security group ID.
+- **DD_API_KEY_ONBOARDING:** Datadog API key.
+- **DD_APP_KEY_ONBOARDING:** Datadog application key.
+
+An EC2 key pair is optional. You need one only for an SSH debugging session.
+See the
+[EC2 key pair guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).
+Then set:
+
+- **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** AWS key pair name.
+- **ONBOARDING_AWS_INFRA_KEY_PATH:** Absolute path to the PEM file.
+
+## Run with the wizard
+
+The wizard checks the requirements and configures the local environment. It
+then selects a valid scenario, weblog, and virtual machine.
+
+```bash
+./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh
+```
+
+![SSI tests architecture](../images/aws_onboarding_wizard.png "Onboarding Wizard")
+
+## Run manually
+
+AWS SSI scenarios also support direct `./run.sh` commands. The available
+scenarios include:
+
+- **SIMPLE_INSTALLER_AUTO_INJECTION:** Checks that SSI instruments the application and sends a trace.
+- **INSTALLER_AUTO_INJECTION:** Also checks uninstall and block-list behavior.
+- **INSTALLER_NOT_SUPPORTED_AUTO_INJECTION:** Checks that SSI leaves an unsupported runtime working and uninstrumented.
+- **CHAOS_INSTALLER_AUTO_INJECTION:** Checks recovery after changes damage the installation.
+- **SIMPLE_AUTO_INJECTION_PROFILING:** Enables profiling with application environment variables.
+- **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Tests host injection and profiling through the Agent install script.
+- **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Tests container injection and profiling through the Agent install script.
+- **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Tests host injection through the Agent install script.
+- **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Tests separate Agent and application containers through the Agent install script.
+
+Set these arguments:
+
+- **--vm-library:** Library to test: `java`, `python`, `nodejs`, `dotnet`, `php`, or `ruby`.
+- **--vm-env:** Component source: `dev` for snapshots or `prod` for releases.
+- **--vm-weblog:** Weblog provision name.
+- **--vm-provider:** Virtual machine provider. Use `aws`.
+- **--vm-only:** Virtual machine name from `utils/virtual_machine/virtual_machines.json`.
+
+Example:
+
+```bash
+export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
+export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
+export DD_API_KEY_ONBOARDING="your-api-key"
+export DD_APP_KEY_ONBOARDING="your-application-key"
+export ONBOARDING_LOCAL_TEST="true"
+
+./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
+
+Run the command through aws-vault:
+
+```bash
+aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
+
+# AWS SSI concepts
+
+These terms explain how AWS SSI builds a test environment:
 
 * **Scenario:** In system-tests, a virtual scenario is a set of:
 
@@ -63,29 +172,32 @@ The following picture ilustrates how the system-tests providers can handle the s
 
 ![SSI tests architecture](../images/onboarding_overview.png "SSI tests architecture")
 
-### Virtual Machine scenario
+## Virtual machine scenario
 
 You can create your own VirtualMachine scenario, extending or using the common implementation `_VirtualMachineScenario`. A "Virtual Machine Scenario" is always associated with a provision. By default, it's going to use the provision that install the agent + docker + SSI software (injector + tracer), but you can also refer to your own provision.
 
-In the following code (*utils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
+In the following code (*utils/_context/_scenarios/auto_injection.py*) you can see the declaration of a scenario that uses the default provision, with custom environment variables (profiling activation):
 
 ```Python
-   #Use the default provision, but with a custom environment variables (profiling activation)
-   simple_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        scenario_groups=[scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
+class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    """Onboarding Single Step Instrumentation scenario with profiling activated by the app env var"""
 
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_PROFILING",
+            app_env={
+                "DD_PROFILING_ENABLED": "auto",
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            },
+            scenario_groups=[scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
 ```
 
-### Virtual Machine
+It is then instantiated, without any argument, in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`: `simple_auto_injection_profiling = SimpleAutoInjectionProfiling()`.
+
+## Virtual machine
 
 The Virtual Machines properties:
 
@@ -157,7 +269,7 @@ The Virtual Machines properties:
 
 ```
 
-### Provision
+## Provision
 
 We call "provision" to the configurations applied or the software installed on the machines included in the scenario.
 
@@ -258,7 +370,7 @@ Some of the sections listed above are detailed as follows:
   * **my-custom-extra-step**: We divide the command, one specific for debian machines and another specific for rpm machines. Notice that we have added directives that will copy local files to the remote machine. The details of the "installation" and “copy-files” fields are explained later.
   * **install-agent**: It represents the installation of the agent, valid for all Linux machines. Note that we are using the variables defined in the “init-environment“ section.
 
-#### Provision install section
+### Provision install section
 
 The install section will be part of all main sections of the provision (except the init-environment and provision_steps sections).
 
@@ -311,136 +423,43 @@ my-step:
       remote-command: echo "This command will run on a debian based remote machine (only for arm64 architectures)"
 ```
 
-### Provider
+## Provider
 
-We currently support two providers:
+Pulumi creates and manages the EC2 instances used by AWS SSI.
 
-* **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
-* **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments (Beta feature).
+The old Vagrant provider is optional and discontinued. New users must use AWS.
 
 We can find the available providers in the folder: `utils/virtual_machine.`
 The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
 
-# Run the AWS SSI tests
+## AMI cache
 
-## Prerequisites
+AWS SSI saves the cacheable provision steps in an AMI. The cache key is the VM name, the provision name, the weblog id, and a hash of those steps. A change to a cacheable step creates a new key. AMIs for the old key stay in the account.
 
-To run the onboarding test scenarios, we will use the following utilities:
+A new AMI has tags `CI=system-tests` and `ami-state=candidate`. The job boots that AMI and runs the tests there.
 
-* **AWS as the infrastructure provider:** We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
-* **Vagrant as the infrastructure local provider**: For local executions, we can use Vagrant instead of AWS EC2 instances.
-* **Pulumi as the orchestrator of this test infrastructure:** Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
-* Python 3.12 as requirement from system-tests framework.
-* **Pytest as testing tool (Python):** System-tests is built on Pytest.
+* A provision failure leaves `ami-state` as `candidate`.
+* A failed test sets `ami-state` to `rejected`.
+* Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
+* A run with no tests leaves `ami-state` as `candidate`.
 
-### AWS
+The next job chooses an AMI in this order:
 
-Configure your AWS account and AWS CLI. [Check documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+1. The `active` AMI for that key with the latest creation time.
+2. An AMI with no `ami-state` tag.
+3. The job does not boot a `candidate` or a `rejected` AMI.
 
-In order to securely store and access AWS credentials in an our test environment, we are using aws-vault. Please install and configure it. [Check documentation](https://github.com/99designs/aws-vault)
+A `candidate` created less than six hours ago blocks a second build. The job does not boot it and does not create another AMI. After six hours, the next job creates a new AMI.
 
-### Vagrant
+`AMI_UPDATE=true` creates a new AMI even when a usable AMI already exists.
 
-The Vagrant support is a system-tests beta feature. To run the tests using the Vagrant provider, you should install:
+`SKIP_AMI_CACHE=true` installs the machine from scratch. The job does not create or reuse a cache AMI. The local wizard sets this variable.
 
-* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer
-* Install QEMU emulator: Download QEMU - QEMU
-* Install python Vagrant plugin: python-vagrant
-* Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
+The scheduled job `delete_amis` reads only AMIs tagged `CI=system-tests`. It also deletes the AMI snapshot.
 
-### Pulumi
-
-Pulumi is a universal infrastructure as code platform that allows you to use familiar programming languages and tools to build, deploy, and manage cloud infrastructure.
-Please install and configure as described in the [following documentation](https://www.pulumi.com/docs/get-started/aws/)
-
----
-
-**NOTE:**
-
-if it's the first time you execute the Pulimi, you probably need to run the command: `pulumi login --local`
-[Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/)
-
----
-
-### System-tests requirements
-
-All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before run the tests:
-
-- Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
-- Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
-
-### Configure the environment variables
-
-*You can skip this step if you are thinking on running the tests using the wizard!!*
-
-Before execute the "onboarding" tests you must configure some environment variables:
-
-- **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
-- **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id.
-- **DD_API_KEY_ONBOARDING:** Datadog API key.
-- **DD_APP_KEY_ONBOARDING:** Datadog APP key.
-
-To debug purposes you can create and use your own EC2 key-pair. You can read this tutorial to do that: [Create a key pair for your Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)
-Once the key has been created, you can use it configuring the following environment variables:
-
-- **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
-- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
-
-## Run the scenario using the wizard
-
-There is a Wizard script that will help you set up and run a scenario.
-
-This wizard will help you with the following tasks:
-
-* Verify the software requirements (pulumi installation, aws cli, python requirements) to run the tests.
-* Configure the environment variables.
-* Assistant for debugging virtual machines.
-* Easy to select the test case to run. The test case matrix is very large (combination of scenario + weblog + virtual machine).
-
-You just need to run the script `utils/scripts/ssi_wizards/aws_onboarding_wizard.sh `
-
-![SSI tests architecture](../images/aws_onboarding_wizard.png "Onboarding Wizard")
-
-## Run the scenario manually
-
-The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
-The currently supported scenarios are the following:
-
-* **SIMPLE_INSTALLER_AUTO_INJECTION:** The onboarding minimal scenario. The test makes a request to deployed weblog application and then check that the instrumentation traces are sending to the backend.
-* **INSTALLER_AUTO_INJECTION:** Inlcudes the minimal scenario assertions but adding other assertions like the uninstall process or the block list commands tests.  For the containerized app, the agent will run on host, and the app in a docker container.
-* **INSTALLER_NOT_SUPPORTED_AUTO_INJECTION:** Onboarding Single Step Instrumentation scenario for not supported runtime language versions. After install the SSI software this scenario checks that the application is not auto instrumented (because the runtime version is not supported), but continues working.
-* **CHAOS_INSTALLER_AUTO_INJECTION:** Checks the SSI after performing actions that are not recommended. For example, delete installation folder and others. The system must be recoverable.
-* **SIMPLE_AUTO_INJECTION_PROFILING:** Onboarding Single Step Instrumentation scenario with profiling activated by the environment variables on the sample application.
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Container Single Step Instrumentation profiling scenario using agent auto installation script.
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto installation script.
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto installation script. The agent and the app will run on a separate containers.
-
-The 'onboarding' tests scenarios required these mandatory parameters:
-
-- **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet, php)
-- **--vm-env:** Configure origin of the software: dev (beta software) or prod (releases)
-- **--vm-weblog:** Configure weblog name to tests. The provision file should exist: `utils/build/virtual_machine/weblogs/LANG/provision_WEBLOG-NAME.yml`
-- **--vm-provider:** Default "aws"
-- **--vm-only:** The virtual machine name, where we'll install the scenario provision. You can find all the allowed Virtual Machines: `utils/_context/virtual_machines.py`
-
-The following line shows an example of command line to run the tests:
-
-```bash
-export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
-export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
-export DD_API_KEY_ONBOARDING=apikey
-export DD_APP_KEY_ONBOARDING=appkey
-export ONBOARDING_LOCAL_TEST="true"
-
-./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
-```
-
-The following line shows an example of command line to run the tests on a secure environment using 'aws-vault':
-
-```bash
- aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
- ```
+* A `rejected` AMI is removed on that run.
+* An `active` or `candidate` AMI follows `AMI_RETENTION_DAYS` and `AMI_LAST_LAUNCHED_DAYS`. It matches when its age passes the retention value. It also matches when its last launch passes the launch value. The first match sets the tag `ami-retire-at`. A later run removes the AMI after one more day. A launch before that run removes the tag. A failed launch lookup keeps the AMI.
+* An AMI with no `ami-state` tag follows the same two variables. The job removes it on the first match.
 
 # How to develop tests
 
@@ -602,14 +621,16 @@ The relationship between weblogs and virtual machines (`weblogs_spec`) is set as
 
 ## Create a new provision
 
-If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/__init__.py`):
+If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/auto_injection.py`, then `my_custom_scenario = MyCustomScenario()` in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`):
 
 ```python
-    my_custom_scenario= InstallerAutoInjectionScenario(
-        "MY_CUSTOM_SCENARIO",
-        "A very simple example",
-        vm_provision="my_provision"
-    )
+class MyCustomScenario(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "MY_CUSTOM_SCENARIO",
+            "A very simple example",
+            vm_provision="my_provision",
+        )
 ```
 
 We should define the provision. Let's create a folder named: `utils/build/virtual_machine/provisions/my_provision` and add the file `provision.yml`:
@@ -825,6 +846,7 @@ Located in: **var/log/datadog_weblog/**
 * **core-diagnostics.txt:** Core dump configuration and the core files collected after a PHP host application crash.
 * **core.\* / systemd-coredump:** PHP process core dumps. Use these with `gdb` when investigating a segmentation fault or exit status 139.
 * **coredumpctl-list.txt:** PHP entries reported by `coredumpctl`, when the command is available on the VM.
+* **hs_err_pid\*.log:** HotSpot fatal-error report for a Java weblog. Copied from the process working directory (`/home/datadog`) or `/tmp` when the JVM aborts. Absent when the JVM stays up.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -970,6 +992,7 @@ Waited too long for the port 5985 on host [MACHINE_IP] to start accepting connec
      ```
      /var/log/datadog_weblog/app.log
      ```
+     If that log contains `A fatal error has been detected by the Java Runtime Environment`, open `hs_err_pid*.log` in the same folder. That file is the full HotSpot report.
    - **Containerized apps:**
      ```
      /var/log/datadog_weblog/docker_logs.log
@@ -1086,15 +1109,15 @@ If this kind of problem occurs, it could affect multiple components:
 **Quick Solution:**
 
 1. **Temporarily exclude the VM.** Open `utils/virtual_machine/virtual_machines.json` and set `"disabled": true` for the problematic virtual machine.
-2. **Or delete the cached AMI** if the VM itself is fine but the snapshot is broken (see below). The next test run recreates it automatically.
+2. **Or delete the cached AMI** when the VM is fine and the snapshot is broken. See [Cached AMI is incorrect](#cached-ami-is-incorrect).
 
 ### Cached AMI is incorrect
 
-Cacheable provision steps (Docker, language runtime, …) are baked into an AMI. If that snapshot is wrong, every later run of the same VM + weblog reuses it.
+Cacheable provision steps are stored in an AMI. Later runs reuse the newest `active` AMI for that key. If no `active` AMI exists, they reuse an AMI with no `ami-state` tag. See [AMI cache](#ami-cache).
 
-**Typical symptom:** Docker daemon failed during AMI creation. Tests fail with errors such as *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
+**Typical symptom:** Docker failed while the AMI was created. Tests fail with *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
 
-**Find the AMI name** in the GitLab job stdout or in `tests.log` (near the start of the run):
+**Find the AMI name** in the GitLab job stdout or in `tests.log`, near the start of the run:
 
 ```
 14:14:56.472 STDOUT   We found an existing AMI  name:[CentOS_7_amd64_container-auto-inject-install-script_test-app-php-container-83_83cba9f5a8ae3b342e10f0a48ee1d6d5-3f871b1], ID:[ami-0b27aa90064f6603e], status:[available], expiration:[], created:[2026-08-18T09:56:10.000Z]
@@ -1102,21 +1125,24 @@ Cacheable provision steps (Docker, language runtime, …) are baked into an AMI.
 
 **Delete the AMI:**
 
-* **GitLab job `delete_amis_by_name_or_lang`** — targeted cleanup. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
+* **GitLab job `delete_amis_by_name_or_lang`.** This job deletes one AMI by name. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
   * `SCHEDULED_JOB=delete_amis_by_name_or_lang`
-  * `AMI_NAME` and/or `AMI_LANG` (at least one is required)
+  * `AMI_NAME` or `AMI_LANG`, or both
 
-  Matching rules (only AMIs tagged `CI=system-tests`):
-  * Both set → the AMI name must contain **both** substrings.
-  * One set → any AMI whose name contains that substring is deleted.
+  The job reads only AMIs tagged `CI=system-tests`.
 
-  Use a precise value (VM name + weblog, or the unique hash from the log) so you do not delete unrelated AMIs.
+  * Both values set: the AMI name must contain both strings.
+  * One value set: the AMI name must contain that string.
+
+  Use a precise value, such as the VM name plus the weblog, or the hash from the log. A broad value deletes other AMIs.
 
   Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
 
-* **GitLab job `delete_amis`** — scheduled periodic cleanup of old AMIs (retention: 10 days / last launched: 10 days). It does **not** target a specific AMI.
+* **GitLab job `delete_amis`.** See [AMI cache](#ami-cache).
 
-* **AWS console** — EC2 → AMIs → search by name → **Deregister**.
+* **AWS console.** Open EC2, then AMIs. Search by name and choose Deregister.
+
+The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
 
 ---
 
@@ -1145,6 +1171,15 @@ Identify the pipeline you want to use. For example, in the following build:
 Next, update your GitLab CI configuration file to include the variable `DD_INSTALLER_INJECTOR_VERSION` with the selected pipeline ID.
 You can see an example in the `dd-trace-java` repository:
 🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
+
+Docker SSI, AWS SSI, and AWS SSI container apps choose the injector in this order. The environment does not change the first two cases:
+
+1. `DD_INSTALLER_INJECTOR_VERSION` is set. That value is installed as-is, in prod and in dev. The package comes from `installtesting.datad0g.com` (a pipeline build such as `pipeline-79059602`). `utils/build/auto_inject.lock` is not used.
+2. `DD_INSTALLER_INJECTOR_VERSION` is unset and `DD_INSTALLER_LIBRARY_VERSION` is set. The injector version is the one in `utils/build/auto_inject.lock`, in prod and in dev. The package comes from `install.datadoghq.com`.
+3. Both variables are unset and the install environment is prod (`CI_ENVIRONMENT=prod`). Same as case 2: the lock file version, from `install.datadoghq.com`.
+4. Both variables are unset and the install environment is dev (`CI_ENVIRONMENT=dev`). The install keeps the latest injector snapshot from the dev registry.
+
+The nightly `update_injector_version` job keeps `utils/build/auto_inject.lock` current: when `install.datadoghq.com` has a newer injector release, it opens a pull request that bumps the lock and merges automatically once the required checks pass.
 
 Here’s how the modified section would look:
 
@@ -1317,5 +1352,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 

@@ -1,23 +1,17 @@
-FROM maven:3.9-eclipse-temurin-11 as build
-
-ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+# The base image holds a maven repository filled from spring-boot/pom.xml (wildfly profile): maven runs offline here
+FROM system_tests_base_java_spring_boot_wildfly AS build
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
-
-WORKDIR /app
-
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B dependency:go-offline
-
 COPY ./utils/build/docker/java/spring-boot/src ./src
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
-RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
+RUN /binaries/install_ddtrace.sh "-o -Dmaven.repo.local=/maven"
+RUN mvn -o -Dmaven.repo.local=/maven -B -Pwildfly package
 
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
-COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT-bootable.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .

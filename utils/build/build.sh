@@ -176,25 +176,29 @@ build() {
                     rm -rf venv
                 fi
 
+                # venv/requirements.txt is written only once pip install has completed. If it's missing,
+                # a previous install was interrupted (e.g. killed by timeout), and the venv may contain
+                # half-installed packages that pip considers installed. Recreate it.
+                if [ -d "venv/" ] && [ ! -f "venv/requirements.txt" ]
+                then
+                    echo "Existing venv is incomplete. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
-                    if command -v python3.12 &> /dev/null
+                    if ! command -v python3.12 &> /dev/null
                     then
-                        python3.12 -m venv venv --copies
-                    elif command -v python3.9 &> /dev/null
-                    then
-                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-                        echo "DEPRECRATION WARNING: you are using python3.9 to run system-tests."
-                        echo "This won't be supported soon. Install python 3.12, then run:"
-                        echo "> rm -rf venv && ./build.sh -i runner"
-                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
-                        python3.9 -m venv venv
-                    else
-                        echo "Can't find python3.12, please install it"
+                        echo "ERROR: python3.12 is required to run system-tests, and was not found." >&2
+                        echo "Install python 3.12 (see README.md), then run: ./build.sh -i runner" >&2
+                        exit 1
                     fi
+                    python3.12 -m venv venv --copies
                 fi
                 source venv/bin/activate
+                # remove the completion marker before any change to the venv, it's written back only if the install succeeds
+                rm -f venv/requirements.txt
                 run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
             run_build_command python -m pip install -e .
@@ -252,7 +256,7 @@ build() {
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
-                curl -L -O $BINARY_URL
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fL -O $BINARY_URL
                 cd ..
             fi
 
@@ -265,6 +269,8 @@ build() {
 
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
+            # Left by a previous build (of any weblog) killed mid-save: remove them so they're not copied into the build context
+            rm -f binaries/*-weblog.tar.zst.tmp
 
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
@@ -289,7 +295,7 @@ build() {
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        tornado)
+                        tornado|aiohttp)
                             PYTHON_VERSION="3.14"
                             ;;
                         *)
@@ -389,9 +395,29 @@ build() {
                         .
                 fi
 
+                # The version of the tracer installed in the image, as its healthcheck reports it, written at build time
+                LIBRARY_VERSION=$(docker run --rm ${DOCKER_PLATFORM_ARGS} --entrypoint cat system_tests/weblog \
+                    /binaries/SYSTEM_TESTS_LIBRARY_VERSION | head -n 1 | tr -d '[:space:]' || true)
+                if [[ -z "$LIBRARY_VERSION" ]]; then
+                    echo "The weblog image has no /binaries/SYSTEM_TESTS_LIBRARY_VERSION file, it can't be labelled" >&2
+                    exit 1
+                fi
+                echo "Labelling the weblog image with library version $LIBRARY_VERSION"
+                # Not on the mirror builder: it has its own image store, and can't see the image just loaded in the daemon
+                echo "FROM system_tests/weblog" | run_build_command docker buildx build \
+                    --load \
+                    --progress=plain \
+                    ${DOCKER_PLATFORM_ARGS} \
+                    --label "system-tests-library-version=${LIBRARY_VERSION}" \
+                    -t system_tests/weblog \
+                    -
+
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
+                    # Write to a temp file, then rename: if this attempt is killed mid-save (e.g. by the
+                    # timeout in build.sh), the next attempt must not find and load a truncated file.
+                    (set -o pipefail; docker save system_tests/weblog | zstd > "$BINARIES_FILENAME.tmp")
+                    mv "$BINARIES_FILENAME.tmp" "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then

@@ -56,6 +56,7 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-rust",
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
@@ -126,18 +127,7 @@ class _Owner(Enum):
                             })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
-    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
-                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
-                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
-                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
-                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
-                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
-                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
-                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
-                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
-                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                            })
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
     # fmt: on
 
 
@@ -2346,6 +2336,19 @@ class _Features:
         return _mark_test_object(test_object, feature_id=368, owner=_Owner.debugger)
 
     @staticmethod
+    def debugger_snapshot_correlation(test_object):
+        """Coordinated per-trace snapshot sampling (Live Debugger)
+
+        The sampling decision is made once per trace and applies to every probe in that trace,
+        with snapshots correlated by the dd.trace_id already carried in the snapshot envelope (no
+        snapshot payload change). Runtime-id-in-envelope and the execution-context generation
+        token are separate follow-on work and are not part of this feature.
+
+        https://feature-parity.us1.prod.dog/#/?feature=564
+        """
+        return _mark_test_object(test_object, feature_id=564, owner=_Owner.debugger)
+
+    @staticmethod
     def debugger_method_probe(test_object):
         """Method-level Probes
 
@@ -2698,6 +2701,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_portable_configuration(test_object):
+        """Offline initialization and portable configuration helpers
+
+        https://feature-parity.us1.prod.dog/#/?feature=562
+        """
+        return _mark_test_object(test_object, feature_id=562, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_exposures(test_object):
         """Feature Flags & Experimentation (FFE)
 
@@ -2728,6 +2739,27 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=551
         """
         return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_serial_id_metadata(test_object):
+        """Feature Flags Serial ID Metadata (UFC split serialId threaded through flagMetadata)
+
+        https://feature-parity.us1.prod.dog/#/?feature=648
+        """
+        return _mark_test_object(test_object, feature_id=648, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_evaluation_telemetry_opt_out(test_object):
+        """Per-subject evaluation telemetry opt-out
+
+        https://feature-parity.us1.prod.dog/#/?feature=649
+        """
+        return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_configuration_filtering(test_object):
+        """Feature Flags configuration filtering (flag selection by tags and key patterns)"""
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
@@ -3342,6 +3374,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=604, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def otel_exporter_otlp_metrics_temporality_preference(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+
+        https://feature-parity.us1.prod.dog/#/?feature=645
+        """
+        return _mark_test_object(test_object, feature_id=645, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def otel_exporter_otlp_metrics_timeout(test_object):
         """OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
 
@@ -3652,6 +3692,18 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=642
         """
         return _mark_test_object(test_object, feature_id=642, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def thread_context_sharing(test_object):
+        """Thread context sharing with system-probe (CWS trace correlation)
+
+        Workload Protection (the security agent) reads the trace and span IDs
+        for events triggered by a traced application from the application's published
+        thread context record (OTEP 4947).
+
+        https://feature-parity.us1.prod.dog/#/?feature=647
+        """
+        return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
 
 features = _Features()

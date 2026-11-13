@@ -80,3 +80,38 @@ class Test_GetImageList:
             f"A container constructor is writing on stdout instead of logging:\n{stdout}"
         )
         assert isinstance(document["services"], dict), f"services must be a mapping:\n{stdout}"
+
+    def test_mirrored_images_written_to_output(self, tmp_path: Path) -> None:
+        """With USE_IMAGE_MIRROR, the images are listed under their mirror name, as the session pulls them.
+
+        The GitLab run job pre-pulls them from the --output file: under their original name, the session would
+        not find them locally, and pull them again. The images to build the weblog are not listed: the mirror
+        BuildKit builder used by build.sh pulls them in its own store, not the docker daemon's.
+        """
+        from utils._context._image_mirror import _mapping  # noqa: PLC0415
+        from utils._context.containers import dockerfile_image_list  # noqa: PLC0415
+
+        output = tmp_path / "compose.yaml"
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "DEFAULT", "-l=python", "-w=flask-poc", f"--output={output}"],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=REPO_ROOT,
+            env={
+                **os.environ,
+                "USE_IMAGE_MIRROR": "1",
+                "PYTHONPATH": os.pathsep.join(filter(None, [str(REPO_ROOT), os.environ.get("PYTHONPATH")])),
+            },
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert result.stdout == "", "with --output, the compose file is not printed"
+        images = [service["image"] for service in yaml.safe_load(output.read_text())["services"].values()]
+        mirrored = _mapping()
+        assert not [image for image in images if image in mirrored], "an image with a mirror is listed under its name"
+        build_images = dockerfile_image_list(REPO_ROOT / "utils/build/docker/python/flask-poc.Dockerfile")
+        assert build_images, "flask-poc is built from images: the test checks nothing otherwise"
+        for build_image in build_images:
+            assert build_image not in images
+            assert mirrored.get(build_image, build_image) not in images

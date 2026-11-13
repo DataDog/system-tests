@@ -68,6 +68,7 @@ jobs:
             "utils/build/docker/python_lambda/runtime.base.Dockerfile" \
             "utils/build/docker/java_lambda/runtime.base.Dockerfile" \
             "utils/build/docker/ruby_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/nodejs_lambda/runtime.base.Dockerfile" \
             "utils/build/docker/base-images.lock.json" \
             "mirror_images.yaml" \
             "mirror_images.lock.yaml" \
@@ -129,7 +130,7 @@ jobs:
           else
             gh pr create \
               --title "Update pinned lambda extension version" \
-              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda, java_lambda, and ruby_lambda base images" \
+              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda, java_lambda, ruby_lambda, and nodejs_lambda base images" \
               --head "$BRANCH_NAME" \
               --base main
           fi
