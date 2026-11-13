@@ -73,13 +73,15 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         *,
         weblog_env: dict[str, str | None] | None = None,
         scenario_groups: tuple[ScenarioGroup, ...] = (),
+        use_proxy_for_weblog: bool = False,
+        include_agent: bool = False,
     ) -> None:
         super().__init__(
             name,
-            include_agent=False,
+            include_agent=include_agent,
             library_interface_timeout=0,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
-            use_proxy_for_weblog=False,
+            use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_env=weblog_env,
         )
 
@@ -163,7 +165,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         self,
         name: str,
         *,
-        exposure_egress: Literal["sidecar", "direct"] | None = None,
+        exposure_egress: Literal["sidecar", "direct", "agent"] | None = None,
         weblog_env: dict[str, str | None] | None = None,
     ) -> None:
         self.exposure_egress = exposure_egress
@@ -206,6 +208,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         super().__init__(
             name,
             scenario_groups=(all_scenario_groups.ffe,),
+            use_proxy_for_weblog=exposure_egress == "agent",
+            include_agent=exposure_egress == "agent",
             weblog_env=environment,
         )
 
@@ -235,6 +239,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     @property
     def evp_api_key(self) -> str:
         """The API key the events reach the intake with: the sidecar relays them, else the weblog sends them"""
+        if self.exposure_egress == "agent":
+            return self.dd_api_key
         return self.sidecar_api_key if self.exposure_egress == "sidecar" else self.weblog_api_key
 
     def _is_evp_capture(self, data: dict[str, Any]) -> bool:
@@ -544,6 +550,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         # The fresh flush window starts when the priming request reaches the mocked backend: the target must be
         # produced and the weblog stopped right after, well before the writer's next timer flush
         priming_observed = self._wait_for_evp_capture(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
+        priming_observed_at = datetime.now(UTC)
         priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(
@@ -596,6 +603,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             ],
             "priming_evaluation_finished_at": priming_finished_at.isoformat(),
             "priming_evaluation_started_at": priming_started_at.isoformat(),
+            "priming_capture_observed_at": priming_observed_at.isoformat(),
             "priming_evaluation_status_code": priming_response.status_code,
             "priming_subject_id": priming_subject_id,
             "shutdown_bound_seconds": DIRECT_EVP_SHUTDOWN_BOUND_SECONDS,
@@ -686,3 +694,89 @@ class FeatureFlaggingAndExperimentationAgentlessServerless(FeatureFlaggingAgentl
             "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
             exposure_egress="sidecar",
         )
+
+
+class FeatureFlaggingEVPFallback(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self, mode: str, signal: str) -> None:
+        self.fault_mode = mode
+        self.fault_signal = signal
+        self.receiver_prefix = f"/evp-test/{mode}/{signal}"
+        super().__init__(
+            f"FEATURE_FLAGGING_EVP_{mode.upper()}_{signal.upper()}",
+            exposure_egress="direct",
+        )
+        self.weblog_infra.library_container.environment["DD_TRACE_AGENT_URL"] = (
+            self.mocked_backend_container.container_url + self.receiver_prefix
+        )
+
+
+class FeatureFlaggingEVP404Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("404", "exposures")
+
+
+class FeatureFlaggingEVP404FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("404", "flagevaluation")
+
+
+class FeatureFlaggingEVP405Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("405", "exposures")
+
+
+class FeatureFlaggingEVP405FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("405", "flagevaluation")
+
+
+class FeatureFlaggingEVP403Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("403", "exposures")
+
+
+class FeatureFlaggingEVP403FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("403", "flagevaluation")
+
+
+class FeatureFlaggingEVP429Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("429", "exposures")
+
+
+class FeatureFlaggingEVP429FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("429", "flagevaluation")
+
+
+class FeatureFlaggingEVP503Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("503", "exposures")
+
+
+class FeatureFlaggingEVP503FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("503", "flagevaluation")
+
+
+class FeatureFlaggingEVPAmbiguousExposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("ambiguous", "exposures")
+
+
+class FeatureFlaggingEVPAmbiguousFlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("ambiguous", "flagevaluation")
+
+
+class FeatureFlaggingAgentlessAgent(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_AGENTLESS_AGENT",
+            exposure_egress="agent",
+        )
+
+    @property
+    def weblog_api_key(self) -> str:
+        return self.sidecar_api_key

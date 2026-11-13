@@ -41,3 +41,16 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
+
+if ENV['SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED'] == 'true'
+  raise_exception_on_sigterm false
+  require 'json'
+  require 'time'
+  on_booted do
+    # Register after the SDK: Ruby runs this after Puma closes, before the SDK's at_exit flush.
+    at_exit do
+      puts JSON.generate(event: 'system_tests.ffe.shutdown.server_closed', timestamp: Time.now.utc.iso8601(6))
+      $stdout.flush
+    end
+  end
+end

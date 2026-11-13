@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockedBackendRequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._evp import configure_evp_receiver
 from ._backend_rc import MockedBackendServerRcMixin
 from ._client import MockedBackendClient
 from ._tls import CA_FILE, server_context
@@ -110,6 +111,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self.add_handler("PUT", f"{CONTROL_URL_PREFIX}/mocked-responses", self._handle_mocked_responses)
         self._ffe_configure()
+        configure_evp_receiver(self)
         self._rc_configure()
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)

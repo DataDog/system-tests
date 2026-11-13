@@ -112,6 +112,19 @@ from .docker_ssi import (
 )
 from .agentless_endtoend import (
     FeatureFlaggingAndExperimentationAgentless,
+    FeatureFlaggingEVP404Exposures,
+    FeatureFlaggingEVP404FlagEvaluation,
+    FeatureFlaggingEVP405Exposures,
+    FeatureFlaggingEVP405FlagEvaluation,
+    FeatureFlaggingEVP403Exposures,
+    FeatureFlaggingEVP403FlagEvaluation,
+    FeatureFlaggingEVP429Exposures,
+    FeatureFlaggingEVP429FlagEvaluation,
+    FeatureFlaggingEVP503Exposures,
+    FeatureFlaggingEVP503FlagEvaluation,
+    FeatureFlaggingEVPAmbiguousExposures,
+    FeatureFlaggingEVPAmbiguousFlagEvaluation,
+    FeatureFlaggingAgentlessAgent,
     FeatureFlaggingAndExperimentationAgentlessDirect,
     FeatureFlaggingAndExperimentationAgentlessServerless,
 )
@@ -318,6 +331,20 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
+    feature_flagging_agentless_agent = FeatureFlaggingAgentlessAgent()
+    feature_flagging_evp_404_exposures = FeatureFlaggingEVP404Exposures()
+    feature_flagging_evp_404_flagevaluation = FeatureFlaggingEVP404FlagEvaluation()
+    feature_flagging_evp_405_exposures = FeatureFlaggingEVP405Exposures()
+    feature_flagging_evp_405_flagevaluation = FeatureFlaggingEVP405FlagEvaluation()
+    feature_flagging_evp_403_exposures = FeatureFlaggingEVP403Exposures()
+    feature_flagging_evp_403_flagevaluation = FeatureFlaggingEVP403FlagEvaluation()
+    feature_flagging_evp_429_exposures = FeatureFlaggingEVP429Exposures()
+    feature_flagging_evp_429_flagevaluation = FeatureFlaggingEVP429FlagEvaluation()
+    feature_flagging_evp_503_exposures = FeatureFlaggingEVP503Exposures()
+    feature_flagging_evp_503_flagevaluation = FeatureFlaggingEVP503FlagEvaluation()
+    feature_flagging_evp_ambiguous_exposures = FeatureFlaggingEVPAmbiguousExposures()
+    feature_flagging_evp_ambiguous_flagevaluation = FeatureFlaggingEVPAmbiguousFlagEvaluation()
+
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
     feature_flagging_evp_stress = FeatureFlaggingEvpStress()
