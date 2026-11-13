@@ -108,11 +108,11 @@ def get_backend_reports(span: DataDogAgentSpan, name: str = "appsec") -> list[di
     return reports
 
 
-def assert_backend_security_data() -> None:
+def assert_backend_security_data(request: HttpResponse) -> None:
     """Preserve emitted AppSec fields, including optional fields and complete reports."""
     backend = [span for _, span in interfaces.mocked_backend.get_spans()]
     checked = 0
-    for _, _, source in interfaces.library.get_spans():
+    for _, _, source in interfaces.library.get_spans(request, full_trace=True):
         source_meta = source.get("meta", {})
         chunk = source.trace.raw_trace if isinstance(source.trace.raw_trace, dict) else {}
         origin = chunk.get("origin", source_meta.get("_dd.origin"))
@@ -448,4 +448,4 @@ class BaseSecurityTransportSmokeTests:
             reports = get_backend_reports(span)
             assert reports, "No AppSec report reached intake"
             assert all(report.get("triggers") for report in reports), "AppSec report has no nested data"
-        assert_backend_security_data()
+        assert_backend_security_data(self.r)
