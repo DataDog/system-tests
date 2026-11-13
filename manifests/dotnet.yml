@@ -56,7 +56,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: v2.46.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.50.0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
+  tests/appsec/api_security/test_apisecurity_telemetry.py: v3.58.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
