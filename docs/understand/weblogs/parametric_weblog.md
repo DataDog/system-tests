@@ -990,9 +990,9 @@ Request body (not declared by the reference server, which reads the raw request;
 | `exposureHooks` | boolean: `true` to capture two exposure hook observations | no |
 | `failAfterHook` | boolean: `true` to reject the result in an After hook (requires `exposureHooks`) | no |
 
-Response:
-
-_not declared by the reference server_
+Response: not declared by the reference server. It contains `value`, `reason`, `errorCode`, `providerStatus`
+(see [Feature Flag evaluation provider status](../scenarios/parametric.md#feature-flag-evaluation-provider-status)),
+and `exposureHooks` when requested.
 
 #### `POST /ffe/fetch-rules-configuration`
 
