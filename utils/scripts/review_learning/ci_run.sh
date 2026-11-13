@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Entry point of the monthly review_learning GitLab job (see .gitlab-ci.yml and docs/ai/review-learning.md).
-# It runs the review-learn skill in report mode: it writes .review-learning/<run>/report.md and edits nothing.
-# The image is utils/ci/gitlab/docker/review-learning.Dockerfile. The job only holds a read-only GitHub token.
+# 1. The model runs the review-learn skill in report mode, with a read-only GitHub token.
+# 2. After the model is done, this script applies the accepted changes and opens a draft pull request.
+#    open_pr.py asks for its own write token, so the model never holds one.
+# The image is utils/ci/gitlab/docker/review-learning.Dockerfile.
 set -euo pipefail
 
 # By default, mine the previous calendar month, so that monthly runs never skip or repeat a day.
@@ -37,7 +39,7 @@ git fetch --quiet origin main
 mkdir -p .review-learning
 
 # Pull request text is untrusted data. So the model can only write inside .review-learning/, and it can only run the
-# named steps of the skill: never a new script. apply is not allowed, because this job never edits the rules.
+# named steps of the skill: never a new script. The model cannot run apply: this script runs it after the model.
 # --allowedTools only adds permissions, and .claude/settings.json sets acceptEdits. So dontAsk is required: it refuses
 # every tool that is not in the list. --strict-mcp-config skips the MCP servers of the project.
 STEPS=(collect filter szz prepare verify_quotes plain_english decide)
@@ -52,4 +54,10 @@ claude -p "/system-tests-review-learn ${WINDOW}" --permission-mode dontAsk --str
     | tee .review-learning/claude-output.txt
 
 # Fail the job when the skill did not produce a report.
-ls .review-learning/*/report.md >/dev/null
+# A run folder is .review-learning/<start>..<end>, so the name order is the date order.
+RUN_DIR="$(find .review-learning -mindepth 1 -maxdepth 1 -type d -name '*..*' | sort | tail -1)/"
+ls "${RUN_DIR}report.md" >/dev/null
+
+# No model from here on.
+venv/bin/python -m utils.scripts.review_learning.apply --run "$RUN_DIR"
+venv/bin/python -m utils.scripts.review_learning.open_pr --run "$RUN_DIR"
