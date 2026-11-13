@@ -128,6 +128,69 @@ function ffeDetailsPayload($details) {
     return $payload;
 }
 
+function ffeOpenFeatureClient() {
+    static $client;
+    if ($client === null) {
+        $api = \OpenFeature\OpenFeatureAPI::getInstance();
+        $api->setProvider(new \DDTrace\OpenFeature\DataDogProvider());
+        $client = $api->getClient('system-tests');
+    }
+    return $client;
+}
+
+function ffeOpenFeatureEvaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes, $failAfter) {
+    $hooks = [];
+    if ($failAfter) {
+        $hooks[] = new class extends \OpenFeature\implementation\hooks\AbstractHook {
+            public function supportsFlagValueType(string $flagValueType): bool {
+                return true;
+            }
+            public function before(
+                \OpenFeature\interfaces\hooks\HookContext $context,
+                \OpenFeature\interfaces\hooks\HookHints $hints
+            ): ?\OpenFeature\interfaces\flags\EvaluationContext {
+                return null;
+            }
+            public function error(
+                \OpenFeature\interfaces\hooks\HookContext $context,
+                \Throwable $error,
+                \OpenFeature\interfaces\hooks\HookHints $hints
+            ): void {}
+            public function finally(
+                \OpenFeature\interfaces\hooks\HookContext $context,
+                \OpenFeature\interfaces\hooks\HookHints $hints
+            ): void {}
+            public function after(
+                \OpenFeature\interfaces\hooks\HookContext $context,
+                \OpenFeature\interfaces\provider\ResolutionDetails $details,
+                \OpenFeature\interfaces\hooks\HookHints $hints
+            ): void {
+                throw new \RuntimeException('application rejected the flag result');
+            }
+        };
+    }
+    $options = new \OpenFeature\implementation\flags\EvaluationOptions($hooks);
+    $context = new \OpenFeature\implementation\flags\EvaluationContext(
+        $targetingKey, new \OpenFeature\implementation\flags\Attributes($attributes)
+    );
+    $client = ffeOpenFeatureClient();
+    $method = match ($variationType) {
+        'BOOLEAN' => 'getBooleanDetails',
+        'STRING' => 'getStringDetails',
+        'INTEGER' => 'getIntegerDetails',
+        'NUMERIC' => 'getFloatDetails',
+        'JSON' => 'getObjectDetails',
+        default => throw new InvalidArgumentException('Unsupported variationType: ' . $variationType),
+    };
+    $details = $client->$method($flagKey, $defaultValue, $context, $options);
+    return [
+        'value' => $details->getValue(),
+        'reason' => strtoupper($details->getReason() ?? 'DEFAULT'),
+        'variant' => $details->getVariant(),
+        'errorCode' => $details->getError()?->getResolutionErrorCode()->getValue(),
+    ];
+}
+
 function ffeJsonResponseValue($value) {
     if (!is_array($value)) {
         return $value;
@@ -361,6 +424,9 @@ $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Requ
     }
 
     $ffeClient = new \DDTrace\FeatureFlags\Client();
+    if (getenv('SYSTEM_TESTS_FFE_OPENFEATURE') === 'true') {
+        ffeOpenFeatureClient();
+    }
 
     return jsonResponse(['success' => true]);
 }));
@@ -381,6 +447,15 @@ $router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (R
     }
 
     try {
+        if (getenv('SYSTEM_TESTS_FFE_OPENFEATURE') === 'true') {
+            return jsonResponse(ffeOpenFeatureEvaluate(
+                arg($req, 'flag'), $variationType, $defaultValue, $targetingKey, $attributes,
+                arg($req, 'failAfterHook') === true
+            ));
+        }
+        if (arg($req, 'failAfterHook')) {
+            throw new LogicException('After hook tests require SYSTEM_TESTS_FFE_OPENFEATURE=true');
+        }
         $details = ffeEvaluate(
             $ffeClient,
             arg($req, 'flag'),

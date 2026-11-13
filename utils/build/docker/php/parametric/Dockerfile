@@ -7,6 +7,8 @@ COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ENV OTEL_PHP_AUTOLOAD_ENABLED=true
+COPY utils/build/docker/php/parametric/composer.json utils/build/docker/php/parametric/composer.lock ./
+RUN composer install --no-interaction --no-progress || composer install --no-interaction --no-progress
 COPY utils/build/docker/php/parametric/server.php .
 
  # In case of crash, give time to the sidecar to upload the crash report
