@@ -218,6 +218,10 @@ Note: These are based off of the Python tracer's http server which should be hel
 
 Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
+#### Feature Flag evaluation provider status
+
+`test_library.ffe_evaluate(...)` returns `providerStatus`: the OpenFeature provider status that the SDK reports for the app's client (`NOT_READY`, `READY`, `STALE`, `ERROR`, or `FATAL`). Apps read it from their OpenFeature SDK (for example `client.providerStatus` in Node.js or `get_provider_status()` in Python) and never derive it from the evaluation result. The Ruby app reads the SDK's private provider state on openfeature-sdk 0.5.x, the newest its image's Ruby supports. An app whose SDK cannot report it omits the field or returns `null`. Tests use it as positive evidence of a provider state, for example that initialization failed when `/ffe/start` returns success.
+
 #### Standalone Rules Configuration
 
 `test_library.ffe_fetch_rules_configuration(options)` calls `POST /ffe/fetch-rules-configuration` (currently implemented in Node.js only). It fetches and serializes configuration using the public standalone FFE helpers in a fresh process, without initializing a tracer or OpenFeature provider. The response is either `{ "wire": "...", "diagnostics": [] }` or `{ "error": { "name": "ConfigurationFetchError", "code": "...", "message": "...", "status": 403 }, "diagnostics": [] }`. `status` is present only for HTTP failures. The adapter captures the helper's logger messages in `diagnostics` so tests can assert dropped or server-ignored selection diagnostics. Unexpected failures return HTTP 500.
