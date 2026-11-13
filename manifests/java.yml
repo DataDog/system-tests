@@ -4276,6 +4276,9 @@ manifest:
     - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.64.2
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: v1.65.0
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  : 'missing_feature (Requires a release containing dd-trace-java#13267)'
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : v1.65.0
@@ -5055,13 +5058,13 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
