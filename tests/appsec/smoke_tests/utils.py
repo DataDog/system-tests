@@ -114,6 +114,8 @@ def assert_backend_security_data() -> None:
     checked = 0
     for _, _, source in interfaces.library.get_spans():
         source_meta = source.get("meta", {})
+        chunk = source.trace.raw_trace if isinstance(source.trace.raw_trace, dict) else {}
+        origin = chunk.get("origin", source_meta.get("_dd.origin"))
         fields = {
             key: value
             for key, value in (source_meta | source.get("metrics", {})).items()
@@ -136,6 +138,13 @@ def assert_backend_security_data() -> None:
             reports["appsec"] = source_meta["_dd.appsec.json"]
         if not reports and not any(key.startswith(("_dd.appsec.", "appsec.", "_dd.p.appsec")) for key in fields):
             continue
+        fields.update(
+            {
+                key: value
+                for key, value in chunk.get("attributes", {}).items()
+                if key.startswith(("_dd.p.appsec", "_dd.p.ts"))
+            }
+        )
         candidates = [
             span
             for span in backend
@@ -144,8 +153,10 @@ def assert_backend_security_data() -> None:
         ]
         assert candidates, "Backend lost a span carrying AppSec data"
         for span in candidates:
-            received = span.meta | span.metrics
-            if source_meta.get("_dd.origin") == "appsec":
+            backend_chunk = span.trace.raw_trace if isinstance(span.trace.raw_trace, dict) else {}
+            received = backend_chunk.get("attributes", {}) | backend_chunk.get("tags", {})
+            received |= span.meta | span.metrics
+            if origin == "appsec":
                 assert span.get_span_origin() == "appsec", "Backend lost AppSec origin"
             for key, expected in fields.items():
                 assert key in received, f"Backend lost AppSec field {key}"
