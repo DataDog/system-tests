@@ -473,7 +473,8 @@ system_tests_param:
   stage: e2e
   rules:
     # The review-learning schedule only runs the review_learning job (see the main.yml include condition).
-    - if: '$SCHEDULED_JOB != "review-learning"'
+    # A job without rules never runs in merge request pipelines, so keep that too.
+    - if: '$SCHEDULED_JOB != "review-learning" && $CI_PIPELINE_SOURCE !~ /^(merge_request_event|external_pull_request_event)$/'
   needs:
     - job: build_ci_image
       artifacts: false
