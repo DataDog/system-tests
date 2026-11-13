@@ -88,6 +88,7 @@ manifest:
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.68.0
   tests/appsec/test_alpha.py::Test_Basic::test_no_cookies: v1.68.0
   tests/appsec/test_alpha.py::Test_Basic::test_uri: v1.68.0
+  tests/appsec/test_aws_lambda_access_key_id.py: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature (blocking not supported in Java Lambda)

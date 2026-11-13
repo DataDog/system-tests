@@ -502,6 +502,15 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
+    - name: Run APPSEC_LAMBDA_AWS_ACCESS_KEY_ID scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_AWS_ACCESS_KEY_ID"')
+      run: ./run.sh APPSEC_LAMBDA_AWS_ACCESS_KEY_ID
+    - name: Run APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_EXTENSION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_EXTENSION"')
+      run: ./run.sh APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_EXTENSION
+    - name: Run APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_DEFAULT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_DEFAULT"')
+      run: ./run.sh APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_DEFAULT
     - name: Run OTEL_STARTUP_LOGS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_STARTUP_LOGS"')
       run: ./run.sh OTEL_STARTUP_LOGS

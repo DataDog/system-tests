@@ -18,6 +18,7 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v3.30.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v3.30.0
   tests/appsec/test_alpha.py::Test_Basic: v3.29.0
+  tests/appsec/test_aws_lambda_access_key_id.py: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v3.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v3.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v3.29.0

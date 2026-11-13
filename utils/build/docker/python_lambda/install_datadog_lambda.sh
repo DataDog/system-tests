@@ -21,6 +21,16 @@ else
     fi
 fi
 
+# a custom Datadog Lambda extension build (bottlecap binary, and its datadog_wrapper) replaces the one of the base image
+if [ -f datadog-agent ]; then
+    echo "Install the Datadog Lambda extension from binaries/datadog-agent"
+    install -m 0755 datadog-agent /opt/extensions/datadog-agent
+fi
+if [ -f datadog_wrapper ]; then
+    echo "Install the Datadog Lambda wrapper from binaries/datadog_wrapper"
+    install -m 0755 datadog_wrapper /opt/datadog_wrapper
+fi
+
 # read by build.sh, to label the image with it, like the healthcheck reports it (datadog_lambda.__version__), with
 # the layer on the path, as the lambda runtime does
 PYTHONPATH="$(echo /opt/python/lib/python*/site-packages):/opt/python" \
