@@ -141,7 +141,7 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
                 "DD_TRACE_SAMPLING_RULES": (
-                    '[{"resource":"HTTP*","sample_rate":1.0},{"resource":"GET*","sample_rate":1.0},{"sample_rate":0.0}]'
+                    '[{"resource":"HTTP*","sample_rate":1.0},{"resource":"GET*","sample_rate":1.0},{"resource":"POST*","sample_rate":1.0},{"sample_rate":0.0}]'
                 ),
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 "OTEL_TRACES_EXPORTER": "otlp",

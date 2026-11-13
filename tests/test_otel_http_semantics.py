@@ -797,3 +797,16 @@ class Test_OtelSemantics_SamplingRules:
         assert _attributes(server_span).get("_dd.rule_psr") == 1, (
             "the GET* rule must keep the server trace whether or not the route was resolved before client sampling"
         )
+
+    def setup_otel_http_request_method_is_available_to_sampling_rules(self) -> None:
+        self.matched_response = weblog.request("POST", "/")
+
+    def test_otel_http_request_method_is_available_to_sampling_rules(self) -> None:
+        matched_span = _server_span(self.matched_response)
+        assert _attributes(matched_span).get("_dd.rule_psr") == 1, (
+            "the POST* rule must be the sampling rule that kept the POST method call"
+        )
+        trace_id = matched_span.get("traceId")
+        assert trace_id, "the request-correlated matched span carries no traceId"
+        matched_trace = [span for span in _iter_otlp_spans(self.matched_response) if span.get("traceId") == trace_id]
+        assert matched_trace, "the matched trace must contain at least one exported span"
