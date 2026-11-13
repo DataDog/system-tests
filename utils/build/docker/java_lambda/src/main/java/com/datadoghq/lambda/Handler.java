@@ -446,7 +446,7 @@ public class Handler implements RequestHandler<Object, Object> {
                 return new String[]{commands.toString()};
             }
         }
-        // Spring binds a scalar query/form value to one array element; do not split on spaces.
+        // Mirror Spring's String[] binding: split on commas, not on whitespace.
         String command = retrieveArg("command", ctx.method, ctx.queryParams, ctx.body);
         return command == null || command.isEmpty() ? null : command.split(",");
     }
