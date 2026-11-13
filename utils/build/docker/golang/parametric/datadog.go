@@ -177,6 +177,26 @@ func (s *apmClientServer) flushStatsHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
+type DsmProduceCheckpointArgs struct {
+	Type   string `json:"type"`
+	Target string `json:"target"`
+}
+
+func (s *apmClientServer) dsmProduceCheckpointHandler(w http.ResponseWriter, r *http.Request) {
+	var args DsmProduceCheckpointArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// A disabled DSM processor makes this a no-op that reports false; the
+	// endpoint still succeeds so tests observe what the SDK sends.
+	tracer.SetDataStreamsCheckpoint(context.Background(), "direction:out", "topic:"+args.Target, "type:"+args.Type)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{}"))
+}
+
 func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

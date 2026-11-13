@@ -437,6 +437,10 @@ class TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
+    def pipeline_stats_requests(self) -> list[AgentRequest]:
+        """Data Streams Monitoring payloads sent to /v0.1/pipeline_stats."""
+        return [r for r in self.requests() if "/v0.1/pipeline_stats" in r["url"]]
+
     def rc_requests(self, *, post_only: bool = False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]

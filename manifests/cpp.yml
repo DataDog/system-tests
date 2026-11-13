@@ -351,6 +351,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Extract_Headers: ">1.0.0"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DSM_Produce_Checkpoint: missing_feature (Data Streams Monitoring is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature  # cpp tracer does not support the OpenTelemetry API, otel parametric endpoints are not implemented
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_End: missing_feature (otel api is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events: missing_feature (otel api is not supported)

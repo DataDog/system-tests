@@ -234,6 +234,10 @@ Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_r
 
 The protobuf response IDs `selection_ignored_empty`, `selection_ignored_tag_load_failed`, and `selection_ignored_unknown` return the full rules fixture with a `DD-Flag-Selection-Ignored` header set to an empty string, `tag_load_failed`, or `future_reason`, respectively. Use these shared responses to test selection diagnostics without replacing the rules endpoint handler. The `valid` response omits the header.
 
+#### Data Streams Monitoring checkpoints
+
+`test_library.dsm_produce_checkpoint(checkpoint_type, target)` calls `POST /trace/dsm/produce_checkpoint`, which sets a produce checkpoint through the SDK's manual Data Streams Monitoring API. It succeeds whether or not DSM is enabled. The SDK sends the resulting stats to `/v0.1/pipeline_stats` periodically, and `test_agent.pipeline_stats_requests()` returns them. Some SDKs only send them when the agent advertises this endpoint in `/info`, which the test agent does not do by default: set the `DD_AGENT_EXTRA_INFO` `agent_env` to an `endpoints` list that includes it.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
