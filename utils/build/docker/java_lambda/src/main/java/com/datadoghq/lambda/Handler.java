@@ -53,8 +53,17 @@ public class Handler implements RequestHandler<Object, Object> {
     private static final String TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event";
     private static final String TRACK_USER = "system_tests_user";
 
+    private static final String RASP_DATABASE_URL = "jdbc:hsqldb:mem:testdb";
+
     static {
         ScaReachability.preloadVulnerableClass();
+        try (Connection connection = DriverManager.getConnection(RASP_DATABASE_URL, "sa", "");
+             Statement statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE USERS (ID VARCHAR(32) PRIMARY KEY, "
+                    + "USERNAME VARCHAR(32) NOT NULL, PASSWORD VARCHAR(32) NOT NULL)");
+        } catch (SQLException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 
     private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP, ALB, ALB_MULTI }
@@ -389,17 +398,13 @@ public class Handler implements RequestHandler<Object, Object> {
 
         String query = "SELECT * FROM users WHERE id='" + userId + "'";
 
-        try {
-            Connection connection = DriverManager.getConnection("jdbc:sqlite::memory:");
-            Statement statement = connection.createStatement();
-            ResultSet results = statement.executeQuery(query);
-            int count = 0;
-            while (results.next()) {
-                count++;
+        try (Connection connection = DriverManager.getConnection(RASP_DATABASE_URL, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet results = statement.executeQuery(query)) {
+            if (results.next()) {
+                return createResponse(ctx, "ID: " + results.getLong("ID"), 200);
             }
-            String message = "DB request with " + count + " results";
-            connection.close();
-            return createResponse(ctx, message, 200);
+            return createResponse(ctx, "User not found", 200);
         } catch (Exception e) {
             logger.debug("rasp_sqli failure for user_id={}", userId, e);
             return createResponse(ctx, "DB request failure: " + e.toString(), 201);
@@ -407,22 +412,43 @@ public class Handler implements RequestHandler<Object, Object> {
     }
 
     private Object handleRaspCmdi(RequestContext ctx) {
-        String command = retrieveArg("command", ctx.method, ctx.queryParams, ctx.body);
-        if (command == null || command.isEmpty()) {
+        String[] command = retrieveCommand(ctx);
+        if (command == null || command.length == 0) {
             return createResponse(ctx, "missing command parameter", 400);
         }
 
+        Process process = null;
         try {
-            ProcessBuilder pb = new ProcessBuilder(command.split("\\s+"));
-            Process process = pb.start();
-            int exitCode = process.waitFor();
-            String message = "Exec command [" + command + "] with result: " + exitCode;
-            return createResponse(ctx, message, 200);
+            process = Runtime.getRuntime().exec(command);
         } catch (Exception e) {
-            logger.debug("rasp_cmdi failure for command={}", command, e);
-            String message = "Exec command [" + command + "] failure: " + e.toString();
-            return createResponse(ctx, message, 201);
+            logger.debug("rasp_cmdi failure for command={}", Arrays.toString(command), e);
+        } finally {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
         }
+        return createResponse(ctx, "OK", 200);
+    }
+
+    private String[] retrieveCommand(RequestContext ctx) {
+        if ("POST".equals(ctx.method) && ctx.body != null) {
+            String body = ctx.body.stripLeading();
+            if (body.startsWith("{")) {
+                JsonObject json = JsonParser.parseString(body).getAsJsonObject();
+                return gson.fromJson(json.get("command"), String[].class);
+            }
+            if (body.startsWith("<")) {
+                JSONObject xml = XML.toJSONObject(body).getJSONObject("command");
+                Object commands = xml.get("cmd");
+                if (commands instanceof org.json.JSONArray) {
+                    return gson.fromJson(commands.toString(), String[].class);
+                }
+                return new String[]{commands.toString()};
+            }
+        }
+        // Mirror Spring's String[] binding: split on commas, not on whitespace.
+        String command = retrieveArg("command", ctx.method, ctx.queryParams, ctx.body);
+        return command == null || command.isEmpty() ? null : command.split(",");
     }
 
     private Object handleRaspShi(RequestContext ctx) {
