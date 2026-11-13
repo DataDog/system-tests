@@ -1,4 +1,4 @@
-"""Step 3a: build the batches that the extract model reads.
+"""Step 4: build the batches that the extract model reads.
 
 Usage:
     python3 -m utils.scripts.review_learning.prepare --run .review-learning/run
