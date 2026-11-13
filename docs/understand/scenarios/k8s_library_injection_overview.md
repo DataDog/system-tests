@@ -2,6 +2,11 @@
 
 This document provides a general overview of the K8s library injection feature and its components.
 
+To run these tests, start with the
+[SSI quick start](../../execute/ssi.md#k8s-library-injection). For required
+tools and registry access, see the
+[SSI access guide](../../execute/ssi-access.md).
+
 ## Overall
 
 ### What is the k8s library injection feature?

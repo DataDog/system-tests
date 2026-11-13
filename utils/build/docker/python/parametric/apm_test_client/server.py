@@ -1611,7 +1611,15 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
+        return JSONResponse(
+            {
+                "value": value,
+                "reason": reason,
+                "errorCode": error_code,
+                "providerStatus": openfeature_client.get_provider_status().value,
+            },
+            status_code=200,
+        )
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

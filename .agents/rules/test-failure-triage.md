@@ -12,6 +12,7 @@ The procedure has six steps. **Never create a ticket or a PR without an explicit
 ## Possible culprits
 
 * A component has been released, and a test was activated only for the released version of this component, so it was never tested before: a test activated at `>=X.Y.Z` is skipped in the component's CI (`X.Y.Z-dev` < `X.Y.Z` in semver), and runs for the first time once `X.Y.Z` is released
+* A test was activated at a pre-release of a version that was already branched for release (e.g. `v4.17.0-rc1`, reported by the component's main builds after the 4.17 branch was cut). Unlike the case above, the test ran and passed on dev. It fails on prod once the release ships without the feature, which may be a real product issue: see [Pre-release activation of an already-branched version](#pre-release-activation-of-an-already-branched-version)
 * A test is flaky because something in the test logic is flaky
 * A test is flaky because something in a tested component is flaky
 * A system-tests change (test, weblog or `utils/`): the usual suspect. Look at `git log` between the system-tests commits of the last pass and the first failure
@@ -20,10 +21,37 @@ The procedure has six steps. **Never create a ticket or a PR without an explicit
 
 Not culprits: infrastructure issues do not make a test fail (they break the setup, not the test), and system-tests does not use the real Datadog backend anymore.
 
+### Pre-release activation of an already-branched version
+
+Some components' main builds keep reporting a pre-release of a version after its release branch is cut. A feature merged on main after the cut, and activated at that reported version, is tested on dev but does not ship in that release.
+
+Real case: dd-trace-py main reported `4.17.0rc1` after the 4.17 release branch was cut. The AI Guard MCP tests were activated at `v4.17.0-rc1`, though the feature first ships in 4.18.0. They passed on dev and were xfail on prod (4.16.4), so CI looked green. When 4.17.0 shipped, it matched `>=4.17.0-rc1` without the feature, and every prod job failed (fixed by DataDog/system-tests#8485).
+
+Signature:
+
+- 100% fail on prod and 100% pass on dev, for the same tests
+- it starts right when a release ships, with no system-tests change in between
+- the manifest version is a pre-release of the version just released, whatever its spelling (`v4.17.0-rc1`, `v4.17.0rc1`, `v4.17.0-dev`, `v4.17.0.dev`)
+
+How to confirm:
+
+- the released package lacks the feature (e.g. grep the sdist on PyPI)
+- the component's main builds now report the next version (python: `https://dd-trace-py-builds.s3.amazonaws.com/main/index.html`, which showed `4.18.0rc1`)
+
+Fix: move the manifest version to the first version that really has the feature (here `v4.18.0-rc1`), following [test-activation.md](test-activation.md) and [manifest.md](../../docs/edit/manifest.md). It is a fix (step 3), not a `bug` skip: no JIRA ticket is needed for the manifest itself.
+
+**Flag it loudly.** Two readings are possible, and only the feature owners can say which one is true:
+
+1. The manifest version is simply wrong
+2. The feature was expected in X.Y.Z and is missing from the release: a missed backport, wrong release notes, or customers told it shipped
+
+Put a dedicated warning line at the top of the step 1–2 summary (see [Confirmation](#confirmation)). Recommend that the user confirm with the feature owner team (the `owner` of the feature in `utils/_features.py`) whether the feature was supposed to ship in that release. Do not ping them yourself (see [Ping the team](#ping-the-team)).
+
 ## Key Documentation
 
 - [test-activation.md](test-activation.md): How to write the skip (manifest vs decorator)
 - [manifest.md](../../docs/edit/manifest.md): Manifest format
+- [versions.md](../../docs/edit/versions.md): Version ordering, and which version to use for a feature merged on main
 - [skip-tests.md](../../docs/edit/skip-tests.md): Declarations and their behavior (`bug`, `flaky`, ...)
 - [utils/_features.py](../../utils/_features.py): Features and their owner team
 
@@ -50,13 +78,15 @@ Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog
 
 Do not rely on the Test Optimization flaky tags (`@test.is_flaky`, `@test.is_known_flaky`, `@test.is_new_flaky`) or on `get_datadog_flaky_tests`. Those are based on a test both passing and failing on the same commit, and system-tests never runs the same test twice on a commit, so they are mostly meaningless here. Assess flakiness from the pass/fail ratio across runs instead (question 2 below).
 
+Test Optimization events may lack `@systest.suite.context.library.version`. To tell prod runs (last release) from dev runs (component's main branch), use the CI job name, e.g. `System Tests (python, prod)` vs `System Tests (python, dev)`, or `nightly (python, prod)`, with `gh api repos/DataDog/system-tests/actions/jobs/<id>`.
+
 ### Questions to answer
 
 Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true @git.repository.id_v2:*/system-tests`, then answer:
 
 1. **Since when?** First failure date, and the last passing run before it. If the window doesn't contain a passing run, widen it (e.g. `now-90d`) until you find one. If none is found within the data retention, report "earliest failure seen: <date>, no passing run found" instead.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
-3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine the culprit.
+3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Prod, dev, or both? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine the culprit.
 4. **What changed?** Note the library version, agent version and system-tests commit of the last pass and of the first failure (they are investigated in step 2).
 5. **Same error?** Compare `@error.message` across failures, to tell whether it's one root cause or several.
 6. **Already known?** Check system-tests manifests to see if other failures are registered on the same tests.
@@ -71,6 +101,7 @@ Based on the step 1 results, identify the change that introduced the error. Chec
   - `manifests/<library>.yml`: a test activation, in particular one at exactly the newly released version
   - the test file, and the weblog (`utils/build/docker/<library>/`)
   - `utils/`
+- **a component was released, and the test fails on prod but passes on dev** → check the manifest version of the test. A pre-release (`rc`, `dev`) of the version just released is the signature of a [pre-release activation of an already-branched version](#pre-release-activation-of-an-already-branched-version): flag it loudly
 - **agent version changed** → check whether almost all tracers started failing at the same time. If so, it's the agent
 - **library version changed** → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang-id>`). Remember that this is unlikely (see above)
 - **nothing changed** → either the test is flaky (mix of pass and fail on the same versions), or a weblog dependency that is not pinned has been updated (look at the weblog Dockerfile and dependency files)
@@ -165,19 +196,21 @@ For now, the system-tests team takes care of this part. Do not ping anyone.
 
 ## Confirmation
 
-After the steps 1–2 analysis (and **before** creating anything), post a summary and wait for an explicit "go" from the user:
+After the steps 1–2 analysis (and **before** creating anything), post a summary and wait for an explicit "go" from the user. Start it with the ⚠️ line only when a [pre-release activation of an already-branched version](#pre-release-activation-of-an-already-branched-version) is suspected:
 
 ```
+⚠️ **Feature possibly missing from <library> X.Y.Z:** tests activated at `vX.Y.Z-<pre-release>` pass on dev but fail on prod since X.Y.Z shipped. Either the manifest version is wrong, or the feature was expected in X.Y.Z and did not ship. Confirm with <owner team> whether it was supposed to ship in X.Y.Z.
+
 **Test:** tests/...::Class::method
 **Scope:** <scenario> / <weblog(s)> / <library> <versions>
 **Since:** <date> (last pass: <date>, <run url>)
 **Recurrence:** <n> failures / <m> runs in the last <d> days
-**Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | weblog dependency | agent> (<confidence>)
+**Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | weblog dependency | agent | pre-release activation> (<confidence>)
 
 **Proposed actions:**
 1. Fix: <PR description> | none
-2. Skip: `<manifest entry or decorator>` in `<file>`
-3. JIRA: create in <PROJECT> | reuse <KEY>
+2. Skip: `<manifest entry or decorator>` in `<file>` | none
+3. JIRA: create in <PROJECT> | reuse <KEY> | none
 ```
 
 The user may amend any part. Only then prepare the fix PR, or the skip PR (the user creates it with the Slack button), then:

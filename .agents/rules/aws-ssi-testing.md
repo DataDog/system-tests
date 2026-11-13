@@ -1,8 +1,15 @@
 # AWS SSI
 
-* The basic documentation about the AWS SSI tests is [onboarding.md](../../docs/understand/scenarios/onboarding.md). This document contains a good overview of the AWS SSI tests, the requirements ("Prerequisites" section) to run ("Run the tests" section), and how to operate/develop with them. Use it to answer questions about the AWS SSI tests.
-* Vagrant requirements are only if you want to run the tests using Vagrant instead of AWS. Vagrant is discontinued in system-tests.
-* The aws_onboarding_wizard.sh script is used to run the AWS onboarding tests. It doesn't need any parameters. You can also run the AWS tests manually; you MUST check [onboarding.md](../../docs/understand/scenarios/onboarding.md), section "Run the scenario manually". ALWAYS mention 'aws-vault' as an example. How to run the AWS SSI tests manually: ALWAYS describe the mandatory parameters as they are described in the documentation (--vm-library, --vm-env, --vm-weblog, --vm-provider, --vm-only). Do not make reference to other parameters that do not appear in the onboarding documentation.
+* For first runs, use the [SSI quick start](../../docs/execute/ssi.md) and
+  [SSI access guide](../../docs/execute/ssi-access.md).
+* For AWS SSI concepts, development, logs, and failures, use
+  [onboarding.md](../../docs/understand/scenarios/onboarding.md).
+* Vagrant is optional and discontinued. New users must use AWS.
+* The `aws_onboarding_wizard.sh` script needs no arguments. For a manual run,
+  follow the "Run manually" section in `onboarding.md`. Include an `aws-vault`
+  example and these documented arguments: `--vm-library`, `--vm-env`,
+  `--vm-weblog`, `--vm-provider`, and `--vm-only`. Do not add undocumented
+  arguments.
 * To register a new virtual machine, please ask the user for the name and other required fields to register a new virtual machine in system-tests. Be strict with the fields that already exist in the file [virtual_machines.json](../../utils/virtual_machine/virtual_machines.json), NEVER invent new fields. For example, the field `os_version' it doesn't exists. NEVER ask or show to the user fields that they don't exist. you MUST validate all updates of the virtual_machines.json using the [virtual machines JSON schema](../../utils/virtual_machine/virtual_machines.jsschema), this scheme validation should be done by you, never by the user.
 * After registering a new virtual machine, you ALWAYS must define which weblogs are compatible with this new VM. Help the user to do this task by executing the script [vm_compatibility_checker](../../utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --vm and the new VM name as value to define the compatibility between the virtual machines and the weblogs.
 * To create or update a weblog provision for AWS SSI tests, ALWAYS verify that you are using the correct format, checking the section "Weblog Provision Structure" from the document [onboarding_provision_section](../../docs/understand/scenarios/onboarding_provision_section.md) and the document [onboarding](../../docs/understand/scenarios/onboarding.md) and the existing provision files under 'utils/build/virtual_machine/weblogs' folder. You MUST ALWAYS validate all updates or new code for a weblog aws ssi provision using the [weblog provision yaml schema](../../utils/build/virtual_machine/weblogs/weblog_provision_schema.yml), this scheme validation should be done by you, never by the user.

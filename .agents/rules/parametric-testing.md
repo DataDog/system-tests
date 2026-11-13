@@ -2,6 +2,7 @@
 
 * To run parametric tests use the document [parametric scenario](../../docs/understand/scenarios/parametric.md). The scenario runs shared tests against all APM libraries via a common HTTP interface.
 * Parametric tests live under `tests/parametric/`. The parametric library server per language is in `utils/build/docker/<lang>/parametric/`.
+* The parametric HTTP interface is documented in [parametric weblog HTTP interface](../../docs/understand/weblogs/parametric_weblog.md). Whenever you add, remove or change an endpoint (in the client `utils/docker_fixtures/_test_clients/_test_client_parametric.py`, or in a parametric server under `utils/build/docker/<lang>/parametric/`), update that document in the same change: the code is the source of truth, and `tests/test_the_test/test_parametric_interface_doc.py` checks that every endpoint called by the client is documented.
 
 ## Running a subset of tests
 

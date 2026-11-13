@@ -1,5 +1,25 @@
 # K8s Injector Dev
 
+## Quick start
+
+Use this suite only when you need the `injector-dev` tool. For normal
+Kubernetes injection tests, use the
+[K8s library injection suite](k8s_lib_injection.md#quick-start).
+
+First, complete the
+[injector-dev requirements](../../execute/ssi-access.md#requirements-by-test-suite).
+
+Run the wizard from the repository root:
+
+```bash
+./utils/scripts/ssi_wizards/k8s_injector_dev_wizard.sh
+```
+
+The wizard checks the binary, local tools, and private registry.
+
+- [Choose another SSI test suite](../../execute/ssi.md)
+- [Run injector-dev manually](#option-2-manual-execution)
+
 ## Introduction
 
 The K8s Injector Dev scenarios are a set of test scenarios designed to test the Kubernetes library injection Datadog components that enable automatic instrumentation of pods. These scenarios validate the functionality of Datadog's auto-injection capabilities in Kubernetes environments.
@@ -18,7 +38,7 @@ To run the K8s Injector Dev scenarios, you need to meet the following requiremen
 
 ### System-Tests Requirements
 
-First, you must satisfy the standard system-tests requirements. For detailed information about these requirements, please refer to the [system-tests README](../README.md#minimal-requirements-end-to-end-testing).
+Set up system-tests first. See the [quick start](../../../README.md#quick-start).
 
 ### Injector-Dev Specific Requirements
 
@@ -201,5 +221,3 @@ The K8s Injector Dev tests currently support the following scenarios:
 - **K8S_INJECTOR_DEV_SINGLE_SERVICE**: Tests single-service library injection in a Kubernetes environment
 
 The scenario matrix and supported weblogs are defined in the configuration file `utils/scripts/ci_orchestrators/k8s_injector_dev.json`.
-
-<!-- Content will be added here in the future -->

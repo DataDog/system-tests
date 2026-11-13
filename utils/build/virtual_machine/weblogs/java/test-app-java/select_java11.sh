@@ -4,10 +4,15 @@
 # alternatives --set rejects the short java-11-amazon-corretto symlink.
 set -eu
 
+# Below 11.0.23 the profiler falls back to JFR OldObjectSample, which crashes the JVM
+# (JDK-8236743, never backported to 11). EOL distros (Fedora 36: 11.0.19) ship older builds.
+readonly MIN_JAVA11_UPDATE=23
+
 java11_home=""
 # Fedora installs java-11-openjdk without a version suffix, RHEL/Ubuntu add one,
 # Corretto uses the arch-specific java-11-amazon-corretto.<arch> (or our tarball fallback).
 for candidate in \
+    /usr/lib/jvm/java-11-amazon-corretto.tarball \
     /usr/lib/jvm/java-11-amazon-corretto.* \
     /usr/lib/jvm/java-11-openjdk* \
     /usr/lib/jvm/java-11-amazon-corretto* \
@@ -65,3 +70,14 @@ java_version=$(java -version 2>&1)
 javac_version=$(javac -version 2>&1)
 printf '%s\n' "$java_version" | grep -q 'version "11\.'
 printf '%s\n' "$javac_version" | grep -q '11\.'
+
+java_update=$(printf '%s\n' "$java_version" | sed -n 's/.*version "11\.0\.\([0-9]*\).*/\1/p' | head -n 1)
+if [ "${java_update:-0}" -lt "$MIN_JAVA11_UPDATE" ]; then
+    if [ "$java11_home" = /usr/lib/jvm/java-11-amazon-corretto.tarball ]; then
+        echo "Corretto 11 tarball is 11.0.${java_update:-0}, expected 11.0.${MIN_JAVA11_UPDATE}+" >&2
+        exit 1
+    fi
+    echo "Java 11.0.${java_update:-0} is older than 11.0.${MIN_JAVA11_UPDATE}: installing the Corretto 11 tarball"
+    sh "$(dirname "$0")/install_corretto11.sh"
+    exec sh "$0"
+fi

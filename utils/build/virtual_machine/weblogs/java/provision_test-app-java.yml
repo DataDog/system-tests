@@ -15,6 +15,8 @@ lang_variant:
       remote-command: |
         # EOL Ubuntu releases (23.04 on arm64) return 404 for openjdk-11 packages: fall back to the Corretto tarball
         (sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk) || sh install_corretto11.sh
+        # The AMI cache key is this command, not the script body.
+        echo "java11-min-update=11.0.23"
         sh select_java11.sh
 
     - os_type: linux
@@ -23,9 +25,14 @@ lang_variant:
       copy_files:
         - name: copy-select-java11
           local_path: utils/build/virtual_machine/weblogs/java/test-app-java/select_java11.sh
+
+        - name: copy-install-corretto11
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/install_corretto11.sh
       remote-command: |
         sudo yum install -y tar || true
         sudo yum -y install java-11-amazon-corretto
+        # The AMI cache key is this command, not the script body.
+        echo "java11-min-update=11.0.23"
         sh select_java11.sh
 
     - os_type: linux
@@ -44,6 +51,8 @@ lang_variant:
           || sudo yum -y install java-11-openjdk-devel \
           || sudo yum -y install java-11-amazon-corretto \
           || sh install_corretto11.sh
+        # The AMI cache key is this command, not the script body.
+        echo "java11-min-update=11.0.23"
         sh select_java11.sh
 
 weblog:
