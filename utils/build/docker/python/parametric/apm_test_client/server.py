@@ -23,6 +23,8 @@ from urllib.parse import urlparse
 
 import opentelemetry
 from openfeature.evaluation_context import EvaluationContext
+from openfeature.flag_evaluation import FlagEvaluationOptions
+from openfeature.hook import Hook
 from opentelemetry.metrics import CallbackOptions
 from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
@@ -1538,6 +1540,11 @@ async def ffe_start() -> JSONResponse:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+class RejectFFEAfterHook(Hook):
+    def after(self, hook_context: Any, details: Any, hints: Any) -> None:
+        raise RuntimeError("application rejected the flag result")
+
+
 @app.post("/ffe/evaluate", response_class=JSONResponse)
 async def ffe_evaluate(request: Request) -> JSONResponse:
     """Evaluate feature flag."""
@@ -1553,6 +1560,7 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         attributes = body.get("attributes", {})
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+        options = FlagEvaluationOptions(hooks=[RejectFFEAfterHook()] if body.get("failAfterHook") else [])
 
         # Evaluate based on variation type. The detailed variants are used so the
         # provider's reason and error code reach the test, which the
@@ -1564,15 +1572,15 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
 
         try:
             if variation_type == "BOOLEAN":
-                details = openfeature_client.get_boolean_details(flag, default_value, context)
+                details = openfeature_client.get_boolean_details(flag, default_value, context, options)
             elif variation_type == "STRING":
-                details = openfeature_client.get_string_details(flag, default_value, context)
+                details = openfeature_client.get_string_details(flag, default_value, context, options)
             elif variation_type == "INTEGER":
-                details = openfeature_client.get_integer_details(flag, default_value, context)
+                details = openfeature_client.get_integer_details(flag, default_value, context, options)
             elif variation_type == "NUMERIC":
-                details = openfeature_client.get_float_details(flag, default_value, context)
+                details = openfeature_client.get_float_details(flag, default_value, context, options)
             elif variation_type == "JSON":
-                details = openfeature_client.get_object_details(flag, default_value, context)
+                details = openfeature_client.get_object_details(flag, default_value, context, options)
             else:
                 details = None
 

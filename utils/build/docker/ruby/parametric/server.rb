@@ -817,7 +817,7 @@ class LogFlushReturn
 end
 
 class OpenFeatureArgs
-  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes
+  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes, :fail_after_hook
 
   def initialize(params)
     @flag = params['flag']
@@ -825,6 +825,7 @@ class OpenFeatureArgs
     @default_value = params['defaultValue']
     @targeting_key = params['targetingKey']
     @attributes = params['attributes']
+    @fail_after_hook = params['failAfterHook'] == true
   end
 end
 
@@ -866,6 +867,12 @@ rescue => e
   res.write({error: e.message}.to_json)
 end
 
+class RejectFFEAfterHook
+  def after(**)
+    raise 'application rejected the flag result'
+  end
+end
+
 def handle_ffe_evaluation(req, res)
   args = OpenFeatureArgs.new(JSON.parse(req.body.read))
   client = OpenFeature::SDK.build_client
@@ -878,6 +885,7 @@ def handle_ffe_evaluation(req, res)
       flag_key: args.flag, default_value: args.default_value, evaluation_context: context
     }
     options[:default_value] = args.default_value.to_f if args.variation_type == 'NUMERIC'
+    options[:hooks] = [RejectFFEAfterHook.new] if args.fail_after_hook
 
     details =
       case args.variation_type
