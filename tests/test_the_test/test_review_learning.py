@@ -671,6 +671,22 @@ class Test_ReviewLearningDecide:
         strong = {**self.sharpen, "candidate_ids": ["m"]}
         assert self._statuses(tmp_path, [weak, strong], candidates, max_changes=1) == [decide.OVER_CAP, decide.APPLY]
 
+    def test_report_lists_the_next_candidates(self, tmp_path: Path) -> None:
+        candidates = [_candidate("a", 1, "correction"), _candidate("b", 2, "correction"), _candidate("m", 3, "miss")]
+        weak = {**self.sharpen, "proposed_text": "A setup method never asserts.", "reason": "Two reviewers asked for it.",
+                "candidate_ids": ["a", "b"]}  # fmt: skip
+        strong = {**self.sharpen, "candidate_ids": ["m"]}
+        self._decide(tmp_path, [weak, strong], candidates, max_changes=1)
+        text = (tmp_path / "run" / "report.md").read_text(encoding="utf-8")
+        next_candidates = text.split("## Next candidates")[1].split("## Coverage")[0]
+        assert "> A setup method never asserts." in next_candidates
+        assert "over `max_changes`" in next_candidates
+        assert "Two reviewers asked for it." in next_candidates
+        assert "more than 1 changes" not in next_candidates  # the reason of the proposal, not the cap message
+        assert text.index("## Needs a human decision") < text.index("## Next candidates")
+        assert "| Next candidates | 1 |" in text
+        assert "| over_cap |" not in text  # not in the Not applied table too
+
     def test_report_is_complete_when_every_lens_answered(self, tmp_path: Path) -> None:
         run = tmp_path / "run"
         for lens in decide.LENS_PREFIX:

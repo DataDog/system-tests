@@ -15,8 +15,13 @@ SECTIONS = [
     ("apply", "Proposed rule changes"),
     ("needs_decision", "Needs a human decision"),
     ("report_only", "Defects that a rule already describes"),
+    ("over_cap", "Next candidates"),  # the last change section: open_pr.py cuts a long report from the end
 ]
-NOT_APPLIED = ("not_enough_evidence", "invalid", "over_cap")
+# Text under a section heading. Next candidates pass every threshold, but the cap of the run left them out.
+SECTION_NOTES = {
+    "over_cap": "These changes pass the thresholds, but they are over `max_changes`. To take one now, add it by hand.",
+}
+NOT_APPLIED = ("not_enough_evidence", "invalid")
 
 
 def pr_link(number: int) -> str:
@@ -39,6 +44,7 @@ def summary_rows(run_dir: Path, decisions: list[Json]) -> list[tuple[str, int]]:
         ("Candidates with a quote that does not match", _count(run_dir / "unverified.json")),
         ("Proposals", len(decisions)),
         ("Ready to apply", statuses.count("apply")),
+        ("Next candidates", statuses.count("over_cap")),
     ]
 
 
@@ -59,7 +65,9 @@ def evidence_lines(decision: Json) -> list[str]:
 
 def change_block(decision: Json) -> list[str]:
     title = f"### {decision.get('rule_id') or 'new rule'} · `{decision['action']}` · {decision['lens']}"
-    lines = [title, "", decision.get("status_reason") or decision.get("reason", ""), ""]
+    # A next candidate shows why it was proposed. The section note already says that it is over the cap.
+    why = decision.get("reason", "") if decision["status"] == "over_cap" else decision.get("status_reason")
+    lines = [title, "", why or decision.get("reason", ""), ""]
     if decision.get("current_text"):
         lines += ["Current:", "", f"> {decision['current_text']}", ""]
     if decision.get("proposed_text"):
@@ -105,6 +113,7 @@ def render(run_dir: Path, decisions: list[Json], lenses: list[str]) -> str:
         lines += [f"**Run incomplete**: no output from {', '.join(missing)}.", ""]
     for status, heading in SECTIONS:
         blocks = [block for d in decisions if d["status"] == status for block in change_block(d)]
-        lines += [f"## {heading}", "", *(blocks or ["None.", ""])]
+        note = [SECTION_NOTES[status], ""] if status in SECTION_NOTES and blocks else []
+        lines += [f"## {heading}", "", *note, *(blocks or ["None.", ""])]
     lines += [*not_applied(decisions), *human_only(run_dir), *coverage(run_dir, decisions, lenses)]
     return "\n".join(lines) + "\n"

@@ -162,7 +162,8 @@ It also does these checks:
 - An edited rule must exist in its lens, and its current text must be in the lens file.
 - A new rule needs a free ID with the lens prefix, and the severity `P0` or `P1`. Two new rules in one run cannot share an ID.
 - A text with `se` findings needs a human decision. So does a text that `plain_english.py` did not lint.
-- At most `max_changes` proposals get the status `apply`. The strongest ones come first.
+- At most `max_changes` proposals get the status `apply`. The strongest ones come first. The default is 10.
+- The other proposals that pass the thresholds get the status `over_cap`. The report lists them as next candidates, with their text and evidence. Nothing applies them.
 
 The result goes to `decisions.json` and `report.md`. If a lens left no proposals file, the report says `Run incomplete`. A lens that ran and found nothing shows `0 proposals`.
 
@@ -268,6 +269,8 @@ claude "/system-tests-review-learn --address <PR>"
 The script applies the suggestions and the discards. The skill handles the other comments, and lints the changed rules with `se`. It commits, and it asks you before the push. After the push, it resolves the review threads that it handled.
 
 If the reason to drop a change holds for the future, write it in the rule, for example as `Not when:`. The map step reads the rules, so it never proposes the opposite again.
+
+The report at the end of the pull request also lists the next candidates: changes that passed the thresholds, but are over the cap. They are not in the diff, so a comment cannot apply them. To take one, commit it to the `review-learning/update` branch by hand.
 
 ## Output files
 
