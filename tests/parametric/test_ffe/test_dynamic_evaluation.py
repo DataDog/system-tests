@@ -25,6 +25,7 @@ FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 DEPENDENT_FLAGS_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-suites" / "dependent-flags"
 DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
+INVALID_DEPTH_TEST_CASE_FILE = Path(__file__).with_name("invalid-dependency-depth-cases.json")
 
 parametrize = pytest.mark.parametrize
 
@@ -70,6 +71,44 @@ def _load_dependent_flags_suite() -> tuple[dict[str, Any], list[Path]]:
     return json.loads((DEPENDENT_FLAGS_DIR / "ufc-config.json").read_text()), case_files
 
 
+def _dependency_depth_configuration(max_dependency_depth: int | str | None) -> dict[str, Any]:
+    """Build a chain with entry points at ten and eleven dependency edges."""
+    flags = {}
+    for depth in range(12):
+        key = f"dependency-depth-{depth}"
+        conditions = (
+            [
+                {
+                    "flagEvaluation": {"key": f"dependency-depth-{depth - 1}"},
+                    "operator": "ONE_OF",
+                    "value": ["on"],
+                }
+            ]
+            if depth > 0
+            else []
+        )
+        flags[key] = {
+            "key": key,
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {"on": {"key": "on", "value": "enabled"}},
+            "allocations": [
+                {
+                    "key": "allocation",
+                    "doLog": False,
+                    "rules": [{"conditions": conditions}],
+                    "splits": [{"variationKey": "on", "shards": []}],
+                }
+            ],
+        }
+    return {
+        "createdAt": "2024-04-17T19:40:53.716Z",
+        "environment": {"name": "Test"},
+        "evaluatorParams": {"maxDependencyDepth": max_dependency_depth},
+        "flags": flags,
+    }
+
+
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
@@ -80,6 +119,14 @@ SPLIT_FEATURE_CASES = [
     if "features" in case["result"]
 ]
 DEPENDENT_FLAGS_UFC_DATA, DEPENDENT_FLAGS_TEST_CASE_FILES = _load_dependent_flags_suite()
+DEPENDENT_FLAGS_TEST_PARAMETERS = [
+    pytest.param(case_file, DEPENDENT_FLAGS_UFC_DATA, id=case_file.name)
+    for case_file in DEPENDENT_FLAGS_TEST_CASE_FILES
+] + [
+    pytest.param(INVALID_DEPTH_TEST_CASE_FILE, _dependency_depth_configuration(256), id="invalid-depth-256"),
+    pytest.param(INVALID_DEPTH_TEST_CASE_FILE, _dependency_depth_configuration("10"), id="invalid-depth-string-10"),
+    pytest.param(INVALID_DEPTH_TEST_CASE_FILE, _dependency_depth_configuration(None), id="invalid-depth-null"),
+]
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -246,15 +293,16 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _assert_evaluation_cases(test_case_path, UFC_FIXTURE_DATA, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
+    @parametrize(("test_case_file", "ufc_data"), DEPENDENT_FLAGS_TEST_PARAMETERS)
     def test_ffe_dependent_flags(
         self,
         test_case_file: Path,
+        ufc_data: dict[str, Any],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
         """Run the imported dependent-flags feature suite through the shared evaluator harness."""
-        _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_DATA, test_agent, test_library)
+        _assert_evaluation_cases(test_case_file, ufc_data, test_agent, test_library)
 
 
 @scenarios.parametric
