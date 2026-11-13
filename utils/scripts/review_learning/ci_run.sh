@@ -38,6 +38,8 @@ mkdir -p .review-learning
 
 # Pull request text is untrusted data. So the model can only write inside .review-learning/, and it can only run the
 # named steps of the skill: never a new script. apply is not allowed, because this job never edits the rules.
+# --allowedTools only adds permissions, and .claude/settings.json sets acceptEdits. So dontAsk is required: it refuses
+# every tool that is not in the list. --strict-mcp-config skips the MCP servers of the project.
 STEPS=(collect filter szz prepare verify_quotes plain_english decide)
 ALLOWED=("Read" "Glob" "Grep" "Skill" "Agent" "Task" "Write(./.review-learning/**)" "Edit(./.review-learning/**)")
 for step in "${STEPS[@]}"; do
@@ -46,7 +48,8 @@ done
 ALLOWED+=("Bash(venv/bin/python --version)" "Bash(gh auth status)" "Bash(git rev-parse --is-shallow-repository)")
 ALLOWED+=("Bash(git fetch origin main)" "Bash(se --help)")
 
-claude -p "/system-tests-review-learn ${WINDOW}" --allowedTools "${ALLOWED[@]}" | tee .review-learning/claude-output.txt
+claude -p "/system-tests-review-learn ${WINDOW}" --permission-mode dontAsk --strict-mcp-config --allowedTools "${ALLOWED[@]}" \
+    | tee .review-learning/claude-output.txt
 
 # Fail the job when the skill did not produce a report.
 ls .review-learning/*/report.md >/dev/null

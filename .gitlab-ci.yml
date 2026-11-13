@@ -471,6 +471,9 @@ generate_system_tests_lib_injection_images:
 system_tests_param:
   extends: .system_tests_param_base
   stage: e2e
+  rules:
+    # The review-learning schedule only runs the review_learning job (see the main.yml include condition).
+    - if: '$SCHEDULED_JOB != "review-learning"'
   needs:
     - job: build_ci_image
       artifacts: false
