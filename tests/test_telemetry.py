@@ -369,6 +369,7 @@ class Test_Telemetry:
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
+            "rust": {"axum": False, "tokio": False, "serde_json": False, "reqwest": False},
         }
 
         test_defined_dependencies = {
@@ -407,6 +408,7 @@ class Test_Telemetry:
                 "httpclient": False,
             },
             "ruby": {},
+            "rust": {},
         }
 
         seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
