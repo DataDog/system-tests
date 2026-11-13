@@ -1099,10 +1099,6 @@ manifest:
         fastify: missing_feature
         nextjs: missing_feature
   tests/appsec/smoke_tests/test_security.py: v5.92.0
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
-    - weblog_declaration:
-        fastify: incomplete_test_app (login endpoint not implemented)
-        nextjs: incomplete_test_app (login endpoint not implemented)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: *ref_6_5_0
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:

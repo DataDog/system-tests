@@ -1136,6 +1136,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Transport:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -1151,17 +1154,11 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Transport:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_security.py: v4.6.0
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_EventTags:
-    - weblog_declaration:
-        aiohttp: v4.17.0-rc1
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_IpBlocking:
-    - weblog_declaration:
-        aiohttp: v4.17.0-rc1
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
-    - weblog_declaration:
-        aiohttp: v4.17.0-rc1
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Transport:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1

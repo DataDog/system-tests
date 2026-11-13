@@ -670,6 +670,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Transport:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
@@ -699,21 +702,14 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Transport:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/smoke_tests/test_security.py: v2.7.0
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_EventTags:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Transport:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_IpBlocking:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v2.11.0-dev

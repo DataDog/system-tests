@@ -4,7 +4,7 @@ from ._core import DdTraceEndToEndScenario, scenario_groups
 
 
 class SecuritySmoke(DdTraceEndToEndScenario):
-    """AAP detection, metadata, user events, telemetry and remote configuration at backend intake."""
+    """AppSec carrier preservation through native trace transport."""
 
     def __init__(self) -> None:
         super().__init__(
