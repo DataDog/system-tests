@@ -1,4 +1,4 @@
-"""Step 6: decide, without a model, which proposals are strong enough, and write the report.
+"""Step 9: decide, without a model, which proposals are strong enough, and write the report.
 
 Usage:
     python3 -m utils.scripts.review_learning.decide --run .review-learning/run
@@ -19,14 +19,21 @@ The thresholds live here, not in a prompt, so the model cannot talk itself past 
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
 
 from utils.scripts.review_learning import report
-from utils.scripts.review_learning.common import load_filters, read_json, write_json
+from utils.scripts.review_learning import apply as apply_step
+from utils.scripts.review_learning.common import (
+    FIELD_PREFIX,
+    LENSES_DIR,
+    RULE_HEADING,
+    load_filters,
+    read_json,
+    write_json,
+)
 from utils.scripts.review_learning.plain_english import proposal_key
 
 if TYPE_CHECKING:
@@ -34,7 +41,6 @@ if TYPE_CHECKING:
 
     from utils.scripts.review_learning.common import Json
 
-LENSES_DIR = Path(".agents/rules/code-review")
 LENS_PREFIX = {
     "test-effectiveness": "TEST",
     "lifecycle-and-isolation": "LIFE",
@@ -50,7 +56,6 @@ CHANGE_SIGNALS = FIX_SIGNALS | {"correction"}  # evidence that a pattern is a de
 LINT_CHECKS = {"format.sh", "ruff", "mypy", "lint-imports", "yamllint", "yamlfmt", "shellcheck", "manifest parser"}
 SEVERITIES = {"P0", "P1"}
 MIN_PRS = 2  # distinct pull requests that make a pattern, not a one-off
-_RULE_ID = re.compile(r"^### ([A-Z]+-\d+):", re.MULTILINE)
 
 APPLY = "apply"
 NEEDS_DECISION = "needs_decision"
@@ -63,29 +68,46 @@ OVER_CAP = "over_cap"
 
 def rule_ids(lenses_dir: Path) -> dict[str, set[str]]:
     return {
-        lens: set(_RULE_ID.findall((lenses_dir / f"{lens}.md").read_text(encoding="utf-8"))) for lens in LENS_PREFIX
+        lens: set(RULE_HEADING.findall((lenses_dir / f"{lens}.md").read_text(encoding="utf-8"))) for lens in LENS_PREFIX
     }
 
 
 def validate(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str) -> str | None:
     """Return why the proposal cannot be applied to the lens file, or None."""
-    action, rule_id = proposal.get("action"), proposal.get("rule_id") or ""
+    action = proposal.get("action")
     if action not in CHANGE_ACTIONS | REPORT_ACTIONS:
         return f"unknown action {action}"
     if action in CHANGE_ACTIONS and not proposal.get("proposed_text"):
         return "a change needs a proposed_text"
-    if action in EDIT_ACTIONS and rule_id not in ids[lens]:
-        return f"{rule_id} is not a rule of {lens}"
-    if action in EDIT_ACTIONS and not proposal.get("current_text"):
-        return "an edit needs the current_text that it replaces"
-    if action in EDIT_ACTIONS and proposal["current_text"] not in lens_text:
-        return "current_text is not in the lens file"
+    if action in EDIT_ACTIONS:
+        return validate_edit(lens, proposal, ids, lens_text)
     if action == "new_rule":
-        return validate_new_rule(lens, proposal, ids)
+        return validate_new_rule(lens, proposal, ids, lens_text)
     return None
 
 
-def validate_new_rule(lens: str, proposal: Json, ids: dict[str, set[str]]) -> str | None:
+def validate_edit(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str) -> str | None:
+    """An edit names a rule and a field. Only add_not_when can add a field, so it alone can omit current_text."""
+    current = proposal.get("current_text")
+    if proposal.get("rule_id") not in ids[lens]:
+        return f"{proposal.get('rule_id')} is not a rule of {lens}"
+    if proposal.get("field") not in FIELD_PREFIX:
+        return f"field must be one of {', '.join(FIELD_PREFIX)}"
+    if not current and proposal["action"] != "add_not_when":
+        return "an edit needs the current_text that it replaces"
+    return dry_run(proposal, lens_text)
+
+
+def dry_run(proposal: Json, lens_text: str) -> str | None:
+    """Run the edit on a copy of the lens. apply.py is the only judge of what it can apply."""
+    try:
+        apply_step.apply_one(lens_text, proposal)
+    except apply_step.ApplyError as error:
+        return str(error)
+    return None
+
+
+def validate_new_rule(lens: str, proposal: Json, ids: dict[str, set[str]], lens_text: str) -> str | None:
     rule_id = proposal.get("rule_id") or ""
     if not rule_id.startswith(f"{LENS_PREFIX[lens]}-"):
         return f"a new rule of {lens} must start with {LENS_PREFIX[lens]}-"
@@ -93,7 +115,7 @@ def validate_new_rule(lens: str, proposal: Json, ids: dict[str, set[str]]) -> st
         return f"{rule_id} already exists"
     if proposal.get("severity") not in SEVERITIES:
         return "a new rule needs severity P0 or P1"
-    return None
+    return dry_run(proposal, lens_text)
 
 
 def evidence_gap(proposal: Json, candidates: list[Json], root: Path) -> str | None:

@@ -1,4 +1,4 @@
-"""Find, for each fix pull request, the earlier pull request that introduced the defect (SZZ).
+"""Step 3: find, for each fix pull request, the earlier pull request that introduced the defect (SZZ).
 
 Uses the local Git history only: system-tests squash-merges, so each commit on main ends with
 "(#<number>)". Three signals, from the most to the least reliable:

@@ -15,6 +15,7 @@ from utils.scripts.review_learning import (
     thread_outcome,
     verify_quotes,
 )
+from utils.scripts.review_learning import apply as apply_step
 from utils.scripts.review_learning import filter as filter_step
 from utils.scripts.review_learning.common import Json, load_filters, matches_any, read_json, write_json
 
@@ -484,14 +485,14 @@ class Test_ReviewLearningPlainEnglish:
         }
 
 
-LENS_TEXT = "### LIFE-001: Setup Methods Must Not Fail\n- Severity: P0\n- Detect: A setup method asserts.\n"
+LENS_TEXT = "### LIFE-001: Setup Methods Must Not Fail\n- Severity: P0\n- Flag: Do not assert in setup.\n- Detect: A setup method asserts.\n"
 
 
 def _decide_root(tmp_path: Path) -> Path:
     lenses = tmp_path / "repo" / ".agents" / "rules" / "code-review"
     lenses.mkdir(parents=True)
     for lens, prefix in decide.LENS_PREFIX.items():
-        text = LENS_TEXT if prefix == "LIFE" else f"### {prefix}-001: A rule\n- Severity: P1\n"
+        text = LENS_TEXT if prefix == "LIFE" else f"### {prefix}-001: A rule\n- Severity: P1\n- Flag: A flag.\n"
         (lenses / f"{lens}.md").write_text(text, encoding="utf-8")
     (tmp_path / "repo" / "docs").mkdir()
     (tmp_path / "repo" / "docs" / "flushing.md").write_text("decision", encoding="utf-8")
@@ -499,6 +500,10 @@ def _decide_root(tmp_path: Path) -> Path:
     rejected.parent.mkdir(parents=True)
     rejected.write_text("- {rule_id: LIFE-001, action: add_not_when, prs: [20, 21]}\n", encoding="utf-8")
     return tmp_path / "repo"
+
+
+def _new_rule(rule_id: str, title: str = "Match the reply") -> str:
+    return f"### {rule_id}: {title}\n- Severity: P1\n- Flag: Match the request id."
 
 
 def _candidate(cid: str, pr: int, signal: str, association: str = "CONTRIBUTOR", outcome: str = "applied") -> Json:
@@ -511,6 +516,7 @@ class Test_ReviewLearningDecide:
     sharpen: Json = {
         "action": "sharpen",
         "rule_id": "LIFE-001",
+        "field": "Detect",
         "current_text": "A setup method asserts.",
         "proposed_text": "A setup method asserts or raises.",
         "reason": "r",
@@ -551,7 +557,13 @@ class Test_ReviewLearningDecide:
 
     def test_add_not_when_needs_two_prs_or_a_written_decision(self, tmp_path: Path) -> None:
         one = [_candidate("a", 1, "disagreement")]
-        base = {**self.sharpen, "action": "add_not_when", "candidate_ids": ["a"]}
+        base = {
+            **self.sharpen,
+            "action": "add_not_when",
+            "field": "Not when",
+            "current_text": None,
+            "candidate_ids": ["a"],
+        }
         assert self._statuses(tmp_path / "1", [base], one) == [decide.NOT_ENOUGH]
         cited = {**base, "cited_path": "docs/flushing.md"}
         assert self._statuses(tmp_path / "2", [cited], one) == [decide.APPLY]
@@ -569,18 +581,47 @@ class Test_ReviewLearningDecide:
             {"action": "rewrite", "candidate_ids": ["a"]},
             {**self.sharpen, "current_text": None, "candidate_ids": ["a"]},
             {**self.sharpen, "proposed_text": None, "candidate_ids": ["a"]},
+            {**self.sharpen, "field": "Ref", "candidate_ids": ["a"]},
         ]
         assert self._statuses(tmp_path, proposals, miss) == [decide.INVALID] * len(proposals)
+
+    def test_decide_refuses_what_apply_would_refuse(self, tmp_path: Path) -> None:
+        miss = [_candidate("a", 1, "miss")]
+        proposals: list[Json] = [
+            {**self.sharpen, "current_text": "A setup method", "candidate_ids": ["a"]},
+            {**self.sharpen, "action": "add_not_when", "candidate_ids": ["a"]},
+            {
+                "action": "new_rule",
+                "rule_id": "LIFE-005",
+                "severity": "P0",
+                "proposed_text": _new_rule("LIFE-005"),
+                "candidate_ids": ["a"],
+            },
+            {
+                "action": "new_rule",
+                "rule_id": "LIFE-005",
+                "severity": "P1",
+                "proposed_text": "Match it.",
+                "candidate_ids": ["a"],
+            },
+        ]
+        decisions = self._decide(tmp_path, proposals, miss)
+        assert [d["status"] for d in decisions] == [decide.INVALID] * len(proposals)
+        assert "appears 0 times in the rule" in decisions[0]["status_reason"]
 
     def test_two_new_rules_cannot_share_an_id(self, tmp_path: Path) -> None:
         rule = {
             "action": "new_rule",
             "rule_id": "LIFE-005",
             "severity": "P1",
-            "proposed_text": "t",
+            "proposed_text": _new_rule("LIFE-005"),
             "candidate_ids": ["a"],
         }
-        statuses = self._statuses(tmp_path, [rule, {**rule, "proposed_text": "u"}], [_candidate("a", 1, "miss")])
+        statuses = self._statuses(
+            tmp_path,
+            [rule, {**rule, "proposed_text": _new_rule("LIFE-005", "Another title")}],
+            [_candidate("a", 1, "miss")],
+        )
         assert statuses == [decide.APPLY, decide.INVALID]
 
     def test_unknown_lens_is_invalid(self, tmp_path: Path) -> None:
@@ -601,7 +642,7 @@ class Test_ReviewLearningDecide:
             "action": "new_rule",
             "rule_id": "LIFE-006",
             "severity": "P1",
-            "proposed_text": "t",
+            "proposed_text": _new_rule("LIFE-006"),
             "candidate_ids": ["a"],
         }
         run = tmp_path / "run"
@@ -618,12 +659,18 @@ class Test_ReviewLearningDecide:
                 "action": "new_rule",
                 "rule_id": "LIFE-005",
                 "severity": "P1",
-                "proposed_text": "t",
+                "proposed_text": _new_rule("LIFE-005"),
                 "candidate_ids": ["a"],
             },
             {"action": "covered", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
             {"action": "contested", "rule_id": "LIFE-001", "candidate_ids": ["a"]},
-            {**self.sharpen, "action": "add_not_when", "candidate_ids": ["b", "c"]},
+            {
+                **self.sharpen,
+                "action": "add_not_when",
+                "field": "Not when",
+                "current_text": None,
+                "candidate_ids": ["b", "c"],
+            },
         ]
         statuses = self._statuses(tmp_path, proposals, miss)
         assert statuses == [decide.APPLY, decide.REPORT_ONLY, decide.NEEDS_DECISION, decide.REJECTED_BEFORE]
@@ -672,3 +719,145 @@ class Test_ReviewLearningDecide:
         assert "- lifecycle-and-isolation: 1 proposals" in text
         assert "**Run incomplete**: no output from test-effectiveness" in text
         assert "| Fixes that szz.py could not analyse | 0 |" in text
+
+
+LENS = """### LIFE-001: Setup Methods Must Not Fail
+- Severity: P0
+- Flag: Do not assert in setup.
+- Detect: A setup method asserts.
+- Ref: [doc](x.md)
+
+### LIFE-002: Avoid fixed sleeps
+- Severity: P1
+- Flag: Do not sleep.
+- Not when: The delay is the behavior under test.
+"""
+
+
+def _edit(**extra: object) -> Json:
+    return {"lens": "lifecycle-and-isolation", "action": "sharpen", "rule_id": "LIFE-001", "field": "Detect",
+            "current_text": "A setup method asserts.", "proposed_text": "A setup method asserts or raises.", **extra}  # fmt: skip
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningApply:
+    def test_edit_replaces_one_field_line(self) -> None:
+        text = apply_step.apply_one(LENS, _edit())
+        assert "- Detect: A setup method asserts or raises.\n" in text
+        assert "- Detect: A setup method asserts.\n" not in text
+        assert text.count("### ") == 2
+
+    def test_add_not_when_inserts_the_field(self) -> None:
+        decision = _edit(action="add_not_when", field="Not when", current_text=None, proposed_text="It is parametric.")
+        lines = apply_step.apply_one(LENS, decision).splitlines()
+        assert lines[lines.index("- Detect: A setup method asserts.") + 1] == "- Not when: It is parametric."
+
+    def test_new_rule_goes_at_the_end(self) -> None:
+        block = "### LIFE-003: Match the reply\n- Severity: P0\n- Flag: Match the request id."
+        text = apply_step.apply_one(
+            LENS, _edit(action="new_rule", rule_id="LIFE-003", severity="P0", proposed_text=block)
+        )
+        assert text.endswith(block + "\n")
+
+    def test_mismatches_are_refused(self) -> None:
+        cases = [
+            (_edit(current_text="A setup method raises."), "appears 0 times"),
+            (_edit(rule_id="LIFE-009"), "appears 0 times in the lens file"),
+            (_edit(field="Ref"), "unknown field"),
+            (_edit(rule_id="LIFE-002", field="Not when", current_text=None), "already has a '- Not when:' line"),
+            (_edit(action="new_rule", rule_id="LIFE-003", severity="P0", proposed_text="LIFE-003 text"), "must start"),
+            (
+                _edit(
+                    action="new_rule",
+                    rule_id="LIFE-003",
+                    severity="P1",
+                    proposed_text="### LIFE-003: x\n- Severity: P0\n- Flag: y",
+                ),
+                "Severity line",
+            ),
+            (
+                _edit(
+                    action="new_rule",
+                    rule_id="LIFE-001",
+                    severity="P0",
+                    proposed_text="### LIFE-001: x\n- Severity: P0\n- Flag: y",
+                ),
+                "share an ID",
+            ),
+        ]
+        for decision, message in cases:
+            with pytest.raises(apply_step.ApplyError, match=message):
+                apply_step.apply_one(LENS, decision)
+
+    def test_exceptions_only_add_text(self) -> None:
+        wrong_field = _edit(action="add_not_when", proposed_text="It is parametric.")
+        with pytest.raises(apply_step.ApplyError, match="only change the Not when field"):
+            apply_step.apply_one(LENS, wrong_field)
+        current = "The delay is the behavior under test."
+        replaced = _edit(action="add_not_when", rule_id="LIFE-002", field="Not when", current_text=current)
+        with pytest.raises(apply_step.ApplyError, match="keep the current Not when text"):
+            apply_step.apply_one(LENS, {**replaced, "proposed_text": "It is parametric."})
+        text = apply_step.apply_one(LENS, {**replaced, "proposed_text": f"{current} It is parametric."})
+        assert f"- Not when: {current} It is parametric.\n" in text
+
+    def test_a_lone_carriage_return_is_refused(self) -> None:
+        for separator in ("\r", "\r\n", "\u2028"):
+            injected = _edit(proposed_text=f"x{separator}### LIFE-777: evil")
+            with pytest.raises(apply_step.ApplyError, match="must be one line"):
+                apply_step.apply_one(LENS, injected)
+
+    def test_undo_names_only_the_edited_files(self) -> None:
+        results = [
+            {"lens": "lifecycle-and-isolation", "result": "applied"},
+            {"lens": "lifecycle-and-isolation", "result": "applied"},
+            {"lens": "test-effectiveness", "result": "skipped"},
+        ]
+        assert apply_step.edited_files(results) == [".agents/rules/code-review/lifecycle-and-isolation.md"]
+        assert apply_step.edited_files([]) == []
+
+    def test_a_value_must_be_one_line(self) -> None:
+        injected = _edit(proposed_text="x\n### LIFE-777: evil\n- Severity: P0\n- Flag: z")
+        with pytest.raises(apply_step.ApplyError, match="must be one line"):
+            apply_step.apply_one(LENS, injected)
+
+    def test_other_sections_and_bytes_stay_as_they_are(self) -> None:
+        lens = LENS + "\n## Notes\n\nA note.\f\n\n"
+        edited = apply_step.apply_one(lens, _edit(rule_id="LIFE-002", field="Flag", current_text="Do not sleep.",
+                                                  proposed_text="Do not use a fixed sleep."))  # fmt: skip
+        assert edited == lens.replace("- Flag: Do not sleep.", "- Flag: Do not use a fixed sleep.")
+        block = "### LIFE-003: Match the reply\n- Severity: P0\n- Flag: Match the request id."
+        added = apply_step.apply_one(
+            lens, _edit(action="new_rule", rule_id="LIFE-003", severity="P0", proposed_text=block)
+        )
+        assert added.index("### LIFE-003") < added.index("## Notes")
+        assert added.endswith("A note.\f\n\n")
+
+    def _repo(self, tmp_path: Path) -> Path:
+        _git(tmp_path, "init", "-q")
+        lens = tmp_path / ".agents" / "rules" / "code-review" / "lifecycle-and-isolation.md"
+        lens.parent.mkdir(parents=True)
+        lens.write_text(LENS, encoding="utf-8")
+        _git(tmp_path, "add", ".")
+        _git(tmp_path, "commit", "-q", "-m", "Add lens (#1)")
+        return lens
+
+    def test_apply_run_edits_and_records(self, tmp_path: Path) -> None:
+        lens = self._repo(tmp_path)
+        run = tmp_path / "run"
+        bad = _edit(rule_id="LIFE-009")
+        skipped = {**bad, "status": "not_enough_evidence"}
+        write_json(run / "decisions.json", [{**_edit(), "status": "apply"}, {**bad, "status": "apply"}, skipped])
+        results = apply_step.apply_run(run, tmp_path)
+        assert [r["result"] for r in results] == ["applied", "skipped"]
+        assert "asserts or raises" in lens.read_text(encoding="utf-8")
+        assert read_json(run / "applied.json") == results
+
+    def test_lens_with_local_changes_is_not_touched(self, tmp_path: Path) -> None:
+        lens = self._repo(tmp_path)
+        lens.write_text(LENS + "\nlocal note\n", encoding="utf-8")
+        run = tmp_path / "run"
+        write_json(run / "decisions.json", [{**_edit(), "status": "apply"}])
+        results = apply_step.apply_run(run, tmp_path)
+        assert results[0]["reason"] == "the lens file has local changes"
+        assert "asserts or raises" not in lens.read_text(encoding="utf-8")
