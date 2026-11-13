@@ -20,58 +20,69 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.67.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_api10.py: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags::test_cmdi_span_tags: v1.67.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags::test_cmdi_span_tags: v1.67.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: v1.68.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: v1.68.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: missing_feature (Java reports legacy RASP telemetry)
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: v1.68.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: missing_feature
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: missing_feature
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded: missing_feature
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags::test_lfi_span_tags: v1.67.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags::test_lfi_span_tags: v1.67.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace::test_lfi_stack_trace: v1.68.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry::test_lfi_telemetry: v1.67.0
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry::test_lfi_telemetry: v1.68.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: missing_feature
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: missing_feature (Java reports legacy RASP telemetry)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags::test_shi_span_tags: v1.67.0
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags::test_shi_span_tags: v1.67.0
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace::test_shi_stack_trace: v1.68.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry::test_shi_telemetry: v1.67.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag::test_shi_telemetry: v1.67.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry::test_shi_telemetry: v1.68.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: missing_feature (Java reports legacy RASP telemetry)
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag::test_shi_telemetry: v1.68.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: missing_feature
-  tests/appsec/rasp/test_sqli.py: missing_feature
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: missing_feature
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: missing_feature
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: missing_feature
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: missing_feature
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags: v1.67.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: v1.67.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: missing_feature
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: v1.68.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: v1.68.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: missing_feature (Java reports legacy RASP telemetry)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: missing_feature
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: missing_feature (blocking not supported in Java Lambda)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags::test_ssrf_span_tags: v1.67.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags::test_ssrf_span_tags: v1.67.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace::test_ssrf_stack_trace: v1.68.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry::test_ssrf_telemetry: v1.67.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: missing_feature
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry::test_ssrf_telemetry: v1.68.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature (Java reports legacy RASP telemetry)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: missing_feature (blocking not supported in Java Lambda)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature
   tests/appsec/test_alpha.py::Test_Basic: v1.67.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.68.0
