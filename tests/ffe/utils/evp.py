@@ -406,15 +406,17 @@ def assert_direct_evp_shutdown_evidence(evidence: dict[str, Any]) -> None:
     assert marker.get("stream") == "stdout", f"Server-close marker must be written to stdout: {marker}"
 
     priming_finished = datetime.fromisoformat(str(evidence.get("priming_evaluation_finished_at")))
-    priming_capture_started = datetime.fromisoformat(str(priming_request_started[0]))
+    priming_observed = datetime.fromisoformat(str(evidence.get("priming_capture_observed_at")))
     evaluation_finished = datetime.fromisoformat(str(evidence.get("evaluation_finished_at")))
     stop_started = datetime.fromisoformat(str(evidence.get("stop_started_at")))
     server_closed = datetime.fromisoformat(str(marker.get("timestamp")))
     stopped_at = datetime.fromisoformat(str(evidence.get("stopped_at")))
-    assert priming_finished <= evaluation_finished <= stop_started <= server_closed <= stopped_at, (
+    # Host observations and container timestamps can use clocks with a small offset.
+    assert priming_finished <= priming_observed <= evaluation_finished <= stop_started <= stopped_at, (
         "Shutdown lifecycle timestamps are out of order"
     )
-    assert priming_capture_started <= evaluation_finished, "Priming flush did not begin before the shutdown target"
+    container_finished = datetime.fromisoformat(str(stopped["finished_at"]))
+    assert server_closed <= container_finished, "Server closure followed container exit"
     capture_started_values = evidence.get("capture_request_started_at")
     assert isinstance(capture_started_values, list)
     assert len(capture_started_values) == 1

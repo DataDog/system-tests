@@ -550,6 +550,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         # The fresh flush window starts when the priming request reaches the mocked backend: the target must be
         # produced and the weblog stopped right after, well before the writer's next timer flush
         priming_observed = self._wait_for_evp_capture(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
+        priming_observed_at = datetime.now(UTC)
         priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(
@@ -602,6 +603,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             ],
             "priming_evaluation_finished_at": priming_finished_at.isoformat(),
             "priming_evaluation_started_at": priming_started_at.isoformat(),
+            "priming_capture_observed_at": priming_observed_at.isoformat(),
             "priming_evaluation_status_code": priming_response.status_code,
             "priming_subject_id": priming_subject_id,
             "shutdown_bound_seconds": DIRECT_EVP_SHUTDOWN_BOUND_SECONDS,

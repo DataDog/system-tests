@@ -2179,7 +2179,7 @@ manifest:
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_evp_fallback.py:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
@@ -2187,15 +2187,15 @@ manifest:
         rails72: v2.23.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
@@ -2211,22 +2211,24 @@ manifest:
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent:
     - weblog_declaration:
-        "*": irrelevant
+        "*": incomplete_test_app (The weblog does not implement /ffe)
         rails72: v2.49.0-dev
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting: missing_feature (Not yet validated)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_SDK_Identity: missing_feature (Not yet validated)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
