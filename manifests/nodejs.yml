@@ -2310,7 +2310,7 @@ manifest:
     - weblog_declaration:
         "*": v7.0.0-pre
         nextjs: missing_feature (missing endpoint)
-  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant (dd-trace-js always reports kafka_cluster_id)
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": irrelevant

@@ -433,7 +433,6 @@ class Test_DsmContext_Injection_Base64:
 
         base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
-        _format = "<Q"
         # decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
         # assert producer_hash == decoded_pathway
