@@ -1,5 +1,6 @@
 # Image of the monthly review_learning job (see .gitlab-ci.yml and docs/ai/review-learning.md).
-# It holds the tools of the review-learn skill: Python 3.12, the Claude Code CLI, gh, se, and dd-octo-sts.
+# It holds the tools of the review-learn skill: Python 3.12, the Claude Code CLI, gh, se, dd-octo-sts, and
+# commit-headless.
 # It does not hold the Python packages of system-tests: the job installs requirements.txt when it starts.
 # So the tag only hashes this file, and a change to requirements.txt never rebuilds this image.
 
@@ -34,6 +35,8 @@ RUN curl --retry 5 -fsSL "https://github.com/cli/cli/releases/download/v${GH_VER
     rm -rf "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}"
 
 COPY --from=registry.ddbuild.io/dd-octo-sts:v1.9.3@sha256:f8412df42db2e1879182c820ea4ef600ab4375c5b696a24151c7f0dd931ffee6 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
+# open_pr.py pushes a signed commit with it, as update_agent_version.py does.
+COPY --from=registry.ddbuild.io/commit-headless:v3.4.0@sha256:7a7c7853250c0dcd4682548a256d4e470fc4443a9a37e0c69aa83e85e53a1dbc /commit-headless /usr/local/bin/commit-headless
 
 # If a tool is missing or broken, the build fails.
-RUN python3.12 --version && ruby --version && se --help >/dev/null && gh --version && claude --version && dd-octo-sts version
+RUN python3.12 --version && ruby --version && se --help >/dev/null && gh --version && claude --version && dd-octo-sts version && commit-headless --help >/dev/null
