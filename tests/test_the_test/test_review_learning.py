@@ -6,6 +6,7 @@ from pathlib import Path
 
 from utils import features, pytest, scenarios
 from utils.scripts.review_learning import (
+    address,
     clean,
     collect,
     decide,
@@ -942,3 +943,179 @@ class Test_ReviewLearningOpenPr:
         monkeypatch.setattr("sys.argv", ["open_pr", "--run", str(run), "--repo-root", str(repo)])
         with pytest.raises(SystemExit, match="only publishes from the GitLab job"):
             open_pr.main()
+
+
+BASE_LENS = "# Lifecycle\n\n### LIFE-001: Wait for data\n- Severity: P1\n- Flag: A flag.\n\n### LIFE-002: No sleep\n- Severity: P1\n- Flag: Old flag.\n"
+HEAD_LENS = (
+    "# Lifecycle\n\n### LIFE-001: Wait for data\n- Severity: P1\n- Flag: A flag.\n- Not when: It is parametric.\n\n"
+    "### LIFE-002: No sleep\n- Severity: P1\n- Flag: New flag.\n\n### LIFE-003: New rule\n- Severity: P1\n- Flag: Match the id.\n"
+)
+LENS_PATH = ".agents/rules/code-review/lifecycle-and-isolation.md"
+
+
+def _node(body: str, association: str = "MEMBER", login: str = "alice", kind: str = "User") -> Json:
+    return {"id": f"c-{body}", "body": body, "url": "u", "authorAssociation": association,
+            "author": {"login": login, "__typename": kind}}  # fmt: skip
+
+
+def _review_thread(body: str, line: int | None = 10, *, resolved: bool = False) -> Json:
+    return {"id": f"t-{body}", "isResolved": resolved, "path": LENS_PATH, "line": line, "startLine": None,
+            "diffSide": "RIGHT", "startDiffSide": None, "comments": {"nodes": [_node(body)]}}  # fmt: skip
+
+
+def _feedback_item(kind: str, body: str = "", line: int | None = None, **extra: object) -> Json:
+    inline = line is not None
+    return {"id": body or kind, "url": "u", "author": "alice", "kind": kind, "body": body,
+            "thread_id": f"t-{body}" if inline else None, "path": LENS_PATH if inline else None, "line": line,
+            "start_line": line, "side": "RIGHT" if inline else None, "diff_side": "RIGHT" if inline else None,
+            "suggestion": None,
+            "rule_ids": address.discard_ids(body) or [], **extra}  # fmt: skip
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningAddress:
+    @staticmethod
+    def _repo(tmp_path: Path) -> tuple[Path, str]:
+        repo = tmp_path / "repo"
+        (repo / ".agents" / "rules" / "code-review").mkdir(parents=True)
+        _git(repo, "init", "-q", "-b", "main")
+        (repo / LENS_PATH).write_text(BASE_LENS, encoding="utf-8")
+        _git(repo, "add", ".")
+        _git(repo, "commit", "-q", "-m", "base")
+        _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
+        (repo / LENS_PATH).write_text(HEAD_LENS, encoding="utf-8")
+        _git(repo, "commit", "-q", "-am", "rule changes")
+        return repo, _git(repo, "rev-parse", "HEAD")
+
+    def test_kind_of_each_answer(self) -> None:
+        assert address.kind_of("```suggestion\n- Flag: x\n```", inline=True) == "suggestion"
+        assert address.kind_of("```suggestion\n- Flag: x\n```", inline=False) == "other"
+        assert [address.kind_of(b, inline=True) for b in ["", "OK.", "LGTM", "👍"]] == ["approve"] * 4
+        assert address.kind_of("Discard: it is too broad", inline=True) == "discard"
+        assert address.kind_of("descarta: no aporta nada", inline=True) == "discard"
+        assert address.kind_of("I would not discard it", inline=True) == "other"
+        assert address.kind_of("Discard the second example", inline=True) == "other"
+        assert address.kind_of("Remove the second example from Not when", inline=True) == "other"
+        assert address.discard_ids("discard LIFE-003: LIFE-001 already covers it") == ["LIFE-003"]
+        assert address.discard_ids("Discard - too broad") == []
+        assert address.kind_of("discard-ish wording is fine", inline=True) == "other"
+        assert address.kind_of("Discard\n\nIt repeats TEST-002", inline=True) == "discard"
+
+    def test_only_open_threads_of_reviewers_count(self) -> None:
+        pull_request = {
+            "comments": {"nodes": [_node("LGTM"), _node("ok", association="CONTRIBUTOR"), _node("ok", kind="Bot")]},
+            "reviews": {"nodes": [_node(""), _node("Discard LIFE-003")]},
+            "reviewThreads": {"nodes": [_review_thread("Discard"), _review_thread("old", resolved=True)]},
+        }
+        items = address.items_of(pull_request)
+        assert [(i["body"], i["kind"]) for i in items] == [("LGTM", "approve"), ("Discard LIFE-003", "discard"),
+                                                            ("Discard", "discard")]  # fmt: skip
+        assert items[1]["rule_ids"] == ["LIFE-003"]
+        assert items[2]["thread_id"] == "t-Discard"
+        assert items[2]["line"] == 10
+
+    def test_fetch_refuses_another_branch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        page = {"pageInfo": {"hasNextPage": False}, "nodes": []}
+        pull_request = {"headRefName": "feature", "headRefOid": "abc", "comments": page, "reviews": page,
+                        "reviewThreads": {"pageInfo": {"hasNextPage": True}, "nodes": []}}  # fmt: skip
+
+        def graphql(_query: str, _variables: dict[str, str]) -> Json:
+            return {"data": {"repository": {"pullRequest": pull_request}}}
+
+        with pytest.raises(SystemExit, match="not a review-learning pull request"):
+            address.fetch(1, graphql)
+        pull_request["headRefName"] = address.BRANCH
+        with pytest.raises(SystemExit, match="more than 100"):
+            address.fetch(1, graphql)
+
+    def test_apply_suggestion_and_discards(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, head = self._repo(tmp_path)
+        monkeypatch.chdir(repo)
+        items = [
+            _feedback_item("suggestion", "suggest", line=10, suggestion="- Flag: Reviewer flag.\n"),
+            _feedback_item("discard", "Discard", line=13),
+            _feedback_item("discard", "Discard LIFE-001: it is too broad"),
+            _feedback_item("approve", "ok"),
+            _feedback_item("other", "Say why", line=5),
+        ]
+        write_json(address.run_dir(1) / "feedback.json", {"pr": 1, "head": head, "items": items})
+        result = address.apply_pr(1, repo)
+        statuses = [i["status"] for i in result["items"]]
+        assert statuses == ["applied", "applied", "applied", "kept", "for the skill"]
+        expected = BASE_LENS.replace("Old flag.", "Reviewer flag.")
+        assert (repo / LENS_PATH).read_text(encoding="utf-8") == expected
+
+    def test_unsafe_comments_are_skipped(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, head = self._repo(tmp_path)
+        monkeypatch.chdir(repo)
+        items = [
+            _feedback_item("suggestion", "suggest", line=10, suggestion="- Flag: Reviewer flag.\n"),
+            _feedback_item("discard", "Discard: the rule is wrong", line=9),
+            _feedback_item("discard", "Discard", line=None, path=LENS_PATH, thread_id="t-x"),
+            _feedback_item("suggestion", "left", line=5, side="LEFT", suggestion="x\n"),
+            _feedback_item("discard", "discard LIFE-003"),
+            _feedback_item("discard", "discard LIFE-003."),
+        ]
+        write_json(address.run_dir(1) / "feedback.json", {"pr": 1, "head": head, "items": items})
+        statuses = [i["status"] for i in address.apply_pr(1, repo)["items"]]
+        assert statuses == [
+            "skipped: a discard of the same rule wins",
+            "applied",
+            "skipped: the comment has no line: name the rule ID, such as 'discard LIFE-003'",
+            "skipped: the suggestion is not on the current lines of the file",
+            "applied",
+            "applied",
+        ]
+        expected = HEAD_LENS.split("\n\n### LIFE-003")[0].replace("New flag.", "Old flag.") + "\n"
+        assert (repo / LENS_PATH).read_text(encoding="utf-8") == expected
+
+    def test_discard_on_a_removed_line(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, head = self._repo(tmp_path)
+        monkeypatch.chdir(repo)
+        # Line 7 is the heading of LIFE-002 in the merge base, but a line of LIFE-001 in the head.
+        items = [_feedback_item("discard", "Discard", line=7, side="LEFT", diff_side="LEFT")]
+        write_json(address.run_dir(1) / "feedback.json", {"pr": 1, "head": head, "items": items})
+        assert [i["status"] for i in address.apply_pr(1, repo)["items"]] == ["applied"]
+        assert "- Flag: Old flag." in (repo / LENS_PATH).read_text(encoding="utf-8")
+        assert "- Not when: It is parametric." in (repo / LENS_PATH).read_text(encoding="utf-8")
+
+    def test_overlapping_suggestions_apply_once(self) -> None:
+        lines = ["a", "b", "c"]
+        items = [
+            {"id": "one", "line": 2, "start_line": 1, "suggestion": "x\n"},
+            {"id": "two", "line": 2, "start_line": 2, "suggestion": "y\n"},
+        ]
+        status = address.apply_suggestions(lines, items)
+        assert status == {"one": "applied", "two": "skipped: it overlaps another suggestion"}
+        assert lines == ["x", "c"]
+
+    def test_apply_needs_a_clean_checkout_of_the_head(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, head = self._repo(tmp_path)
+        monkeypatch.chdir(repo)
+        write_json(address.run_dir(1) / "feedback.json", {"pr": 1, "head": "0" * 40, "items": []})
+        with pytest.raises(SystemExit, match="check out the pull request head"):
+            address.apply_pr(1, repo)
+        write_json(address.run_dir(1) / "feedback.json", {"pr": 1, "head": head, "items": []})
+        (repo / LENS_PATH).write_text("changed\n", encoding="utf-8")
+        with pytest.raises(SystemExit, match="local changes"):
+            address.apply_pr(1, repo)
+
+    def test_resolve_only_handled_threads(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        applied = [
+            {**_feedback_item("discard", "a", line=3), "status": "applied"},
+            {**_feedback_item("other", "b", line=4), "status": "for the skill"},
+            {**_feedback_item("other", "c", line=5), "status": "for the skill"},
+            {**_feedback_item("approve", "ok"), "status": "kept"},
+        ]
+        write_json(address.run_dir(1) / "applied.json", applied)
+        calls: list[str] = []
+
+        def graphql(_query: str, variables: dict[str, str]) -> Json:
+            calls.append(variables["id"])
+            return {}
+
+        assert address.resolve(1, ["b"], graphql) == ["t-a", "t-b"]
+        assert calls == ["t-a", "t-b"]

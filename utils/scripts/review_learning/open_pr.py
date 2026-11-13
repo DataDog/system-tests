@@ -36,8 +36,12 @@ It only edits `.agents/rules/code-review/`.
 
 **How to review**
 - The report below lists the evidence of each change: the pull requests and the verified quotes.
-- To reject a change, revert it in this pull request. If the reason holds for the future, write it in the rule,
-  for example as `Not when:`. The job reads the rules, so it never proposes the opposite again.
+- To keep a change, leave no comment, or write `ok`.
+- To drop a change, comment `discard` on it, or `discard: <reason>`.
+- To change the text, add a GitHub suggestion block, or write the new text in a comment.
+- Then a person from `system-tests-core` runs `/system-tests-review-learn --address <this PR>` locally.
+- If the reason to drop a change holds for the future, write it in the rule, for example as `Not when:`.
+  The job reads the rules, so it never proposes the opposite again.
 - This pull request never merges by itself. A person from `system-tests-core` approves it.
 - The next monthly run publishes nothing while this pull request is open.
 """

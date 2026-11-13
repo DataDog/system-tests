@@ -233,7 +233,7 @@ The `review_learning` job in [`.gitlab-ci.yml`](../../.gitlab-ci.yml) runs once 
 
 There is only one pull request at a time. If the last one is still open, `open_pr.py` publishes nothing, so a reviewer never loses work.
 
-The model never holds the write token. `open_pr.py` publishes only `.agents/rules/code-review/*.md`, and it refuses any other change. The pull request never merges by itself: a person from `system-tests-core` reviews it. To reject a change, revert it in the pull request. If the reason holds for the future, write it in the rule, for example as `Not when:`. The map step reads the rules, so it never proposes the opposite again.
+The model never holds the write token. `open_pr.py` publishes only `.agents/rules/code-review/*.md`, and it refuses any other change. The pull request never merges by itself: a person from `system-tests-core` reviews it. [Review the monthly pull request](#review-the-monthly-pull-request) says how.
 
 - **Schedule:** a GitLab pipeline schedule on `main` sets `SCHEDULED_JOB=review-learning`. You can also start it by hand from the GitLab UI, with the same variable. This schedule never runs the end-to-end pipeline.
 - **Image:** [`review-learning.Dockerfile`](../../utils/ci/gitlab/docker/review-learning.Dockerfile) holds Python 3.12, the Claude Code CLI, `gh`, `se`, `dd-octo-sts`, and `commit-headless`. The `build_ci_image` job builds and signs it. The job installs `requirements.txt` when it starts, so a change to `requirements.txt` never rebuilds this image.
@@ -244,6 +244,30 @@ The model never holds the write token. `open_pr.py` publishes only `.agents/rule
 The entry point is [`ci_run.sh`](../../utils/scripts/review_learning/ci_run.sh). The model can only write in the `candidates/` and `proposals/` folders of its run, and it can only run the named steps of the skill. It cannot run `apply` or `open_pr.py`.
 
 To see the pull request without publishing it, run `open_pr --run <run> --dry-run` after `apply`.
+
+## Review the monthly pull request
+
+The reviewer answers each rule change in the pull request:
+
+| Answer | Result |
+| --- | --- |
+| No comment, `ok`, `LGTM`, or a thumbs up | Keep the change. |
+| `discard`, or `discard: <reason>` | Put the rule back as it is on `main`. A new rule goes away. Outside a review thread, name the rule ID: `discard LIFE-003: <reason>`. |
+| A GitHub suggestion block on the lines | Replace those lines with the suggestion. |
+| Any other comment | The skill reads it, and edits that rule. If the comment is not clear, the skill leaves it for a person. |
+
+Then a person applies the answers locally:
+
+```bash
+gh pr checkout <PR>
+claude "/system-tests-review-learn --address <PR>"
+```
+
+[`address.py`](../../utils/scripts/review_learning/address.py) reads the comments with your `gh` login. Only comments from members and collaborators count, and bots never count. In a review thread, only the first comment counts, and a resolved thread is skipped. Any other text after `discard`, such as `discard the second example`, goes to the skill as a normal comment.
+
+The script applies the suggestions and the discards. The skill handles the other comments, and lints the changed rules with `se`. It commits, and it asks you before the push. After the push, it resolves the review threads that it handled.
+
+If the reason to drop a change holds for the future, write it in the rule, for example as `Not when:`. The map step reads the rules, so it never proposes the opposite again.
 
 ## Output files
 
