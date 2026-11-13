@@ -311,6 +311,9 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+    - name: Run FEATURE_FLAGGING_EVP_STRESS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_STRESS"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_STRESS
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
@@ -338,6 +341,18 @@ jobs:
     - name: Run FEATURE_FLAGGING_EVP_403_FLAGEVALUATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_403_FLAGEVALUATION"')
       run: ./run.sh FEATURE_FLAGGING_EVP_403_FLAGEVALUATION
+    - name: Run FEATURE_FLAGGING_EVP_429_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_429_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_429_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_429_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_429_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_429_FLAGEVALUATION
+    - name: Run FEATURE_FLAGGING_EVP_503_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_503_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_503_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_503_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_503_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_503_FLAGEVALUATION
     - name: Run FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES"')
       run: ./run.sh FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES
@@ -509,45 +524,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run OTEL_TRACING_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_TRACING_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_METRIC_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_METRIC_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_LOG_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_LOG_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
@@ -557,6 +533,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_SCA scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_SCA"')
+      run: ./run.sh APPSEC_LAMBDA_SCA
     - name: Run APPSEC_LAMBDA_RASP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
       run: ./run.sh APPSEC_LAMBDA_RASP
@@ -596,10 +575,9 @@ jobs:
     - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
       run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
-
-    # - name: Run THREAD_CONTEXT_SHARING scenario
-    #   if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
-    #   run: ./run.sh THREAD_CONTEXT_SHARING
+    - name: Run THREAD_CONTEXT_SHARING scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
+      run: ./run.sh THREAD_CONTEXT_SHARING
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

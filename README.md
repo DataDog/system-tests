@@ -38,7 +38,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 | [Architecture overview](docs/understand/architecture.md) | Components, containers, data flow |
 | [Scenarios](docs/understand/scenarios/README.md) | End-to-end, parametric, SSI, K8s -- what each one tests |
 | [Weblogs](docs/understand/weblogs/README.md) | The test applications instrumented by tracers |
-| [Glossary](docs/glossary.md) | Definitions of pass, fail, xpass, xfail, etc. |
+| [Glossary](docs/glossary.md) | Definitions of SSI, scenario, weblog, pass, fail, and other terms |
 
 ### Run tests
 
@@ -46,6 +46,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 |-------|-------------|
 | [Build](docs/execute/build.md) | Build options, weblog variants, image names |
 | [Run](docs/execute/run.md) | Run options, selecting tests, scenarios, timeouts |
+| [SSI quick start](docs/execute/ssi.md) | Choose and run Docker, AWS, or Kubernetes SSI tests |
 | [Logs](docs/execute/logs.md) | Understanding the logs folder structure |
 | [Test outcomes](docs/execute/test-outcomes.md) | Reading test results |
 | [Replay mode](docs/execute/replay.md) | Re-run tests without starting the containers |
@@ -90,10 +91,10 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 
 ## Additional requirements
 
-Specific scenarios may require additional tools:
-
-- **Kubernetes tests** -- require Kind/Minikube for local K8s clusters. See [K8s docs](docs/understand/scenarios/k8s_library_injection_overview.md).
-- **AWS SSI tests** -- require AWS credentials and Pulumi setup. See [AWS SSI docs](docs/understand/scenarios/onboarding.md).
+Specific scenarios need extra tools or access. For Docker SSI, AWS SSI, and
+Kubernetes library injection, start with the
+[SSI quick start](docs/execute/ssi.md). The
+[SSI access guide](docs/execute/ssi-access.md) lists every requirement.
 
 ## Contributing
 

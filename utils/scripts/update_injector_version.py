@@ -101,7 +101,7 @@ def run_automation(root: Path, version: str | None = None) -> bool:
     scope_args = ["--scope", REPOSITORY, "--policy", OCTO_STS_POLICY]
     run_command(root, ["dd-octo-sts", "version"])
     run_command(root, ["dd-octo-sts", "debug", *scope_args])
-    token = run_command(root, ["dd-octo-sts", "token", *scope_args], capture_output=True).stdout.strip()
+    token = run_command(root, ["dd-octo-sts", "token", *scope_args], capture_stdout=True).stdout.strip()
     if not token:
         raise RuntimeError("dd-octo-sts returned an empty GitHub token")
 

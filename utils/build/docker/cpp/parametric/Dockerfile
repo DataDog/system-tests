@@ -1,8 +1,6 @@
 
-ARG TARGETARCH
-FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-${TARGETARCH} AS build
+FROM system_tests_base_cpp_cpp_parametric AS build
 
-RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
 COPY utils/build/docker/cpp/parametric/install_ddtrace.sh binaries* /binaries/
 COPY utils/build/docker/github.sh /binaries/github.sh

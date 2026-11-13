@@ -1381,6 +1381,27 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     return OtelMetricsForceFlushReturn(success=True)
 
 
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
+
+
 class LogCreateLoggerArgs(BaseModel):
     name: str
     level: str
@@ -1563,7 +1584,15 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
+        return JSONResponse(
+            {
+                "value": value,
+                "reason": reason,
+                "errorCode": error_code,
+                "providerStatus": openfeature_client.get_provider_status().value,
+            },
+            status_code=200,
+        )
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

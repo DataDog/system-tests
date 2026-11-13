@@ -465,6 +465,7 @@ public class Main {
         });
         router.get("/make_distant_call").handler(ctx -> {
             String url = ctx.request().getParam("url");
+            String method = Optional.ofNullable(ctx.request().getParam("method")).orElse("GET");
             JsonObject requestHeaders = new JsonObject();
 
             OkHttpClient client = new OkHttpClient.Builder()
@@ -480,9 +481,12 @@ public class Main {
             })
             .build();
 
+            RequestBody requestBody = ("GET".equals(method) || "HEAD".equals(method))
+                    ? null
+                    : RequestBody.create(null, new byte[0]);
             Request request = new Request.Builder()
                     .url(url)
-                    .get()
+                    .method(method, requestBody)
                     .build();
 
             client.newCall(request).enqueue(new Callback() {

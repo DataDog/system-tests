@@ -712,7 +712,10 @@ class Test_ComputeHash:
 
 @scenarios.test_the_test
 class Test_BuildAndPush:
-    def test_build_and_push_streams_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    @pytest.mark.parametrize(("platform", "arch"), [("linux/amd64", "amd64"), ("linux/arm64", "arm64")])
+    def test_build_and_push_streams_output(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, platform: str, arch: str
+    ) -> None:
         calls: list[tuple[list[str], dict[str, object]]] = []
 
         def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess:
@@ -727,7 +730,7 @@ class Test_BuildAndPush:
             "datadog/system-tests:test.base-123456789abc",
             tmp_path / "build",
             "Dockerfile",
-            "linux/arm64",
+            platform,
         )
 
         assert calls == [
@@ -745,7 +748,9 @@ class Test_BuildAndPush:
                     "--set",
                     "target.dockerfile=Dockerfile",
                     "--set",
-                    "target.platform=linux/arm64",
+                    f"target.platform={platform}",
+                    "--set",
+                    f"target.args.TARGETARCH={arch}",
                     "-f",
                     str(tmp_path / "docker-bake.hcl"),
                     "target",
@@ -919,7 +924,7 @@ class Test_WaitForBaseImage:
         assert exit_info.value.code == 1
         assert calls == 1
 
-    def test_non_missing_error_fails_immediately(self, monkeypatch: pytest.MonkeyPatch):
+    def test_non_missing_error_fails_after_a_few_attempts(self, monkeypatch: pytest.MonkeyPatch):
         calls = 0
 
         def unauthorized(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
@@ -939,7 +944,28 @@ class Test_WaitForBaseImage:
             wait_for_base_image.main()
 
         assert exit_info.value.code == 1
-        assert calls == 1
+        # well before the timeout: it's not a missing image
+        assert calls == wait_for_base_image._UNEXPECTED_ERROR_ATTEMPTS  # noqa: SLF001
+
+    def test_transient_error_is_retried(self, monkeypatch: pytest.MonkeyPatch):
+        results = iter(
+            [
+                subprocess.CompletedProcess(
+                    [], 1, stdout="", stderr='Get "https://production.cloudfront.docker.com/...'
+                ),
+                subprocess.CompletedProcess([], 0, stdout="{}", stderr=""),
+            ]
+        )
+
+        monkeypatch.setattr(wait_for_base_image.subprocess, "run", lambda *_args, **_kwargs: next(results))
+        monkeypatch.setattr(wait_for_base_image.time, "sleep", lambda _seconds: None)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "express4", "--timeout", "900", "--poll-interval", "30"],
+        )
+
+        wait_for_base_image.main()
 
 
 @scenarios.test_the_test
@@ -1201,7 +1227,12 @@ class Test_BuildScriptBaseImageContexts:
         fake_bin.mkdir()
         capture = tmp_path / "docker-args"
         docker = fake_bin / "docker"
-        docker.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$CAPTURE"\n')
+        # records the build command: build.sh then runs the image to read its tracer version, and labels it with another
+        # build reading its Dockerfile from stdin, they are not recorded
+        docker.write_text(
+            '#!/usr/bin/env bash\n[ "$1" = run ] && echo 1.2.3 && exit 0\n[ "${*: -1}" = - ] && exit 0\n'
+            'printf "%s\\n" "$@" > "$CAPTURE"\n'
+        )
         docker.chmod(0o755)
         token = tmp_path / "github-token"
         token.write_text("secret")

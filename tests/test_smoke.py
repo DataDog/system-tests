@@ -34,7 +34,7 @@ class Test_Backend:
         )
 
         logger.info(f"Excpected backend: {expected_domain}")
-        for data in interfaces.agent.get_data():
+        for data in interfaces.mocked_backend.get_data():
             host: str = data["host"]
 
             # agent uses FQDN for almost all queries (same domain, but with a tailing dot).

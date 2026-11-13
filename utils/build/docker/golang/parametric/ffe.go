@@ -50,9 +50,19 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		ctx, cancel := context.WithTimeout(context.Background(), ffeStartTimeout)
 		defer cancel()
 
-		if err := of.SetProviderWithContextAndWait(ctx, provider); err != nil {
+		registered, err := exposureTestProvider(provider)
+		if err != nil {
+			return err
+		}
+		if err := of.SetProviderWithContextAndWait(ctx, registered); err != nil {
 			var initErr *of.ProviderInitError
-			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
+			if !errors.As(err, &initErr) {
+				return err
+			}
+			// Keep the client of the failed provider; evaluations report its state.
+			s.ddProvider = provider
+			s.ofClient = of.NewClient("system-tests-weblog-client")
+			if initErr.ErrorCode != of.ProviderNotReadyCode {
 				return err
 			}
 		}
@@ -80,6 +90,8 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		DefaultValue  any            `json:"defaultValue"`
 		TargetingKey  string         `json:"targetingKey"`
 		Attributes    map[string]any `json:"attributes"`
+		ExposureHooks bool           `json:"exposureHooks"`
+		FailAfterHook bool           `json:"failAfterHook"`
 	}
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
 		http.Error(writer, "invalid request body: "+err.Error(), http.StatusBadRequest)
@@ -104,8 +116,14 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 	value := body.DefaultValue
 	reason := string(of.DefaultReason)
 	var errorCode string
+	var flagMetadata of.FlagMetadata
 
 	evalCtx := request.Context()
+	rows := make([]map[string]any, 0)
+	var options []of.Option
+	if body.ExposureHooks {
+		options = exposureHookOptions(&rows, body.FailAfterHook)
+	}
 
 	func() {
 		defer func() {
@@ -126,27 +144,28 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		switch body.VariationType {
 		case "BOOLEAN":
 			defaultValue, _ := body.DefaultValue.(bool)
-			d, e := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "STRING":
 			defaultValue, _ := body.DefaultValue.(string)
-			d, e := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "INTEGER":
 			defaultValue, _ := toInt64(body.DefaultValue)
-			d, e := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "NUMERIC":
 			defaultValue, _ := toFloat64(body.DefaultValue)
-			d, e := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "JSON":
-			d, e := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx)
+			d, e := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		}
 
 		reason = string(details.Reason)
 		errorCode = string(details.ErrorCode)
+		flagMetadata = details.FlagMetadata
 		if err != nil {
 			value = body.DefaultValue
 			if reason == "" {
@@ -157,10 +176,13 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 
 	writer.WriteHeader(http.StatusOK)
 	response := struct {
-		Value     any    `json:"value"`
-		Reason    string `json:"reason"`
-		ErrorCode string `json:"errorCode"`
-	}{value, reason, errorCode}
+		Value          any              `json:"value"`
+		Reason         string           `json:"reason"`
+		ErrorCode      string           `json:"errorCode"`
+		FlagMetadata   of.FlagMetadata  `json:"flagMetadata"`
+		ProviderStatus string           `json:"providerStatus"`
+		ExposureHooks  []map[string]any `json:"exposureHooks,omitempty"`
+	}{value, reason, errorCode, flagMetadata, string(s.ofClient.State()), rows}
 
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "failed to encode response: "+err.Error(), http.StatusInternalServerError)

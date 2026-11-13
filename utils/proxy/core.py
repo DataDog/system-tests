@@ -7,26 +7,19 @@ import io
 import json
 import logging
 import os
-import ssl
-from typing import Any, Literal, cast
+from typing import Any, cast
 from datetime import datetime, UTC
 
 import zstandard
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
-from mitmproxy.connection import Client
 from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize, Interface
 from .ports import ProxyPorts
-from .mocked_response import (
-    MOCKED_TRACER_RESPONSES_PATH,
-    MOCKED_BACKEND_RESPONSES_PATH,
-    MockedTracerResponse,
-    MockedBackendResponse,
-)
+from .mocked_response import MOCKED_TRACER_RESPONSES_PATH, MockedTracerResponse
 from .utils import logger
 
 # prevent permission issues on file created by the proxy when the host is linux
@@ -36,11 +29,6 @@ os.umask(0)
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 messages_counts: dict[str, int] = defaultdict(int)
-
-# Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
-_MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
-
-_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.datadog_sidecar, ProxyPorts.datadog_direct)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -64,16 +52,6 @@ class _UDPForwarder(asyncio.DatagramProtocol):
             f"Forward UDP datagram ({len(data)}B) from {addr[0]}:{addr[1]} to {self.target_host}:{self.target_port}"
         )
         self.transport.sendto(data, (self.target_host, self.target_port))
-
-
-async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-    """Keep the mitmproxy ↔ upstream TLS leg alive; mitmproxy handles all actual HTTP."""
-    try:
-        await reader.read(1)
-    except (ConnectionResetError, asyncio.IncompleteReadError):
-        pass
-    finally:
-        writer.close()
 
 
 async def _start_udp_forwarder(
@@ -133,8 +111,6 @@ class _RequestLogger:
 
         self.log_folder = os.environ["SYSTEM_TESTS_LOG_FOLDER"]
 
-        self.mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
-
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
@@ -145,66 +121,21 @@ class _RequestLogger:
         self.internal_mocked_tracer_responses = MockedTracerResponse.many_from_file()
         """Tracer mocked responses valid for the entire session, controlled by scenarios"""
 
-        # Backend mocked responses (create responses from scratch)
-        self.mocked_backend_responses: list[MockedBackendResponse] = []
-        """Backend mocked responses controlled by setup methods"""
-
-        self.internal_mocked_backend_responses = MockedBackendResponse.many_from_file()
-        """Backend mocked responses valid for the entire session, controlled by scenarios"""
-
-        self._mock_upstream_server: asyncio.Server | None = None
-
-        self._original_connects: dict[str, tuple[str, int]] = {}
-        """for backend requests, since we mock the connect handshake, we need to store original host/port"""
-
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
-    def _store_mocked_reponses(self, flow: HTTPFlow, target: Literal["tracer", "backend"]) -> None:
-        result: list[MockedTracerResponse] | list[MockedBackendResponse]
+    def _store_mocked_tracer_reponses(self, flow: HTTPFlow) -> None:
         try:
             source: list[dict] = json.loads(flow.request.content)
-            if target == "tracer":
-                result = self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)
-            elif target == "backend":
-                result = self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)
+            result = self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)
         except Exception as e:
-            logger.exception(f"Failed to build mocked {target} response from {flow.request.content}")
-            flow.response = self.get_error_response(f"Invalid mocked {target} response definition: {e}".encode())
+            logger.exception(f"Failed to build mocked tracer response from {flow.request.content}")
+            flow.response = self.get_error_response(f"Invalid mocked tracer response definition: {e}".encode())
         else:
-            logger.info(f"Store mocked {target} responses: {result}")
+            logger.info(f"Store mocked tracer responses: {result}")
             flow.response = http.Response.make(200, b"Ok")
-
-    async def running(self) -> None:
-        if not self.mocked_backend:
-            return
-        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ssl_ctx.load_cert_chain(_MITMPROXY_CA_PEM)
-        self._mock_upstream_server = await asyncio.start_server(
-            _mock_upstream_handler, "127.0.0.1", ProxyPorts.upstream_tls_server, ssl=ssl_ctx
-        )
-        logger.info(f"Mock upstream TLS server started on port {ProxyPorts.upstream_tls_server}")
-
-    def http_connect(self, flow: HTTPFlow) -> None:
-        proxy_port = flow.client_conn.sockname[1]
-        logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
-        if proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
-            # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
-            # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
-            # request() never fires.
-
-            logger.info(f"Flow {flow.id}: bypass CONNECT to 127.0.0.1:{ProxyPorts.upstream_tls_server}")
-            logger.debug(f"Flow {flow.id}: client connection id is: {flow.client_conn.id}")
-
-            self._original_connects[flow.client_conn.id] = flow.request.host, flow.request.port
-
-            flow.request.host = "127.0.0.1"
-            flow.request.port = ProxyPorts.upstream_tls_server
-
-    def clientdisconnected(self, client: Client) -> None:
-        self._original_connects.pop(client.id, None)
 
     def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
@@ -215,10 +146,7 @@ class _RequestLogger:
 
         if proxy_port == ProxyPorts.proxy_commands:
             if flow.request.path == MOCKED_TRACER_RESPONSES_PATH and flow.request.method == "PUT":
-                self._store_mocked_reponses(flow, target="tracer")
-
-            elif flow.request.path == MOCKED_BACKEND_RESPONSES_PATH and flow.request.method == "PUT":
-                self._store_mocked_reponses(flow, target="backend")
+                self._store_mocked_tracer_reponses(flow)
 
             else:
                 flow.response = http.Response.make(404, b"Not found")
@@ -254,7 +182,7 @@ class _RequestLogger:
 
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
 
-        elif proxy_port == ProxyPorts.otel_collector and self.mocked_backend:
+        elif proxy_port == ProxyPorts.otel_collector:
             flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
 
         elif proxy_port in (
@@ -271,30 +199,6 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
-        elif proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
-            # Since we are faking the backend (generating responses from
-            # scratch), the logic is that the first mock satisfying the
-            # condition wins. Consequently, we check runtime mocks (controlled
-            # by the setup method) first, followed by internal mocks (applied on
-            # all scenarios).
-            for mock in self.mocked_backend_responses + self.internal_mocked_backend_responses:
-                if mock.path == flow.request.path:
-                    logger.info(f"Flow {flow.id}: applying backend mock {mock}")
-                    mock.execute(flow)
-                    return
-
-            # No mock matched - return generic success response
-            if flow.request.path == "/support/flare":
-                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 200 status")
-                flow.response = http.Response.make(200, b"Ok")
-            elif flow.request.path.split("?")[0] in "/api/v1/validate":
-                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 200 status with valid content")
-                flow.response = http.Response.make(
-                    200, b'{"valid": true}', headers={"content-type": "application/json"}
-                )
-            else:
-                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 202 status")
-                flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -329,12 +233,6 @@ class _RequestLogger:
             interface = "ruby_buddy"
         elif proxy_port == ProxyPorts.golang_buddy:
             interface = "golang_buddy"
-        elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
-            interface = "agent"
-        elif proxy_port == ProxyPorts.datadog_sidecar:
-            interface = "datadog_sidecar"
-        elif proxy_port == ProxyPorts.datadog_direct:
-            interface = "datadog_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -351,8 +249,6 @@ class _RequestLogger:
         export_content_files_to = f"{log_foldename}/files"
         log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
-        host, port = self._original_connects.get(flow.client_conn.id, (flow.request.host, flow.request.port))
-
         # Use a frame-aware decoder (see get_decoded_content) so multi-frame zstd bodies,
         # like the agent's /api/intake/metrics/v3/series payload, are not truncated.
         request_content = get_decoded_content(flow.request)
@@ -362,8 +258,8 @@ class _RequestLogger:
             "log_filename": log_filename,
             "path": path,
             "query": query,
-            "host": host,
-            "port": port,
+            "host": flow.request.host,
+            "port": flow.request.port,
             "method": flow.request.method,
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
@@ -412,7 +308,6 @@ class _RequestLogger:
 
 def start_proxy() -> None:
     # the port is used to make the distinction between provenance
-    # not that backend is not needed as it's used with HTTP_PROXY
     modes = [
         f"regular@{ProxyPorts.proxy_commands}",  # RC payload API
         f"regular@{ProxyPorts.weblog}",  # base weblog
@@ -422,24 +317,19 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.ruby_buddy}",  # ruby_buddy
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
-        f"regular@{ProxyPorts.agent}",  # from agent to backend
-        f"regular@{ProxyPorts.datadog_sidecar}",  # Datadog sidecar traffic
-        f"regular@{ProxyPorts.datadog_direct}",  # Datadog direct intake traffic
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
-    mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
     opts = options.Options(
         mode=modes,
         listen_host=listen_host,
         confdir="/app/utils/proxy/.mitmproxy",
-        # When mocking, generate TLS certs from SNI (no upstream fetch needed) and don't
-        # verify the stub server's self-signed cert.
-        upstream_cert=not mocked_backend,
-        ssl_insecure=mocked_backend,
+        # Generate TLS certs from SNI (no upstream fetch needed), and don't verify upstream certs
+        upstream_cert=False,
+        ssl_insecure=True,
     )
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())

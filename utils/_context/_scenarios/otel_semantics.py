@@ -30,6 +30,8 @@ OTEL_STARTUP_LOGS_ENV: dict[str, str] = {
 
 
 class OtelStartupLogs(DdTraceEndToEndScenario):
+    """Require OTel configuration fields in tracer startup logs with an operator-style configuration"""
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_STARTUP_LOGS",
@@ -40,12 +42,15 @@ class OtelStartupLogs(DdTraceEndToEndScenario):
             iast_enabled=False,
             tracer_sampling_rate=None,
             use_proxy_for_weblog=False,
-            doc="Require OTel configuration fields in tracer startup logs with an operator-style configuration",
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlp(DdTraceEndToEndScenario):
+    """Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry attributes such as
+    http.response.status_code and server.port
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP",
@@ -64,15 +69,17 @@ class OtelSemanticsOtlp(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
-            backend_interface_timeout=5,
             include_opentelemetry=True,
-            doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
-            "attributes such as http.response.status_code and server.port",
+            open_telemetry_interface_timeout=5,
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpCustomErrorStatuses(DdTraceEndToEndScenario):
+    """Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom client and server error
+    status configuration takes precedence over the OTel defaults
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
@@ -87,21 +94,24 @@ class OtelSemanticsOtlpCustomErrorStatuses(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
-            backend_interface_timeout=5,
             include_opentelemetry=True,
-            doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
-            "client and server error status configuration takes precedence over the OTel defaults",
+            open_telemetry_interface_timeout=5,
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
+    """Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, and error decision used by
+    the corresponding span
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 "OTEL_TRACES_EXPORTER": "otlp",
                 "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
@@ -112,18 +122,21 @@ class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
                 "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
             },
-            backend_interface_timeout=5,
             include_opentelemetry=True,
-            doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
-            "and error decision used by the corresponding span",
+            open_telemetry_interface_timeout=5,
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
+    """Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated"""
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+            # Security findings can force-keep a trace before ordinary sampling rules run.
+            appsec_enabled=False,
+            iast_enabled=False,
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
@@ -135,8 +148,7 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
-            backend_interface_timeout=5,
             include_opentelemetry=True,
-            doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
+            open_telemetry_interface_timeout=5,
             scenario_groups=[scenario_groups.open_telemetry],
         )

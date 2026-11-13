@@ -5,22 +5,22 @@ from ._core import EndToEndScenario, scenario_groups
 
 
 class IPV6Scenario(EndToEndScenario):
+    """Test the agent/lib communication using an IPv6 address. We do not use the proxy between the lib and the agent
+    to check that the agent correctly accept IPv6 traffic
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "IPV6",
             enable_ipv6=True,
             scenario_groups=[scenario_groups.ipv6],
             weblog_categories=[WeblogCategory.dd_trace],
-            use_proxy_for_agent=True,
             use_proxy_for_weblog=False,
-            doc=(
-                "Test the agent/lib communication using an IPv6 address. We do not use the proxy between "
-                "the lib and the agent to check that the agent correctly accept IPv6 traffic"
-            ),
         )
 
     def _start_containers(self):
-        self.proxy_container.start(self._network)
+        # no proxy: the agent sends to the mocked backend as soon as it starts
+        self.mocked_backend_container.start(self._network)
         self.agent_container.start(self._network)
 
         agent_container_ip = self.agent_container.network_ipv6(self._network)

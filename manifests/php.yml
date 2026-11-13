@@ -11,6 +11,8 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
@@ -68,6 +70,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -78,6 +81,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -88,6 +92,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: irrelevant (language not implementing this feature)
@@ -309,6 +314,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -398,6 +404,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -415,9 +422,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
     - declaration: bug (APPSEC-69429)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
-      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity::test_api_security_smoke:
     - weblog_declaration:
         apache-mod-7.2: flaky (APPSEC-70615)
@@ -429,15 +436,11 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
     - declaration: bug (APPSEC-69429)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
-      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
-  : - weblog_declaration:
-        laravel11x: flaky (APPSEC-69699)
-        symfony7x: flaky (APPSEC-70615)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -461,6 +464,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -577,6 +581,10 @@ manifest:
         "*": v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk:
+    - declaration: flaky (APPSEC-71652)
+      component_version: '>=1.27.1'
+      weblog: apache-mod-7.4
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_auto:
     - weblog_declaration:
@@ -614,6 +622,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -686,6 +695,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -709,6 +719,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -738,6 +749,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -776,6 +788,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -799,6 +812,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -828,6 +842,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -857,6 +872,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -926,6 +942,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -1024,6 +1041,7 @@ manifest:
         "*": missing_feature (only the rust helper, default on PHP 8.4+, emits all boolean tags on every series; the c++ helper omits them when false)
         php-fpm-8.4: v1.20.0
         php-fpm-8.5: v1.20.0
+        php-fpm-8.6: v1.20.0
         apache-mod-8.4: v1.20.0
         apache-mod-8.5: v1.20.0
         apache-mod-8.1-zts: v1.23.3  # TODO: a lower version might be supported
@@ -1066,7 +1084,11 @@ manifest:
         "*": v1.24.0
         laravel11x: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
         symfony7x: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": v1.19.0
@@ -1098,6 +1120,7 @@ manifest:
         apache-mod-7.1-zts: v1.23.3  # TODO: a lower version might be supported
         apache-mod-7.1: v1.23.3  # TODO: a lower version might be supported
         php-fpm-8.5: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-8.6: v1.23.3  # TODO: a lower version might be supported
         apache-mod-8.1-zts: v1.23.3  # TODO: a lower version might be supported
         php-fpm-7.0: v1.23.3  # TODO: a lower version might be supported
         php-fpm-7.4: v1.23.3  # TODO: a lower version might be supported
@@ -1134,6 +1157,7 @@ manifest:
         apache-mod-7.1: missing_feature
         apache-mod-7.3-zts: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2-zts: missing_feature
         php-fpm-7.1: missing_feature
         apache-mod-8.1-zts: missing_feature
@@ -1146,6 +1170,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (The PHP weblog does not have non-user code, which could serve as boundary)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame: irrelevant (Only .NET captures the entry method on top of the frame limit)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
@@ -1165,7 +1190,7 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : '>=1.16.0'
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: incomplete_test_app (No /debugger/snapshot/capture-timeout endpoint)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: irrelevant (PHP captures the bounded fixture natively in well under the 10 ms budget, so it never times out; the timeout is covered by dd-trace-php's own phpt tests)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
@@ -1177,31 +1202,50 @@ manifest:
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": v1.20.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal:
+    - weblog_declaration:
+        "*": v1.20.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": v1.19.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: v1.27.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: v1.27.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_collection_size: missing_feature (A collection truncated at maxCollectionSize reports no numeric size)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: v1.27.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
@@ -1212,14 +1256,21 @@ manifest:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: v1.27.0
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_unknown_path_prefix
+  : irrelevant (PHP matches sourceFile as a path suffix of the runtime path, so an unknown leading directory never matches)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
         apache-mod-8.0: v1.8.3
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: missing_feature (LIVE_DEBUGGING subscription is set at startup from DD_DYNAMIC_INSTRUMENTATION_ENABLED; RC cannot add it)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
@@ -1229,6 +1280,7 @@ manifest:
         laravel11x: v1.23.3  # TODO: a lower version might be supported
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Debugger telemetry metrics are not implemented)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0
@@ -1260,31 +1312,30 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
-      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
     - declaration: missing_feature (EX-3425)
-      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
-      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
     - declaration: missing_feature (EX-3425)
-      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
-      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
     - declaration: missing_feature (EX-3425)
-      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
-      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
     - declaration: missing_feature (EX-3425)
-      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
@@ -1353,20 +1404,45 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: v1.21.0
-  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmKafka:
+    - weblog_declaration:
+        "*": v1.27.0
+        php-fpm-8.6: missing_feature (php-rdkafka not available in the php-fpm-8.6 container)
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
+    - weblog_declaration:
+        "*": v1.27.0
+        laravel11x: missing_feature (Endpoint not implemented)
+        symfony7x: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSNS: missing_feature
   tests/integrations/test_dsm.py::Test_DsmSQS: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature (no public manual checkpoint API)
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature (no public manual checkpoint API)
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": v1.8.0
@@ -1384,11 +1460,11 @@ manifest:
         symfony7x: incomplete_test_app
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo:
-    - declaration: missing_feature (mongodb PHP extension not available in apache-mod containers)
+    - declaration: missing_feature (mongodb PHP extension not available in apache-mod and php-fpm-8.6 containers)
       excluded_weblog: [php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - declaration: missing_feature (OTel SDK requires PHP >= 8.1)
-      excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
+      excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql:
@@ -1405,9 +1481,6 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.23.0
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2444)  # OTel PHP SDK rejects 0, and logs fail to initialize
@@ -1609,6 +1682,10 @@ manifest:
     - declaration: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.23.3
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_custom_endpoint_does_not_require_api_key
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
@@ -1626,7 +1703,13 @@ manifest:
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=1.23.3'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -1677,6 +1760,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate
   : missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (PHP may preserve whitespace of foreign vendors trracestate (allowed per spec))
@@ -1711,7 +1797,7 @@ manifest:
       component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
       component_version: <1.19.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
@@ -1720,34 +1806,34 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015:
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:  # Easy win for all weblogs and version 1.27.1
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)'
       component_version: '>=1.19.0'
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
@@ -1766,6 +1852,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled::test_otlp_metrics_disabled: bug (APMAPI-2494)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: v1.17.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
@@ -1811,7 +1898,6 @@ manifest:
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.26.0-dev
   tests/parametric/test_otlp_trace_metrics.py: '>=1.23.3'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
@@ -2013,15 +2099,15 @@ manifest:
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id:  # TODO: a lower version might be supported
     - declaration: missing_feature (not implemented yet)
       component_version: <1.17.0
-      weblog: [php-fpm-8.5]
+      weblog: [php-fpm-8.5, php-fpm-8.6]
     - declaration: missing_feature (not implemented yet)
-      excluded_weblog: [php-fpm-8.5]
+      excluded_weblog: [php-fpm-8.5, php-fpm-8.6]
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:  # TODO: a lower version might be supported
     - declaration: missing_feature (not implemented yet)
       component_version: <1.17.0
-      weblog: [php-fpm-8.5]
+      weblog: [php-fpm-8.5, php-fpm-8.6]
     - declaration: missing_feature (not implemented yet)
-      excluded_weblog: [php-fpm-8.5]
+      excluded_weblog: [php-fpm-8.5, php-fpm-8.6]
   tests/test_distributed.py::Test_DistributedHttp: v1.17.0
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
@@ -2049,6 +2135,7 @@ manifest:
         php-fpm-8.1: v1.24.0
         php-fpm-8.2: v1.24.0
         php-fpm-8.5: v1.24.0
+        php-fpm-8.6: v1.24.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_HeaderTags: v0.68.2
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.74.0
@@ -2115,6 +2202,11 @@ manifest:
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        php-fpm-8.6: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
@@ -2141,6 +2233,11 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        php-fpm-8.6: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
@@ -2170,6 +2267,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -2199,9 +2297,9 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-924)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
+      weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
     - declaration: bug (APMAPI-924)
-      excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
+      excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
@@ -2235,6 +2333,7 @@ manifest:
         php-fpm-8.0: '>=1.17.0'
         php-fpm-7.1: '>=1.17.0'
         php-fpm-8.5: '>=1.17.0'
+        php-fpm-8.6: '>=1.17.0'
         apache-mod-7.2-zts: '>=1.17.0'
         apache-mod-7.4-zts: '>=1.17.0'
         apache-mod-7.0: '>=1.17.0'
@@ -2272,6 +2371,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2292,6 +2392,7 @@ manifest:
         php-fpm-8.0: '>=1.17.0'
         php-fpm-7.1: '>=1.17.0'
         php-fpm-8.5: '>=1.17.0'
+        php-fpm-8.6: '>=1.17.0'
         apache-mod-7.2-zts: '>=1.17.0'
         apache-mod-7.4-zts: '>=1.17.0'
         apache-mod-7.0: '>=1.17.0'
@@ -2329,6 +2430,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2356,6 +2458,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2383,6 +2486,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2410,6 +2514,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2437,6 +2542,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2464,6 +2570,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2491,6 +2598,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2518,6 +2626,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2545,6 +2654,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2572,6 +2682,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2599,6 +2710,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature

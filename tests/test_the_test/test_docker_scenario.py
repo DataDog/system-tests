@@ -4,9 +4,10 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
-from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
-from utils._context.containers import TestedContainer as _TestedContainer
+from utils._context._scenarios.aws_lambda import _LambdaScenario
+from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
+from utils._context.containers import MsSqlServerContainer, TestedContainer as _TestedContainer
 
 from .utils import extra_hosts_at_start
 
@@ -33,7 +34,7 @@ def test_main():
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A", events)
             container_b = FakeContainer("B", events)
@@ -59,7 +60,7 @@ def test_main():
 def test_recursive():
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A")
             container_b = FakeContainer("B")
@@ -83,7 +84,7 @@ def test_recursive_2():
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A")
             container_b = FakeContainer("B")
@@ -119,9 +120,7 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 ) -> None:
     scenario = DdTraceEndToEndScenario(
         "FAKE_END_TO_END",
-        doc="",
         include_agent=include_agent,
-        use_proxy_for_agent=False,
         use_proxy_for_weblog=False,
     )
     scenario.replay = False
@@ -130,7 +129,9 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
     monkeypatch.setattr(scenario, "_wait_interface", MagicMock())
 
     monkeypatch.setattr(interfaces.library, "check_deserialization_errors", MagicMock())
-    monkeypatch.setattr(interfaces.backend_legacy, "check_deserialization_errors", MagicMock())
+    monkeypatch.setattr(scenario, "_stop_mocked_backend", MagicMock())
+    monkeypatch.setattr(interfaces.mocked_backend, "ingest_all_files", MagicMock())
+    monkeypatch.setattr(interfaces.mocked_backend, "check_deserialization_errors", MagicMock())
 
     scenario._wait_and_stop_containers(  # noqa: SLF001 - focused lifecycle test
         is_empty_test_run=is_empty_test_run
@@ -140,53 +141,62 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 
 
 @scenarios.test_the_test
-def test_mocked_backend_v2_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = DdTraceEndToEndScenario(
-        "FAKE_MOCKED_BACKEND_V2", doc="", mocked_backend_v2=True, use_proxy_for_agent=False
-    )
+def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = DdTraceEndToEndScenario("FAKE_MOCKED_BACKEND_V2")
     mocked_backend = scenario.mocked_backend_container
     assert mocked_backend in scenario._containers  # noqa: SLF001
 
     agent = scenario.agent_container
-    assert agent.environment["DD_DD_URL"] == "http://mocked-backend:4900"
-    assert agent.environment["DD_APM_DD_URL"] == "http://mocked-backend:4900"
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert agent.dd_site == "mocked-backend.invalid"
+    assert "DD_DD_URL" not in agent.environment
+    assert "DD_PROXY_HTTPS" not in agent.environment
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, agent) is None
 
     weblog = MagicMock(depends_on=[])
-    scenario.weblog_infra = MagicMock(get_containers=MagicMock(return_value=[weblog]))
+    scenario.weblog_infra = MagicMock(get_weblog_containers=MagicMock(return_value=[weblog]))
     scenario._set_containers_dependancies()  # noqa: SLF001
     assert mocked_backend in agent.depends_on
     assert mocked_backend in weblog.depends_on
 
 
 @scenarios.test_the_test
-def test_no_mocked_backend_container_without_mocked_backend_v2() -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND_V2", doc="", use_proxy_for_agent=False)
-    assert scenario.mocked_backend_container not in scenario._containers  # noqa: SLF001
-    assert "DD_DD_URL" not in scenario.agent_container.environment
+def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -> None:
+    scenario = _OpenTelemetryScenario("FAKE_OTEL", include_intake=False, include_collector=False)
+    agent = scenario.agent_container
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in agent.environment
+    assert scenario.mocked_backend_container in agent.depends_on
+    # removed in reverse order: the agent stops before the mocked backend, that receives all it sends
+    containers = scenario._containers  # noqa: SLF001
+    assert containers.index(scenario.mocked_backend_container) < containers.index(agent)
 
 
 @scenarios.test_the_test
-def test_agent_without_host_docker_internal_has_no_extra_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND", doc="", use_proxy_for_agent=False)
-    assert extra_hosts_at_start(monkeypatch, scenario.agent_container) is None
+def test_mocked_backend_does_not_make_the_weblog_databases_depend_on_it() -> None:
+    # everything else depends on MsSql, so it starts alone: MsSql depending on the mocked backend would be a cycle
+    scenario = DdTraceEndToEndScenario(
+        "FAKE_MOCKED_BACKEND_MSSQL",
+        other_weblog_containers=(MsSqlServerContainer,),
+    )
+    scenario._set_containers_dependancies()  # noqa: SLF001
+
+    (mssql,) = [c for c in scenario.weblog_infra.get_containers() if isinstance(c, MsSqlServerContainer)]
+    assert scenario.mocked_backend_container not in mssql.depends_on
+    assert scenario.mocked_backend_container in scenario.weblog_container.depends_on
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize("require_api_key", [True, False])
-def test_backend_legacy_is_only_configured_when_an_api_key_is_required(
-    monkeypatch: pytest.MonkeyPatch, *, require_api_key: bool
-) -> None:
-    """interfaces.backend_legacy queries the real Datadog backend: only scenarios requiring an API key use it."""
-    monkeypatch.setenv("DD_API_KEY", "fake")
-    scenario = DdTraceEndToEndScenario("FAKE_BACKEND_LEGACY", doc="", require_api_key=require_api_key)
-    scenario.replay = False
-    scenario.weblog_infra = MagicMock()
-    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
-    fake_interfaces = MagicMock()
-    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
-
-    scenario.configure(MagicMock(spec=pytest.Config))
-
-    assert fake_interfaces.backend_legacy.configure.called is require_api_key
+def test_lambda_extension_sends_to_the_mocked_backend_container() -> None:
+    scenario = _LambdaScenario("FAKE_LAMBDA")
+    weblog = scenario.lambda_weblog
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert weblog.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in weblog.environment
+    assert scenario.mocked_backend_container in weblog.depends_on
+    # removed in reverse order: the weblog stops before the mocked backend, that receives all it sends
+    containers = scenario._containers  # noqa: SLF001
+    assert containers.index(scenario.mocked_backend_container) < containers.index(weblog)

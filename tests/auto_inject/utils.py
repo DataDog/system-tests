@@ -290,7 +290,7 @@ class AutoInjectBaseTest:
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
             if context.library.name in ["ruby", "python", "dotnet"]:
-                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+                start_weblog_command = virtual_machine.get_provision().weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             # On older Docker versions, the network recreation can hang. The solution is to restart Docker.

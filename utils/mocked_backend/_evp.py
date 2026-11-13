@@ -6,11 +6,11 @@ import socket
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ._request_handler import MockBackendV2RequestHandler, MockedBackendServerCore
+    from ._request_handler import MockedBackendRequestHandler, MockedBackendServerCore
 
 
 def configure_evp_receiver(server: "MockedBackendServerCore") -> None:
-    for mode in ("404", "405", "403", "ambiguous"):
+    for mode in ("404", "405", "403", "429", "503", "ambiguous"):
         for signal in ("exposures", "flagevaluation"):
             prefix = f"/evp-test/{mode}/{signal}"
             server.add_handler("GET", f"{prefix}/info", _info)
@@ -18,7 +18,7 @@ def configure_evp_receiver(server: "MockedBackendServerCore") -> None:
                 server.add_handler("POST", f"{prefix}/evp_proxy/v4/api/v2/{endpoint}", _delivery)
 
 
-def _info(request: "MockBackendV2RequestHandler", _: bytes | dict | None) -> tuple[Mapping[str, Any], bytes]:
+def _info(request: "MockedBackendRequestHandler", _: bytes | dict | None) -> tuple[Mapping[str, Any], bytes]:
     return request.write_json(
         HTTPStatus.OK,
         {
@@ -28,7 +28,7 @@ def _info(request: "MockBackendV2RequestHandler", _: bytes | dict | None) -> tup
     )
 
 
-def _delivery(request: "MockBackendV2RequestHandler", _: bytes | dict | None) -> tuple[Mapping[str, Any], bytes]:
+def _delivery(request: "MockedBackendRequestHandler", _: bytes | dict | None) -> tuple[Mapping[str, Any], bytes]:
     parts = request.path.split("/")
     mode, target = parts[2:4]
     if request.path.endswith(f"/{target}"):

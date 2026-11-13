@@ -29,7 +29,7 @@ use integration::DatadogClientSpanBackend;
 
 mod integration;
 
-const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+const VERSION_FILE: &str = "/binaries/SYSTEM_TESTS_LIBRARY_VERSION";
 const DOWNSTREAM_RETURN_HEADERS_URL: &str = "http://localhost:7777/returnheaders";
 const DOWNSTREAM_ROOT_URL: &str = "http://localhost:7777/";
 const CHILD_SLEEP_ENV: &str = "DD_SYSTEM_TEST_CHILD_SLEEP";
@@ -568,20 +568,51 @@ async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
 
 // ─── External request endpoints ─────────────────────────────────────────────
 
+/// Manual sampling decision requested through the manual_keep_drop endpoint
+enum SamplingDecision {
+    Keep,
+    Drop,
+}
+
+/// Applies a manual sampling decision to the current trace through the Datadog
+/// sampling-decision API when the installed datadog-opentelemetry provides it
+/// (`manual-sampling` feature, enabled by install_ddtrace.sh). Falls back to
+/// the `manual.keep`/`manual.drop` span attributes, which older tracers
+/// ignore, so the same sources build against both old and new
+/// datadog-opentelemetry.
+fn apply_manual_sampling_decision(decision: SamplingDecision) {
+    let context = Context::current();
+    let span = context.span();
+    #[cfg(feature = "manual-sampling")]
+    {
+        let decision = match decision {
+            SamplingDecision::Keep => datadog_telemetry_api::SamplingDecision::Keep,
+            SamplingDecision::Drop => datadog_telemetry_api::SamplingDecision::Drop,
+        };
+        datadog_telemetry_api::set_sampling_decision(span.span_context(), decision);
+    }
+    #[cfg(not(feature = "manual-sampling"))]
+    {
+        let tag = match decision {
+            SamplingDecision::Keep => "manual.keep",
+            SamplingDecision::Drop => "manual.drop",
+        };
+        span.set_attribute(KeyValue::new(tag, true));
+    }
+}
+
 /// Forces the sampling decision of the trace the request belongs to, then calls downstream so that
 /// tests can assert on the sampling decision that gets propagated.
 async fn trace_manual_keep_drop(Query(query): Query<ManualKeepDropQuery>) -> Response {
-    let tag = match query.decision.as_deref() {
-        Some("keep") => "manual.keep",
-        Some("drop") => "manual.drop",
+    let decision = match query.decision.as_deref() {
+        Some("keep") => SamplingDecision::Keep,
+        Some("drop") => SamplingDecision::Drop,
         _ => {
             return (StatusCode::BAD_REQUEST, "decision must be keep or drop").into_response();
         }
     };
 
-    Context::current()
-        .span()
-        .set_attribute(KeyValue::new(tag, true));
+    apply_manual_sampling_decision(decision);
 
     distant_call(DOWNSTREAM_ROOT_URL).await
 }

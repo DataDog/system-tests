@@ -1,19 +1,43 @@
+from ._ffe_flag_selection import (
+    FLAG_SELECTION_IGNORED_HEADER,
+    SELECTED_FLAG_KEY_PATTERNS,
+    SELECTED_FLAG_TAGS,
+    Selection,
+)
 from ._backend_ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
+    EVALUATION_SUITES_RELATIVE_PATH,
+    MockedBackendFFERequest,
     MockedBackendFFEStatus,
     EXPECTED_DD_ENV,
+    RULES_CONFIG_PATH,
+    RESPONSE_SECRET,
+    ResponseFormat,
     UFC_FIXTURE_RELATIVE_PATH,
     UFC_RESPONSE_TYPE,
     ffe_library_config_url,
+    load_rules_wire_fixture,
+    ufc_etag_for,
 )
 
 __all__ = [
     "CONFIG_PATH",
     "CONFIG_QUERY",
+    "EVALUATION_SUITES_RELATIVE_PATH",
     "EXPECTED_DD_ENV",
+    "FLAG_SELECTION_IGNORED_HEADER",
+    "RESPONSE_SECRET",
+    "RULES_CONFIG_PATH",
+    "SELECTED_FLAG_KEY_PATTERNS",
+    "SELECTED_FLAG_TAGS",
     "UFC_FIXTURE_RELATIVE_PATH",
     "UFC_RESPONSE_TYPE",
+    "MockedBackendFFERequest",
     "MockedBackendFFEStatus",
+    "ResponseFormat",
+    "Selection",
     "ffe_library_config_url",
+    "load_rules_wire_fixture",
+    "ufc_etag_for",
 ]

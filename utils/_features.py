@@ -2701,6 +2701,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_portable_configuration(test_object):
+        """Offline initialization and portable configuration helpers
+
+        https://feature-parity.us1.prod.dog/#/?feature=562
+        """
+        return _mark_test_object(test_object, feature_id=562, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_exposures(test_object):
         """Feature Flags & Experimentation (FFE)
 
@@ -2747,6 +2755,11 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=649
         """
         return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_configuration_filtering(test_object):
+        """Feature Flags configuration filtering (flag selection by tags and key patterns)"""
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):

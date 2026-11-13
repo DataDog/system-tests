@@ -27,6 +27,10 @@ def events_for(data: dict[str, Any], subject: str) -> list[dict[str, Any]]:
 @scenarios.feature_flagging_evp_405_flagevaluation
 @scenarios.feature_flagging_evp_403_exposures
 @scenarios.feature_flagging_evp_403_flagevaluation
+@scenarios.feature_flagging_evp_429_exposures
+@scenarios.feature_flagging_evp_429_flagevaluation
+@scenarios.feature_flagging_evp_503_exposures
+@scenarios.feature_flagging_evp_503_flagevaluation
 @scenarios.feature_flagging_evp_ambiguous_exposures
 @scenarios.feature_flagging_evp_ambiguous_flagevaluation
 @features.feature_flags_exposures
@@ -55,16 +59,20 @@ class Test_FFE_EVP_Fallback:
                 def first_captured(data: dict[str, Any], expected_path: str = local_path) -> bool:
                     return data.get("path") == expected_path and bool(events_for(data, "evp-first"))
 
-                assert interfaces.backend_v2.wait_for(first_captured, timeout=30)
+                assert interfaces.mocked_backend.wait_for(first_captured, timeout=30)
                 # Wait for the response to be processed before producing the future batch.
-                interfaces.datadog_direct.wait(3)
+                interfaces.mocked_backend.wait(3)
         for signal in ("exposures", "flagevaluation"):
-            register_expected_evp_capture(f"/api/v2/{signal}")
+            if scenario.fault_mode in ("403", "429", "503"):
+                expected_path = f"{scenario.receiver_prefix}/evp_proxy/v4/api/v2/{signal}"
+            else:
+                expected_path = f"/api/v2/{signal}"
+                register_expected_evp_capture(expected_path)
 
-            def future_captured(data: dict[str, Any], expected_signal: str = signal) -> bool:
-                return data.get("path") == f"/api/v2/{expected_signal}" and bool(events_for(data, "evp-future"))
+            def future_captured(data: dict[str, Any], path: str = expected_path) -> bool:
+                return data.get("path") == path and bool(events_for(data, "evp-future"))
 
-            assert interfaces.datadog_direct.wait_for(future_captured, timeout=35)
+            assert interfaces.mocked_backend.wait_for(future_captured, timeout=35)
 
     def test_delivery(self) -> None:
         scenario = context.scenario
@@ -73,16 +81,18 @@ class Test_FFE_EVP_Fallback:
         assert all(json.loads(response.text)["value"] == "on-value" for response in self.responses)
         local = [
             data
-            for data in interfaces.backend_v2.get_data()
+            for data in interfaces.mocked_backend.get_data()
             if data.get("path", "").startswith(scenario.receiver_prefix + "/evp_proxy/")
         ]
         direct = [
             data
-            for data in interfaces.datadog_direct.get_data()
+            for data in interfaces.mocked_backend.get_data()
             if data.get("path") in ("/api/v2/exposures", "/api/v2/flagevaluation")
         ]
         discovery = [
-            data for data in interfaces.backend_v2.get_data() if data.get("path") == scenario.receiver_prefix + "/info"
+            data
+            for data in interfaces.mocked_backend.get_data()
+            if data.get("path") == scenario.receiver_prefix + "/info"
         ]
         assert len(discovery) == 1
         for data in local + discovery:
@@ -103,13 +113,22 @@ class Test_FFE_EVP_Fallback:
                 library_name=context.library.name,
                 library_version=context.library.raw_version,
             )
+        retains_local = scenario.fault_mode in ("403", "429", "503")
         for signal in ("exposures", "flagevaluation"):
-            future = [data for data in direct if data["path"].endswith(f"/{signal}") and events_for(data, "evp-future")]
+            expected_route = local if retains_local else direct
+            unused_route = direct if retains_local else local
+            future = [
+                data
+                for data in expected_route
+                if data["path"].endswith(f"/{signal}") and events_for(data, "evp-future")
+            ]
             assert len(future) == 1
             assert len(events_for(future[0], "evp-future")) == 1
             if signal == "flagevaluation":
                 assert events_for(future[0], "evp-future")[0]["evaluation_count"] == 1
-            assert not any(events_for(data, "evp-future") for data in local)
+            assert not any(events_for(data, "evp-future") for data in unused_route)
+        if retains_local:
+            assert direct == []
         other_signal = "flagevaluation" if scenario.fault_signal == "exposures" else "exposures"
         other_first = [
             data
@@ -174,7 +193,7 @@ class Test_FFE_EVP_Agentless_Agent:
             assert headers["x-datadog-evp-subdomain"] == "event-platform-intake"
             forwarded = [
                 data
-                for data in interfaces.agent.get_data()
+                for data in interfaces.mocked_backend.get_data(with_api_key=context.scenario.dd_api_key)
                 if data.get("path") == f"/api/v2/{signal}" and events_for(data, "evp-agent")
             ]
             assert len(forwarded) == 1
@@ -183,4 +202,7 @@ class Test_FFE_EVP_Agentless_Agent:
             assert forwarded_headers["dd-evp-origin"] == headers["dd-evp-origin"]
             assert forwarded_headers["dd-evp-origin-version"] == headers["dd-evp-origin-version"]
             assert forwarded_headers["dd-api-key"] in {context.scenario.dd_api_key, "--redacted--"}
-        assert not any(events_for(data, "evp-agent") for data in interfaces.datadog_direct.get_data())
+        assert not any(
+            events_for(data, "evp-agent")
+            for data in interfaces.mocked_backend.get_data(with_api_key=context.scenario.weblog_api_key)
+        )

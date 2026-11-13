@@ -62,19 +62,18 @@ def test_flagevaluation_egress_validates_captured_data_without_waiting(
             }
         },
     }
-    interface = MagicMock()
-    interface.get_data.return_value = [capture] if has_capture else []
-    interface.wait_for.side_effect = AssertionError("Validation must not wait after containers have stopped")
-    monkeypatch.setattr(
-        flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress(interface, "agent")
-    )
+    get_data = MagicMock(return_value=[capture] if has_capture else [])
+    wait_for = MagicMock(side_effect=AssertionError("Validation must not wait after containers have stopped"))
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress("agent"))
 
     if has_capture:
         contract.test_ffe_evp_flagevaluation_egress()
     else:
         with pytest.raises(AssertionError, match="Expected flagevaluation requests"):
             contract.test_ffe_evp_flagevaluation_egress()
-    interface.wait_for.assert_not_called()
+    wait_for.assert_not_called()
 
 
 def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
@@ -92,23 +91,23 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
         "network": {
             "id": "network-id",
             "name": network_name,
-            "container_ids": ["proxy-id", "weblog-id", "mocked-backend-id"],
-            "container_names": ["system-tests-proxy", "system-tests-weblog", "system-tests-mocked-backend"],
+            "container_ids": ["mocked-backend-id", "weblog-id"],
+            "container_names": ["system-tests-mocked-backend", "system-tests-weblog"],
         },
         "containers": [
             {
-                "id": "proxy-id",
-                "name": "system-tests-proxy",
-                "image": "system-tests/proxy",
-                "image_id": "sha256:proxy",
+                "id": "mocked-backend-id",
+                "name": "system-tests-mocked-backend",
+                "image": "datadog/system-tests:proxy-v1",
+                "image_id": "sha256:mocked-backend",
                 "library": None,
                 "weblog_variant": None,
                 "status": "running",
                 "running": True,
-                "state_pid": 101,
-                "pid1_command": "python3 -m utils.proxy.core",
+                "state_pid": 303,
+                "pid1_command": "python -m utils.mocked_backend --port 443",
                 "pid1_error": None,
-                "processes": [{"pid": "101", "ppid": "0", "command": "python3 -m utils.proxy.core"}],
+                "processes": [{"pid": "303", "ppid": "0", "command": "python -m utils.mocked_backend --port 443"}],
                 "top_error": None,
                 "networks": [network_name],
                 "mounts": [],
@@ -137,23 +136,6 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
                     }
                 ],
             },
-            {
-                "id": "mocked-backend-id",
-                "name": "system-tests-mocked-backend",
-                "image": "datadog/system-tests:proxy-v1",
-                "image_id": "sha256:mocked-backend",
-                "library": None,
-                "weblog_variant": None,
-                "status": "running",
-                "running": True,
-                "state_pid": 303,
-                "pid1_command": "python -m utils.mocked_backend --port 4900",
-                "pid1_error": None,
-                "processes": [{"pid": "303", "ppid": "0", "command": "python -m utils.mocked_backend --port 4900"}],
-                "top_error": None,
-                "networks": [network_name],
-                "mounts": [],
-            },
         ],
         "weblog_environment": {
             "agent_variables_present": [],
@@ -163,7 +145,7 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
             "custom_configuration_url_present": True,
             "provider_enabled": "true",
             "shutdown_flush_enabled": "true",
-            "site": "mock-intake.invalid",
+            "site": "mocked-backend.invalid",
             "tls_ca_bundle": None,
         },
     }
@@ -217,19 +199,17 @@ def _direct_shutdown_evidence() -> dict[str, Any]:
 
 
 def _direct_capture(*, path: str = "/api/v2/exposures", headers: list[list[str]] | None = None) -> dict[str, Any]:
+    headers = headers or [
+        ["DD-API-KEY", "system-tests-mock-api-key"],
+        ["DD-EVP-ORIGIN", "dd-trace-js"],
+        ["DD-EVP-ORIGIN-VERSION", "7.0.0-pre"],
+        ["Content-Type", "application/json; charset=utf-8"],
+    ]
     return {
         "method": "POST",
         "path": path,
-        "host": "event-platform-intake.mock-intake.invalid",
-        "port": 443,
         "request": {
-            "headers": headers
-            or [
-                ["DD-API-KEY", "system-tests-mock-api-key"],
-                ["DD-EVP-ORIGIN", "dd-trace-js"],
-                ["DD-EVP-ORIGIN-VERSION", "7.0.0-pre"],
-                ["Content-Type", "application/json; charset=utf-8"],
-            ],
+            "headers": [*headers, ["Host", "event-platform-intake.mocked-backend.invalid"]],
             "content": {"exposures": []},
         },
         "response": {"status_code": 202, "content": "Ok"},
@@ -331,6 +311,22 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> 
 
 
 @scenarios.test_the_test
+def test_feature_flagging_agentless_evp_wire_contract_rejects_other_intake_host() -> None:
+    capture = _direct_capture()
+    capture["request"]["headers"][-1] = ["Host", "trace.agent.mocked-backend.invalid"]
+
+    with pytest.raises(AssertionError, match="expected Host"):
+        assert_agentless_evp_intake_request(
+            capture,
+            route="direct",
+            path="/api/v2/exposures",
+            expected_api_key="system-tests-mock-api-key",
+            library_name="nodejs",
+            library_version="7.0.0-pre",
+        )
+
+
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_scopes_producer_identity_to_direct_route() -> None:
     capture = _direct_capture(
         headers=[
@@ -379,41 +375,37 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         f"MOCK_FFE_AGENTLESS_{route.upper()}_TOPOLOGY",
-        doc="test",
         exposure_egress=route,
     )
-    scenario.weblog_infra.library_container.environment["DD_API_KEY"] = scenario.dd_api_key
+    scenario.weblog_infra.library_container.environment["DD_API_KEY"] = scenario.weblog_api_key
     if route == "sidecar":
         scenario.components["serverless-init"] = Version("0.0.0")
     else:
         scenario.weblog_infra.http_container._library = ComponentVersion("java", "0.66.0")  # noqa: SLF001
         scenario._last_direct_evp_runtime_evidence = _direct_runtime_evidence("java")  # noqa: SLF001
     monkeypatch.setattr(context, "scenario", scenario)
-    monkeypatch.setattr(interfaces.datadog_direct, "get_data", list)
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", lambda **_: [])
 
-    selected_interface = interfaces.datadog_direct if route == "direct" else interfaces.datadog_sidecar
-    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(selected_interface, route))
+    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(route))
 
     environment = scenario.weblog_infra.library_container.environment
     for runtime_trust_variable in ("REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"):
         assert runtime_trust_variable not in environment
 
-    if route == "direct":
-        assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
-        library_container = scenario.weblog_infra.library_container
-        expected_mount = {
-            "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
-            "mode": "ro",
-        }
-        assert library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] == expected_mount
+    # with both routes, the configuration is fetched from the mocked backend over HTTPS
+    assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
+    library_container = scenario.weblog_infra.library_container
+    expected_mount = {
+        "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        "mode": "ro",
+    }
+    assert library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] == expected_mount
 
+    if route == "direct":
         library_container._fix_host_pwd_in_volumes()  # noqa: SLF001 - reproduce container start normalization
         normalized_source = f"{library_container.host_project_dir}{DIRECT_EVP_CA_BUNDLE_SOURCE[1:]}"
         assert library_container.volumes[normalized_source] == expected_mount
-        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(selected_interface, route))
-    else:
-        assert "NODE_EXTRA_CA_CERTS" not in environment
-        assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
+        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(route))
 
 
 @scenarios.test_the_test
@@ -445,11 +437,10 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
-        ("agent_container", "only mocked backend, TLS proxy and weblog"),
+        ("agent_container", "only mocked backend and weblog"),
         ("agent_variable", "Agent connection variables"),
         ("init_wrapper", "Forbidden direct-scenario runtime components"),
         ("shell_pid1", "expected one of"),
-        ("shell_process", "docker top reports PID 1"),
         ("missing_process_command", "PID 1 row has no command"),
         ("failed_top", "docker top failed"),
     ],
@@ -472,8 +463,6 @@ def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
         evidence["containers"][1]["pid1_command"] = "datadog-init node app"
     elif mutation == "shell_pid1":
         evidence["containers"][1]["pid1_command"] = "/bin/sh ./app.sh"
-    elif mutation == "shell_process":
-        evidence["containers"][1]["processes"][0]["command"] = "/bin/sh ./app.sh"
     elif mutation == "missing_process_command":
         del evidence["containers"][1]["processes"][0]["command"]
     elif mutation == "failed_top":
