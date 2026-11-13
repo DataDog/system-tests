@@ -7,9 +7,10 @@ provider kill switch.
 
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
-observable HTTP behavior: request path, auth, status transitions, ETag handling,
-retries, timeout, and poll overlap. The mock endpoint is passed through the
-agentless base URL option; it does not introduce a separate custom source mode.
+observable HTTP behavior: request path, auth, service header, status transitions,
+ETag handling, retries, timeout, and poll overlap. The mock endpoint is passed
+through the agentless base URL option; it does not introduce a separate custom
+source mode.
 """
 
 from collections.abc import Callable
@@ -17,6 +18,7 @@ import json
 from pathlib import Path
 import time
 from typing import Any
+from urllib.parse import urlsplit
 
 from utils import pytest
 
@@ -40,6 +42,8 @@ MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
+# A service name in the format the CDN attributes configuration requests to.
+SERVICE_NAME = "ffe-service-header-test"
 
 BASE_ENVVARS = {
     "DD_API_KEY": scenarios.parametric.dd_api_key,
@@ -92,6 +96,8 @@ def library_env(request: pytest.FixtureRequest, mocked_backend: MockedBackendSer
         env["DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS"] = str(
             params["provider_initialization_timeout_ms"]
         )
+    if "service" in params:
+        env["DD_SERVICE"] = str(params["service"])
 
     if responses is not None:
         mocked_backend.client.ffe_set_responses(responses)
@@ -785,3 +791,37 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         assert status["requests_total"] >= requests_before + 2
         assert status["max_in_flight"] == 1
         assert status["last_path"] == CONFIG_PATH
+
+
+@scenarios.parametric
+@features.feature_flags_agentless
+class Test_Feature_Flag_Configuration_Source_Service_Header:
+    """Validate that agentless configuration requests carry the tracer service in DD-Service."""
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "agentless", "service": SERVICE_NAME, "responses": ["valid", "not_modified"]}],
+        indirect=True,
+    )
+    def test_service_header_on_every_config_request(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        # DD_SERVICE is set, and the responses [valid, not_modified] answer every poll after the first load
+        # with 304. The CDN attributes usage to a service only through DD-Service, so every CONFIG_PATH
+        # request, the 200 and the 304s alike, must carry the configured name. Behavior without DD_SERVICE is
+        # not asserted: each language infers a different default service.
+        assert test_library.ffe_start(), "failed to start FFE provider for service_header"
+        _assert_expected_value(_evaluate(test_library))
+
+        _wait_for_status(
+            mocked_backend,
+            lambda current: _has_status_sequence(current["status_codes"], [200, 304]),
+            "service_header 200 to 304 sequence",
+        )
+        services = [
+            request["headers"].get("dd-service")
+            for request in mocked_backend.ffe_get_requests()
+            if urlsplit(request["path"]).path == CONFIG_PATH
+        ]
+        assert services, "no agentless configuration request was recorded"
+        assert services == [SERVICE_NAME] * len(services), f"DD-Service on each configuration request: {services}"
