@@ -32,7 +32,34 @@
         },
         {
             "scenarios": [
-                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-multicontainer",
+                        "test-app-nodejs-container-25"
+                    ],
+                    "java": [
+                        "test-app-java-multicontainer",
+                        "test-app-java-multialpine"
+                    ],
+                    "python": [
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
@@ -51,6 +78,9 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet-container"
+                    ],
+                    "ruby": [
+                        "test-app-ruby-container"
                     ],
                     "php": [
                         "test-app-php-container-83",
@@ -89,7 +119,30 @@
         },
         {
             "scenarios": [
-                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ],
+                    "java": [
+                        "test-app-java"
+                    ],
+                    "python": [
+                        "test-app-python"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet"
+                    ],
+                    "php": [
+                        "test-app-php"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
@@ -105,6 +158,9 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet"
+                    ],
+                    "ruby": [
+                        "test-app-ruby"
                     ],
                     "php": [
                         "test-app-php"
@@ -176,7 +232,38 @@
         },
         {
             "scenarios": [
-                "SIMPLE_AUTO_INJECTION_PROFILING",
+                "SIMPLE_AUTO_INJECTION_PROFILING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs",
+                        "test-app-nodejs-container"
+                    ],
+                    "java": [
+                        "test-app-java",
+                        "test-app-java-container",
+                        "test-app-java-alpine"
+                    ],
+                    "python": [
+                        "test-app-python",
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet",
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "SIMPLE_AUTO_INJECTION_APPSEC"
             ],
             "weblogs": [
@@ -198,6 +285,10 @@
                     "dotnet": [
                         "test-app-dotnet",
                         "test-app-dotnet-container"
+                    ],
+                    "ruby": [
+                        "test-app-ruby",
+                        "test-app-ruby-container"
                     ],
                     "php": [
                         "test-app-php",
