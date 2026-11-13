@@ -227,6 +227,12 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             self.serverless_init_container.depends_on.append(self.mocked_backend_container)
             self.weblog_infra.library_container.depends_on.append(self.serverless_init_container)
 
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        if self.exposure_egress == "direct" and self.weblog_infra.library_name == "php":
+            # Bypass app.sh's dumb-init wrapper so the foreground PHP server owns PID 1.
+            self.weblog_infra.library_container.command = "/entrypoint.sh"
+
     def _set_components(self) -> None:
         super()._set_components()
         if self.serverless_init_container is not None:

@@ -35,6 +35,7 @@ EVP_LANGUAGE_PID1_EXECUTABLES = {
     "golang": {"weblog"},
     "java": {"java"},
     "nodejs": {"node"},
+    "php": {"apache2", "php-fpm:"},
     "python": {"gunicorn", "python", "python3", "uwsgi"},
     "ruby": {"puma", "ruby"},
 }

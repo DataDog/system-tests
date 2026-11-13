@@ -24,6 +24,10 @@ env | sed -rn 's#^([^=]+)=([^=]+)$#env[\1] = "\2"#p' | tee /dev/stderr >> /etc/p
 sed -i "s/;clear_env = no/clear_env = no/" /etc/php/PHP_VERSION/fpm/pool.d/www.conf
 
 service apache2 start
+if [[ "${SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED:-}" == "true" ]]; then
+  # The direct-EVP scenario inspects the PHP server as PID 1.
+  exec /usr/sbin/php-fpmPHP_VERSION --nodaemonize
+fi
 # Use init script to preserve environment
 /etc/init.d/phpPHP_VERSION-fpm start
 
