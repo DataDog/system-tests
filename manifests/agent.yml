@@ -7,6 +7,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualOriginDetection::test_origin_detection:
+    - declaration: flaky (APMSP-3059)
+      weblog: [test-app-java-alpine, test-app-java-container]
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - declaration: bug (APPSEC-70532)
       component_version: '<7.85.0'

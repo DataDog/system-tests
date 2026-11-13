@@ -88,18 +88,21 @@ class _AIGuardScenario(EndToEndScenario):
 
 
 class AiGuard(_AIGuardScenario):
+    """AI Guard SDK tests"""
+
     def __init__(self) -> None:
         super().__init__(
             "AI_GUARD",
             other_weblog_containers=(VCRCassettesContainer,),
             appsec_enabled=False,
             weblog_env=_AI_GUARD_WEBLOG_ENV,
-            doc="AI Guard SDK tests",
             scenario_groups=[scenario_groups.ai_guard],
         )
 
 
 class AiGuardStandalone(_AIGuardScenario):
+    """AI Guard standalone mode, with the infra product disabled on the agent"""
+
     def __init__(self) -> None:
         super().__init__(
             "AI_GUARD_STANDALONE",
@@ -113,12 +116,13 @@ class AiGuardStandalone(_AIGuardScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="AI Guard standalone mode, with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.ai_guard],
         )
 
 
 class AiGuardTelemetry(_AIGuardScenario):
+    """AI Guard telemetry tests with low truncation thresholds"""
+
     def __init__(self) -> None:
         super().__init__(
             "AI_GUARD_TELEMETRY",
@@ -129,12 +133,13 @@ class AiGuardTelemetry(_AIGuardScenario):
                 "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
                 "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
             },
-            doc="AI Guard telemetry tests with low truncation thresholds",
             scenario_groups=[scenario_groups.ai_guard],
         )
 
 
 class AiGuardRedactionTelemetry(_AIGuardScenario):
+    """AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts"""
+
     def __init__(self) -> None:
         super().__init__(
             "AI_GUARD_REDACTION_TELEMETRY",
@@ -145,12 +150,13 @@ class AiGuardRedactionTelemetry(_AIGuardScenario):
             # payload matches no cassette and never comes back with any replacement. The telemetry
             # flush intervals need no override, WeblogContainer already puts both at 2s.
             weblog_env=_AI_GUARD_WEBLOG_ENV,
-            doc="AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts",
             scenario_groups=[scenario_groups.ai_guard],
         )
 
 
 class AiGuardRedactionDisabled(_AIGuardScenario):
+    """AI Guard with the sensitive data redaction kill-switch turned off"""
+
     def __init__(self) -> None:
         super().__init__(
             "AI_GUARD_REDACTION_DISABLED",
@@ -162,6 +168,5 @@ class AiGuardRedactionDisabled(_AIGuardScenario):
                 # redaction_replacements returned by the backend are never applied.
                 "DD_AI_GUARD_REDACTION_ENABLED": "false",
             },
-            doc="AI Guard with the sensitive data redaction kill-switch turned off",
             scenario_groups=[scenario_groups.ai_guard],
         )

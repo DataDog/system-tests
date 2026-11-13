@@ -20,19 +20,11 @@ requirements.
 Use K8s library injection for normal Kubernetes injection tests. Use K8s
 injector-dev only when your change depends on the `injector-dev` tool.
 
-## Terms used on this page
+## Learn the terms
 
-- **Scenario:** The test environment, its configuration, and its tests.
-- **Weblog:** A sample application that system-tests instruments.
-- **Wizard:** An interactive script that selects a valid test combination.
-- **Tracer:** The Datadog library injected into the application.
-- **APM Test Agent:** A local test service that captures telemetry.
-- **Injector:** The component that adds the tracer to an application.
-- **lib-init:** A container image that holds one tracer library.
-- **Cluster Agent:** The Datadog component that runs the Admission Controller.
-- **Admission Controller:** A component that changes a pod before it starts.
-- **ECR:** The AWS container image registry used by these tests.
-- **Provision:** The software and commands that AWS SSI installs on a virtual machine.
+Read the [SSI glossary](../glossary.md#ssi-and-library-injection) before your
+first run. It defines scenario, weblog, provision, injector, lib-init, and the
+other terms used in these guides.
 
 AWS SSI is also called **onboarding**, **auto-injection**, or
 **auto-instrumentation** in this repository.

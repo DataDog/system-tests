@@ -5,6 +5,10 @@ from ._core import EndToEndScenario, scenario_groups
 
 
 class IPV6Scenario(EndToEndScenario):
+    """Test the agent/lib communication using an IPv6 address. We do not use the proxy between the lib and the agent
+    to check that the agent correctly accept IPv6 traffic
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "IPV6",
@@ -12,10 +16,6 @@ class IPV6Scenario(EndToEndScenario):
             scenario_groups=[scenario_groups.ipv6],
             weblog_categories=[WeblogCategory.dd_trace],
             use_proxy_for_weblog=False,
-            doc=(
-                "Test the agent/lib communication using an IPv6 address. We do not use the proxy between "
-                "the lib and the agent to check that the agent correctly accept IPv6 traffic"
-            ),
         )
 
     def _start_containers(self):

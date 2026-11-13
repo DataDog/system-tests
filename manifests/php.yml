@@ -581,6 +581,10 @@ manifest:
         "*": v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk:
+    - declaration: flaky (APPSEC-71652)
+      component_version: '>=1.27.1'
+      weblog: apache-mod-7.4
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_auto:
     - weblog_declaration:
@@ -1678,6 +1682,10 @@ manifest:
     - declaration: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.23.3
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_custom_endpoint_does_not_require_api_key
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
@@ -1752,6 +1760,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate
   : missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (php does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (PHP may preserve whitespace of foreign vendors trracestate (allowed per spec))

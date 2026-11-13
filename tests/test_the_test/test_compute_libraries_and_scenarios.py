@@ -12,6 +12,7 @@ from utils.scripts.compute_libraries_and_scenarios import (
     process,
 )
 from utils import scenarios
+from utils._context._scenarios import scenario_groups as all_scenario_groups
 
 
 default_libs_with_prod = [
@@ -158,6 +159,42 @@ class Test_ComputeLibrariesAndScenarios:
 
     def test_gitlab_ssi_title_resolver_file_does_not_select_scenarios(self):
         inputs = build_inputs(["utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_gitignore_does_not_select_scenarios(self):
+        inputs = build_inputs([".gitignore"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_review_learning_files_do_not_select_scenarios(self):
+        inputs = build_inputs(
+            [
+                ".agents/skills/system-tests-review-learn/SKILL.md",
+                ".gitignore",
+                ".claude/skills/system-tests-review-learn/SKILL.md",
+                "docs/ai/review-learning.md",
+                "tests/test_the_test/test_review_learning.py",
+                "utils/scripts/review_learning/collect.py",
+                "utils/scripts/review_learning/filters.yml",
+            ]
+        )
 
         assert_github_processor(
             inputs,
@@ -406,6 +443,35 @@ class Test_ComputeLibrariesAndScenarios:
             "DEFAULT",
             "all",
         )
+
+    def test_gitlab_libraries_config_runs_all_but_ssi(self):
+        inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "end_to_end,exotics,ffe,integration_frameworks,open_telemetry",
+        )
+
+    @pytest.mark.parametrize("pattern", ["utils/scripts/gitlab_libraries.py", "utils/ci/gitlab/*"])
+    def test_gitlab_libraries_config_scenarios(self, pattern: str):
+        """The rules of the GitLab end-to-end pipeline select every scenario of the all group but the SSI ones"""
+        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
+        param = build_inputs([]).impacts[pattern]
+        selected = {
+            scenario.name for group in param.scenario_groups for scenario in all_scenario_groups[group].scenarios
+        }
+        selected |= param.scenarios
+        all_group = all_scenario_groups.all.scenarios
+
+        assert selected >= {scenario.name for scenario in all_group if scenario.github_workflow not in ssi_workflows}
+        assert not selected & {scenario.name for scenario in all_group if scenario.github_workflow in ssi_workflows}
+        # the exotics job of .github/workflows/ci.yml runs on the exotics or all group only
+        assert "exotics" in param.scenario_groups
 
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])

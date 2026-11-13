@@ -3887,6 +3887,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.1
+        spring-boot-openliberty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.2  # TODO: a lower version might be supported
+        uds-spring-boot: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.2  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": irrelevant
@@ -3952,6 +3958,14 @@ manifest:
     - weblog_declaration:
         "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  ? tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2::test_api_gateway_http_inferred_span_creation_optional_tags
+  : - declaration: flaky (IDMPL-1241)
+      component_version: '>=1.67.1'
+      weblog: play
+  ? tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2::test_api_gateway_rest_inferred_span_creation_with_error
+  : - declaration: flaky (IDMPL-1241)
+      component_version: '>=1.67.1'
+      weblog: play
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
@@ -4263,6 +4277,9 @@ manifest:
     - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.64.2
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: v1.65.0
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  : 'missing_feature (Requires a release containing dd-trace-java#13267)'
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : v1.65.0
@@ -4332,6 +4349,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_context_leak:
     - declaration: missing_feature (Not implemented)
       component_version: <1.36
@@ -5039,13 +5059,13 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:

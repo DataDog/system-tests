@@ -1,12 +1,14 @@
 """Tests for the library -> weblog -> scenarios mapping of the GitLab end-to-end component."""
 
+import json
 from pathlib import Path
 
 import yaml
 
 from utils import pytest, scenarios
 from utils.ci.gitlab.build_pipeline import main, merge_params, parse_library_weblog_scenarios, split_weblog_entries
-from utils.ci.gitlab.validate_param_env import validate_library_weblog_scenarios
+from utils.ci.gitlab.validate_param_env import validate_comma_lower_hyphen, validate_library_weblog_scenarios
+from utils.scripts.gitlab_libraries import GITLAB_MAIN, GITLAB_PR_LIBRARIES
 
 
 def _params(weblog: str, scenario_names: list[str], *, parametric: bool = False) -> dict:
@@ -192,6 +194,9 @@ def test_invalid_parametric_usage(library_weblog_scenarios: str, error: str) -> 
     [
         ('{"python": {"flask-poc": ["DEFAULT", "APPSEC_BLOCKING"]}, "java": {"spring-boot": ["DEFAULT"]}}', True),
         ('{"python": {"flask-poc": ["DEFAULT", "appsec", "tracer_release"]}}', True),
+        ('{"php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]}, "python": {"python3.12": ["DEFAULT"]}}', True),
+        ('{"python": {"Flask-poc": ["DEFAULT"]}}', False),
+        ('{"python": {"flask poc": ["DEFAULT"]}}', False),
         ('{"python": {"flask-poc": ["Default"]}}', False),
         ("not json", False),
         ('["python"]', False),
@@ -203,3 +208,31 @@ def test_invalid_parametric_usage(library_weblog_scenarios: str, error: str) -> 
 def test_validate_library_weblog_scenarios(value: str, *, is_valid: bool) -> None:
     errors = validate_library_weblog_scenarios("LIBRARY_WEBLOG_SCENARIOS", value)
     assert (errors == []) is is_valid, errors
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("selection", [GITLAB_PR_LIBRARIES, GITLAB_MAIN], ids=["GITLAB_PR_LIBRARIES", "GITLAB_MAIN"])
+def test_gitlab_library_selections_are_valid(selection: dict[str, dict[str, list[str]] | None]) -> None:
+    """The weblog selections of compute_libraries_and_scenarios.py are only sent to GitLab when the library is
+    activated by the diff, so the PR that edits them does not always exercise them: check them here.
+    """
+    library_weblog_scenarios = {library: weblogs for library, weblogs in selection.items() if weblogs is not None}
+
+    errors = validate_library_weblog_scenarios("LIBRARY_WEBLOG_SCENARIOS", json.dumps(library_weblog_scenarios))
+    assert errors == []
+
+    for library, weblogs in library_weblog_scenarios.items():
+        for weblog in weblogs:
+            if weblog == "parametric":  # the parametric app is a folder, not a weblog Dockerfile
+                assert Path(f"utils/build/docker/{library}/parametric").is_dir(), f"{library}/{weblog}"
+            else:
+                assert Path(f"utils/build/docker/{library}/{weblog}.Dockerfile").is_file(), f"{library}/{weblog}"
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("value", "is_valid"),
+    [("flask-poc,django-realworld", True), ("apache-mod-8.0,python3.12", True), ("Flask", False), ("flask poc", False)],
+)
+def test_validate_weblogs(value: str, *, is_valid: bool) -> None:
+    assert (validate_comma_lower_hyphen("WEBLOGS", value) == []) is is_valid
