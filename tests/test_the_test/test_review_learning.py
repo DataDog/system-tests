@@ -486,6 +486,39 @@ class Test_ReviewLearningPlainEnglish:
             plain_english.proposal_key("lens", "Wait for the trace."): [],
         }
 
+    def test_lints_the_text_as_apply_writes_it(self, tmp_path: Path) -> None:
+        block = "### LIFE-009: Wait\n- Severity: P1\n- Flag: Wait."
+        proposals = [
+            {"action": "sharpen", "field": "Detect", "proposed_text": "A setup sleeps."},
+            {"action": "add_not_when", "field": "Not when", "proposed_text": "It is parametric."},
+            {"action": "new_rule", "field": None, "proposed_text": f"  {block}\n"},
+        ]
+        write_json(tmp_path / "proposals" / "lens.json", {"lens": "lens", "proposals": proposals})
+        seen: list[str] = []
+
+        def linter(text: str) -> list[Json]:
+            seen.append(text)
+            return []
+
+        findings = plain_english.lint_run(tmp_path, linter)
+        assert seen == ["- Detect: A setup sleeps.", "- Not when: It is parametric.", block]
+        assert plain_english.proposal_key("lens", "A setup sleeps.") in findings  # decide.py keys on the bare text
+
+    def test_a_shared_text_keeps_every_finding(self, tmp_path: Path) -> None:
+        proposals = [
+            {"action": "sharpen", "field": "Detect", "proposed_text": "Same text."},
+            {"action": "sharpen", "field": "✅", "proposed_text": "Same text."},
+        ]
+        write_json(tmp_path / "proposals" / "lens.json", {"lens": "lens", "proposals": proposals})
+
+        def linter(text: str) -> list[Json]:
+            return [{"rule": "SE_SENTENCE_TOO_LONG", "message": "long"}] if text.startswith("- Detect:") else []
+
+        findings = plain_english.lint_run(tmp_path, linter)
+        assert findings[plain_english.proposal_key("lens", "Same text.")] == [
+            {"rule": "SE_SENTENCE_TOO_LONG", "message": "long"}
+        ]
+
 
 LENS_TEXT = "### LIFE-001: Setup Methods Must Not Fail\n- Severity: P0\n- Flag: Do not assert in setup.\n- Detect: A setup method asserts.\n"
 
@@ -670,6 +703,22 @@ class Test_ReviewLearningDecide:
         weak = {**self.sharpen, "candidate_ids": ["a", "b"]}
         strong = {**self.sharpen, "candidate_ids": ["m"]}
         assert self._statuses(tmp_path, [weak, strong], candidates, max_changes=1) == [decide.OVER_CAP, decide.APPLY]
+
+    def test_report_lists_the_next_candidates(self, tmp_path: Path) -> None:
+        candidates = [_candidate("a", 1, "correction"), _candidate("b", 2, "correction"), _candidate("m", 3, "miss")]
+        weak = {**self.sharpen, "proposed_text": "A setup method never asserts.", "reason": "Two reviewers asked for it.",
+                "candidate_ids": ["a", "b"]}  # fmt: skip
+        strong = {**self.sharpen, "candidate_ids": ["m"]}
+        self._decide(tmp_path, [weak, strong], candidates, max_changes=1)
+        text = (tmp_path / "run" / "report.md").read_text(encoding="utf-8")
+        next_candidates = text.split("## Next candidates")[1].split("## Coverage")[0]
+        assert "> A setup method never asserts." in next_candidates
+        assert "over `max_changes`" in next_candidates
+        assert "Two reviewers asked for it." in next_candidates
+        assert "more than 1 changes" not in next_candidates  # the reason of the proposal, not the cap message
+        assert text.index("## Needs a human decision") < text.index("## Next candidates")
+        assert "| Next candidates | 1 |" in text
+        assert "| over_cap |" not in text  # not in the Not applied table too
 
     def test_report_is_complete_when_every_lens_answered(self, tmp_path: Path) -> None:
         run = tmp_path / "run"
