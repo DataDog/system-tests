@@ -13,8 +13,8 @@ manifest:
         nodejs-apigw-rest: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
     - weblog_declaration:
-        nodejs-apigw-http: missing_feature
-        nodejs-apigw-rest: missing_feature
+        nodejs-apigw-http: v12.144.0  # TODO: a lower version might be supported
+        nodejs-apigw-rest: v12.144.0  # TODO: a lower version might be supported
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
     - weblog_declaration:
         nodejs-apigw-http: missing_feature

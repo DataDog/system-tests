@@ -30,6 +30,8 @@ OTEL_STARTUP_LOGS_ENV: dict[str, str] = {
 
 
 class OtelStartupLogs(DdTraceEndToEndScenario):
+    """Require OTel configuration fields in tracer startup logs with an operator-style configuration"""
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_STARTUP_LOGS",
@@ -40,12 +42,15 @@ class OtelStartupLogs(DdTraceEndToEndScenario):
             iast_enabled=False,
             tracer_sampling_rate=None,
             use_proxy_for_weblog=False,
-            doc="Require OTel configuration fields in tracer startup logs with an operator-style configuration",
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlp(DdTraceEndToEndScenario):
+    """Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry attributes such as
+    http.response.status_code and server.port
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP",
@@ -66,13 +71,15 @@ class OtelSemanticsOtlp(DdTraceEndToEndScenario):
             },
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
-            doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
-            "attributes such as http.response.status_code and server.port",
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpCustomErrorStatuses(DdTraceEndToEndScenario):
+    """Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom client and server error
+    status configuration takes precedence over the OTel defaults
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
@@ -89,13 +96,15 @@ class OtelSemanticsOtlpCustomErrorStatuses(DdTraceEndToEndScenario):
             },
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
-            doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
-            "client and server error status configuration takes precedence over the OTel defaults",
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
+    """Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, and error decision used by
+    the corresponding span
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
@@ -115,13 +124,13 @@ class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
             },
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
-            doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
-            "and error decision used by the corresponding span",
             scenario_groups=[scenario_groups.open_telemetry],
         )
 
 
 class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
+    """Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated"""
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
@@ -141,6 +150,5 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
             },
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
-            doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
             scenario_groups=[scenario_groups.open_telemetry],
         )

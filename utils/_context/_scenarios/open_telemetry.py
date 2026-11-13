@@ -38,7 +38,6 @@ class _OpenTelemetryScenario(DockerScenario):
         self,
         name: str,
         *,
-        doc: str,
         weblog_env: dict | None = None,
         include_agent: bool = True,
         include_collector: bool = True,
@@ -47,7 +46,6 @@ class _OpenTelemetryScenario(DockerScenario):
     ) -> None:
         super().__init__(
             name,
-            doc=doc,
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
@@ -215,6 +213,11 @@ class _OpenTelemetryScenario(DockerScenario):
 
 
 class OtelIntegrations(_OpenTelemetryScenario):
+    """We use the open telemetry library to automatically instrument the weblogs instead of using the DD library.This
+    scenario represents this case in the integration with different external systems, for example the interaction
+    with sql database.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_INTEGRATIONS",
@@ -234,11 +237,5 @@ class OtelIntegrations(_OpenTelemetryScenario):
                 MongoContainer,
                 CassandraContainer,
                 PostgresContainer,
-            ),
-            doc=(
-                "We use the open telemetry library to automatically instrument the weblogs instead of using the DD "
-                "library."
-                "This scenario represents this case in the integration with different external systems, for example "
-                "the interaction with sql database."
             ),
         )

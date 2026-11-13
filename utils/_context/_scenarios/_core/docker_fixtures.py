@@ -28,14 +28,12 @@ class DockerFixturesScenario(Scenario):
         self,
         name: str,
         github_workflow: str,
-        doc: str,
         agent_image: str,
         weblog_categories: list[WeblogCategory],
         scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
             name=name,
-            doc=doc,
             github_workflow=github_workflow,
             scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
             weblog_categories=weblog_categories,

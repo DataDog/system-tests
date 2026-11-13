@@ -25,15 +25,17 @@ class CustomScenario(Scenario):
         """ Clean what need to be cleaned at the end of the test session """
 ```
 
-Then define your scenario in a module of `utils/_context/_scenarios/`, grouped with similar scenarios if any. Its configuration lives in its class:
+Then define your scenario in a module of `utils/_context/_scenarios/`, grouped with similar scenarios if any. Its configuration lives in its class, and its documentation in the class docstring:
 
 ```python
 from ._core import DdTraceEndToEndScenario
 
 
 class CustomScenario(DdTraceEndToEndScenario):
+    """What this scenario tests"""
+
     def __init__(self) -> None:
-        super().__init__("CUSTOM_SCENARIO", weblog_env={"DD_SOME_SETTING": "true"}, doc="...")
+        super().__init__("CUSTOM_SCENARIO", weblog_env={"DD_SOME_SETTING": "true"})
 ```
 
 And instantiate it in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`, without any argument:

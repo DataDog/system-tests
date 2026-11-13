@@ -693,7 +693,8 @@ app.post('/ffe/evaluate', async (req, res) => {
     value: details.value,
     reason: details.reason,
     errorCode: details.errorCode,
-    flagMetadata: details.flagMetadata ?? null
+    flagMetadata: details.flagMetadata ?? null,
+    providerStatus: openFeatureClient?.providerStatus ?? null
   });
 });
 
