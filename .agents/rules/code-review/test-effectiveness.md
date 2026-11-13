@@ -28,7 +28,7 @@
 - Old_id: claude-13
 - Severity: P0
 - Flag: A test of behavior that does not depend on the trace encoding must give the same result for v0.4, v0.5, and v1.0 payloads. Compare trace IDs with `trace_id_equals()`, read the sampling priority with `get_sampling_priority()`, and filter intake requests with `interfaces.library.trace_paths`. Use `is_same_boolean()` only when the contract accepts `True`, `1`, and `"true"` as the same value. A test of the wire format itself must check the exact fields and types of its encoding.
-- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter lists only `/v0.4/traces` or `/v0.5/traces`.
+- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter lists only `/v0.4/traces` or `/v0.5/traces`. A test mocks Agent responses for some paths of `interfaces.library.trace_paths`, but not for all of them.
 - Not when: The test is explicitly validating the wire format itself.
 - ✅ `assert span.trace_id_equals(int(expected_id))`.
 - ❌ `assert span["trace_id"] == int(expected_id)`.
@@ -55,7 +55,12 @@
 - Old_id: codex-21
 - Severity: P1
 - Flag: When the test uses a fake Agent or backend, its request and response must match the real service. Check that shape in the spec, the real code, or a real capture. Do not copy the expected JSON from the fake. A deliberately broken response belongs only in the test of that error.
-- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for.
+- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for. A test asserts a request property, such as a content type, that the test agent changes before capture.
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Make each assertion able to fail on the defect it targets.
+- Severity: P0
+- Flag: Each assertion must fail when the SDK lacks the behavior under test. A status code proves only that a route exists. If the endpoint catches every error and returns OK, the status proves nothing. Check each subject, case, and expected field on its own, not as one sum. If sibling tests use a shared assertion helper, a new test must use it too. Do not loosen a helper to accept output that breaks the contract.
+- Detect: A regex accepts empty groups, so a missing value still matches. A test asserts only `status_code == 200` on an endpoint that catches every exception. A count sums several subjects, so data from the wrong subject still passes. A type check covers one side only, so `1 == True` passes. A fixture carries expected fields that the runner never asserts. A helper adds a fallback for one SDK that breaks the payload contract.

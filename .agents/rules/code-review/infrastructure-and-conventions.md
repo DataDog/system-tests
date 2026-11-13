@@ -73,3 +73,13 @@
 - ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
 - ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
 - Ref: [Weblogs](../../../docs/understand/weblogs/README.md)
+
+### INFRA-011: Keep local build output out of the Docker build context.
+- Severity: P1
+- Flag: A new weblog or test app that builds locally into a folder must exclude that folder in `.dockerignore`. Add the pattern in the same pull request. Examples are a cargo `target/`, a dotnet `bin/` or `obj/`, or a `node_modules/`.
+- Detect: A new app under `utils/build/docker/` has a local build output folder, and no `.dockerignore` pattern excludes it.
+
+### INFRA-013: Stop the session when a component fails to start.
+- Severity: P1
+- Flag: A failure to provision or start a scenario component must stop the session with an error. The framework must first keep the logs. It must not store the error and let the tests run.
+- Detect: An error handler in `utils/` catches a startup or provisioning error and only logs or stores it. The session then continues to the test phase.
