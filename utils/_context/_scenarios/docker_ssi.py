@@ -52,6 +52,8 @@ class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
+    # Only runtimes with this "expected_ssi_result" in docker_ssi_runtimes.json run in this scenario
+    expected_ssi_result: str = "instrumented"
 
     def __init__(
         self,

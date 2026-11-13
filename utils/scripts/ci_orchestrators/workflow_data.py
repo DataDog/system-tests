@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 from utils._context._scenarios import Scenario
+from utils._context._scenarios.docker_ssi import _DockerSSIScenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
 from utils._context.constants import WeblogBuildMode as BuildMode
 from utils._logger import logger
@@ -153,6 +154,15 @@ def get_docker_ssi_matrix(
 
         for scenario in scenarios:
             if scenario.name in applicable_scenarios:
+                expected_ssi_result = (
+                    scenario.expected_ssi_result if isinstance(scenario, _DockerSSIScenario) else "instrumented"
+                )
+                # A runtime runs only in the scenarios that expect its SSI result (default: instrumented)
+                scenario_runtimes = [
+                    runtime
+                    for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
+                    if runtime.get("expected_ssi_result", "instrumented") == expected_ssi_result
+                ]
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
@@ -164,22 +174,25 @@ def get_docker_ssi_matrix(
                                 allowed_versions = supported_image.get("allowed_runtime_versions", [])
 
                                 if not allowed_versions:
-                                    allowed_runtimes.append("")
+                                    # The weblog uses its preinstalled runtime, which is expected to be instrumented
+                                    if expected_ssi_result == "instrumented":
+                                        allowed_runtimes.append("")
                                 elif "*" in allowed_versions:
-                                    allowed_runtimes.extend(
-                                        runtime["version"]
-                                        for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
-                                    )
+                                    allowed_runtimes.extend(runtime["version"] for runtime in scenario_runtimes)
                                 else:
                                     runtime_map = {
                                         rt["version_id"]: rt["version"]
                                         for rt in runtimes["docker_ssi_runtimes"].get(language, [])
                                     }
+                                    scenario_runtime_ids = {rt["version_id"] for rt in scenario_runtimes}
                                     for runtime_id in allowed_versions:
-                                        if runtime_id in runtime_map:
-                                            allowed_runtimes.append(runtime_map[runtime_id])
-                                        else:
+                                        if runtime_id not in runtime_map:
                                             raise ValueError(f"Runtime {runtime_id} not found in the runtimes file")
+                                        if runtime_id in scenario_runtime_ids:
+                                            allowed_runtimes.append(runtime_map[runtime_id])
+
+                                if not allowed_runtimes:
+                                    continue
 
                                 image_reference, image_arch_reference = next(
                                     (
