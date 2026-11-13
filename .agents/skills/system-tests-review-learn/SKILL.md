@@ -38,7 +38,7 @@ Run every command from the repository root with `venv/bin/python -m utils.script
    - the path of its batch file and the nonce from the manifest,
    - the output path `<run>/candidates/<batch name>.json`.
 
-   Before you start a subagent, delete its output file, so that an old file never counts. If a subagent fails, or its file is not valid JSON, delete the file and start it once more. If it fails again, delete the file, and report the batch as not covered.
+   Before you start a subagent, check its output file. If it exists, delete it, so that an old file never counts. If a subagent fails, or its file is not valid JSON, delete the file and start it once more. If it fails again, delete the file, and report the batch as not covered.
 6. **verify**: `verify_quotes --run <run>`.
 7. **map**: for each lens, start one subagent with the map model from `filters.yml` (`defaults.map_model`). Start the four in parallel. Give each one:
    - the text of [references/map-to-lens.md](references/map-to-lens.md),
@@ -46,7 +46,7 @@ Run every command from the repository root with `venv/bin/python -m utils.script
    - the paths of `<run>/verified.json` and `utils/scripts/review_learning/rejected.yml`,
    - the output path `<run>/proposals/<lens>.json`.
 
-   Delete each output file before you start its subagent. If a lens fails, leave its file absent. The report then marks the run as incomplete.
+   Before you start each subagent, check its output file. If it exists, delete it. If a lens fails, leave its file absent. The report then marks the run as incomplete.
 8. **lint**: `plain_english --run <run>`. It writes `<run>/lint.json`. If a proposal has findings, send them back to the subagent of its lens. Ask it to rewrite only the `proposed_text` of those proposals and to write the file again. Then run `plain_english` again. Do this two times at most.
 9. **decide**: `decide --run <run>`. It writes `<run>/decisions.json` and `<run>/report.md`.
 10. **apply**: only with `--apply`. Run `apply --run <run>`. It edits the lens files, and writes `<run>/applied.json`. It skips a lens file with local changes. It prints the review and undo commands for the files that it edited.

@@ -30,7 +30,7 @@ variables:
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
     # Image of the review_learning job, built and signed by build_ci_image. Update the tag when the Dockerfile changes:
     #   cat utils/ci/gitlab/docker/review-learning.Dockerfile | sha256sum | cut -c1-12
-    REVIEW_LEARNING_IMAGE: "registry.ddbuild.io/system-tests/review-learning:1be4b833ae16"
+    REVIEW_LEARNING_IMAGE: "registry.ddbuild.io/system-tests/review-learning:f0070da66058"
 
 resolve_ssi_pr_title:
   # Not $CI_IMAGE: this job runs before build_ci_image, so it must use an already published ci-runner image
@@ -354,9 +354,10 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
-# Monthly review learning, in report mode (see docs/ai/review-learning.md).
-# A GitLab pipeline schedule on main sets SCHEDULED_JOB=review-learning. The job only reads GitHub, and
-# leaves report.md in its artifacts. A person reads the report: nothing edits the rules here.
+# Monthly review learning (see docs/ai/review-learning.md).
+# A GitLab pipeline schedule on main sets SCHEDULED_JOB=review-learning. The model only reads GitHub. The job
+# leaves report.md in its artifacts. If a change passes the thresholds, it opens a draft pull request with the
+# rule changes. A person from system-tests-core reviews it, and nothing merges by itself.
 review_learning:
   image: $REVIEW_LEARNING_IMAGE
   tags:

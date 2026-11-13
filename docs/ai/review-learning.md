@@ -20,7 +20,7 @@ To install `se`, use `brew install TonyCTHsu/tap/simple-english`, or `gem instal
 
 ## Status
 
-Every step exists. The pipeline writes a report. With `--apply`, it also edits the lens files in your working tree. A later step will open a draft pull request.
+Every step exists. The pipeline writes a report. With `--apply`, it also edits the lens files in your working tree. In GitLab, the monthly job also opens a draft pull request with the changes.
 
 | Step | Done by | What it does |
 | --- | --- | --- |
@@ -34,6 +34,7 @@ Every step exists. The pipeline writes a report. With `--apply`, it also edits t
 | 8. Lint | `plain_english.py` | Checks the proposed text with `se`. |
 | 9. Decide | `decide.py`, `report.py` | Applies the thresholds and writes `report.md`. |
 | 10. Apply | `apply.py` | Only with `--apply`: edits the lens files. |
+| 11. Publish | `open_pr.py` | Only in GitLab: opens the draft pull request. |
 
 The [`system-tests-review-learn`](../../.agents/skills/system-tests-review-learn/SKILL.md) skill runs the steps in order.
 
@@ -225,15 +226,25 @@ The script deletes only the folders directly under `.review-learning/` that hold
 
 ## Run it in GitLab
 
-The `review_learning` job in [`.gitlab-ci.yml`](../../.gitlab-ci.yml) runs the skill once a month, in report mode. It writes `report.md` to its artifacts, and it edits nothing.
+The `review_learning` job in [`.gitlab-ci.yml`](../../.gitlab-ci.yml) runs once a month:
+
+1. The model runs the skill in report mode, with a read-only GitHub token. It writes `report.md` to the job artifacts.
+2. After the model is done, the script runs `verify_quotes`, `plain_english`, `decide` and `apply` again, with no model. So the thresholds of `decide.py` choose the changes, not the model.
+3. If a change passed the thresholds, `open_pr.py` asks for a write token. It pushes one signed commit to the `review-learning/update` branch, and it opens a draft pull request. Then it revokes the token.
+
+There is only one pull request at a time. If the last one is still open, `open_pr.py` publishes nothing, so a reviewer never loses work.
+
+The model never holds the write token. `open_pr.py` publishes only `.agents/rules/code-review/*.md`, and it refuses any other change. The pull request never merges by itself: a person from `system-tests-core` reviews it. To reject a change, revert it in the pull request, and add it to `rejected.yml`.
 
 - **Schedule:** a GitLab pipeline schedule on `main` sets `SCHEDULED_JOB=review-learning`. You can also start it by hand from the GitLab UI, with the same variable. This schedule never runs the end-to-end pipeline.
-- **Image:** [`review-learning.Dockerfile`](../../utils/ci/gitlab/docker/review-learning.Dockerfile) holds Python 3.12, the Claude Code CLI, `gh`, `se`, and `dd-octo-sts`. The `build_ci_image` job builds and signs it. The job installs `requirements.txt` when it starts, so a change to `requirements.txt` never rebuilds this image.
+- **Image:** [`review-learning.Dockerfile`](../../utils/ci/gitlab/docker/review-learning.Dockerfile) holds Python 3.12, the Claude Code CLI, `gh`, `se`, `dd-octo-sts`, and `commit-headless`. The `build_ci_image` job builds and signs it. The job installs `requirements.txt` when it starts, so a change to `requirements.txt` never rebuilds this image.
 - **Model access:** `authanywhere` gives a token for the Datadog AI gateway. The job needs no Anthropic API key.
-- **GitHub access:** a read-only `dd-octo-sts` token, from [`self.gitlab-review-learning.sts.yaml`](../../.github/chainguard/self.gitlab-review-learning.sts.yaml). The job never writes to GitHub.
+- **GitHub access:** a read-only `dd-octo-sts` token for the model, from [`self.gitlab-review-learning.sts.yaml`](../../.github/chainguard/self.gitlab-review-learning.sts.yaml). A write token for `open_pr.py` only, from [`self.gitlab-review-learning-pr.sts.yaml`](../../.github/chainguard/self.gitlab-review-learning-pr.sts.yaml).
 - **Window:** the previous calendar month by default, so that monthly runs never skip or repeat a day. `REVIEW_LEARNING_WINDOW` overrides it.
 
-The entry point is [`ci_run.sh`](../../utils/scripts/review_learning/ci_run.sh). The model can only write inside `.review-learning/`, and it can only run the named steps of the skill. It cannot run `apply`.
+The entry point is [`ci_run.sh`](../../utils/scripts/review_learning/ci_run.sh). The model can only write in the `candidates/` and `proposals/` folders of its run, and it can only run the named steps of the skill. It cannot run `apply` or `open_pr.py`.
+
+To see the pull request without publishing it, run `open_pr --run <run> --dry-run` after `apply`.
 
 ## Output files
 
