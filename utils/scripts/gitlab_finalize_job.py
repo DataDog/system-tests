@@ -2,7 +2,7 @@
 
 Runs in the after_script of those jobs, in system-tests and in the repositories that launch them.
 Each profile is an ordered list of steps. A failing step is reported and the next steps still run,
-so the job is always tagged and its logs are always collected and printed.
+so log collection and printing are attempted even if another step fails.
 
 To add a feature, write a step function and add it to the profiles that need it.
 
@@ -279,7 +279,6 @@ PROFILES: dict[str, Profile] = {
         logs_pattern="logs_{scenario}",
         feature_parity_pattern="*_feature_parity.json",
         steps=(
-            tag_official_workflow,
             upload_logs_to_s3,
             delete_large_log_files,
             collect_logs,

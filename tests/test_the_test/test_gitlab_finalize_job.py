@@ -98,7 +98,8 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
     assert finalizer.finalize(job) == 0
 
     prefix = "42/logs_simple_installer_auto_injection/Ubuntu_22_amd64_test-app-java/"
-    assert commands[1][:5] == ["aws", "s3", "cp", str(logs), f"s3://system-tests-aws-ssi-apm/{prefix}"]
+    assert commands[0][:5] == ["aws", "s3", "cp", str(logs), f"s3://system-tests-aws-ssi-apm/{prefix}"]
+    assert not [command for command in commands if command[0] == "datadog-ci"]
     assert job.aws_console_url.endswith(f"prefix={prefix}")
     assert (tmp_path / "home" / ".aws" / "config").read_text() == "apm-ecosystems-reliability-profile/config\n"
     reports = tmp_path / "project" / "reports" / "logs_simple_installer_auto_injection"
