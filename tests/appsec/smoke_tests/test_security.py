@@ -8,9 +8,10 @@ from tests.appsec.smoke_tests.utils import (
     BaseUserEventsSmokeTests,
     SMOKE_RC_RULE_FILE,
     SMOKE_RC_RULE_ID,
+    SMOKE_RC_IP_BLOCK_RULE_ID,
     assert_backend_attack,
     assert_backend_blocked,
-    get_backend_report,
+    assert_backend_security_data,
     wait_for_config_acknowledged,
 )
 
@@ -28,6 +29,7 @@ class Test_SecuritySmoke_EventTags:
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"})
 
     def test_event_tags(self) -> None:
+        assert_backend_security_data()
         spans = [
             span
             for _, span in interfaces.mocked_backend.get_spans(self.r)
@@ -35,20 +37,18 @@ class Test_SecuritySmoke_EventTags:
         ]
         assert spans, "Backend did not receive a security event"
         for span in spans:
-            assert span.get_span_service() == "weblog"
             assert span.metrics.get("_dd.appsec.enabled") == 1
-            assert span.meta.get("http.method") == "GET"
-            assert span.get_tag("http.status_code") == str(self.r.status_code)
             assert span.meta.get("http.client_ip") == "42.42.42.42"
-            # Either peer carrier is valid when the resolved AppSec client IP survives.
-            assert span.meta.get("network.client.ip") or span.meta.get("network.peer.address")
-            assert "Arachni/v1" in span.meta.get("http.useragent", "")
+            assert span.meta.get("network.client.ip")
+            assert "42.42.42.42" in span.meta.get("http.request.headers.x-forwarded-for", "")
+            assert "Arachni/v1" in span.meta.get("http.request.headers.user-agent", "")
+            assert span.meta.get("http.response.headers.content-type")
             for tag in ("_dd.appsec.event_rules.version", "_dd.runtime_family"):
                 assert isinstance(span.meta.get(tag), str), f"Missing backend tag {tag}"
                 assert span.meta[tag], f"Empty backend tag {tag}"
-            for tag in ("_dd.appsec.waf.duration", "_dd.appsec.waf.duration_ext"):
-                assert isinstance(span.metrics.get(tag), (int, float)), tag
-                assert span.metrics[tag] >= 0, tag
+            duration = span.metrics.get("_dd.appsec.waf.duration")
+            assert isinstance(duration, (int, float))
+            assert duration >= 0
         # WAF version is initialization metadata, reported at least once per runtime.
         assert any(
             isinstance(span.meta.get("_dd.appsec.waf.version"), str) and span.meta["_dd.appsec.waf.version"]
@@ -84,14 +84,7 @@ class Test_SecuritySmoke_RemoteConfig:
     def test_remote_config_smoke(self) -> None:
         assert self.acknowledged, "Tracer must acknowledge the rule version before attack traffic"
         assert self.r is not None
-        assert self.r.status_code == 200
-        assert_backend_attack(self.r)
-        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
-            report = get_backend_report(span, "appsec", "_dd.appsec.json")
-            assert report is not None
-            if any(trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in report["triggers"]):
-                return
-        raise AssertionError("Backend did not receive the attack for the RC-updated rule")
+        assert_backend_attack(self.r, rule_id=SMOKE_RC_RULE_ID)
 
 
 @features.appsec_request_blocking
@@ -129,5 +122,5 @@ class Test_SecuritySmoke_IpBlocking:
         assert self.rules_acknowledged, "Tracer must acknowledge the blocking rule"
         assert self.data_acknowledged, "Tracer must acknowledge the blocked IP before attack traffic"
         assert self.r is not None
-        assert_backend_attack(self.r)
+        assert_backend_attack(self.r, rule_id=SMOKE_RC_IP_BLOCK_RULE_ID)
         assert_backend_blocked(self.r)

@@ -109,32 +109,80 @@ def wait_for_config_acknowledged(state: rc.RemoteConfigStateResults, config_id: 
     return interfaces.library.wait_for(acknowledged, timeout=rc.APPLY_TIMEOUT)
 
 
-def get_backend_report(span: DataDogAgentSpan, name: str, json_tag: str | None = None) -> dict[str, Any] | None:
-    """Read decoded intake fields; ordinary string metadata is not a structured report."""
-    report = span.get("metaStruct", {}).get(name)
-    if report is None:
-        # Efficient Agent payloads carry structured bytes in the typed attributes map.
-        report = span.meta.get(name)
-    if report is None and json_tag is not None:
-        report = span.meta.get(json_tag)
-    if report is not None:
-        assert isinstance(report, dict), f"Backend must receive a structured {name} report, got {type(report).__name__}"
-    return report
+def get_backend_reports(span: DataDogAgentSpan) -> list[dict[str, Any]]:
+    """Validate every AppSec report carrier present at intake."""
+    reports = [
+        value
+        for value in (
+            span.get("metaStruct", {}).get("appsec"),
+            span.meta.get("appsec"),
+            span.meta.get("_dd.appsec.json"),
+        )
+        if value is not None
+    ]
+    for report in reports:
+        assert isinstance(report, dict), "Backend must receive a structured AppSec report"
+    return reports
 
 
-def assert_backend_attack(response: HttpResponse) -> None:
-    for _, span, _ in interfaces.mocked_backend.get_appsec_data(response):
-        report = get_backend_report(span, "appsec", "_dd.appsec.json")
-        assert report is not None
-        if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
+def assert_backend_security_data() -> None:
+    """Preserve emitted AppSec fields, including optional fields and complete reports."""
+    backend = [span for _, span in interfaces.mocked_backend.get_spans()]
+    checked = 0
+    for _, _, source in interfaces.library.get_spans():
+        fields = {
+            key: value
+            for key, value in (source.meta | source.metrics).items()
+            if key.startswith(
+                ("_dd.appsec.", "appsec.", "_dd.p.appsec", "usr.", "http.request.headers.", "http.response.headers.")
+            )
+            or key in ("_dd.runtime_family", "http.client_ip", "network.client.ip")
+        }
+        fields.pop("_dd.appsec.json", None)
+        report = source.get("meta_struct", {}).get("appsec")
+        if report is None:
+            report = source.meta.get("appsec", source.meta.get("_dd.appsec.json"))
+        if not fields and report is None:
+            continue
+        candidates = [
+            span
+            for span in backend
+            if source.trace_id_equals(span.trace.trace_id_as_int)
+            and str(source["span_id"]) == str(span.get("span_id", span.get("spanID")))
+        ]
+        assert candidates, "Backend lost a span carrying AppSec data"
+        for span in candidates:
+            received = span.meta | span.metrics
+            for key, expected in fields.items():
+                assert key in received, f"Backend lost AppSec field {key}"
+                actual = received[key]
+                if key in ("appsec.event", "appsec.blocked") or key.endswith((".track", ".sdk")):
+                    assert is_same_boolean(actual=actual, expected=expected), key
+                else:
+                    assert actual == expected, f"Backend changed AppSec field {key}"
+                    if isinstance(expected, (int, float)) and not isinstance(expected, bool):
+                        assert not isinstance(actual, bool), f"Backend changed numeric AppSec field {key} to boolean"
+            if report is not None:
+                reports = get_backend_reports(span)
+                assert reports, "Backend lost the AppSec report"
+                assert all(value == report for value in reports), "Backend changed the AppSec report"
+        checked += 1
+    assert checked, "SDK did not emit any AppSec data to compare"
+
+
+def assert_backend_attack(response: HttpResponse, *, rule_id: str | None = None) -> None:
+    found = False
+    for _, span in interfaces.mocked_backend.get_spans(response):
+        for report in get_backend_reports(span):
+            assert is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
             triggers = report.get("triggers")
             assert isinstance(triggers, list), "Backend AppSec triggers must be an array"
             assert triggers, "Backend AppSec report must include attack triggers"
             assert all(
                 isinstance(trigger.get("rule", {}).get("id"), str) and trigger["rule"]["id"] for trigger in triggers
             )
-            return
-    raise AssertionError("Backend did not receive an AppSec event with a structured attack report")
+            found |= rule_id is None or any(trigger["rule"]["id"] == rule_id for trigger in triggers)
+    assert found, f"Backend did not receive an AppSec attack report for rule {rule_id or '<any>'}"
 
 
 def assert_backend_blocked(response: HttpResponse) -> None:
@@ -389,6 +437,7 @@ class BaseUserEventsSmokeTests:
         for _, span in interfaces.mocked_backend.get_spans(self.r):
             meta = span.meta
             if meta.get("_dd.appsec.usr.login") or meta.get("appsec.events.users.login.success.usr.login"):
+                assert is_same_boolean(actual=meta.get("appsec.events.users.login.success.track"), expected="true")
                 return
 
         raise AssertionError("Agent spans should include user login event tags")
