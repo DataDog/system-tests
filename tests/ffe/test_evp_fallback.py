@@ -40,6 +40,8 @@ class Test_FFE_EVP_Fallback:
         scenario = context.scenario
         assert isinstance(scenario, FeatureFlaggingEVPFallback)
         self.responses = []
+        self.first_capture_seen = False
+        self.future_captures_seen: dict[str, bool] = {}
         for subject in ("evp-first", "evp-future"):
             self.responses.append(
                 weblog.post(
@@ -59,7 +61,9 @@ class Test_FFE_EVP_Fallback:
                 def first_captured(data: dict[str, Any], expected_path: str = local_path) -> bool:
                     return data.get("path") == expected_path and bool(events_for(data, "evp-first"))
 
-                assert interfaces.mocked_backend.wait_for(first_captured, timeout=30)
+                self.first_capture_seen = interfaces.mocked_backend.wait_for(first_captured, timeout=30)
+                if not self.first_capture_seen:
+                    return
                 # Wait for the response to be processed before producing the future batch.
                 interfaces.mocked_backend.wait(3)
         for signal in ("exposures", "flagevaluation"):
@@ -72,11 +76,13 @@ class Test_FFE_EVP_Fallback:
             def future_captured(data: dict[str, Any], path: str = expected_path) -> bool:
                 return data.get("path") == path and bool(events_for(data, "evp-future"))
 
-            assert interfaces.mocked_backend.wait_for(future_captured, timeout=35)
+            self.future_captures_seen[signal] = interfaces.mocked_backend.wait_for(future_captured, timeout=35)
 
     def test_delivery(self) -> None:
         scenario = context.scenario
         assert isinstance(scenario, FeatureFlaggingEVPFallback)
+        assert self.first_capture_seen
+        assert self.future_captures_seen == {"exposures": True, "flagevaluation": True}
         assert all(response.status_code == 200 for response in self.responses)
         assert all(json.loads(response.text)["value"] == "on-value" for response in self.responses)
         local = [
