@@ -1,0 +1,20 @@
+# Tags this pipeline when the AWS AMI refresh sets AMI_UPDATE=true.
+# Green CI skips a pipeline that carries green_ci.excluded:true.
+# The parent pipeline and each language child pipeline include this job.
+exclude_ami_update_from_green_ci:
+  extends: .base_job_onboarding
+  stage: .pre
+  needs: []
+  # The onboarding base job loads AWS credentials and asks for 6 CPUs.
+  # This job only sends one pipeline tag, so drop that setup.
+  before_script: []
+  after_script: []
+  artifacts:
+    paths: []
+  variables:
+    KUBERNETES_CPU_REQUEST: "1"
+    KUBERNETES_CPU_LIMIT: "1"
+  rules:
+    - if: '$AMI_UPDATE == "true"'
+  script:
+    - bash utils/scripts/exclude_ami_update_from_green_ci.sh

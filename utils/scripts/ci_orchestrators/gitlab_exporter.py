@@ -86,7 +86,11 @@ def build_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-    result_pipeline["include"] = pipeline_data["include"]
+    # Each language child is its own pipeline. Include the job that tags it when AMI_UPDATE is true.
+    result_pipeline["include"] = [
+        *pipeline_data["include"],
+        {"local": "/.gitlab/exclude_ami_update_from_green_ci.yml"},
+    ]
     result_pipeline["variables"] = pipeline_data["variables"]
     if (
         not matrix_data["aws_ssi_scenario_defs"]
