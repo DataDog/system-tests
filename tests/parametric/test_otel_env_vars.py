@@ -133,3 +133,17 @@ class Test_Otel_Env_Vars:
 
         if context.library != "php":
             assert resp["dd_runtime_metrics_enabled"] == "false"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_TRACES_EXPORTER": "otlp",
+                "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "unix:///dev/otel-grpc.sock",
+                "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "grpc",
+            }
+        ],
+    )
+    def test_otlp_grpc_unix_endpoint_does_not_prevent_startup(self, test_library: APMLibrary) -> None:
+        """OTLP settings inherited from BuildKit must not crash the app at startup."""
+        assert test_library.is_alive()
