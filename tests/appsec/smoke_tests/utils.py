@@ -4,8 +4,10 @@
 
 """AppSec smoke tests at the agent interface level"""
 
+from typing import Any
+
 from utils import context, interfaces, remote_config as rc, weblog
-from utils.dd_types import is_same_boolean
+from utils.dd_types import DataDogAgentSpan, is_same_boolean
 from utils._weblog import HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
@@ -90,6 +92,32 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
+def _backend_reports(span: DataDogAgentSpan) -> list[dict[str, Any]]:
+    """Return every structured report carrier present on an intake span."""
+    reports = [
+        value
+        for value in (
+            span.get("metaStruct", {}).get("appsec"),
+            span.meta.get("appsec"),
+            span.meta.get("_dd.appsec.json"),
+        )
+        if value is not None
+    ]
+    for report in reports:
+        assert isinstance(report, dict), "Backend must receive a structured AppSec report"
+    return reports
+
+
+def _attack_spans(request: HttpResponse) -> list[DataDogAgentSpan]:
+    spans = [
+        span
+        for _, span in interfaces.mocked_backend.get_spans(request)
+        if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
+    ]
+    assert spans, "Backend should receive the detected attack"
+    return spans
+
+
 def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
     """Walk agent appsec data and assert the expected RASP rule triggered."""
     for _, _, appsec_data in interfaces.mocked_backend.get_appsec_data(response):
@@ -117,24 +145,55 @@ def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_par
 
 
 class BaseThreatsSmokeTests:
-    """Verify basic WAF attack detection is forwarded by the agent."""
+    """Trigger a WAF attack and verify detection, tags, metrics, and reports at intake."""
 
     def setup_attack_detection_smoke(self) -> None:
-        rc.tracer_rc_state.reset().apply()
-        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"})
+
+    setup_security_metrics_smoke = setup_attack_detection_smoke
+    setup_security_reports_smoke = setup_attack_detection_smoke
 
     def test_attack_detection_smoke(self) -> None:
-        found_attack = False
-        has_appsec_data = False
+        """Intake receives the detected attack and its security metadata."""
+        for span in _attack_spans(self.r):
+            assert span.meta.get("http.client_ip") == "42.42.42.42"
+            assert span.meta.get("http.request.headers.x-forwarded-for") == "42.42.42.42"
+            assert span.meta["http.request.headers.user-agent"].startswith("Arachni/v1")
+            assert span.meta.get("http.response.headers.content-type")
+            assert span.meta.get("_dd.runtime_family")
+            assert span.meta.get("_dd.appsec.event_rules.version")
 
-        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
-            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
-                found_attack = True
-                has_appsec_data = True
-                break
+    def test_security_metrics_smoke(self) -> None:
+        """Intake receives numeric AppSec activation and WAF timing metrics."""
+        for span in _attack_spans(self.r):
+            for name in ("_dd.appsec.enabled", "_dd.appsec.waf.duration"):
+                value = span.metrics.get(name)
+                assert isinstance(value, (int, float)), f"Backend should receive numeric {name}"
+                assert not isinstance(value, bool), f"Backend should receive numeric {name}"
+                assert value >= 0, name
+            assert span.metrics["_dd.appsec.enabled"] == 1
 
-        assert found_attack, "Agent should forward detected attacks in span metadata"
-        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+    def test_security_reports_smoke(self) -> None:
+        """Every received report carrier contains the scanner rule and nested match."""
+        for span in _attack_spans(self.r):
+            reports = _backend_reports(span)
+            assert reports, "Backend should receive an AppSec report"
+            for report in reports:
+                triggers = [trigger for trigger in report.get("triggers", []) if trigger["rule"]["id"] == "ua0-600-12x"]
+                assert triggers, "Backend should receive the Arachni rule match"
+                for trigger in triggers:
+                    assert trigger["rule"]["tags"]["type"] in ("attack_tool", "security_scanner")
+                    assert trigger["rule"]["tags"]["category"] == "attack_attempt"
+                    assert trigger["rule_matches"], "Rule match details should reach intake"
+                    for match in trigger["rule_matches"]:
+                        assert match["operator"] == "match_regex"
+                        assert match["operator_value"]
+                        assert match["parameters"]
+                        for parameter in match["parameters"]:
+                            assert parameter["address"] == "server.request.headers.no_cookies"
+                            assert parameter["key_path"][:1] == ["user-agent"]
+                            assert parameter["value"].startswith("Arachni/v1")
+                            assert parameter["highlight"]
 
 
 # ---------------------------------------------------------------------------
