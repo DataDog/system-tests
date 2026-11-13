@@ -20,7 +20,7 @@ To install `se`, use `brew install TonyCTHsu/tap/simple-english`, or `gem instal
 
 ## Status
 
-Every step exists. The pipeline writes a report, and it never edits a rule file. A later step will apply the changes and open a draft pull request.
+Every step exists. The pipeline writes a report. With `--apply`, it also edits the lens files in your working tree. A later step will open a draft pull request.
 
 | Step | Done by | What it does |
 | --- | --- | --- |
@@ -33,6 +33,7 @@ Every step exists. The pipeline writes a report, and it never edits a rule file.
 | 7. Map | model, [`map-to-lens.md`](../../.agents/skills/system-tests-review-learn/references/map-to-lens.md) | Proposes rule changes, one subagent for each lens. |
 | 8. Lint | `plain_english.py` | Checks the proposed text with `se`. |
 | 9. Decide | `decide.py`, `report.py` | Applies the thresholds and writes `report.md`. |
+| 10. Apply | `apply.py` | Only with `--apply`: edits the lens files. |
 
 The [`system-tests-review-learn`](../../.agents/skills/system-tests-review-learn/SKILL.md) skill runs the steps in order.
 
@@ -165,6 +166,16 @@ It also does these checks:
 
 The result goes to `decisions.json` and `report.md`. If a lens left no proposals file, the report says `Run incomplete`. A lens that ran and found nothing shows `0 proposals`.
 
+### Apply
+
+`apply.py` edits `.agents/rules/code-review/<lens>.md` with each decision that has the status `apply`. Each field of a rule is one line, so an edit replaces one line, and it never rewrites the rest of the rule:
+
+- `sharpen` and `lint_owned` replace the line whose value is `current_text`. The new value must be one line.
+- `add_not_when` only changes the `Not when` line. It keeps the current text and adds to it. Without `current_text`, it adds a `Not when` line to the rule.
+- `new_rule` adds the whole rule block after the last rule of the lens.
+
+After each edit, every rule must keep a unique ID, a `Severity` line, and a `Flag` line. `decide.py` runs the same edit on a copy of the lens, so a decision with the status `apply` always matches the file. If an edit does not match the file, the script skips it and writes the reason to `applied.json`. It never edits a lens file with local changes. It prints a `git checkout` command that names only the files that it edited, so the command undoes this step and keeps your other changes.
+
 ## Run it
 
 The easiest way is the skill, in Claude Code:
@@ -172,6 +183,7 @@ The easiest way is the skill, in Claude Code:
 ```text
 /system-tests-review-learn 30d
 /system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step map
+/system-tests-review-learn --run .review-learning/2026-10-13..2026-11-11 --step apply --apply
 ```
 
 With `--step`, the skill runs one step again on an existing run folder. You can tune a prompt without a new download. A new `prepare` deletes the outputs of the later steps, so old candidates never mix with new batches.
@@ -188,6 +200,7 @@ venv/bin/python -m utils.scripts.review_learning.verify_quotes --run .review-lea
 # map: the model writes proposals/<lens>.json
 venv/bin/python -m utils.scripts.review_learning.plain_english --run .review-learning/run
 venv/bin/python -m utils.scripts.review_learning.decide --run .review-learning/run
+venv/bin/python -m utils.scripts.review_learning.apply --run .review-learning/run  # prints the review and undo commands
 ```
 
 The `--window` option takes a number of days that ends today, such as `30d`, or a date range, such as `2026-10-01..2026-10-31`. Without `--out`, the run goes to `.review-learning/<start>..<end>`.
@@ -226,6 +239,7 @@ The script deletes only the folders directly under `.review-learning/` that hold
 | `lint.json` | The `se` findings for each proposed text |
 | `decisions.json` | The status of each proposal, with its evidence |
 | `report.md` | The report for a person |
+| `applied.json` | With `--apply`: each change, applied or skipped, with the reason |
 
 ## Configuration
 
