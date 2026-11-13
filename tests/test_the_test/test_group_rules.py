@@ -71,6 +71,7 @@ def test_tracer_release():
         scenarios.docker_ssi,
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
+        scenarios.docker_ssi_guardrail,
         scenarios.docker_ssi_servicenaming,
         scenarios.host_auto_injection_install_script_appsec,
         scenarios.host_auto_injection_install_script_profiling,
