@@ -18,7 +18,7 @@ class Test_Crashtracking:
         test_library.crash()
 
         while True:
-            event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+            event = test_agent.wait_for_telemetry_event("logs", wait_loops=8)
             # Handling both v1 and v2 of the crashtracking payload so that we can
             # update to v2 without breaking the test.
             if isinstance(event.get("payload"), list):
@@ -82,11 +82,11 @@ class Test_Crashtracking:
         ]
 
     def wait_for_error_tracking_crash_report(self, test_agent: TestAgentAPI) -> dict:
-        for _ in range(400):
+        for _ in range(8):
             reports = self.get_error_tracking_crash_reports(test_agent)
             if reports:
                 return reports[-1]
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError("Crash report not found in Error Tracking intake requests")
 
     def assert_crash_report_error_tracking(self, report: dict) -> None:

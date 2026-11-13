@@ -380,7 +380,7 @@ class Test_Environment:
     def test_telemetry_otel_env_hiding(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=8)
         payload = event["payload"]
         assert event["request_type"] == "generate-metrics"
 
@@ -455,7 +455,7 @@ class Test_Environment:
     def test_telemetry_otel_env_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=8)
         payload = event["payload"]
         assert event["request_type"] == "generate-metrics"
 
@@ -861,7 +861,7 @@ class Test_TelemetryInstallSignature:
         with test_library.dd_start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=8)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
