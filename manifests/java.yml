@@ -1666,8 +1666,6 @@ manifest:
         spring-boot-payara: missing_feature (APPSEC-54966)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - declaration: flaky (APPSEC-60872)
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Transport:
-    - declaration: flaky (APPSEC-60872)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
     - declaration: flaky (APPSEC-60872)
     - weblog_declaration:
