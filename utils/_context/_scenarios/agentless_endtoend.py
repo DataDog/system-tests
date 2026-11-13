@@ -668,16 +668,6 @@ class FeatureFlaggingAndExperimentationAgentless(FeatureFlaggingAgentlessEndToEn
         super().__init__("FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS")
 
 
-class FeatureFlaggingAndExperimentationAgentlessExplicit(FeatureFlaggingAgentlessEndToEndScenario):
-    """Validate explicitly selected agentless UFC delivery without a Datadog Agent."""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_EXPLICIT",
-            weblog_env={"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless", "DD_SITE": MOCKED_BACKEND_DOMAIN},
-        )
-
-
 class FeatureFlaggingAndExperimentationAgentlessDirect(FeatureFlaggingAgentlessEndToEndScenario):
     """Validate direct exposure delivery with agentless UFC and no local receiver."""
 

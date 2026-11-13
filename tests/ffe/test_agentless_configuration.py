@@ -37,7 +37,7 @@ class Test_FFE_Agentless_Configuration(AgentlessConfigurationContract):
     pass
 
 
-@scenarios.feature_flagging_and_experimentation_agentless_explicit
+@scenarios.feature_flagging_and_experimentation_agentless_direct
 @features.feature_flags_agentless
 class Test_FFE_Agentless_Explicit_Configuration(AgentlessConfigurationContract):
     pass

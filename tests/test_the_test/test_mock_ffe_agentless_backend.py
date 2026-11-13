@@ -179,19 +179,6 @@ def test_default_agentless_scenario_leaves_source_selection_implicit() -> None:
     assert environment["DD_REMOTE_CONFIGURATION_ENABLED"] == "false"
 
 
-@scenarios.test_the_test
-@features.not_reported
-def test_explicit_agentless_scenario_keeps_incidental_events_in_the_mocked_backend() -> None:
-    environment = (
-        scenarios.feature_flagging_and_experimentation_agentless_explicit.weblog_infra.library_container.environment
-    )
-
-    assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
-    assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
-    assert "DD_FEATURE_FLAGS_ENABLED" not in environment
-    assert environment["DD_SITE"] == "mocked-backend.invalid"
-
-
 @pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])
 @scenarios.test_the_test
 @features.not_reported
