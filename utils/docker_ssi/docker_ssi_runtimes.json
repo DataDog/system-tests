@@ -88,6 +88,14 @@
         "version": "23.3"
       },
       {
+        "version_id": "JS2422",
+        "version": "24.22"
+      },
+      {
+        "version_id": "JS2509",
+        "version": "25.9"
+      },
+      {
         "version_id": "JS2613",
         "version": "26.13"
       }
@@ -128,6 +136,10 @@
       {
         "version_id": "PY314",
         "version": "3.14.10"
+      },
+      {
+        "version_id": "PY315",
+        "version": "3.15.2"
       }
     ],
     "php": [
