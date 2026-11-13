@@ -492,7 +492,7 @@ build_ci_image:
 
 publish_ci_image_nydus:
   # Datadog's Nydus image includes nydus-convert, crane, ddsign, and registry credential helpers.
-  image: registry.ddbuild.io/images/nydus:v2.4.0-dd.3@sha256:82a8347b0f766c705ae6a3faea7ab9ba7b455f9405e4754386dba8769a48429b
+  image: registry.ddbuild.io/images/nydus:v2.4.2-dd.7@sha256:a1a0ac82617dcdac1cb8e4cdbc2a3b05fede51bcf100190855361cfa65bbae7e
   interruptible: false
   stage: e2e
   tags:

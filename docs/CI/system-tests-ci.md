@@ -43,7 +43,7 @@ It runs in normal pipelines after the source image is available, skips conversio
 already exists, and signs and verifies the resulting digest with `ddsign` on every run.
 
 Conversion uses Datadog's
-[`nydus-convert` helper](https://gitlab.ddbuild.io/ddoghq/images/-/blob/master/nydus/v2.4.0-dd.3/nydus-convert.sh)
+[`nydus-convert` helper](https://gitlab.ddbuild.io/ddoghq/images/-/blob/master/nydus/v2.4.2-dd.7/nydus-convert.sh)
 and preserves the source's supported Linux architectures (currently `amd64`; the helper also handles
 `arm64` when present). The existing OCI image and `CI_IMAGE` selection remain unchanged.
 
