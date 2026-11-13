@@ -710,6 +710,66 @@ class FeatureFlaggingEVPFallback(FeatureFlaggingAgentlessEndToEndScenario):
         )
 
 
+class FeatureFlaggingEVP404Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("404", "exposures")
+
+
+class FeatureFlaggingEVP404FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("404", "flagevaluation")
+
+
+class FeatureFlaggingEVP405Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("405", "exposures")
+
+
+class FeatureFlaggingEVP405FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("405", "flagevaluation")
+
+
+class FeatureFlaggingEVP403Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("403", "exposures")
+
+
+class FeatureFlaggingEVP403FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("403", "flagevaluation")
+
+
+class FeatureFlaggingEVP429Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("429", "exposures")
+
+
+class FeatureFlaggingEVP429FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("429", "flagevaluation")
+
+
+class FeatureFlaggingEVP503Exposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("503", "exposures")
+
+
+class FeatureFlaggingEVP503FlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("503", "flagevaluation")
+
+
+class FeatureFlaggingEVPAmbiguousExposures(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("ambiguous", "exposures")
+
+
+class FeatureFlaggingEVPAmbiguousFlagEvaluation(FeatureFlaggingEVPFallback):
+    def __init__(self) -> None:
+        super().__init__("ambiguous", "flagevaluation")
+
+
 class FeatureFlaggingAgentlessAgent(FeatureFlaggingAgentlessEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(

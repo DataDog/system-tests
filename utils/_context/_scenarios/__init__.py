@@ -112,7 +112,18 @@ from .docker_ssi import (
 )
 from .agentless_endtoend import (
     FeatureFlaggingAndExperimentationAgentless,
-    FeatureFlaggingEVPFallback,
+    FeatureFlaggingEVP404Exposures,
+    FeatureFlaggingEVP404FlagEvaluation,
+    FeatureFlaggingEVP405Exposures,
+    FeatureFlaggingEVP405FlagEvaluation,
+    FeatureFlaggingEVP403Exposures,
+    FeatureFlaggingEVP403FlagEvaluation,
+    FeatureFlaggingEVP429Exposures,
+    FeatureFlaggingEVP429FlagEvaluation,
+    FeatureFlaggingEVP503Exposures,
+    FeatureFlaggingEVP503FlagEvaluation,
+    FeatureFlaggingEVPAmbiguousExposures,
+    FeatureFlaggingEVPAmbiguousFlagEvaluation,
     FeatureFlaggingAgentlessAgent,
     FeatureFlaggingAndExperimentationAgentlessDirect,
     FeatureFlaggingAndExperimentationAgentlessServerless,
@@ -321,18 +332,18 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
     feature_flagging_agentless_agent = FeatureFlaggingAgentlessAgent()
-    feature_flagging_evp_404_exposures = FeatureFlaggingEVPFallback("404", "exposures")
-    feature_flagging_evp_404_flagevaluation = FeatureFlaggingEVPFallback("404", "flagevaluation")
-    feature_flagging_evp_405_exposures = FeatureFlaggingEVPFallback("405", "exposures")
-    feature_flagging_evp_405_flagevaluation = FeatureFlaggingEVPFallback("405", "flagevaluation")
-    feature_flagging_evp_403_exposures = FeatureFlaggingEVPFallback("403", "exposures")
-    feature_flagging_evp_403_flagevaluation = FeatureFlaggingEVPFallback("403", "flagevaluation")
-    feature_flagging_evp_429_exposures = FeatureFlaggingEVPFallback("429", "exposures")
-    feature_flagging_evp_429_flagevaluation = FeatureFlaggingEVPFallback("429", "flagevaluation")
-    feature_flagging_evp_503_exposures = FeatureFlaggingEVPFallback("503", "exposures")
-    feature_flagging_evp_503_flagevaluation = FeatureFlaggingEVPFallback("503", "flagevaluation")
-    feature_flagging_evp_ambiguous_exposures = FeatureFlaggingEVPFallback("ambiguous", "exposures")
-    feature_flagging_evp_ambiguous_flagevaluation = FeatureFlaggingEVPFallback("ambiguous", "flagevaluation")
+    feature_flagging_evp_404_exposures = FeatureFlaggingEVP404Exposures()
+    feature_flagging_evp_404_flagevaluation = FeatureFlaggingEVP404FlagEvaluation()
+    feature_flagging_evp_405_exposures = FeatureFlaggingEVP405Exposures()
+    feature_flagging_evp_405_flagevaluation = FeatureFlaggingEVP405FlagEvaluation()
+    feature_flagging_evp_403_exposures = FeatureFlaggingEVP403Exposures()
+    feature_flagging_evp_403_flagevaluation = FeatureFlaggingEVP403FlagEvaluation()
+    feature_flagging_evp_429_exposures = FeatureFlaggingEVP429Exposures()
+    feature_flagging_evp_429_flagevaluation = FeatureFlaggingEVP429FlagEvaluation()
+    feature_flagging_evp_503_exposures = FeatureFlaggingEVP503Exposures()
+    feature_flagging_evp_503_flagevaluation = FeatureFlaggingEVP503FlagEvaluation()
+    feature_flagging_evp_ambiguous_exposures = FeatureFlaggingEVPAmbiguousExposures()
+    feature_flagging_evp_ambiguous_flagevaluation = FeatureFlaggingEVPAmbiguousFlagEvaluation()
 
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()

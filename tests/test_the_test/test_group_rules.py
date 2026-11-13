@@ -50,11 +50,32 @@ def test_tracer_release():
         assert scenario_groups.end_to_end not in exposure_scenario.scenario_groups
         assert scenario_groups.tracer_release not in exposure_scenario.scenario_groups
 
+    provisional_evp_scenarios = [
+        scenarios.feature_flagging_agentless_agent,
+        scenarios.feature_flagging_evp_404_exposures,
+        scenarios.feature_flagging_evp_404_flagevaluation,
+        scenarios.feature_flagging_evp_405_exposures,
+        scenarios.feature_flagging_evp_405_flagevaluation,
+        scenarios.feature_flagging_evp_403_exposures,
+        scenarios.feature_flagging_evp_403_flagevaluation,
+        scenarios.feature_flagging_evp_429_exposures,
+        scenarios.feature_flagging_evp_429_flagevaluation,
+        scenarios.feature_flagging_evp_503_exposures,
+        scenarios.feature_flagging_evp_503_flagevaluation,
+        scenarios.feature_flagging_evp_ambiguous_exposures,
+        scenarios.feature_flagging_evp_ambiguous_flagevaluation,
+    ]
+    for evp_scenario in provisional_evp_scenarios:
+        assert scenario_groups.ffe in evp_scenario.scenario_groups
+        for group in (scenario_groups.all, scenario_groups.end_to_end, scenario_groups.tracer_release):
+            assert group not in evp_scenario.scenario_groups
+
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
         dormant_agentless_scenario,
         *agentless_exposure_scenarios,
+        *provisional_evp_scenarios,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
