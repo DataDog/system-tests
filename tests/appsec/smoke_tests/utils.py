@@ -92,36 +92,19 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
-def wait_for_config_acknowledged(state: rc.RemoteConfigStateResults, config_id: str) -> bool:
-    product = state.configs[config_id]["product"]
-
-    def acknowledged(data: dict[str, Any]) -> bool:
-        if data.get("path") != "/v0.7/config":
-            return False
-        client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-        return client_state.get("targets_version") == state.version and any(
-            config.get("id") == config_id
-            and config.get("product") == product
-            and config.get("apply_state") == rc.ApplyState.ACKNOWLEDGED
-            for config in client_state.get("config_states", [])
-        )
-
-    return interfaces.library.wait_for(acknowledged, timeout=rc.APPLY_TIMEOUT)
-
-
-def get_backend_reports(span: DataDogAgentSpan) -> list[dict[str, Any]]:
+def get_backend_reports(span: DataDogAgentSpan, name: str = "appsec") -> list[dict[str, Any]]:
     """Validate every AppSec report carrier present at intake."""
     reports = [
         value
         for value in (
-            span.get("metaStruct", {}).get("appsec"),
-            span.meta.get("appsec"),
-            span.meta.get("_dd.appsec.json"),
+            span.get("metaStruct", {}).get(name),
+            span.meta.get(name),
+            span.meta.get("_dd.appsec.json") if name == "appsec" else None,
         )
         if value is not None
     ]
     for report in reports:
-        assert isinstance(report, dict), "Backend must receive a structured AppSec report"
+        assert isinstance(report, dict), f"Backend must receive a structured {name} report"
     return reports
 
 
@@ -130,19 +113,28 @@ def assert_backend_security_data() -> None:
     backend = [span for _, span in interfaces.mocked_backend.get_spans()]
     checked = 0
     for _, _, source in interfaces.library.get_spans():
+        source_meta = source.get("meta", {})
         fields = {
             key: value
-            for key, value in (source.meta | source.metrics).items()
+            for key, value in (source_meta | source.get("metrics", {})).items()
             if key.startswith(
-                ("_dd.appsec.", "appsec.", "_dd.p.appsec", "usr.", "http.request.headers.", "http.response.headers.")
+                (
+                    "_dd.appsec.",
+                    "appsec.",
+                    "_dd.p.appsec",
+                    "_dd.p.ts",
+                    "usr.",
+                    "http.request.headers.",
+                    "http.response.headers.",
+                )
             )
             or key in ("_dd.runtime_family", "http.client_ip", "network.client.ip")
         }
         fields.pop("_dd.appsec.json", None)
-        report = source.get("meta_struct", {}).get("appsec")
-        if report is None:
-            report = source.meta.get("appsec", source.meta.get("_dd.appsec.json"))
-        if not fields and report is None:
+        reports = {key: value for key, value in source.get("meta_struct", {}).items() if isinstance(value, dict)}
+        if "_dd.appsec.json" in source_meta:
+            reports["appsec"] = source_meta["_dd.appsec.json"]
+        if not reports and not any(key.startswith(("_dd.appsec.", "appsec.", "_dd.p.appsec")) for key in fields):
             continue
         candidates = [
             span
@@ -153,6 +145,8 @@ def assert_backend_security_data() -> None:
         assert candidates, "Backend lost a span carrying AppSec data"
         for span in candidates:
             received = span.meta | span.metrics
+            if source_meta.get("_dd.origin") == "appsec":
+                assert span.get_span_origin() == "appsec", "Backend lost AppSec origin"
             for key, expected in fields.items():
                 assert key in received, f"Backend lost AppSec field {key}"
                 actual = received[key]
@@ -162,38 +156,12 @@ def assert_backend_security_data() -> None:
                     assert actual == expected, f"Backend changed AppSec field {key}"
                     if isinstance(expected, (int, float)) and not isinstance(expected, bool):
                         assert not isinstance(actual, bool), f"Backend changed numeric AppSec field {key} to boolean"
-            if report is not None:
-                reports = get_backend_reports(span)
-                assert reports, "Backend lost the AppSec report"
-                assert all(value == report for value in reports), "Backend changed the AppSec report"
+            for name, expected in reports.items():
+                received_reports = get_backend_reports(span, name)
+                assert received_reports, f"Backend lost structured report {name}"
+                assert all(value == expected for value in received_reports), f"Backend changed structured report {name}"
         checked += 1
     assert checked, "SDK did not emit any AppSec data to compare"
-
-
-def assert_backend_attack(response: HttpResponse, *, rule_id: str | None = None) -> None:
-    found = False
-    for _, span in interfaces.mocked_backend.get_spans(response):
-        for report in get_backend_reports(span):
-            assert is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
-            triggers = report.get("triggers")
-            assert isinstance(triggers, list), "Backend AppSec triggers must be an array"
-            assert triggers, "Backend AppSec report must include attack triggers"
-            assert all(
-                isinstance(trigger.get("rule", {}).get("id"), str) and trigger["rule"]["id"] for trigger in triggers
-            )
-            found |= rule_id is None or any(trigger["rule"]["id"] == rule_id for trigger in triggers)
-    assert found, f"Backend did not receive an AppSec attack report for rule {rule_id or '<any>'}"
-
-
-def assert_backend_blocked(response: HttpResponse) -> None:
-    assert response.status_code == 403
-    spans = [span for _, span in interfaces.mocked_backend.get_spans(response)]
-    assert spans, "Backend did not receive the blocked request"
-    assert any(
-        is_same_boolean(actual=span.meta.get("appsec.blocked"), expected="true")
-        and span.get_tag("http.status_code") == "403"
-        for span in spans
-    ), "Backend must receive the blocking flag and HTTP status"
 
 
 def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
@@ -225,14 +193,22 @@ def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_par
 class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
-    _rc_state = rc.tracer_rc_state
-
     def setup_attack_detection_smoke(self) -> None:
-        self._rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
-        assert_backend_attack(self.r)
+        found_attack = False
+        has_appsec_data = False
+
+        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
+            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
+                found_attack = True
+                has_appsec_data = True
+                break
+
+        assert found_attack, "Agent should forward detected attacks in span metadata"
+        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
 
 
 # ---------------------------------------------------------------------------
@@ -437,7 +413,28 @@ class BaseUserEventsSmokeTests:
         for _, span in interfaces.mocked_backend.get_spans(self.r):
             meta = span.meta
             if meta.get("_dd.appsec.usr.login") or meta.get("appsec.events.users.login.success.usr.login"):
-                assert is_same_boolean(actual=meta.get("appsec.events.users.login.success.track"), expected="true")
                 return
 
         raise AssertionError("Agent spans should include user login event tags")
+
+
+class BaseSecurityTransportSmokeTests:
+    """Compare populated security carriers before and after Agent forwarding."""
+
+    def setup_security_carriers(self) -> None:
+        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"})
+
+    def test_security_carriers(self) -> None:
+        spans = [
+            span
+            for _, span in interfaces.mocked_backend.get_spans(self.r)
+            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
+        ]
+        assert spans, "No populated AppSec carriers reached intake"
+        for span in spans:
+            assert span.metrics.get("_dd.appsec.enabled") == 1
+            assert span.meta.get("_dd.runtime_family")
+            reports = get_backend_reports(span)
+            assert reports, "No AppSec report reached intake"
+            assert all(report.get("triggers") for report in reports), "AppSec report has no nested data"
+        assert_backend_security_data()

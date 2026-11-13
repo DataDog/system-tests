@@ -13,6 +13,7 @@ from tests.appsec.smoke_tests.utils import (
     BaseTelemetrySmokeTests,
     BaseThreatsSmokeTests,
     BaseUserEventsSmokeTests,
+    BaseSecurityTransportSmokeTests,
 )
 from utils._decorators import rfc
 
@@ -107,4 +108,18 @@ class Test_AppSecStandaloneAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
 @features.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
 class Test_AppSecStandaloneAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
+    pass
+
+
+@apm_standalone_rfc
+@features.appsec_apm_standalone
+@scenarios.appsec_apm_standalone
+class Test_AppSecAPMStandalone_Transport(BaseSecurityTransportSmokeTests):
+    pass
+
+
+@apm_standalone_rfc
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_Transport(BaseSecurityTransportSmokeTests):
     pass
