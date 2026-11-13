@@ -221,7 +221,7 @@ class Test_TelemetryMetrics:
             "request_blocked",
         }
 
-        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0":
+        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0" or context.library >= "dotnet@3.37.0":
             mandatory_tag_prefixes.update({"block_failure", "rate_limited", "input_truncated"})
 
         return mandatory_tag_prefixes
