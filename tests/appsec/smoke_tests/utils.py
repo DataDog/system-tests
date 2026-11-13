@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""AppSec smoke tests at the agent interface level"""
+"""Shared AppSec smoke assertions at backend intake."""
 
 from utils import context, interfaces, remote_config as rc, weblog
-from utils.dd_types import is_same_boolean
+from utils.dd_types import DataDogAgentSpan, is_same_boolean
+from typing import Any
 from utils._weblog import HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
@@ -90,9 +91,67 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
+def wait_for_config_acknowledged(state: rc.RemoteConfigStateResults, config_id: str) -> bool:
+    product = state.configs[config_id]["product"]
+
+    def acknowledged(data: dict[str, Any]) -> bool:
+        if data.get("path") != "/v0.7/config":
+            return False
+        client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        return client_state.get("targets_version") == state.version and any(
+            config.get("id") == config_id
+            and config.get("product") == product
+            and config.get("apply_state") == rc.ApplyState.ACKNOWLEDGED
+            for config in client_state.get("config_states", [])
+        )
+
+    return interfaces.library.wait_for(acknowledged, timeout=rc.APPLY_TIMEOUT)
+
+
+def get_backend_report(span: DataDogAgentSpan, name: str, json_tag: str | None = None) -> dict[str, Any] | None:
+    """Read decoded intake fields; ordinary string metadata is not a structured report."""
+    report = span.get("metaStruct", {}).get(name)
+    if report is None:
+        # Efficient Agent payloads carry structured bytes in the typed attributes map.
+        report = span.meta.get(name)
+    if report is None and json_tag is not None:
+        report = span.meta.get(json_tag)
+    if report is not None:
+        assert isinstance(report, dict), f"Backend must receive a structured {name} report, got {type(report).__name__}"
+    return report
+
+
+def assert_backend_attack(response: HttpResponse) -> None:
+    for _, span, _ in interfaces.mocked_backend.get_appsec_data(response):
+        report = get_backend_report(span, "appsec", "_dd.appsec.json")
+        assert report is not None
+        if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
+            triggers = report.get("triggers")
+            assert isinstance(triggers, list), "Backend AppSec triggers must be an array"
+            assert triggers, "Backend AppSec report must include attack triggers"
+            assert all(
+                isinstance(trigger.get("rule", {}).get("id"), str) and trigger["rule"]["id"] for trigger in triggers
+            )
+            return
+    raise AssertionError("Backend did not receive an AppSec event with a structured attack report")
+
+
+def assert_backend_blocked(response: HttpResponse) -> None:
+    assert response.status_code == 403
+    spans = [span for _, span in interfaces.mocked_backend.get_spans(response)]
+    assert spans, "Backend did not receive the blocked request"
+    assert any(
+        is_same_boolean(actual=span.meta.get("appsec.blocked"), expected="true")
+        and span.get_tag("http.status_code") == "403"
+        for span in spans
+    ), "Backend must receive the blocking flag and HTTP status"
+
+
 def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
     """Walk agent appsec data and assert the expected RASP rule triggered."""
-    for _, _, appsec_data in interfaces.mocked_backend.get_appsec_data(response):
+    for _, span, _ in interfaces.mocked_backend.get_appsec_data(response):
+        appsec_data = get_backend_report(span, "appsec", "_dd.appsec.json")
+        assert appsec_data is not None
         for trigger in appsec_data.get("triggers", []):
             if trigger.get("rule", {}).get("id") != expected_rule:
                 continue
@@ -119,22 +178,14 @@ def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_par
 class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
+    _rc_state = rc.tracer_rc_state
+
     def setup_attack_detection_smoke(self) -> None:
-        rc.tracer_rc_state.reset().apply()
+        self._rc_state.reset().apply()
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
-        found_attack = False
-        has_appsec_data = False
-
-        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
-            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
-                found_attack = True
-                has_appsec_data = True
-                break
-
-        assert found_attack, "Agent should forward detected attacks in span metadata"
-        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+        assert_backend_attack(self.r)
 
 
 # ---------------------------------------------------------------------------
@@ -249,32 +300,35 @@ class BaseTelemetrySmokeTests:
 class BaseRemoteConfigSmokeTests:
     """Verify remote config rules are acknowledged, applied, and can block."""
 
+    _rc_state = rc.tracer_rc_state
+
     def setup_remote_config_smoke(self) -> None:
-        self.config_state = rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply().state
+        self.config_state = self._rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply().state
         self.r = weblog.get("/waf", headers={"X-Smoke-Test": "rc-smoke"})
-        rc.tracer_rc_state.reset().apply()
+        self._rc_state.reset().apply()
 
     def test_remote_config_smoke(self) -> None:
         assert self.config_state == rc.ApplyState.ACKNOWLEDGED, (
             f"Remote config should be acknowledged, got {self.config_state}"
         )
 
-        assert any(
-            is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
-            and any(
-                trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in appsec_data.get("triggers", [])
-            )
-            for _, span, appsec_data in interfaces.mocked_backend.get_appsec_data(self.r)
-        ), "Agent should forward AppSec events for the RC-updated rule"
+        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
+            report = get_backend_report(span, "appsec", "_dd.appsec.json")
+            assert report is not None
+            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true") and any(
+                trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in report.get("triggers", [])
+            ):
+                return
+        raise AssertionError("Backend did not receive an AppSec event for the RC-updated rule")
 
     def setup_rasp_blocking_smoke(self) -> None:
         """Push RASP LFI blocking rule via RC, then trigger the attack."""
-        rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply()
+        self._rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply()
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
-        rc.tracer_rc_state.reset().apply()
+        self._rc_state.reset().apply()
 
     def test_rasp_blocking_smoke(self) -> None:
-        assert self.r.status_code == 403
+        assert_backend_blocked(self.r)
         _assert_rasp_attack(
             self.r,
             "rasp-930-100",
@@ -294,14 +348,14 @@ class BaseRemoteConfigSmokeTests:
                 }
             ]
         }
-        rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).set_config(
+        self._rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).set_config(
             "datadog/2/ASM_DATA/blocked_ips/config", config
         ).apply()
         self.r = weblog.get("/waf", headers={"X-Forwarded-For": "1.2.3.4"})
-        rc.tracer_rc_state.reset().apply()
+        self._rc_state.reset().apply()
 
     def test_ip_blocking_smoke(self) -> None:
-        assert self.r.status_code == 403
+        assert_backend_blocked(self.r)
 
 
 # ---------------------------------------------------------------------------
@@ -316,10 +370,25 @@ class BaseApiSecuritySmokeTests:
         self.r = weblog.get("/waf")
 
     def test_api_security_smoke(self) -> None:
-        assert any(
-            any(key.startswith("_dd.appsec.s.") for key in span.meta)
-            for _, span in interfaces.mocked_backend.get_spans(self.r)
-        )
+        for _, span in interfaces.mocked_backend.get_spans(self.r):
+            schema = span.meta.get("_dd.appsec.s.req.headers")
+            if schema is None:
+                continue
+            assert span.meta.get("http.method") == "GET", "Backend API schemas need the request method"
+            assert isinstance(schema, list), "Backend schema must be an array"
+            assert schema, "Backend schema must not be empty"
+            assert isinstance(schema[0], dict), "Backend header schema must describe an object"
+            user_agent_schema = schema[0].get("user-agent")
+            assert isinstance(user_agent_schema, list)
+            assert user_agent_schema, "Backend user-agent schema must not be empty"
+            # HTTP headers may be represented as scalar strings or lists of strings.
+            value_schemas = user_agent_schema[0] if isinstance(user_agent_schema[0], list) else [user_agent_schema]
+            assert value_schemas, "Backend user-agent schema must describe at least one value"
+            assert all(isinstance(value, list) and value and value[0] == 8 for value in value_schemas), (
+                "Backend schema must describe the request's user-agent string values"
+            )
+            return
+        raise AssertionError("Backend did not receive a request header schema")
 
 
 # ---------------------------------------------------------------------------

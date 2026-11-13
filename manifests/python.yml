@@ -1151,6 +1151,38 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py: v4.6.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
+    - weblog_declaration:
+        flask-poc: v3.18.1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v4.14.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        '*': v1.18.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:
+    - weblog_declaration:
+        '*': incomplete_test_app (endpoint not implemented)
+        flask-poc: v2.19.0
+        uds-flask: v4.3.1
+        uwsgi-poc: v4.3.1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v2.10.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v2.10.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v2.10.1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1
   tests/appsec/test_alpha.py:
     - weblog_declaration:

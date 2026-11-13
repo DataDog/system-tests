@@ -12,6 +12,7 @@
 - "apache/kafka:3.7.1"
 - "cassandra:latest"
 - "datadog/agent:latest"
+- "datadog/agent:latest-full"
 - "datadog/dd-appsec-php-ci:php-8.0-release"
 - "datadog/dd-appsec-php-ci:php-8.2-release"
 - "datadog/serverless-init:1.10.4"

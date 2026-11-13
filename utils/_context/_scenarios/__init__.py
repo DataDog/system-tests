@@ -166,6 +166,24 @@ from .otel_collector import (
 from .open_telemetry import (
     OtelIntegrations,
 )
+from .security_smoke import (
+    security_smoke,
+    security_smoke_otel_semantics,
+    security_smoke_otel_api,
+    security_smoke_otel_api_semantics,
+    security_smoke_otlp,
+    security_smoke_otlp_semantics,
+    security_smoke_otel_api_otlp,
+    security_smoke_ddot,
+    security_smoke_runtime_activation,
+    security_smoke_otel_semantics_runtime_activation,
+    security_smoke_otel_api_runtime_activation,
+    security_smoke_otel_api_semantics_runtime_activation,
+    security_smoke_otlp_runtime_activation,
+    security_smoke_otlp_semantics_runtime_activation,
+    security_smoke_otel_api_otlp_runtime_activation,
+    security_smoke_ddot_runtime_activation,
+)
 from .otel_semantics import (
     OtelSemanticsOtlp,
     OtelSemanticsOtlpCustomErrorStatuses,
@@ -303,6 +321,22 @@ class _Scenarios:
     appsec_auto_events_rc = AppsecAutoEventsRc()
     runtime_sca_reachability = RuntimeScaReachability()
     appsec_standalone = AppsecStandalone()
+    security_smoke = security_smoke()
+    security_smoke_otel_semantics = security_smoke_otel_semantics()
+    security_smoke_otel_api = security_smoke_otel_api()
+    security_smoke_otel_api_semantics = security_smoke_otel_api_semantics()
+    security_smoke_otlp = security_smoke_otlp()
+    security_smoke_otlp_semantics = security_smoke_otlp_semantics()
+    security_smoke_otel_api_otlp = security_smoke_otel_api_otlp()
+    security_smoke_ddot = security_smoke_ddot()
+    security_smoke_runtime_activation = security_smoke_runtime_activation()
+    security_smoke_otel_semantics_runtime_activation = security_smoke_otel_semantics_runtime_activation()
+    security_smoke_otel_api_runtime_activation = security_smoke_otel_api_runtime_activation()
+    security_smoke_otel_api_semantics_runtime_activation = security_smoke_otel_api_semantics_runtime_activation()
+    security_smoke_otlp_runtime_activation = security_smoke_otlp_runtime_activation()
+    security_smoke_otlp_semantics_runtime_activation = security_smoke_otlp_semantics_runtime_activation()
+    security_smoke_otel_api_otlp_runtime_activation = security_smoke_otel_api_otlp_runtime_activation()
+    security_smoke_ddot_runtime_activation = security_smoke_ddot_runtime_activation()
     appsec_apm_standalone = AppsecApmStandalone()
     appsec_standalone_apm_standalone = AppsecStandaloneApmStandalone()
     # Combined scenario for API Security in standalone mode

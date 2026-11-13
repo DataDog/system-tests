@@ -1274,6 +1274,50 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_security.py: v2.30.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
+    - weblog_declaration:
+        '*': v2.25.0-dev
+        rack: incomplete_test_app (endpoint not implemented)
+        rails42: incomplete_test_app (endpoint not implemented)
+        sinatra14: incomplete_test_app (endpoint not implemented)
+        sinatra22: incomplete_test_app (endpoint not implemented)
+        sinatra32: incomplete_test_app (endpoint not implemented)
+        sinatra41: incomplete_test_app (endpoint not implemented)
+        uds-sinatra: incomplete_test_app (endpoint not implemented)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v2.48.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:
+    - weblog_declaration:
+        '*': incomplete_test_app (endpoint not implemented)
+        rails72: v2.0.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:
+    - weblog_declaration:
+        '*': v2.30.0
+        rack: incomplete_test_app (endpoint not implemented)
+        sinatra14: incomplete_test_app (endpoint not implemented)
+        sinatra22: incomplete_test_app (endpoint not implemented)
+        sinatra32: incomplete_test_app (endpoint not implemented)
+        sinatra41: incomplete_test_app (endpoint not implemented)
+        uds-sinatra: incomplete_test_app (endpoint not implemented)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Sca:
+    - component_version: '<1.22.0'
+      declaration: missing_feature (Telemetry V2 is not implemented yet)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
+    - weblog_declaration:
+        '*': v2.30.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v2.40.0-dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
