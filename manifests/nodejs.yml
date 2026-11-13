@@ -354,10 +354,13 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_multi_params_in_segment: missing_feature (RFC-1125, the parameters and the static text of a segment are kept separately)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional: missing_feature (RFC-1125, the parameters and the static text of a segment are kept separately)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
