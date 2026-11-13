@@ -1,5 +1,9 @@
 FROM system_tests_base_python_tornado
 
+# BuildKit's docker-container driver (used in GitLab CI) injects OTEL_TRACES_EXPORTER=otlp and a unix:// gRPC
+# endpoint into RUN steps. Tracers honoring it can fail at build time. ARG only applies at build time.
+ARG OTEL_TRACES_EXPORTER=none
+
 WORKDIR /app
 
 ENV DD_TRACE_TORNADO_ENABLED=true
