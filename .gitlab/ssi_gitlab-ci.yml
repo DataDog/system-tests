@@ -1,3 +1,4 @@
+---
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.12.1/single-step-instrumentation-tests.yml
 
@@ -12,91 +13,91 @@ variables:
   PRIVATE_DOCKER_REGISTRY_USER: AWS
 
 ssi_tests:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  image: registry.ddbuild.io/ci/libdatadog-build/packaging:152564854@sha256:c983eb194a6d0cd5c14e299291e80581e9813f83d9abbb8d1f50815260229031
   tags: ["arch:amd64"]
   stage: SSI_TESTS
   script:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    extends: .base_job_k8s_docker_ssi
-    needs: []
-    allow_failure: false
-    timeout: 30 minutes
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-      # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
-      SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
-    after_script:
-      - bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile docker
-    retry:
-      max: 2
-      when:
-        - job_execution_timeout
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      #Timeout 124
-      exit_codes:
-        - 3
-        - 124
-    artifacts:
-      when: always
-      paths:
-        - reports/
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  allow_failure: false
+  timeout: 30 minutes
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
+    SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
+  after_script:
+    - bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile docker
+  retry:
+    max: 2
+    when:
+      - job_execution_timeout
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    #Timeout 124
+    exit_codes:
+      - 3
+      - 124
+  artifacts:
+    when: always
+    paths:
+      - reports/
 
 .base_job_onboarding_system_tests:
-    extends: .base_job_onboarding
-    needs: []
-    allow_failure: false
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-      # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
-      SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
-    script:
-        - |
-            if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then
-              echo "Downloading the installer script from S3: system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}"
-              aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
-              chmod +x binaries/install_script_agent7.sh
-            fi
-        - |
-            BUILD_SECTION_TS=$(date +%s)
-            printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KPrepare runner virtualenv\n' "${BUILD_SECTION_TS}"
-            bash utils/scripts/use_prebuilt_runner_venv.sh
-            printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
-        - |
-            # Run the tests and capture stdout+stderr to a file.
-            # PYTHONPATH selects this checkout over the copy baked into the image.
-            set -o pipefail
-            PYTHONPATH="${PWD}" timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
-    after_script:
-      - bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile aws
-    retry:
-      max: 2
-      when:
-        - job_execution_timeout
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      #Timeout 124 (run.sh is wrapped in `timeout 3000`)
-      exit_codes:
-        - 3
-        - 124
-    artifacts:
-        when: always
-        paths:
-            - reports/
+  extends: .base_job_onboarding
+  needs: []
+  allow_failure: false
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    # gitlab_exporter.py points it to the system-tests checkout when another repository runs the job.
+    SYSTEM_TESTS_DIR: $CI_PROJECT_DIR
+  script:
+    - |
+      if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then
+        echo "Downloading the installer script from S3: system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}"
+        aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
+        chmod +x binaries/install_script_agent7.sh
+      fi
+    - |
+      BUILD_SECTION_TS=$(date +%s)
+      printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KPrepare runner virtualenv\n' "${BUILD_SECTION_TS}"
+      bash utils/scripts/use_prebuilt_runner_venv.sh
+      printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
+    - |
+      # Run the tests and capture stdout+stderr to a file.
+      # PYTHONPATH selects this checkout over the copy baked into the image.
+      set -o pipefail
+      PYTHONPATH="${PWD}" timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
+  after_script:
+    - bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile aws
+  retry:
+    max: 2
+    when:
+      - job_execution_timeout
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    #Timeout 124 (run.sh is wrapped in `timeout 3000`)
+    exit_codes:
+      - 3
+      - 124
+  artifacts:
+    when: always
+    paths:
+      - reports/
 
 .k8s_lib_injection_base:
   extends: .base_job_k8s_docker_ssi
