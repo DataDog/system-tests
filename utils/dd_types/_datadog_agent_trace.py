@@ -142,14 +142,16 @@ class DataDogAgentSpan(ABC):
         survives. Normalize integral numbers back to their string form so tests can assert on the
         tag value without caring which of the two the tracer happened to send.
 
-        The legacy format keeps meta and metrics separate, so values are returned untouched there:
-        a numeric value in meta remains a failure, as it should.
+        The legacy format keeps meta and metrics separate. Explicit metadata is returned untouched:
+        a numeric value in meta remains a failure, as it should. If metadata is absent, fall back to
+        metrics and normalize integral numbers there too.
         """
 
         value = self.meta.get(key, default)
-
-        if self.trace.format != AgentTraceFormat.efficient_trace_payload_format:
-            return value
+        if self.trace.format == AgentTraceFormat.legacy:
+            if key in self.meta:
+                return value
+            value = self.metrics.get(key, default)
 
         if isinstance(value, bool):
             return value
