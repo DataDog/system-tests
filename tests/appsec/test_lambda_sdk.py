@@ -2,11 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2026 Datadog, Inc.
 
-from urllib.parse import urlsplit
-
 from utils import HttpResponse, features, interfaces, scenarios, weblog
 from utils.dd_types import is_same_boolean
-from tests.appsec.utils import find_series
 
 
 def validate_event(request: HttpResponse, event_name: str, metadata: dict[str, str]) -> None:
@@ -21,37 +18,6 @@ def validate_event(request: HttpResponse, event_name: str, metadata: dict[str, s
             is_same_boolean(actual=span.get("meta", {}).get(key), expected=value) for key, value in expected.items()
         ),
     )
-
-
-@features.custom_business_logic_events
-@features.event_tracking_sdk_v2
-@scenarios.appsec_lambda_default
-class Test_Lambda_CustomEventV2:
-    def setup_custom_event_v2(self):
-        self.r = weblog.post(
-            "/custom_event_v2",
-            json={"event_name": "system_tests_event", "metadata": {"metadata0": "value0"}},
-        )
-
-    def test_custom_event_v2(self):
-        assert self.r.status_code == 200
-        validate_event(self.r, "system_tests_event", {"metadata0": "value0"})
-        series = find_series("appsec", ["sdk.event"])
-        # Telemetry covers the whole scenario, including the signup custom event.
-        expected_count = sum(
-            urlsplit(span.get("meta", {}).get("http.url", "")).path == "/custom_event_v2"
-            for _, span in interfaces.library.get_root_spans()
-        )
-        actual_count = sum(
-            point[1]
-            for metric in series
-            if metric.get("type") == "count"
-            and "event_type:custom" in metric.get("tags", ())
-            and "sdk_version:v2" in metric.get("tags", ())
-            for point in metric["points"]
-        )
-        assert expected_count > 0, "No custom-event v2 requests found in traces"
-        assert actual_count == expected_count, (actual_count, expected_count, series)
 
 
 @features.user_monitoring

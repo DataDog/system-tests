@@ -243,7 +243,13 @@ manifest:
         alb-multi: irrelevant (function-url event type does not support path params)
         function-url: irrelevant (function-url event type does not support path params)
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v8.113.0
-  tests/appsec/test_event_tracking.py: incomplete_test_app (Event-tracking endpoints not implemented)
+  tests/appsec/test_event_tracking.py::Test_CustomEvent: incomplete_test_app (The /custom_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: incomplete_test_app (The /custom_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: v8.130.0  # A lower version might be supported
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v8.130.0  # A lower version might be supported
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
@@ -268,7 +274,8 @@ manifest:
         "*": irrelevant (only api gateway inferred spans are specified for now)
         apigw-http: v8.121.0
         apigw-rest: v8.121.0
-  tests/appsec/test_lambda_sdk.py: incomplete_test_app (Lambda SDK endpoints not implemented)
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_SignupSdk: incomplete_test_app (The custom-event endpoints used for signup tracking are not implemented)
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_UserSdk: v8.130.0  # A lower version might be supported
   tests/appsec/test_only_python.py::Test_ImportError: v7.112.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v7.112.0
   tests/appsec/test_reports.py::Test_Info: v7.112.0

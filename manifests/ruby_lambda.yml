@@ -47,7 +47,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before: v3.30.0
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before_without_path_params: v3.30.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
-  tests/appsec/test_event_tracking.py: incomplete_test_app (Event-tracking endpoints not implemented)
+  tests/appsec/test_event_tracking.py: incomplete_test_app (Custom-event and login-failure endpoints are absent; login-success calls set_user instead of the login-success SDK)
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
@@ -70,7 +71,8 @@ manifest:
         ruby-apigw-http: v3.29.0
         ruby-apigw-rest: v3.29.0
   tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags::test_lambda_inferred_span: missing_feature
-  tests/appsec/test_lambda_sdk.py: incomplete_test_app (Lambda SDK endpoints not implemented)
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_SignupSdk: incomplete_test_app (The custom-event endpoints used for Java signup tracking are not implemented)
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_UserSdk: v3.31.0  # A lower version might be supported
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (python only)
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v3.29.0
   tests/appsec/test_reports.py::Test_Info: v3.29.0

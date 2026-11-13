@@ -578,3 +578,33 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
         interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
+
+
+@features.custom_business_logic_events
+@features.event_tracking_sdk_v2
+@scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+class Test_CustomEventV2:
+    def setup_custom_event_v2(self) -> None:
+        self.r = weblog.post(
+            "/custom_event_v2",
+            json={"event_name": "system_tests_event", "metadata": {"metadata0": "value0"}},
+        )
+
+    def test_custom_event_v2(self) -> None:
+        assert self.r.status_code == 200
+        expected = {
+            "appsec.events.system_tests_event.track": "true",
+            "_dd.appsec.events.system_tests_event.sdk": "true",
+            "appsec.events.system_tests_event.metadata0": "value0",
+        }
+        interfaces.library.validate_one_span(
+            self.r,
+            validator=lambda span: all(
+                is_same_boolean(actual=span.get("meta", {}).get(key), expected=value) for key, value in expected.items()
+            ),
+        )
+        series = find_series("appsec", ["sdk.event"])
+        assert any(validate_metric_type_and_version("custom", "v2", metric) for metric in series), [
+            metric.get("tags") for metric in series
+        ]

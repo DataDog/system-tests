@@ -1302,6 +1302,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_45_0
         nextjs: missing_feature
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": *ref_5_48_0
