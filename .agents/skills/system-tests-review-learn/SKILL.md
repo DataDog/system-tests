@@ -43,7 +43,7 @@ Run every command from the repository root with `venv/bin/python -m utils.script
 7. **map**: for each lens, start one subagent with the map model from `filters.yml` (`defaults.map_model`). Start the four in parallel. Give each one:
    - the text of [references/map-to-lens.md](references/map-to-lens.md),
    - its lens name and the path of its lens file in `.agents/rules/code-review/`,
-   - the paths of `<run>/verified.json` and `utils/scripts/review_learning/rejected.yml`,
+   - the path of `<run>/verified.json`,
    - the output path `<run>/proposals/<lens>.json`.
 
    Before you start each subagent, check its output file. If it exists, delete it. If a lens fails, leave its file absent. The report then marks the run as incomplete.

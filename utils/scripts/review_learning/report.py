@@ -16,7 +16,7 @@ SECTIONS = [
     ("needs_decision", "Needs a human decision"),
     ("report_only", "Defects that a rule already describes"),
 ]
-NOT_APPLIED = ("not_enough_evidence", "invalid", "rejected_before", "over_cap")
+NOT_APPLIED = ("not_enough_evidence", "invalid", "over_cap")
 
 
 def pr_link(number: int) -> str:
