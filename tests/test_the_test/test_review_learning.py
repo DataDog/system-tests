@@ -937,7 +937,36 @@ class Test_ReviewLearningOpenPr:
         assert data["head"] == open_pr.BRANCH
         assert all("merge" not in call[1] for call in github.calls)
 
-    def test_publish_updates_the_open_pull_request(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        github = self._publish(tmp_path, monkeypatch, open_prs=[{"number": 42}])
-        method, path, _ = github.calls[-1]
-        assert (method, path) == ("PATCH", "/repos/DataDog/system-tests/pulls/42")
+    def test_an_open_pull_request_is_never_touched(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, run = self._repo_with_change(tmp_path)
+
+        def must_not_push(*_args: object) -> str:
+            raise AssertionError("an open pull request must stop the push")
+
+        monkeypatch.setattr(open_pr, "push_signed_commit", must_not_push)
+        github = _FakeGitHub([{"number": 42}])
+        result = open_pr.publish(repo, run, open_pr.changed_paths(repo), github, {})  # type: ignore[arg-type]
+        assert result == "#42 is still open: review and close it first. Nothing is published."
+        assert [call[0] for call in github.calls] == ["GET"]
+        assert _git(repo, "branch", "--show-current") != open_pr.BRANCH
+
+    def test_publish_keeps_the_local_git_identity(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        self._publish(tmp_path, monkeypatch, open_prs=[])
+        config = subprocess.run(
+            ["git", "config", "--local", "user.name"], cwd=tmp_path / "repo", capture_output=True, check=False
+        )
+        assert config.returncode != 0, "the commit identity must not be saved in the repository config"
+
+    def test_mentions_in_the_report_never_notify(self, tmp_path: Path) -> None:
+        _, run = self._repo_with_change(tmp_path)
+        (run / "report.md").write_text("Ask @DataDog/some-team to merge", encoding="utf-8")
+        body = open_pr.pr_body(run, None)
+        assert "@DataDog/some-team" not in body
+        assert "@\u200bDataDog/some-team" in body
+
+    def test_publishing_outside_gitlab_is_refused(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, run = self._repo_with_change(tmp_path)
+        monkeypatch.delenv("GITLAB_CI", raising=False)
+        monkeypatch.setattr("sys.argv", ["open_pr", "--run", str(run), "--repo-root", str(repo)])
+        with pytest.raises(SystemExit, match="only publishes from the GitLab job"):
+            open_pr.main()

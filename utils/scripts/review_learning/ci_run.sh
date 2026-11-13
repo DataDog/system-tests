@@ -42,8 +42,21 @@ mkdir -p .review-learning
 # named steps of the skill: never a new script. The model cannot run apply: this script runs it after the model.
 # --allowedTools only adds permissions, and .claude/settings.json sets acceptEdits. So dontAsk is required: it refuses
 # every tool that is not in the list. --strict-mcp-config skips the MCP servers of the project.
+# The run folder comes from the window, never from what the model leaves on disk.
+RUN_DIR="$(venv/bin/python -c 'import sys
+from datetime import UTC, datetime
+from utils.scripts.review_learning import collect
+start, end = collect.parse_window(sys.argv[1], datetime.now(UTC).date())
+print(collect.default_run_dir(start, end))' "$WINDOW")"
+echo "Run folder: $RUN_DIR"
+
+# The model only writes its own output: candidates/ and proposals/. The scripts write every other file.
 STEPS=(collect filter szz prepare verify_quotes plain_english decide)
-ALLOWED=("Read" "Glob" "Grep" "Skill" "Agent" "Task" "Write(./.review-learning/**)" "Edit(./.review-learning/**)")
+ALLOWED=("Read" "Glob" "Grep" "Skill" "Agent" "Task")
+# An Edit(path) rule covers every file tool, Write too. A Write(path) rule has no effect on files.
+for folder in candidates proposals; do
+    ALLOWED+=("Edit(./${RUN_DIR}/${folder}/**)")
+done
 for step in "${STEPS[@]}"; do
     ALLOWED+=("Bash(venv/bin/python -m utils.scripts.review_learning.${step}:*)")
 done
@@ -53,11 +66,8 @@ ALLOWED+=("Bash(git fetch origin main)" "Bash(se --help)")
 claude -p "/system-tests-review-learn ${WINDOW}" --permission-mode dontAsk --strict-mcp-config --allowedTools "${ALLOWED[@]}" \
     | tee .review-learning/claude-output.txt
 
-# Fail the job when the skill did not produce a report.
-# A run folder is .review-learning/<start>..<end>, so the name order is the date order.
-RUN_DIR="$(find .review-learning -mindepth 1 -maxdepth 1 -type d -name '*..*' | sort | tail -1)/"
-ls "${RUN_DIR}report.md" >/dev/null
-
-# No model from here on.
-venv/bin/python -m utils.scripts.review_learning.apply --run "$RUN_DIR"
-venv/bin/python -m utils.scripts.review_learning.open_pr --run "$RUN_DIR"
+# No model from here on. The last steps run again from the model output, so the thresholds of decide.py,
+# not the model, choose what apply.py edits and what open_pr.py publishes.
+for step in verify_quotes plain_english decide apply open_pr; do
+    venv/bin/python -m "utils.scripts.review_learning.${step}" --run "$RUN_DIR"
+done
