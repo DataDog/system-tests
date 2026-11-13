@@ -674,6 +674,18 @@ class DockerSsiAppsec(_DockerSSIScenario):
         )
 
 
+class DockerSsiGuardrail(_DockerSSIScenario):
+    """Validates that SSI does not instrument an application that runs on an unsupported runtime"""
+
+    expected_ssi_result = "abort"
+
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_GUARDRAIL",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
 class DockerSsiCrashtracking(_DockerSSIScenario):
     """Validates the crashtracking for ssi on a docker environment"""
 

@@ -94,6 +94,7 @@ class PythonRuntimeInstallableVersions:
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
     PY313 = RuntimeInstallableVersion("PY313", "3.13.18")
     PY314 = RuntimeInstallableVersion("PY314", "3.14.10")
+    PY316A2 = RuntimeInstallableVersion("PY316A2", "3.16.0a2")  # Not supported (expected_ssi_result: abort)
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -107,6 +108,7 @@ class PythonRuntimeInstallableVersions:
             PythonRuntimeInstallableVersions.PY312,
             PythonRuntimeInstallableVersions.PY313,
             PythonRuntimeInstallableVersions.PY314,
+            PythonRuntimeInstallableVersions.PY316A2,
         ]
 
     @staticmethod

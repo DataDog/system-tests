@@ -172,10 +172,21 @@ class PHPRuntimeInstallableVersions:
 The CI matrix reads the installable runtimes from `utils/docker_ssi/docker_ssi_runtimes.json`. Each runtime can set the optional field `expected_ssi_result`:
 
 * `instrumented` (default): SSI must instrument the application. The runtime runs in `DOCKER_SSI`, `DOCKER_SSI_APPSEC`, `DOCKER_SSI_CRASHTRACKING` and `DOCKER_SSI_SERVICENAMING`.
-* `abort`: the tracer does not support the runtime, so SSI must not instrument the application. The runtime runs only in the scenarios that expect an abort.
+* `abort`: the tracer does not support the runtime, so SSI must not instrument the application. The runtime runs only in `DOCKER_SSI_GUARDRAIL`, which checks that the application responds, that there are no traces, and that the tracer sends the `library_entrypoint.abort` telemetry with the reason `incompatible_runtime`.
 
 ```json
 { "version_id": "PY316A2", "version": "3.16.0a2", "expected_ssi_result": "abort" }
+```
+
+To add an unsupported runtime to `DOCKER_SSI_GUARDRAIL`:
+
+1. Add it to `docker_ssi_runtimes.json` with `"expected_ssi_result": "abort"`, and to `docker_ssi_definitions.py`.
+2. If the weblog of the language is not in the `DOCKER_SSI_GUARDRAIL` entry of `utils/scripts/ci_orchestrators/docker_ssi.json`, add it.
+
+Run it locally:
+
+```bash
+./run.sh DOCKER_SSI_GUARDRAIL --ssi-weblog py-app --ssi-library python --ssi-base-image public.ecr.aws/lts/ubuntu:22.04 --ssi-arch linux/amd64 --ssi-env prod --ssi-installable-runtime 3.16.0a2
 ```
 
 ## Create a new weblog

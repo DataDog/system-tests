@@ -108,6 +108,7 @@ from .docker_ssi import (
     DockerSsi,
     DockerSsiAppsec,
     DockerSsiCrashtracking,
+    DockerSsiGuardrail,
     DockerSsiServicenaming,
 )
 from .agentless_endtoend import (
@@ -379,6 +380,7 @@ class _Scenarios:
     docker_ssi_servicenaming = DockerSsiServicenaming()
     docker_ssi_appsec = DockerSsiAppsec()
     docker_ssi_crashtracking = DockerSsiCrashtracking()
+    docker_ssi_guardrail = DockerSsiGuardrail()
     appsec_rasp = AppsecRasp()
     appsec_rasp_without_downstream_body_analysis_using_sample_rate = (
         AppsecRaspWithoutDownstreamBodyAnalysisUsingSampleRate()
