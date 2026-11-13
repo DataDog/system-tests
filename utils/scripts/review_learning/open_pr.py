@@ -7,6 +7,8 @@ Usage:
 The monthly review_learning job runs it after the model is done, so the model never holds the write
 token. It only publishes changes to .agents/rules/code-review/*.md, and it refuses any other change.
 The pull request is always a draft, and it never merges by itself: system-tests-core reviews it.
+If a review-learning pull request is still open, it publishes nothing, so a reviewer never loses work.
+Outside CI, it only runs with --dry-run, so it never changes a local checkout.
 
 It reuses the signed-commit flow of update_agent_version.py (commit-headless and the GitHub API).
 """
@@ -37,6 +39,7 @@ It only edits `.agents/rules/code-review/`.
 - To reject a change, revert it in this pull request. Then add it to `utils/scripts/review_learning/rejected.yml`
   with the reason, so that the job never proposes it again without new evidence.
 - This pull request never merges by itself. A person from `system-tests-core` approves it.
+- The next monthly run publishes nothing while this pull request is open.
 """
 
 
@@ -69,7 +72,8 @@ def pr_body(run_dir: Path, job_url: str | None) -> str:
     if len(report) > MAX_REPORT_CHARS:
         report = report[:MAX_REPORT_CHARS] + "\n\n[The report is cut here. The job artifacts hold the full report.]\n"
     job = f"\nJob: {job_url}\n" if job_url else ""
-    return f"{REVIEW_GUIDE}{job}\n---\n\n{report}"
+    # The report quotes pull request text: break every @mention, so that it never notifies anyone.
+    return f"{REVIEW_GUIDE}{job}\n---\n\n{report.replace('@', '@\u200b')}"
 
 
 def find_open_pr(github: GitHubApi) -> int | None:
@@ -86,22 +90,21 @@ def commit_changes(root: Path, paths: list[str], title: str, env: Mapping[str, s
     base_sha = run_command(root, ["git", "rev-parse", "HEAD"], capture_stdout=True, env=env).stdout.strip()
     run_command(root, ["git", "switch", "--force-create", BRANCH], env=env)
     run_command(root, ["git", "add", "--", *paths], env=env)
-    run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
-    run_command(root, ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], env=env)
-    run_command(root, ["git", "commit", "-m", title], env=env)
+    identity = ["-c", "user.name=github-actions[bot]", "-c", "user.email=github-actions[bot]@users.noreply.github.com"]
+    run_command(root, ["git", *identity, "commit", "-m", title], env=env)
     return base_sha
 
 
 def publish(root: Path, run_dir: Path, paths: list[str], github: GitHubApi, env: Mapping[str, str]) -> object:
+    """Open a new draft pull request. If one is still open, leave it as it is and publish nothing."""
+    if (number := find_open_pr(github)) is not None:
+        return f"#{number} is still open: review and close it first. Nothing is published."
     title = pr_title(run_dir)
-    description: dict[str, object] = {"title": title, "body": pr_body(run_dir, env.get("CI_JOB_URL"))}
+    body = pr_body(run_dir, env.get("CI_JOB_URL"))
     base_sha = commit_changes(root, paths, title, env)
     print(f"Pushed signed commit {push_signed_commit(root, base_sha, github, env, BRANCH)} to {BRANCH}")
-    if (number := find_open_pr(github)) is not None:
-        return github.request("PATCH", f"/repos/{REPOSITORY}/pulls/{number}", description)
-    return github.request(
-        "POST", f"/repos/{REPOSITORY}/pulls", {"base": "main", "head": BRANCH, "draft": True, **description}
-    )
+    data: dict[str, object] = {"base": "main", "head": BRANCH, "draft": True, "title": title, "body": body}
+    return github.request("POST", f"/repos/{REPOSITORY}/pulls", data)
 
 
 def write_token(root: Path) -> str:
@@ -122,7 +125,7 @@ def publish_with_token(root: Path, run_dir: Path, paths: list[str]) -> None:
     token = write_token(root)
     try:
         result = publish(root, run_dir, paths, GitHubApi(token), {**os.environ, "GH_TOKEN": token})
-        print(f"Draft pull request: {result.get('html_url') if isinstance(result, dict) else result}")
+        print(result.get("html_url") if isinstance(result, dict) else result)
     finally:
         revoke_token(root, token)
 
@@ -140,6 +143,8 @@ def main() -> None:
     check_paths(paths)
     if args.dry_run:
         print_dry_run(args.run, paths)
+    elif os.environ.get("GITLAB_CI") != "true":
+        raise SystemExit("open_pr.py only publishes from the GitLab job. Use --dry-run locally.")
     else:
         publish_with_token(args.repo_root, args.run, paths)
 

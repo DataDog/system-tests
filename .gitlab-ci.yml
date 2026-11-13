@@ -355,7 +355,7 @@ check_merge_labels:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
 # Monthly review learning (see docs/ai/review-learning.md).
-# A GitLab pipeline schedule on main sets SCHEDULED_JOB=review-learning. The job only reads GitHub, and
+# A GitLab pipeline schedule on main sets SCHEDULED_JOB=review-learning. The model only reads GitHub. The job
 # leaves report.md in its artifacts. If a change passes the thresholds, it opens a draft pull request with the
 # rule changes. A person from system-tests-core reviews it, and nothing merges by itself.
 review_learning:
