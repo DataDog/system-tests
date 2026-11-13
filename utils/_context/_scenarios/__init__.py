@@ -124,6 +124,8 @@ from .test_the_test import (
 )
 from .feature_flagging import (
     FeatureFlaggingAndExperimentation,
+    FeatureFlaggingCapabilityRefresh,
+    FeatureFlaggingCapabilityRefreshPreloaded,
     FeatureFlaggingEvpStress,
     FeatureFlaggingEvaluationTelemetryOptOut,
     FeatureFlaggingEvaluationTelemetryOptOutDisabled,
@@ -321,6 +323,8 @@ class _Scenarios:
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
     feature_flagging_evp_stress = FeatureFlaggingEvpStress()
+    feature_flagging_capability_refresh = FeatureFlaggingCapabilityRefresh()
+    feature_flagging_capability_refresh_preloaded = FeatureFlaggingCapabilityRefreshPreloaded()
     remote_config_mocked_backend_asm_features_nocache = RemoteConfigMockedBackendAsmFeaturesNocache()
     # APM tracing end-to-end scenarios
     apm_tracing_e2e_otel = ApmTracingE2eOtel()
