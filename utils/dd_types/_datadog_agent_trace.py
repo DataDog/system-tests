@@ -133,22 +133,6 @@ class DataDogAgentSpan(ABC):
 
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
-    def get_span_env(self) -> str:
-        """Resolve the environment from span metadata or its enclosing payloads."""
-        content = self.trace.data.get("request", {}).get("content", {})
-        fallback = content.get("env", "")
-        if self.trace.format == AgentTraceFormat.efficient_trace_payload_format:
-            for payload in content.get("idxTracerPayloads", []):
-                if any(chunk is self.trace.raw_trace for chunk in payload.get("chunks", [])):
-                    environment = payload.get("envRef")
-                    if isinstance(environment, int):
-                        strings = payload.get("strings", [])
-                        environment = strings[environment] if 0 <= environment < len(strings) else None
-                    fallback = environment or fallback
-                    break
-            # The backend ignores span envRef; only the enclosing payload supplies it.
-        return self.meta.get("env", fallback)
-
     def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
         """Returns a span tag, normalized to the string form the legacy format guarantees.
 
