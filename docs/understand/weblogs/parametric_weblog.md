@@ -988,11 +988,18 @@ Request body (not declared by the reference server, which reads the raw request;
 | `attributes` | object | yes |
 | `span_id` | string: id of a span to activate during the evaluation | no |
 | `exposureHooks` | boolean: `true` to capture two exposure hook observations | no |
-| `failAfterHook` | boolean: `true` to reject the result in an After hook (requires `exposureHooks`) | no |
+| `failAfterHook` | boolean: `true` to reject the result in an application After hook; Java and Go also require `exposureHooks` | no |
 
 Response: not declared by the reference server. It contains `value`, `reason`, `errorCode`, `providerStatus`
 (see [Feature Flag evaluation provider status](../scenarios/parametric.md#feature-flag-evaluation-provider-status)),
 and `exposureHooks` when requested.
+
+Python and Ruby support `failAfterHook` through their OpenFeature clients. For PHP, set
+`SYSTEM_TESTS_FFE_OPENFEATURE=true` in `library_env`: `/ffe/start` registers the Datadog OpenFeature provider,
+and `/ffe/evaluate` uses the public OpenFeature client with per-call hooks for every variation type.
+The PHP default mode uses the native feature-flag client and rejects `failAfterHook` as a harness error.
+PHP and Ruby do not yet return the two customer exposure callback rows requested by `exposureHooks`;
+tests of hook-failure suppression should inspect the captured exposure and evaluation payloads instead.
 
 #### `POST /ffe/fetch-rules-configuration`
 

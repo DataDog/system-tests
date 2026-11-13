@@ -141,7 +141,10 @@ function ffeOpenFeatureClient() {
 function ffeOpenFeatureEvaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes, $failAfter) {
     $hooks = [];
     if ($failAfter) {
-        $hooks[] = new class extends \OpenFeature\implementation\hooks\StringHook {
+        $hooks[] = new class extends \OpenFeature\implementation\hooks\AbstractHook {
+            public function supportsFlagValueType(string $flagValueType): bool {
+                return true;
+            }
             public function before(
                 \OpenFeature\interfaces\hooks\HookContext $context,
                 \OpenFeature\interfaces\hooks\HookHints $hints
@@ -182,7 +185,7 @@ function ffeOpenFeatureEvaluate($flagKey, $variationType, $defaultValue, $target
     $details = $client->$method($flagKey, $defaultValue, $context, $options);
     return [
         'value' => $details->getValue(),
-        'reason' => $details->getReason(),
+        'reason' => strtoupper($details->getReason() ?? 'DEFAULT'),
         'variant' => $details->getVariant(),
         'errorCode' => $details->getError()?->getResolutionErrorCode()->getValue(),
     ];
