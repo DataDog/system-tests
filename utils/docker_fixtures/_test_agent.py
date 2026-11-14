@@ -437,6 +437,16 @@ class TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
+    def uses_v1_trace_payloads(self) -> bool:
+        """Whether every captured trace request uses the V1 intake protocol.
+
+        The normalized spans do not retain their original encoding. Keep legacy
+        requirements when requests are absent or include a legacy trace payload.
+        """
+        paths = [urllib.parse.urlsplit(request["url"]).path for request in self.requests()]
+        trace_paths = [path for path in paths if path.endswith("/traces")]
+        return bool(trace_paths) and all(path == "/v1.0/traces" for path in trace_paths)
+
     def rc_requests(self, *, post_only: bool = False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]

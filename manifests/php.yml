@@ -1935,8 +1935,6 @@ manifest:
   ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_tracecontext
   : - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
-    - declaration: bug (APMAPI-1545)
-      component_version: '>=1.28.0'
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_otel:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
@@ -2064,8 +2062,6 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
-    - declaration: bug (APMAPI-1545)
-      component_version: '>=1.28.0'
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v04: v1.28.0
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05:
     - declaration: missing_feature
