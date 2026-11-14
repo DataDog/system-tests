@@ -2399,7 +2399,7 @@ manifest:
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : bug (MLOB-5071)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: v4.10.0
-  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: v4.18.0-rc1
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: v4.18.0-rc1  # Easy win for openai-py@2.0.0 and version 4.17.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
@@ -3997,14 +3997,15 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp:
     - weblog_declaration:
         '*': '>=4.12.0-rc1'
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
@@ -4018,7 +4019,7 @@ manifest:
         "*": v2.4.0
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: irrelevant (python released the new version at 1.19.0)
       component_version: '>=1.18.0-rc1'
@@ -4026,7 +4027,7 @@ manifest:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: irrelevant (python released the new version at 1.19.0)
       component_version: '>=1.18.0-rc1'
