@@ -3023,7 +3023,9 @@ manifest:
   : v4.15.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
-  : missing_feature (Trace exporter does not support gRPC)
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Trace exporter does not support gRPC)
+      component_version: <4.17.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (/trace/config does not expose the effective OTLP traces timeout)
       component_version: <4.15.6
@@ -3304,13 +3306,13 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: '>=4.17.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v3.13.0.dev
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: '>=4.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: '>=4.17.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: v3.15.0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: v3.13.0.dev
@@ -3320,9 +3322,9 @@ manifest:
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: v3.18.0
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: '>=4.17.0'  # TODO: a lower version might be supported
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_otel_resource_attributes_populated_by_dd_otel_envs
-  : missing_feature
+  : '>=4.17.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
@@ -3957,8 +3959,13 @@ manifest:
         tornado: v4.6.4  # TODO: a lower version might be supported
   tests/test_sampling_rules_agent_rate.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss: bug (APMAPI-2508)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2508)
+      component_version: <4.17.0
+      weblog: [django-py3.13, uwsgi-poc, flask-poc, uds-flask, tornado, django-poc, python3.12, aiohttp, fastapi]
+    - declaration: bug (APMAPI-2508)
+      excluded_weblog: [django-py3.13, uwsgi-poc, flask-poc, uds-flask, tornado, django-poc, python3.12, aiohttp, fastapi]
   tests/test_scrubbing.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
@@ -3966,6 +3973,7 @@ manifest:
     - weblog_declaration:
         "*": v1.7.1
         fastapi: v2.4.0
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_scrubbing.py::Test_UrlQuery: v1.6.0-rc1
@@ -4150,10 +4158,19 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        python3.12: v4.17.0  # TODO: a lower version might be supported
+        flask-poc: v4.17.0  # TODO: a lower version might be supported
+        uds-flask: v4.17.0  # TODO: a lower version might be supported
+        uwsgi-poc: v4.17.0  # TODO: a lower version might be supported
+        django-py3.13: v4.17.0  # TODO: a lower version might be supported
+        django-poc: v4.17.0  # TODO: a lower version might be supported
+        tornado: v4.17.0  # TODO: a lower version might be supported
+        fastapi: v4.17.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
     - weblog_declaration:
         tornado: v4.6.4  # TODO: a lower version might be supported
