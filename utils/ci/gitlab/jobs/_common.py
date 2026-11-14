@@ -52,15 +52,20 @@ def section(name: str, description: str, *, collapsed: bool = True) -> Iterator[
         log(f"section_end:{int(time.time())}:{name}\r\x1b[0K")
 
 
-def run(command: list[str], *, allow_failure: bool = False) -> None:
-    """Run a command, exit with its return code if it fails, unless allow_failure: then only log a warning."""
+def run(command: list[str], *, allow_failure: bool = False, check: bool = True) -> int:
+    """Run a command and return its return code.
+
+    If it fails: with allow_failure, only log a warning; otherwise, exit with its return code, unless check is
+    False, in which case the caller handles the failure.
+    """
     log(f"$ {' '.join(command)}")
     returncode = subprocess.run(command, check=False).returncode
     if returncode != 0:
         if allow_failure:
             log(f"WARNING: {command[0]} failed with exit code {returncode}, ignored")
-            return
-        sys.exit(returncode)
+        elif check:
+            sys.exit(returncode)
+    return returncode
 
 
 def tag_job(job_type: str) -> None:
@@ -68,8 +73,11 @@ def tag_job(job_type: str) -> None:
     run(["datadog-ci", "tag", "--level", "job", "--tags", f"system-tests.job_type:{job_type}"], allow_failure=True)
 
 
-def traced(name: str, command: list[str], *, scenario: str | None = None) -> None:
-    """Run a command wrapped in a datadog-ci span, tagged with the library/weblog/scenario of the job."""
+def traced(name: str, command: list[str], *, scenario: str | None = None, check: bool = True) -> int:
+    """Run a command wrapped in a datadog-ci span, tagged with the library/weblog/scenario of the job.
+
+    Return its return code, see run() for check.
+    """
     tags = [f"system-tests.library:{env('TEST_LIBRARY')}"]
     if weblog := os.environ.get("SYSTEM_TESTS_WEBLOG"):
         tags.append(f"system-tests.weblog:{weblog}")
@@ -77,7 +85,7 @@ def traced(name: str, command: list[str], *, scenario: str | None = None) -> Non
         tags.append(f"system-tests.scenario:{scenario}")
 
     tag_args = [arg for tag in tags for arg in ("--tags", tag)]
-    run(["datadog-ci", "trace", "--name", name, *tag_args, "--", *command])
+    return run(["datadog-ci", "trace", "--name", name, *tag_args, "--", *command], check=check)
 
 
 def copy_upstream_binaries() -> None:
