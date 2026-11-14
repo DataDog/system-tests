@@ -4,6 +4,7 @@ from utils import scenarios, features
 from opentelemetry.trace import SpanKind
 from utils.docker_fixtures.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.dd_types import is_same_boolean
 
 
 # this global mark applies to all tests in this file.
@@ -388,7 +389,9 @@ class Test_Otel_API_Interoperability:
         root = find_only_span(traces)
         assert root["parent_id"] == 3
         assert "foo" not in root["meta"]
-        assert root["meta"]["_dd.p.dm"] == "-0"
+        decision_maker = root["meta"].get("_dd.p.dm")
+        # V1 cannot distinguish sampling mechanism zero from an unset protobuf field.
+        assert decision_maker == "-0" or (decision_maker is None and test_agent.uses_v1_trace_payloads())
         assert root["metrics"]["_sampling_priority_v1"] == 1
 
     def test_distributed_headers_are_propagated_datadog(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -447,7 +450,8 @@ class Test_Otel_API_Interoperability:
         assert root is not None
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
-        assert root["meta"]["bool"] == "true"
+        # With v1.0, tracers can send typed booleans, which dd-apm-test-agent converts to numeric 1/0.
+        assert is_same_boolean(actual={**root["meta"], **root["metrics"]}.get("bool"), expected="true")
         assert root["meta"]["str"] == "string"
         assert "none" not in root["meta"]
         assert root["meta"]["str_array.0"] == "a"

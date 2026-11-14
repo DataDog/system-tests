@@ -54,10 +54,26 @@ def normalize_approval_data(data: object) -> object:
     versions, so exclude them from both sides of the approval comparison too.
     """
     if isinstance(data, dict):
+        if isinstance(data.get("attributes"), dict):
+            # Native v1 promotes these tags to span fields; converted legacy payloads
+            # may also retain copies in attributes. Compare the shared top-level values.
+            promoted_attributes = {"env": "envRef", "version": "versionRef", "span.kind": "kind"}
+            data = {
+                **data,
+                "attributes": {
+                    key: value for key, value in data["attributes"].items() if promoted_attributes.get(key) not in data
+                },
+            }
         return {
             key: normalize_approval_data(value)
             for key, value in data.items()
-            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export", "_dd.appsec.normalized_route"}
+            if key
+            not in {
+                "_dd.convertedv1",
+                "_dd.sdk.otlp_export",
+                "_dd.appsec.normalized_route",
+                "componentRef",  # native v1 component metadata is unrelated to exception replay
+            }
         }
 
     if isinstance(data, list):

@@ -33,7 +33,9 @@ class Test_TraceTaggingRules:
 
             assert span["meta"]["_dd.appsec.trace.agent"].startswith("TraceTagging/v1")
             assert span["metrics"]["_dd.appsec.trace.integer"] == 662607015
-            assert span["metrics"].get("_sampling_priority_v1") < SamplingPriority.USER_KEEP
+            sampling_priority = span.get_sampling_priority()
+            assert sampling_priority is not None
+            assert sampling_priority < SamplingPriority.USER_KEEP
 
             return True
 
@@ -55,7 +57,7 @@ class Test_TraceTaggingRules:
 
             assert span["meta"]["_dd.appsec.trace.agent"].startswith("TraceTagging/v2")
             assert span["metrics"]["_dd.appsec.trace.integer"] == 602214076
-            assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
+            assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
 
             return True
 
@@ -77,7 +79,7 @@ class Test_TraceTaggingRules:
 
             assert span["meta"]["_dd.appsec.trace.agent"].startswith("TraceTagging/v3")
             assert span["metrics"]["_dd.appsec.trace.integer"] == 299792458
-            assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
+            assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
 
             return True
 
@@ -100,7 +102,9 @@ class Test_TraceTaggingRules:
 
             assert span["meta"]["_dd.appsec.trace.agent"].startswith("TraceTagging/v4")
             assert span["metrics"]["_dd.appsec.trace.integer"] == 1729
-            assert span["metrics"].get("_sampling_priority_v1") < SamplingPriority.USER_KEEP
+            sampling_priority = span.get_sampling_priority()
+            assert sampling_priority is not None
+            assert sampling_priority < SamplingPriority.USER_KEEP
 
             return True
 
