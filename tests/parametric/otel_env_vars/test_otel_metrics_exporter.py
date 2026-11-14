@@ -131,6 +131,11 @@ class Test_OTEL_METRICS_EXPORTER:
     def test_invalid_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         _assert_otlp(test_agent, test_library)
 
+    # The spec defines the value as a list: unsupported entries are ignored, so otlp still exports.
+    @pytest.mark.parametrize("exporter", [pytest.param("console,otlp", id="console-otlp")])
+    def test_otlp_in_list(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        _assert_otlp(test_agent, test_library)
+
     @pytest.mark.parametrize("exporter", [pytest.param("console", id="console")])
     def test_console(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         _assert_console(test_agent, test_library)
