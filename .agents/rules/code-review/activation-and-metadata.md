@@ -41,7 +41,7 @@
 - Old_id: claude-07
 - Severity: P1
 - Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
-- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
+- Detect: A marker contradicts its cause. Several exclusions with different causes share one vague reason or carry no reason. A marked test fails in setup on invalid configuration or a missing secret, and the marker does not say so.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
 - ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`, causing the library to exit at startup while the run reports an expected failure.
 - Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
@@ -60,7 +60,7 @@
 - Old_id: claude-06
 - Severity: P0
 - Flag: A feature whose docstring links a Feature Parity Dashboard entry must pass that id as `feature_id`, not `NOT_REPORTED_ID`.
-- Detect: A feature in `utils/_features.py` links `feature-parity.us1.prod.dog/#/?feature=<n>` and passes `feature_id=NOT_REPORTED_ID`.
+- Detect: A feature in `utils/_features.py` links `feature-parity.us1.prod.dog/#/?feature=<n>` and passes `feature_id=NOT_REPORTED_ID`. A PR adds a feature that passes `feature_id=NOT_REPORTED_ID` and has no dashboard link.
 - ✅ The docstring links `?feature=544` and the code passes `feature_id=544`.
 - ❌ The docstring links `?feature=544` and the code passes `feature_id=NOT_REPORTED_ID`.
 - Ref: [Create a feature](../../../docs/edit/features.md#hello-world-test)
@@ -74,3 +74,13 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Gate each method at the versions that have its behavior.
+- Severity: P0
+- Flag: A version gate that lets a method run on a release without its behavior. If a manifest activates a class or a file at one version, every method must pass from that version. If a method needs a later version, add a method-level entry with that version. If a later release changes the asserted behavior, the range must end before that release. If a change ships on several active release lines, the range must cover each line.
+- Detect: A class-level or file-level entry sets one version, and a method asserts behavior that a later release added. A version floor has no upper bound, and a later release changed the asserted behavior. A version range in a manifest or in `tests/parametric/capabilities.yml` omits an active release line with the same change.
+
+### META-011: Link a test class to the RFC that it implements.
+- Severity: P1
+- Flag: A test class that implements an RFC and has no `@rfc` decorator. If an RFC defines the behavior that a test class checks, the class must carry `@rfc("<link>")` from `utils`.
+- Detect: A new test class checks behavior from an RFC that the PR or the feature names. The class has no `@rfc` decorator.

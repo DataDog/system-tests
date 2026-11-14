@@ -32,3 +32,11 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-006: Keep one active Remote Config file per product and case.
+- Severity: P0
+- Flag: A setup that applies several Remote Config files in turn must replace or remove the earlier file. Do this before the next request. Several active files of one product can overwrite each other in an order that the SDK chooses.
+- Detect: One setup calls `rc.tracer_rc_state.set_config()` with a new path for the same product. The earlier path stays active, and the test expects only the new config.
+- Not when: The test is about how the SDK handles several active files of one product.
+- ✅ Reuse one config path, so each `set_config()` call replaces the previous config. Call `rc.tracer_rc_state.reset()` to start a new case.
+- ❌ Add a second flag file at a new path while the first file stays active.
