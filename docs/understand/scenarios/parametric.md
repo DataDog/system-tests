@@ -234,6 +234,19 @@ Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_r
 
 The protobuf response IDs `selection_ignored_empty`, `selection_ignored_tag_load_failed`, and `selection_ignored_unknown` return the full rules fixture with a `DD-Flag-Selection-Ignored` header set to an empty string, `tag_load_failed`, or `future_reason`, respectively. Use these shared responses to test selection diagnostics without replacing the rules endpoint handler. The `valid` response omits the header.
 
+#### Profiles
+
+`test_agent.profiling_requests()` returns the profiles that SDKs upload to `/profiling/v1/input`. Profilers upload every 60 seconds by default. These settings make them upload sooner:
+
+| SDK | Settings |
+|---|---|
+| .NET | `DD_PROFILING_UPLOAD_PERIOD` (seconds). On ARM64, the profiler also needs `DD_INTERNAL_PROFILING_ENABLED_ARM64=1`. |
+| Java | `DD_PROFILING_UPLOAD_PERIOD` (seconds), and `DD_PROFILING_START_FORCE_FIRST=true`, without which recording starts after up to 10 seconds plus one period. |
+| Node.js | `DD_PROFILING_UPLOAD_PERIOD` (seconds) |
+| Python | `DD_PROFILING_UPLOAD_INTERVAL` (seconds) |
+
+Ruby uploads every 60 seconds at the earliest and PHP every 67 seconds, but both also upload when they shut down. The Go app only runs the profiler while it serves `/trace/config`.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
