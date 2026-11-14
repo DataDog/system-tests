@@ -1469,6 +1469,7 @@ manifest:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev

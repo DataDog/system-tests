@@ -1135,6 +1135,7 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:

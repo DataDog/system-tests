@@ -1448,6 +1448,7 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::setup_user_login_success_event_deep_metadata: irrelevant (dd-trace-rb only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-rb only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-rb only accepts string metadata values)
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.19.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.19.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf: v2.19.0
