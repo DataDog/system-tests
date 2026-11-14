@@ -5,6 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
+from typing import Any
 from utils import weblog, interfaces, rfc, features, scenarios, logger
 from utils.dd_constants import SamplingPriority
 from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
@@ -265,7 +266,7 @@ class Test_Agent:
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
 
 
-def _trace_count(data: dict) -> int:
+def _trace_count(data: dict[str, Any]) -> int:
     """Number of traces in a /traces request: v1.0 payloads carry them as chunks"""
     content = data["request"]["content"]
     if data["path"] == "/v1.0/traces":
