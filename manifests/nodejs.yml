@@ -3325,7 +3325,12 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:
     - weblog_declaration:
         "*": missing_feature
@@ -3346,6 +3351,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express4: missing_feature (OTel semantic resource names are not available when sampling decisions occur)
+        express5: v6.25.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:
     - weblog_declaration:
         "*": missing_feature
@@ -3356,7 +3362,12 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
