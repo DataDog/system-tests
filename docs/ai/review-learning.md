@@ -223,6 +223,18 @@ venv/bin/python -m utils.scripts.review_learning.clean --dry-run  # list them, d
 
 The script deletes only the folders directly under `.review-learning/` that hold an `index.json`. It never follows a symbolic link. In CI, the job folder goes away with the job, so CI needs no cleanup.
 
+## Run it in GitLab
+
+The `review_learning` job in [`.gitlab-ci.yml`](../../.gitlab-ci.yml) runs the skill once a month, in report mode. It writes `report.md` to its artifacts, and it edits nothing.
+
+- **Schedule:** a GitLab pipeline schedule on `main` sets `SCHEDULED_JOB=review-learning`. You can also start it by hand from the GitLab UI, with the same variable. This schedule never runs the end-to-end pipeline.
+- **Image:** [`review-learning.Dockerfile`](../../utils/ci/gitlab/docker/review-learning.Dockerfile) holds Python 3.12, the Claude Code CLI, `gh`, `se`, and `dd-octo-sts`. The `build_ci_image` job builds and signs it. The job installs `requirements.txt` when it starts, so a change to `requirements.txt` never rebuilds this image.
+- **Model access:** `authanywhere` gives a token for the Datadog AI gateway. The job needs no Anthropic API key.
+- **GitHub access:** a read-only `dd-octo-sts` token, from [`self.gitlab-review-learning.sts.yaml`](../../.github/chainguard/self.gitlab-review-learning.sts.yaml). The job never writes to GitHub.
+- **Window:** the previous calendar month by default, so that monthly runs never skip or repeat a day. `REVIEW_LEARNING_WINDOW` overrides it.
+
+The entry point is [`ci_run.sh`](../../utils/scripts/review_learning/ci_run.sh). The model can only write inside `.review-learning/`, and it can only run the named steps of the skill. It cannot run `apply`.
+
 ## Output files
 
 | File | Content |
