@@ -1,5 +1,5 @@
+import base64
 from collections.abc import Generator, Sequence
-import hashlib
 import struct
 
 from utils import weblog, interfaces, logger, HttpResponse
@@ -167,7 +167,7 @@ def fnv1_64(data: bytes) -> int:
     return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 
-def compute_dsm_hash(parent_hash: int, tags: tuple[str, str, str]) -> int:
+def compute_dsm_hash(parent_hash: int, tags: tuple[str, ...]) -> int:
     def get_bytes(s: str) -> bytes:
         return bytes(s, encoding="utf-8")
 
@@ -178,16 +178,17 @@ def compute_dsm_hash(parent_hash: int, tags: tuple[str, str, str]) -> int:
     return fnv1_64(struct.pack("<Q", node_hash) + struct.pack("<Q", parent_hash))
 
 
-def sha_hash(checkpoint_string: str | bytes) -> bytes:
-    if isinstance(checkpoint_string, str):
-        checkpoint_string = checkpoint_string.encode("utf-8")
-    return hashlib.md5(checkpoint_string).digest()[:8]
+def encode_dsm_pathway_context(pathway_hash: int, pathway_start_ms: int, edge_start_ms: int) -> str:
+    """Value of a dd-pathway-ctx-base64 header: the hash as uint64 LE, then both timestamps as zigzag varints"""
 
+    def varint(value: int) -> bytes:
+        value <<= 1  # zigzag encoding of a non-negative number
+        result = bytearray()
+        while value > 0x7F:
+            result.append((value & 0x7F) | 0x80)
+            value >>= 7
+        result.append(value)
+        return bytes(result)
 
-# def compute_dsm_hash_nodejs(parent_hash, edge_tags) -> int:
-#     current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
-#     parent_hash_buf = struct.pack(">Q", parent_hash)
-#     buf = current_hash + parent_hash_buf
-
-#     val = sha_hash(buf)
-#     return int.from_bytes(val, "big")
+    encoded = struct.pack("<Q", pathway_hash) + varint(pathway_start_ms) + varint(edge_start_ms)
+    return base64.b64encode(encoded).decode("ascii")

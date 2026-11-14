@@ -5,8 +5,9 @@
 import base64
 import json
 import os
+import time
 
-from tests.integrations.utils import compute_dsm_hash
+from tests.integrations.utils import compute_dsm_hash, encode_dsm_pathway_context
 
 from utils import (
     weblog,
@@ -33,7 +34,6 @@ AWS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "")
 # If the AWS host points to localstack, we are using local AWS mocking, else assume the real account
 LOCAL_AWS_ACCT = "000000000000"  # if 'localstack' in AWS_HOST else "601427279990"
 AWS_ACCT = LOCAL_AWS_ACCT  # if 'localstack' in AWS_HOST else "601427279990"
-AWS_TESTING = "local" if LOCAL_AWS_ACCT == AWS_ACCT else "remote"
 
 # AWS Kinesis Specific
 DSM_STREAM = "dsm-system-tests-stream"
@@ -51,6 +51,12 @@ DSM_REQUEST_TIMEOUT = 61
 
 WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ", "_").replace("/", "_")
 
+HTTP_IN_TAGS = ("direction:in", "type:http")
+
+# dd-trace-js records an inbound HTTP checkpoint for every weblog request (a root, as these requests carry no
+# pathway context). Checkpoints set while handling the request chain from it, unless they extract their own context.
+NODEJS_HTTP_IN_HASH = compute_dsm_hash(0, HTTP_IN_TAGS)
+
 
 def get_message(test: str, system: str) -> str:
     return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.name} DSM test: {scenarios.integrations_aws.unique_id}"
@@ -66,20 +72,6 @@ class Test_DsmKafka:
 
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
-
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
-        if context.library == "nodejs":
-            producer_hash = 8001907834230501985
-            consumer_hash = 12353223394116417855
-        elif context.library == "golang":
-            producer_hash = 4463699290244539355
-            consumer_hash = 13758451224913876939
-        else:
-            producer_hash = 14216899112169674443
-            consumer_hash = 4247242616665718048
 
         if context.library == "golang":
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
@@ -100,7 +92,26 @@ class Test_DsmKafka:
                 "type:kafka",
             )
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+        producer_parent_hash = 0
+        if context.library == "nodejs":
+            # dd-trace-js hashes like dd-trace-java: group is not hashed, kafka_cluster_id is hashed after type
+            producer_parent_hash = NODEJS_HTTP_IN_HASH
+            producer_hash = compute_dsm_hash(
+                producer_parent_hash,
+                ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka", "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw"),
+            )
+            consumer_hash = compute_dsm_hash(
+                producer_hash,
+                ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka", "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw"),
+            )
+        elif context.library == "golang":
+            producer_hash = 4463699290244539355
+            consumer_hash = 13758451224913876939
+        else:
+            producer_hash = 14216899112169674443
+            consumer_hash = 4247242616665718048
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
 
     def setup_dsm_kafka_without_cluster_id(self):
@@ -137,6 +148,21 @@ class Test_DsmHttp:
             hash_=3883033147046472598, parent_hash=0, tags=("direction:in", "type:http")
         )
 
+    def setup_dsm_http_pathway_context(self):
+        # pathway context of an upstream HTTP client checkpoint
+        self.caller_hash = compute_dsm_hash(0, ("direction:out", "type:http"))
+        now_ms = int(time.time() * 1000)
+        self.r = weblog.get(
+            "/", headers={"dd-pathway-ctx-base64": encode_dsm_pathway_context(self.caller_hash, now_ms, now_ms)}
+        )
+
+    def test_dsm_http_pathway_context(self):
+        assert self.r.status_code == 200
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=compute_dsm_hash(self.caller_hash, HTTP_IN_TAGS), parent_hash=self.caller_hash, tags=HTTP_IN_TAGS
+        )
+
 
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
@@ -152,21 +178,22 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
+        edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
+        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq")
+
+        producer_parent_hash = 0
         if context.library == "nodejs":
-            producer_hash = 16680966241789857864
-            consumer_hash = 7235406874724180592
+            # dd-trace-js hashes like dd-trace-java, which does not hash has_routing_key
+            producer_parent_hash = NODEJS_HTTP_IN_HASH
+            producer_hash = compute_dsm_hash(
+                producer_parent_hash, ("direction:out", f"exchange:{DSM_EXCHANGE}", "type:rabbitmq")
+            )
+            consumer_hash = compute_dsm_hash(producer_hash, edge_tags_in)
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
 
-        edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
-        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq")
-
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
@@ -280,14 +307,9 @@ class Test_DsmSQS:
     def setup_dsm_sqs(self):
         message = get_message("Test_DsmSQS", "sqs")
 
-        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-        # which changes for each run with the time stamp added
-        if context.library.name != "nodejs":
-            self.queue = (
-                f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            )
-        else:
-            self.queue = f"{DSM_QUEUE}_{context.library.name}"
+        self.queue = (
+            f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        )
 
         self.r = weblog.get(
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
@@ -299,14 +321,11 @@ class Test_DsmSQS:
         tags_out = ("direction:out", f"topic:{self.queue}", "type:sqs")
         tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
-        if context.library == "nodejs":
-            producer_hash = 2649573563161019048
-            consumer_hash = 3674518247845931278
-        else:
-            producer_hash = compute_dsm_hash(0, tags_out)
-            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        producer_parent_hash = NODEJS_HTTP_IN_HASH if context.library == "nodejs" else 0
+        producer_hash = compute_dsm_hash(producer_parent_hash, tags_out)
+        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
 
 
@@ -318,14 +337,10 @@ class Test_DsmSNS:
     def setup_dsm_sns(self):
         message = get_message("Test_DsmSNS", "sns")
 
-        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-        # which changes for each run with the time stamp added
-        if context.library.name != "nodejs":
-            self.topic = f"{DSM_TOPIC}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-        else:
-            self.topic = f"{DSM_TOPIC}_{context.library.name}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_raw"
+        self.topic = (
+            f"{DSM_TOPIC}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+        )
+        self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
 
         self.r = weblog.get(
             f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
@@ -338,18 +353,14 @@ class Test_DsmSNS:
         arn = f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
         topic = self.topic if context.library in ["java", "dotnet"] else arn
 
-        if context.library == "nodejs":
-            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 4474403991591098370
-            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 3839681565914825635
-            tags_out = ("direction:out", f"topic:{topic}", "type:sns")
-            tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
-        else:
-            tags_out = ("direction:out", f"topic:{topic}", "type:sns")
-            tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
-            producer_hash = compute_dsm_hash(0, tags_out)
-            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        tags_out = ("direction:out", f"topic:{topic}", "type:sns")
+        tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
+        producer_parent_hash = NODEJS_HTTP_IN_HASH if context.library == "nodejs" else 0
+        producer_hash = compute_dsm_hash(producer_parent_hash, tags_out)
+        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
 
 
@@ -361,14 +372,9 @@ class Test_DsmKinesis:
     def setup_dsm_kinesis(self):
         message = get_message("Test_DsmKinesis", "kinesis")
 
-        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-        # which changes for each run with the time stamp added
-        if context.library.name != "nodejs":
-            self.stream = (
-                f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            )
-        else:
-            self.stream = f"{DSM_STREAM}_{context.library.name}"
+        self.stream = (
+            f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        )
 
         self.r = weblog.get(
             f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
@@ -381,17 +387,18 @@ class Test_DsmKinesis:
         stream_arn = f"arn:aws:kinesis:us-east-1:{AWS_ACCT}:stream/{self.stream}"
 
         if context.library == "nodejs":
+            # dd-trace-js tags Kinesis checkpoints with the stream name, not its ARN
             tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
-            producer_hash = 6996061165171108813
-            consumer_hash = 18286084103800622023
         else:
             tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
-            producer_hash = compute_dsm_hash(0, tags_out)
-            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
+        producer_parent_hash = NODEJS_HTTP_IN_HASH if context.library == "nodejs" else 0
+        producer_hash = compute_dsm_hash(producer_parent_hash, tags_out)
+        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
 
 
@@ -409,12 +416,10 @@ class Test_DsmContext_Injection_Base64:
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
-        if context.library == "nodejs":
-            producer_hash = 11949115791662959359
-        else:
-            producer_hash = 6031446427375485596
-
         edge_tags = ("direction:out", "topic:dsm-injection-topic", "type:kafka")
+
+        producer_parent_hash = NODEJS_HTTP_IN_HASH if context.library == "nodejs" else 0
+        producer_hash = compute_dsm_hash(producer_parent_hash, edge_tags)
 
         # get json carrier object
         carrier = json.loads(self.r.text)
@@ -428,15 +433,11 @@ class Test_DsmContext_Injection_Base64:
 
         base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
-        # nodejs uses big endian, others use little endian
-        _format = "<Q"
-        if context.library == "nodejs":
-            _format = ">Q"
         # decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
         # assert producer_hash == decoded_pathway
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags)
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=producer_parent_hash, tags=edge_tags)
 
 
 @features.datastreams_monitoring_support_for_base64_encoding
@@ -459,14 +460,8 @@ class Test_DsmContext_Extraction_Base64:
     def test_dsmcontext_extraction_base64(self):
         assert self.r.text == "ok"
 
-        if context.library == "nodejs":
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
-            # it does not have access to the queue name
-            consumer_hash = 3232267919319990015
-            producer_hash = 6031446427375485596
-        else:
-            consumer_hash = 12795903374559614717
-            producer_hash = 6031446427375485596
+        consumer_hash = 12795903374559614717
+        producer_hash = 6031446427375485596
 
         edge_tags = ("direction:in", "topic:dsm-injection-topic", "type:kafka")
 
@@ -500,14 +495,10 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         assert self.consume.status_code == 200
         assert self.consume.text == "ok"
 
-        if context.library == "nodejs":
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 9931057434765374197
-            consumer_hash = 17324614250411467957
-            parent_producer_hash = 0
-        elif context.library == "java":
+        if context.library in ("java", "nodejs"):
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
+            # dd-trace-js chains from its inbound HTTP checkpoint too, and like Java does not hash manual_checkpoint
             producer_hash = 1538441441403845096
             consumer_hash = 17074055019471758954
             parent_producer_hash = 3883033147046472598
@@ -568,10 +559,15 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         assert self.consume_threaded.text == "ok"
 
         if context.library == "nodejs":
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 12899996614288916469
-            consumer_hash = 4416193018187534291
+            # the weblog sets these checkpoints from a worker thread, outside the HTTP request's context.
+            # dd-trace-js, like dd-trace-java, does not hash manual_checkpoint
             parent_producer_hash = 0
+            producer_hash = compute_dsm_hash(
+                parent_producer_hash, ("direction:out", "topic:system-tests-queue", "type:dd-streams-threaded")
+            )
+            consumer_hash = compute_dsm_hash(
+                producer_hash, ("direction:in", "topic:system-tests-queue", "type:dd-streams-threaded")
+            )
         elif context.library == "java":
             producer_hash = 4667583249035065277
             consumer_hash = 2161125765733997838
