@@ -1838,9 +1838,6 @@ manifest:
       component_version: '>=1.19.0'
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
-  ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_tracecontext
-  : - declaration: bug (APMAPI-1545)
-      component_version: '>=1.28.0'
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.1.0
   tests/parametric/test_otel_logs.py: v1.20.0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v1.25.0
@@ -1953,9 +1950,6 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002:
-    - declaration: bug (APMAPI-1545)
-      component_version: '>=1.28.0'
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v04: v1.28.0
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05:
     - declaration: missing_feature

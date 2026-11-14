@@ -389,7 +389,9 @@ class Test_Otel_API_Interoperability:
         root = find_only_span(traces)
         assert root["parent_id"] == 3
         assert "foo" not in root["meta"]
-        assert root["meta"]["_dd.p.dm"] == "-0"
+        decision_maker = root["meta"].get("_dd.p.dm")
+        # V1 cannot distinguish sampling mechanism zero from an unset protobuf field.
+        assert decision_maker == "-0" or (decision_maker is None and test_agent.uses_v1_trace_payloads())
         assert root["metrics"]["_sampling_priority_v1"] == 1
 
     def test_distributed_headers_are_propagated_datadog(self, test_agent: TestAgentAPI, test_library: APMLibrary):

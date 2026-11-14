@@ -25,7 +25,9 @@ class AnyRatio:
         return hash("AnyRatio")
 
 
-def _get_spans(test_agent: TestAgentAPI, test_library: APMLibrary, child_span_tag: str | None = None):
+def _get_spans(
+    test_agent: TestAgentAPI, test_library: APMLibrary, child_span_tag: str | None = None, *, clear: bool = True
+):
     with (
         test_library,
         test_library.dd_start_span(name="parent", service="webserver") as ps,
@@ -34,7 +36,7 @@ def _get_spans(test_agent: TestAgentAPI, test_library: APMLibrary, child_span_ta
         if child_span_tag:
             cs.set_meta(child_span_tag, None)
 
-    traces = test_agent.wait_for_num_spans(2, clear=True, sort_by_start=False)
+    traces = test_agent.wait_for_num_spans(2, clear=clear, sort_by_start=False)
 
     parent_span = find_span_in_traces(traces, ps.trace_id, ps.span_id)
     child_span = find_span_in_traces(traces, cs.trace_id, cs.span_id)
@@ -52,7 +54,7 @@ def _assert_sampling_tags(
     parent_span: dict,
     child_span: dict,
     first_span: dict,
-    dm: str | tuple[str, ...],
+    dm: str | tuple[str | None, ...],
     parent_priority: int,
     rule_rate: float = UNSET,
     agent_rate: int | tuple = UNSET,
@@ -112,17 +114,19 @@ class Test_Sampling_Span_Tags:
         )
 
     def test_tags_defaults_sst002(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        parent_span, child_span, first_span = _get_spans(test_agent, test_library)
+        # Preserve request metadata so the assertion can distinguish V1 from legacy.
+        parent_span, child_span, first_span = _get_spans(test_agent, test_library, clear=False)
+        expected_dm = ("-1", "-0", None) if test_agent.uses_v1_trace_payloads() else ("-1", "-0")
         _assert_sampling_tags(
             parent_span,
             child_span,
             first_span,
-            ("-1", "-0"),
+            expected_dm,
             1,
             agent_rate=(1, None),
             description="When no environment variables related to sampling or "
             "rate limiting are set, decisionmaker "
-            "should be either -1 or -0, priority should be 1, and the agent sample rate tag should "
+            "should be -1 or -0 (zero may be omitted in V1), priority should be 1, and the agent sample rate tag should "
             "be either set to the default rate or unset",
         )
 
