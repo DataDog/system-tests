@@ -1,0 +1,37 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json",
+      "dd-ai-guard-version": "4.17.0rc1",
+      "dd-ai-guard-source": "SDK",
+      "dd-ai-guard-language": "python",
+      "datadog-entity-id": "in-27827",
+      "Content-Length": "188"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: hello from system-tests\"}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "308",
+      "date": "Wed, 11 Nov 2026 09:50:08 GMT",
+      "x-ratelimit-limit": "700",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "699",
+      "x-ratelimit-reset": "52",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"a8f2355b-e83c-4c4a-be4c-a388fb038d9f\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"a8f2355b-e83c-4c4a-be4c-a388fb038d9f\"}],\"global_prob\":0.1259765625,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

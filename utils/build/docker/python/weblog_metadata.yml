@@ -6,7 +6,7 @@ openai-py:
   categories: [dd_trace_frameworks]
 anthropic-py:
   build_mode: none
-  framework_versions: ["0.75.0"]
+  framework_versions: ["0.75.0", "0.84.0"]
   categories: [dd_trace_frameworks]
 google_genai-py:
   build_mode: none
