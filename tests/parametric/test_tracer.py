@@ -70,6 +70,9 @@ class Test_TracerSCITagging:
         first_span = find_first_span_in_trace_payload(trace)
         # v1 sets git tags at the payload level, so other spans may carry them too
         assert first_span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
+        for span in trace:
+            if "_dd.git.repository_url" in span.get("meta", {}):
+                assert span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
@@ -94,6 +97,9 @@ class Test_TracerSCITagging:
         first_span = find_first_span_in_trace_payload(trace)
         # v1 sets git tags at the payload level, so other spans may carry them too
         assert first_span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
+        for span in trace:
+            if "_dd.git.commit.sha" in span.get("meta", {}):
+                assert span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
 
     @parametrize(
         "library_env",
