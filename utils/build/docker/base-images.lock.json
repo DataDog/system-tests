@@ -25,7 +25,7 @@
     "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-5bff656d2059",
     "system_tests_base_nodejs_fastify": "datadog/system-tests:fastify.base-d8786a519f91",
     "system_tests_base_nodejs_lambda_nodejs_lambda_runtime": "datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9",
-    "system_tests_base_nodejs_nextjs": "datadog/system-tests:nextjs.base-5c42165eff3e",
+    "system_tests_base_nodejs_nextjs": "datadog/system-tests:nextjs.base-7af1ceda261c",
     "system_tests_base_php_apache_mod_7_0": "datadog/system-tests:apache-mod-7.0.base-7f7ceaee7a22",
     "system_tests_base_php_apache_mod_7_0_zts": "datadog/system-tests:apache-mod-7.0-zts.base-7dcfd4683f07",
     "system_tests_base_php_apache_mod_7_1": "datadog/system-tests:apache-mod-7.1.base-e3fa76fd9255",

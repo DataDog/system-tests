@@ -15,6 +15,10 @@ export async function POST (request) {
       case 'application/x-www-form-urlencoded':
         body = await request.formData()
         break
+      case 'application/octet-stream':
+        // raw bodies are never parsed, as in the other weblogs
+        await request.arrayBuffer()
+        break
       default:
         body = await request.text()
     }

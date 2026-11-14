@@ -8,6 +8,10 @@ export async function GET (request, { params }) {
     return NextResponse.json('{"error": "DD_API_SECURITY_PARSE_RESPONSE_BODY not implemented"}', { status: 501 })
   }
 
+  // always read body for API sec, before processing the request as the other weblogs do: a blocked body must not set
+  // the tag below
+  const body = await getBody(request)
+
   const tracer = global._ddtrace
   const rootSpan = tracer?.scope().active()?.context()._trace.started[0]
 
@@ -16,21 +20,16 @@ export async function GET (request, { params }) {
   // read querystring
   const query = Object.fromEntries(new URL(request.url).searchParams)
 
-  // always read body for API sec
-  const body = await getBody(request)
-
-  let response
-
-  if (params?.tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
-    response = { payload: body }
-  } else {
-    response = 'Value tagged'
-  }
-
-  return NextResponse.json(response, {
+  const init = {
     status: params.status || 200,
     headers: new Headers(query)
-  })
+  }
+
+  if (params?.tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
+    return NextResponse.json({ payload: body }, init)
+  }
+
+  return new NextResponse('Value tagged', init)
 }
 export const OPTIONS = GET
 export const POST = GET
