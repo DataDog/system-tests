@@ -7,8 +7,13 @@ from utils.dd_types import AgentTraceFormat, LibraryTraceFormat
 class Test_V1PayloadByDefault:
     """Tracers use by default v1 trace format"""
 
+    def setup_main(self):
+        self.r = weblog.get("/")
+
     def test_main(self):
-        traces = list(interfaces.library.get_traces())
+        # Only this test's request: traces sent before the tracer learns from the agent's /info that
+        # /v1.0/traces is supported (e.g. the weblog startup healthcheck) may fall back to v0.4
+        traces = list(interfaces.library.get_traces(self.r))
         assert traces, "Expected at least one trace"
 
         for data, trace in traces:
@@ -44,7 +49,13 @@ class Test_V1Payloads:
         assert len(agent_traces) == 1
         _, agent_trace = agent_traces[0]
         assert agent_trace.format == AgentTraceFormat.efficient_trace_payload_format
-        assert any(s.get_span_resource() == "GET /status" for s in agent_trace.spans)
+        # Framework integrations name the resource after their route (e.g. Laravel's "Closure status"):
+        # check that the agent carries the library's resource for the span serving this request
+        assert any(
+            s.get_span_resource() == span.raw_span["resource"]
+            for s in agent_trace.spans
+            if s.get_rid() == self.r.get_rid()
+        )
         assert agent_trace.trace_id == trace.raw_trace["trace_id"]
 
 
