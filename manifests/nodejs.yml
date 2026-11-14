@@ -2909,7 +2909,9 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v6.20.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v6.11.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+      component_version: <6.25.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: *ref_5_125_0
@@ -3368,7 +3370,19 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.25.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter:
+    - weblog_declaration:
+        express5: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v6.20.0-dev
