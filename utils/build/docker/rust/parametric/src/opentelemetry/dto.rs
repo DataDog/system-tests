@@ -510,6 +510,25 @@ pub struct OtelCreateAsynchronousGaugeArgs {
 pub struct OtelCreateAsynchronousGaugeReturn {}
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct OtelAsynchronousObservation {
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelSetAsynchronousObservationsArgs {
+    pub meter_name: String,
+    pub kind: String,
+    pub name: String,
+    pub unit: String,
+    pub description: String,
+    pub observations: Vec<OtelAsynchronousObservation>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelSetAsynchronousObservationsReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct OtelMetricsForceFlushArgs {}
 
 #[derive(Debug, Serialize, Deserialize)]
