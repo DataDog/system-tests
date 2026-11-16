@@ -597,6 +597,9 @@ manifest:
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement::test_disable_stripe_rules:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk:
@@ -1433,6 +1436,9 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_span_kind:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: v1.17.0
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (PDO integration does not emit db.connection_string)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
@@ -1442,6 +1448,9 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_span_kind:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: v0.91.1
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
