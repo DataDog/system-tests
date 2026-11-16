@@ -256,21 +256,16 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     return attrs_dict
 
 
-def _uncompress_key_value_list(kvl: dict[Any, Any], strings: list[str]) -> dict[str, Any]:
-    """Uncompress a key_value_list AnyValue, resolving string refs and nested values recursively."""
+def _uncompress_key_value_list(kvl: list, strings: list[str]) -> dict[str, Any]:
+    """Uncompress a key_value_list AnyValue: a flat [key, type, value, ...] triplet array, like attributes.
+    Nested values are decoded recursively, without the top-level attribute post-processing.
+    """
+    if len(kvl) % 3 != 0:
+        raise ValueError(f"Key value list must be a multiple of 3: {kvl}")
     result: dict[str, Any] = {}
-    for raw_key, type_value_pair in kvl.items():
+    for i in range(0, len(kvl), 3):
+        raw_key, v_type, v = kvl[i], kvl[i + 1], kvl[i + 2]
         key = strings[raw_key] if isinstance(raw_key, int) else raw_key
-        try:
-            v_type_int, v = type_value_pair
-        except (TypeError, ValueError):
-            result[key] = type_value_pair
-            continue
-        try:
-            v_type = V1AnyValueKeys(v_type_int)
-        except ValueError:
-            result[key] = v
-            continue
         if v_type == V1AnyValueKeys.string:
             if isinstance(v, int):
                 v = strings[v]
@@ -312,11 +307,7 @@ def _uncompress_array(array: list, strings: list[str]) -> list:
         elif v_type == V1AnyValueKeys.array:
             v = _uncompress_array(v, strings)
         elif v_type == V1AnyValueKeys.key_value_list:
-            warnings.warn(
-                "key_value_list inside array is left as-is (not yet uncompressed)",
-                UserWarning,
-                stacklevel=2,
-            )
+            v = _uncompress_key_value_list(v, strings)
         result.append(v)
     return result
 
