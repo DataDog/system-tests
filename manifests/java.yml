@@ -1676,6 +1676,51 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/smoke_tests/test_security.py:
+    - weblog_declaration:
+        '*': v1.60.3
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
+    - weblog_declaration:
+        spring-boot: v1.54.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AuthSchema: v1.66.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        '*': v0.108.0
+        play: incomplete_test_app (no endpoint)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_OtelContext:
+    - weblog_declaration:
+        '*': incomplete_test_app (endpoint not implemented)
+        spring-boot: v1.39.0
+        spring-boot-jetty: v1.58.2+06122213c8
+        spring-boot-openliberty: v1.58.2+06122213c8
+        spring-boot-payara: v1.58.2+06122213c8
+        spring-boot-undertow: v1.58.2+06122213c8
+        spring-boot-wildfly: v1.58.2+06122213c8
+        uds-spring-boot: v1.58.2+06122213c8
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        spring-boot-payara: v1.66.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3: missing_feature (APPSEC-55781)
+        vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspStack: v1.40.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RaspTags: v1.40.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RuntimeActivation: v0.115.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
+    - weblog_declaration:
+        akka-http: incomplete_test_app (login endpoints not implemented)
+        jersey-grizzly2: incomplete_test_app (login endpoints not implemented)
+        play: incomplete_test_app (login endpoints not implemented)
+        ratpack: incomplete_test_app (login endpoints not implemented)
+        resteasy-netty3: incomplete_test_app (login endpoints not implemented)
+        vertx3: incomplete_test_app (login endpoints not implemented)
+        vertx4: incomplete_test_app (login endpoints not implemented)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v1.65.0-SNAPSHOT

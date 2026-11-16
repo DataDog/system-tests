@@ -10,6 +10,10 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+if (process.env.DD_TRACE_OTEL_ENABLED === 'true') {
+  const provider = new tracer.TracerProvider()
+  provider.register()
+}
 const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
@@ -659,6 +663,7 @@ app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
 
   api.propagation.inject(
     api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  span.end()
   res.json(result)
 })
 

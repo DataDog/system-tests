@@ -213,6 +213,7 @@ class EndToEndScenario(DockerScenario):
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str | None] | None = None,
+        agent_container_class: type[AgentContainer] = AgentContainer,
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
@@ -271,7 +272,7 @@ class EndToEndScenario(DockerScenario):
             self.rc_api_enabled = True
             self.rc_backend_enabled = True
 
-        self.agent_container = AgentContainer(
+        self.agent_container = agent_container_class(
             dd_api_key=self.dd_api_key,
             # the mocked backend always serves remote config
             rc_backend_enabled=True,
