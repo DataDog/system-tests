@@ -404,6 +404,7 @@ manifest:
         sinatra14: '>=2.37.0'
         sinatra32: '>=2.37.0'
         rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_multi_params_in_segment: missing_feature (RFC-1125, the parameters and the static text of a segment are kept separately)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -418,6 +419,8 @@ manifest:
         sinatra14: '>=2.37.0'
         sinatra32: '>=2.37.0'
         rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional: missing_feature (RFC-1125, the parameters and the static text of a segment are kept separately)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature

@@ -141,9 +141,9 @@ OK\n
 
 ### GET /api_security/multi-params-in-segment/{id}.{format}
 
-This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+This endpoint is used to test two mandatory path parameters within a single URL segment (RFC-1125, which amends RFC-1103).
 
-The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must keep each parameter and the text between them: `_dd.appsec.normalized_route` must be `/api_security/multi-params-in-segment/{id}.{format}`.
 
 The response status code must be `200` and the response body must contain:
 
@@ -153,12 +153,24 @@ ok
 
 ### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}.{format}
 
-These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+These two routes together test optional-element resolution (RFC-1125, and RFC-1103 rule 6).
 
 - `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
-- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}.{format}`.
 
 Frameworks with native optional-parameter support (e.g. Express `:id.:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/static-text-in-segment/user-{id}
+
+This endpoint is used to test static text next to a path parameter in the same URL segment (RFC-1125).
+
+The route must declare `id` as a path parameter after the literal prefix `user-`, in the same URL segment. The tracer must keep the static text: `_dd.appsec.normalized_route` must be `/api_security/static-text-in-segment/user-{id}`.
 
 The response status code must be `200` and the response body must contain:
 
