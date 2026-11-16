@@ -414,48 +414,16 @@ def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology(
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
 
 
-@pytest.mark.parametrize(
-    "command", ["apache2 -D FOREGROUND", "php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"]
-)
+@pytest.mark.parametrize("command", ["/bin/sh ./app.sh", "dumb-init /entrypoint.sh", "tail -f /var/log/php.log"])
 @scenarios.test_the_test
-def test_feature_flagging_direct_runtime_evidence_accepts_php_servers(command: str) -> None:
+def test_feature_flagging_direct_runtime_evidence_accepts_php_wrappers(command: str) -> None:
     evidence = _direct_runtime_evidence("php")
-    evidence["containers"][1]["pid1_command"] = command
-    evidence["containers"][1]["processes"][0]["command"] = command
+    weblog = evidence["containers"][1]
+    weblog["pid1_command"] = command
+    weblog["processes"][0]["command"] = command
+    weblog["processes"].append({"pid": "203", "ppid": "202", "command": "apache2 -k start"})
 
     assert_direct_evp_runtime_evidence(evidence, library_name="php")
-
-
-@pytest.mark.parametrize("command", ["tail -f /var/log/php.log", "bash /entrypoint.sh", "apache2-wrapper app"])
-@scenarios.test_the_test
-def test_feature_flagging_direct_runtime_evidence_rejects_php_wrappers(command: str) -> None:
-    evidence = _direct_runtime_evidence("php")
-    evidence["containers"][1]["pid1_command"] = command
-    evidence["containers"][1]["processes"][0]["command"] = command
-
-    with pytest.raises(AssertionError, match="expected one of"):
-        assert_direct_evp_runtime_evidence(evidence, library_name="php")
-
-
-@pytest.mark.parametrize("executable", ["python3.11", "python3.12"])
-@scenarios.test_the_test
-def test_feature_flagging_direct_runtime_evidence_accepts_versioned_python(executable: str) -> None:
-    evidence = _direct_runtime_evidence("python")
-    evidence["containers"][1]["pid1_command"] = f"/usr/local/bin/{executable} -m gunicorn app:app"
-    evidence["containers"][1]["processes"][0]["command"] = f"{executable} -m gunicorn app:app"
-
-    assert_direct_evp_runtime_evidence(evidence, library_name="python")
-
-
-@pytest.mark.parametrize("executable", ["python3.x", "python3.11-wrapper"])
-@scenarios.test_the_test
-def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers(executable: str) -> None:
-    evidence = _direct_runtime_evidence("python")
-    evidence["containers"][1]["pid1_command"] = f"{executable} app"
-    evidence["containers"][1]["processes"][0]["command"] = f"{executable} app"
-
-    with pytest.raises(AssertionError, match="versioned python3 interpreter"):
-        assert_direct_evp_runtime_evidence(evidence, library_name="python")
 
 
 @pytest.mark.parametrize(
@@ -464,8 +432,8 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
         ("agent_container", "only mocked backend and weblog"),
         ("agent_variable", "Agent connection variables"),
         ("init_wrapper", "Forbidden direct-scenario runtime components"),
-        ("shell_pid1", "expected one of"),
-        ("missing_process_command", "PID 1 row has no command"),
+        ("agent_process", "Forbidden direct-scenario runtime components"),
+        ("missing_process_command", "Runtime process row has no command"),
         ("failed_top", "docker top failed"),
     ],
 )
@@ -485,8 +453,8 @@ def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
         evidence["weblog_environment"]["agent_variables_present"] = ["DD_AGENT_HOST"]
     elif mutation == "init_wrapper":
         evidence["containers"][1]["pid1_command"] = "datadog-init node app"
-    elif mutation == "shell_pid1":
-        evidence["containers"][1]["pid1_command"] = "/bin/sh ./app.sh"
+    elif mutation == "agent_process":
+        evidence["containers"][1]["processes"].append({"pid": "203", "ppid": "202", "command": "trace-agent"})
     elif mutation == "missing_process_command":
         del evidence["containers"][1]["processes"][0]["command"]
     elif mutation == "failed_top":

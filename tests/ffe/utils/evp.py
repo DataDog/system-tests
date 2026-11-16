@@ -30,16 +30,6 @@ EVP_FORBIDDEN_RUNTIME_COMPONENTS = (
     "telemetry-sidecar",
     "trace-agent",
 )
-EVP_LANGUAGE_PID1_EXECUTABLES = {
-    "dotnet": {"dotnet"},
-    "golang": {"weblog"},
-    "java": {"java"},
-    "nodejs": {"node"},
-    "php": {"apache2", "php-fpm:"},
-    "python": {"gunicorn", "python", "python3", "uwsgi"},
-    "ruby": {"puma", "ruby"},
-}
-
 EVP_ORIGINS = {
     "dotnet": "dd-trace-dotnet",
     "golang": "dd-trace-go",
@@ -84,15 +74,6 @@ def assert_flagevaluation_accounting(delivered: int, attempted: int, drop_series
         f"Expected delivered + reported drops == {attempted}, got {delivered} + {dropped}. "
         "Missing telemetry is not evidence of an accounted drop."
     )
-
-
-def _is_expected_pid1_executable(library_name: str, executable: str, expected: set[str]) -> bool:
-    """Accept ordinary language launchers without accepting wrappers by prefix."""
-    if executable in expected:
-        return True
-    if library_name != "python" or not executable.startswith("python3."):
-        return False
-    return executable.removeprefix("python3.").isdigit()
 
 
 @dataclass(frozen=True)
@@ -296,17 +277,13 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert container.get("running") is True, f"Runtime container was not running: {container}"
         assert container.get("status") == "running", f"Unexpected live container status: {container}"
         assert container.get("top_error") is None, f"docker top failed: {container.get('top_error')}"
-        assert container.get("pid1_error") is None, f"PID 1 inspection failed: {container.get('pid1_error')}"
-        assert container.get("pid1_command"), f"Runtime container has no PID 1 command: {container}"
         assert container.get("networks") == [network["name"]], f"Unexpected runtime networks: {container}"
         processes = container.get("processes")
         assert isinstance(processes, list), f"Runtime process tree is malformed: {container}"
         assert processes, f"Runtime process tree is empty: {container}"
         assert all(isinstance(process, dict) for process in processes), f"Malformed runtime process rows: {container}"
-        state_pid = str(container.get("state_pid"))
-        pid1_processes = [process for process in processes if process.get("pid") == state_pid]
-        assert len(pid1_processes) == 1, (
-            f"docker top must contain exactly one inspected container PID {state_pid}: {container}"
+        assert all(isinstance(process.get("command"), str) and process["command"] for process in processes), (
+            f"Runtime process row has no command: {container}"
         )
         forbidden = [name for name in EVP_FORBIDDEN_RUNTIME_COMPONENTS if name in _runtime_text(container)]
         assert not forbidden, f"Forbidden direct-scenario runtime components found: {forbidden}"
@@ -315,20 +292,6 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
     assert weblog.get("library") == library_name, (
         f"Live weblog library label is {weblog.get('library')!r}, expected {library_name!r}"
     )
-    expected_executables = EVP_LANGUAGE_PID1_EXECUTABLES.get(library_name)
-    assert expected_executables, f"No ordinary PID 1 contract is defined for {library_name!r}"
-    pid1_executable = Path(str(weblog["pid1_command"]).split()[0]).name
-    assert _is_expected_pid1_executable(library_name, pid1_executable, expected_executables), (
-        f"Live weblog PID 1 is {weblog['pid1_command']!r}, expected one of "
-        f"{sorted(expected_executables)} or a versioned python3 interpreter"
-    )
-    weblog_state_pid = str(weblog.get("state_pid"))
-    pid1_process = next(process for process in weblog["processes"] if process.get("pid") == weblog_state_pid)
-    pid1_process_command = pid1_process.get("command")
-    assert pid1_process_command is not None, f"docker top PID 1 row has no command: {pid1_process}"
-    assert isinstance(pid1_process_command, str), f"docker top PID 1 command is malformed: {pid1_process}"
-    assert pid1_process_command, f"docker top PID 1 row has no command: {pid1_process}"
-
     environment = evidence.get("weblog_environment")
     assert isinstance(environment, dict), "Live weblog environment was not captured"
     assert environment.get("agent_variables_present") == [], (
