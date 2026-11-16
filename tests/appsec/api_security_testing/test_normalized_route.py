@@ -157,6 +157,17 @@ class Test_NormalizedRouteMultiParamsInSegment:
             f"expected '/api_security/multi-params-in-segment/{{id}}.{{format}}', got {normalized!r}"
         )
 
+    def setup_three_params_in_segment(self):
+        self.r_three_params_in_segment = weblog.get("/api_security/three-params/1-2-3")
+
+    def test_three_params_in_segment(self):
+        """RFC-1125 test 13: three params in one segment, with the `-` between them."""
+        meta = _get_meta(self.r_three_params_in_segment)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/three-params/{a}-{b}-{c}", (
+            f"expected '/api_security/three-params/{{a}}-{{b}}-{{c}}', got {normalized!r}"
+        )
+
 
 @rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
 @rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
@@ -213,7 +224,7 @@ class Test_NormalizedRouteOptionalParams:
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRouteStaticTextInSegment:
-    """RFC-1125: static text in a segment is kept next to the parameter.
+    """RFC-1125 tests 6-8: static text in a segment is kept next to the parameter.
 
     `/api_security/static-text/user-{id}` is a valid OpenAPI path template as
     written, so it is not folded into `/api_security/static-text/{id}`.
@@ -228,6 +239,28 @@ class Test_NormalizedRouteStaticTextInSegment:
         normalized = _require_normalized(meta)
         assert normalized == "/api_security/static-text/user-{id}", (
             f"expected '/api_security/static-text/user-{{id}}', got {normalized!r}"
+        )
+
+    def setup_static_text_before_param(self):
+        self.r_static_text_before_param = weblog.get("/api_security/version/v2/items")
+
+    def test_static_text_before_param(self):
+        """RFC-1125 test 7: static text before the parameter of a segment."""
+        meta = _get_meta(self.r_static_text_before_param)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/version/v{version}/items", (
+            f"expected '/api_security/version/v{{version}}/items', got {normalized!r}"
+        )
+
+    def setup_static_text_after_param(self):
+        self.r_static_text_after_param = weblog.get("/api_security/files/report.json")
+
+    def test_static_text_after_param(self):
+        """RFC-1125 test 8: static text after the parameter of a segment."""
+        meta = _get_meta(self.r_static_text_after_param)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/files/{name}.json", (
+            f"expected '/api_security/files/{{name}}.json', got {normalized!r}"
         )
 
 
@@ -285,4 +318,97 @@ class Test_NormalizedRouteCatchAll:
         normalized = _require_normalized(meta)
         assert re.fullmatch(rf"/api_security/catch-all/{_PARAM}", normalized), (
             f"expected '/api_security/catch-all/{{<param>}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteRoot:
+    """RFC-1125 test 2: the root route normalizes to `/`."""
+
+    def setup_root_route(self):
+        self.r_root_route = weblog.get("/")
+
+    def test_root_route(self):
+        """The root route `/` is `/`; it is never an empty tag."""
+        meta = _get_meta(self.r_root_route)
+        normalized = _require_normalized(meta)
+        assert normalized == "/", (
+            f"expected '/', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteOptionalAfterStaticText:
+    """RFC-1125 tests 19-20: an optional parameter after static text in the
+    same segment (`/api_security/search.{format?}`). When absent, it is left
+    out with the `.` before it.
+    """
+
+    def setup_optional_after_static_text_absent(self):
+        self.r_optional_after_static_text_absent = weblog.get("/api_security/search")
+
+    def test_optional_after_static_text_absent(self):
+        """Test 19: absent, the `.` goes with it."""
+        meta = _get_meta(self.r_optional_after_static_text_absent)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/search", (
+            f"expected '/api_security/search', got {normalized!r}"
+        )
+
+    def setup_optional_after_static_text_present(self):
+        self.r_optional_after_static_text_present = weblog.get("/api_security/search.json")
+
+    def test_optional_after_static_text_present(self):
+        """Test 20: present, `.{format}`."""
+        meta = _get_meta(self.r_optional_after_static_text_present)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/search.{format}", (
+            f"expected '/api_security/search.{{format}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteMultipleOptionals:
+    """RFC-1125 tests 21-23: several optional parameters in a row
+    (`/api_security/optional-chain/{x?}/{y?}`); each is in the tag only when
+    the request has it.
+    """
+
+    def setup_multiple_optionals_none(self):
+        self.r_multiple_optionals_none = weblog.get("/api_security/optional-chain")
+
+    def test_multiple_optionals_none(self):
+        """Test 21: no optional present."""
+        meta = _get_meta(self.r_multiple_optionals_none)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain", (
+            f"expected '/api_security/optional-chain', got {normalized!r}"
+        )
+
+    def setup_multiple_optionals_first(self):
+        self.r_multiple_optionals_first = weblog.get("/api_security/optional-chain/1")
+
+    def test_multiple_optionals_first(self):
+        """Test 22: the first optional present."""
+        meta = _get_meta(self.r_multiple_optionals_first)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain/{x}", (
+            f"expected '/api_security/optional-chain/{{x}}', got {normalized!r}"
+        )
+
+    def setup_multiple_optionals_both(self):
+        self.r_multiple_optionals_both = weblog.get("/api_security/optional-chain/1/2")
+
+    def test_multiple_optionals_both(self):
+        """Test 23: both optionals present."""
+        meta = _get_meta(self.r_multiple_optionals_both)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain/{x}/{y}", (
+            f"expected '/api_security/optional-chain/{{x}}/{{y}}', got {normalized!r}"
         )

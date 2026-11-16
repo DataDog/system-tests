@@ -820,3 +820,23 @@ Route::get('/api_security/optional-segment/{id}/{tab?}', function () {
 Route::get('/api_security/catch-all/{path}', function () {
     return response('ok', 200, ['Content-Type' => 'text/plain']);
 })->where('path', '.+');
+
+Route::get('/api_security/three-params/{a}-{b}-{c}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/version/v{version}/items', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/files/{name}.json', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/search.{format?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-chain/{x?}/{y?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});

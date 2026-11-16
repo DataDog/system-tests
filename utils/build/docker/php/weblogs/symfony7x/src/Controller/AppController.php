@@ -989,4 +989,34 @@ END;
     {
         return new Response('ok', 200, ['Content-Type' => 'text/plain']);
     }
+
+    #[Route('/api_security/three-params/{a}-{b}-{c}', name: 'api_security_three_params', methods: ['GET'])]
+    public function apiSecurityThreeParams(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/version/v{version}/items', name: 'api_security_version', methods: ['GET'])]
+    public function apiSecurityVersion(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/files/{name}.json', name: 'api_security_files', methods: ['GET'])]
+    public function apiSecurityFiles(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/search.{format}', name: 'api_security_search', defaults: ['format' => null], methods: ['GET'])]
+    public function apiSecuritySearch(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/optional-chain/{x}/{y}', name: 'api_security_optional_chain', defaults: ['x' => null, 'y' => null], methods: ['GET'])]
+    public function apiSecurityOptionalChain(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
 }
