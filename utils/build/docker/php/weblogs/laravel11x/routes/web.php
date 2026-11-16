@@ -798,3 +798,25 @@ Route::post('/stripe/webhook', function (Request $request) {
         return response(json_encode(['error' => $e->getMessage()]), 403, ['Content-Type' => 'application/json']);
     }
 });
+
+// RFC-1125 normalized route endpoints (tests/appsec/api_security_testing/test_normalized_route.py).
+Route::get('/api_security/multi-params-in-segment/{id}.{format}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-params/{id}.{format?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/static-text/user-{id}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-segment/{id}/{tab?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+// Laravel has no catch-all syntax: a parameter whose requirement accepts '/'.
+Route::get('/api_security/catch-all/{path}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+})->where('path', '.+');

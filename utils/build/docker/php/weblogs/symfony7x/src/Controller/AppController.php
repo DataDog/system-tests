@@ -956,4 +956,37 @@ END;
                 break;
         }
     }
+
+    // RFC-1125 normalized route endpoints (tests/appsec/api_security_testing/test_normalized_route.py).
+    #[Route('/api_security/multi-params-in-segment/{id}.{format}', name: 'api_security_multi_params_in_segment', methods: ['GET'])]
+    public function apiSecurityMultiParamsInSegment(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // A trailing variable with a default is optional in Symfony; the '.' before it goes with it.
+    #[Route('/api_security/optional-params/{id}.{format}', name: 'api_security_optional_params', defaults: ['format' => null], methods: ['GET'])]
+    public function apiSecurityOptionalParams(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/static-text/user-{id}', name: 'api_security_static_text', methods: ['GET'])]
+    public function apiSecurityStaticText(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/optional-segment/{id}/{tab}', name: 'api_security_optional_segment', defaults: ['tab' => null], methods: ['GET'])]
+    public function apiSecurityOptionalSegment(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // Symfony has no catch-all syntax: a variable whose requirement accepts '/'.
+    #[Route('/api_security/catch-all/{path}', name: 'api_security_catch_all', requirements: ['path' => '.+'], methods: ['GET'])]
+    public function apiSecurityCatchAll(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
 }

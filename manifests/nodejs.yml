@@ -358,14 +358,11 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
-    - weblog_declaration:
-        "*": missing_feature
-        express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
-    - weblog_declaration:
-        "*": missing_feature
-        express5: *ref_6_10_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature (RFC-1125 not implemented yet)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
