@@ -13,7 +13,13 @@ from utils import (
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary, StableConfigWriter, assert_nodejs_telemetry_config, nodejs_startup_config
+from .conftest import (
+    APMLibrary,
+    StableConfigWriter,
+    assert_nodejs_telemetry_config,
+    nodejs_startup_config,
+    restart_and_get_runtime_id,
+)
 
 parametrize = pytest.mark.parametrize
 
@@ -537,9 +543,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, expected)
+                assert_nodejs_telemetry_config(test_agent, expected, runtime_id=runtime_id)
             else:
                 config = test_library.config()
                 assert expected.items() <= config.items()
@@ -597,9 +603,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, expected)
+                assert_nodejs_telemetry_config(test_agent, expected, runtime_id=runtime_id)
                 return
 
             config = test_library.config()
@@ -656,9 +662,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, test["expected"])
+                assert_nodejs_telemetry_config(test_agent, test["expected"], runtime_id=runtime_id)
             else:
                 config = test_library.config()
                 assert test["expected"].items() <= config.items()
@@ -677,9 +683,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, SDK_DEFAULT_STABLE_CONFIG)
+                assert_nodejs_telemetry_config(test_agent, SDK_DEFAULT_STABLE_CONFIG, runtime_id=runtime_id)
             else:
                 config = test_library.config()
                 assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
@@ -750,9 +756,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
 
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, expected)
+                assert_nodejs_telemetry_config(test_agent, expected, runtime_id=runtime_id)
                 return
 
             config = test_library.config()
@@ -790,9 +796,9 @@ class Test_Stable_Config_Rules(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, {"dd_service": "my-service"})
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "my-service"}, runtime_id=runtime_id)
             else:
                 config = test_library.config()
                 assert config["dd_service"] == "my-service", (
@@ -826,9 +832,9 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             # Use custom dumper for this specific test
             stable_config_content = yaml.dump(config, Dumper=CustomDumper)
             self.write_stable_config_content(stable_config_content, path, test_library)
-            test_library.container_restart()
+            runtime_id = restart_and_get_runtime_id(test_agent, test_library)
             if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, {"dd_service": "value"})
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "value"}, runtime_id=runtime_id)
             else:
                 lib_config = test_library.config()
                 assert lib_config["dd_service"] == "value", (
