@@ -344,7 +344,12 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.25.0'
+        fastify: '>=6.25.0'
+        nextjs: '>=6.25.0'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
@@ -2046,7 +2051,12 @@ manifest:
     - declaration: bug (MLOB-5070)
       excluded_weblog: [google_genai-js@1.34.0]
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
-  : 'missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)'
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)
+      component_version: <6.25.0
+      weblog: [google_genai-js@1.34.0]
+    - declaration: missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)
+      excluded_weblog: [google_genai-js@1.34.0]
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools:  # TODO: a lower version might be supported
     - declaration: bug (MLOB-5070)
       component_version: <6.19.0
@@ -2711,7 +2721,9 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
-  : 'missing_feature (Requires a release containing dd-trace-js#11111)'
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Requires a release containing dd-trace-js#11111)
+      component_version: <6.25.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
@@ -2908,7 +2920,9 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v6.20.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v6.11.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+      component_version: <6.25.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: *ref_5_125_0
@@ -3324,7 +3338,12 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:
     - weblog_declaration:
         "*": missing_feature
@@ -3345,6 +3364,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express4: missing_feature (OTel semantic resource names are not available when sampling decisions occur)
+        express5: v6.25.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:
     - weblog_declaration:
         "*": missing_feature
@@ -3355,7 +3375,12 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
@@ -3367,7 +3392,19 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.25.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter:
+    - weblog_declaration:
+        express5: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v6.20.0-dev
