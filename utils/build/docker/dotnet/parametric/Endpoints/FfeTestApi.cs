@@ -82,18 +82,35 @@ public abstract class FfeTestApi
                 "INTEGER" => ToResult(await _client.GetIntegerDetailsAsync(request.Flag, defaultValue.GetInt32(), context)),
                 "NUMERIC" => ToResult(await _client.GetDoubleDetailsAsync(request.Flag, defaultValue.GetDouble(), context)),
                 "JSON" => ToResult(await _client.GetObjectDetailsAsync(request.Flag, new Value(defaultValue.GetRawText()), context)),
-                _ => Results.Ok(new { value = defaultValue, reason = "DEFAULT", errorCode = (string?)null }),
+                _ => Results.Ok(new { value = defaultValue, reason = "DEFAULT", errorCode = (string?)null, providerStatus = ToProviderStatus(_client.ProviderStatus) }),
             };
         }
         catch (Exception e)
         {
             _logger?.LogError(e, "Error evaluating flag");
-            return Results.Ok(new { value = defaultValue, reason = "ERROR", errorCode = (string?)null });
+            return Results.Ok(new { value = defaultValue, reason = "ERROR", errorCode = (string?)null, providerStatus = ToProviderStatus(_client.ProviderStatus) });
         }
     }
 
     private static IResult ToResult<T>(FlagEvaluationDetails<T> details)
-        => Results.Ok(new { value = details.Value, reason = details.Reason ?? "DEFAULT", errorCode = ToErrorCode(details.ErrorType) });
+        => Results.Ok(new
+        {
+            value = details.Value,
+            reason = details.Reason ?? "DEFAULT",
+            errorCode = ToErrorCode(details.ErrorType),
+            providerStatus = ToProviderStatus(_client!.ProviderStatus),
+        });
+
+    // The OpenFeature spec name of a provider status.
+    private static string ToProviderStatus(ProviderStatus status) => status switch
+    {
+        ProviderStatus.NotReady => "NOT_READY",
+        ProviderStatus.Ready => "READY",
+        ProviderStatus.Stale => "STALE",
+        ProviderStatus.Error => "ERROR",
+        ProviderStatus.Fatal => "FATAL",
+        _ => status.ToString(),
+    };
 
     // OpenFeature carries the spec error code on each ErrorType member as its Description.
     private static string? ToErrorCode(ErrorType errorType)

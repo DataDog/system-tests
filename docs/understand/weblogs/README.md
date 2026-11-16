@@ -10,6 +10,7 @@ In system tests, **weblogs** are an abstraction that represents the HTTP infrast
 ## In this section
 
 - [End-to-end weblog spec](end-to-end_weblog.md) -- all endpoints and their expected behavior
+- [Parametric weblog HTTP interface](parametric_weblog.md) -- the endpoints every parametric server implements
 - [GraphQL weblog](graphql_weblog.md) -- GraphQL-specific weblog details
 
 ## See also

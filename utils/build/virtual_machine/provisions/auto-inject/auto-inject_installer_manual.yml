@@ -159,7 +159,7 @@
         COUNTER=0
 
         while [ $COUNTER -lt $MAX_RETRIES ]; do
-            curl -L "https://dd-agent.s3.amazonaws.com/scripts/${AGENT_INSTALL_SCRIPT}" -o install_script.sh && break
+            curl --fail -L "https://dd-agent.s3.amazonaws.com/scripts/${AGENT_INSTALL_SCRIPT}" -o install_script.sh && break
             echo "Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
             ((COUNTER++))
