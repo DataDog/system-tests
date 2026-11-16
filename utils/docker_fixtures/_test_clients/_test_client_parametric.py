@@ -1,7 +1,8 @@
 import contextlib
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
+import time
 from types import TracebackType
 from typing import Any, TypedDict, cast
 
@@ -295,6 +296,19 @@ class ParametricTestClientApi(TestClientApi):
 
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
+
+    def wait_for_log(self, match: str | Callable[[str], bool], timeout: float = 5.0, interval: float = 0.1) -> str:
+        """Poll the container logs until `match` (a substring, or a predicate on the whole logs) is satisfied.
+
+        Returns the matching logs, or the last logs read once `timeout` expires.
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            logs = self.get_logs()
+            matched = match in logs if isinstance(match, str) else match(logs)
+            if matched or time.monotonic() >= deadline:
+                return logs
+            time.sleep(interval)
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:

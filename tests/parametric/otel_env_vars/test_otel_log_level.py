@@ -59,13 +59,9 @@ def _php_threshold_diagnostics(library: APMLibrary) -> tuple[bool, bool]:
     assert library.dd_log_level_diagnostics(), "The SDK logger diagnostic probe did not complete"
     # Both SDK calls log before the endpoint responds, but docker collects the container output asynchronously:
     # wait for the ERROR line. It's logged after the WARN one, on the same stream, so a WARN line is collected by then.
-    deadline = time.monotonic() + 5
-    while True:
-        logs = library.get_logs().lower()
-        error_logged = "cannot update the span duration of an unfinished span" in logs
-        if error_logged or time.monotonic() >= deadline:
-            return error_logged, "unexpected parameter, expecting double for start time" in logs
-        time.sleep(0.1)
+    error = "cannot update the span duration of an unfinished span"
+    logs = library.wait_for_log(lambda logs: error in logs.lower()).lower()
+    return error in logs, "unexpected parameter, expecting double for start time" in logs
 
 
 def _fallback_log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str | tuple[bool, bool]:
