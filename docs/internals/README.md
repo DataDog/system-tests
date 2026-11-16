@@ -5,6 +5,7 @@ All about system-tests deep internals. For those of you who are not afraid of ge
 ## Lifecycles
 
 - [End-to-end lifecycle](end-to-end-life-cycle.md) -- how end-to-end scenarios start containers, run setups, and execute tests
+- [Docker SSI images](docker-ssi-images.md) -- how Docker SSI builds the weblog image and stores the base images in the registry
 - Parametric lifecycle -- see [parametric scenario](../understand/scenarios/parametric.md#parametric-lifecycle)
 
 ## Infrastructure and tooling
