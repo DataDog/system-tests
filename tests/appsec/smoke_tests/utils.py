@@ -2,7 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Shared AAP smoke tests verifying payload carriers at backend intake."""
+"""Shared security smoke tests verifying payload carriers at backend intake."""
+
+import json
+from pathlib import Path
+
+import jsonschema
 
 from utils import context, interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
@@ -89,6 +94,9 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
         ],
     },
 )
+
+
+_IAST_SCHEMA = json.loads((Path(__file__).parents[1] / "iast/vulnerability_schema.json").read_text(encoding="utf-8"))
 
 
 def _assert_numeric_metric(span: DataDogAgentSpan, name: str) -> float:
@@ -421,3 +429,79 @@ class BaseUserEventsSmokeTests:
                 return
 
         raise AssertionError("Agent spans should include user login event tags")
+
+
+# ---------------------------------------------------------------------------
+# IAST
+# ---------------------------------------------------------------------------
+
+
+class BaseIastSmokeTests:
+    """Trigger a tainted path traversal sink and verify IAST report, stack, metric, and retention carriers."""
+
+    def setup_iast_smoke(self) -> None:
+        self.r = weblog.post("/iast/path_traversal/test_insecure", data={"path": "/var/log"})
+
+    def test_iast_smoke(self) -> None:
+        assert self.r.status_code == 200
+        spans = [span for _, span in interfaces.mocked_backend.get_spans(self.r)]
+        assert spans, "Backend should receive the IAST request trace"
+
+        report_spans = [
+            (span, reports) for span in spans if (reports := span.get_structured_payloads("iast", "_dd.iast.json"))
+        ]
+        assert report_spans, "Backend should receive an IAST vulnerability report"
+
+        for span, reports in report_spans:
+            assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
+            iast_enabled = span.metrics.get("_dd.iast.enabled")
+            if iast_enabled is None:
+                iast_enabled = span.meta.get("_dd.iast.enabled")
+            assert not isinstance(iast_enabled, bool)
+            assert iast_enabled in (1, "1"), f"Unexpected _dd.iast.enabled value: {iast_enabled!r}"
+
+            stack_ids: set[str] = set()
+            for report in reports:
+                jsonschema.validate(report, _IAST_SCHEMA)
+                sources = report.get("sources", [])
+                path_sources = {
+                    idx
+                    for idx, src in enumerate(sources)
+                    if src.get("name") == "path" and src.get("value") == "/var/log"
+                }
+                assert path_sources, "IAST report should include the tainted 'path' source"
+
+                vulns = [v for v in report["vulnerabilities"] if v["type"] == "PATH_TRAVERSAL"]
+                assert vulns, "IAST report should include the PATH_TRAVERSAL vulnerability"
+                for vuln in vulns:
+                    value_parts = vuln.get("evidence", {}).get("valueParts", [])
+                    assert any(
+                        part.get("source") in path_sources and "/var/log" in part.get("value", "")
+                        for part in value_parts
+                    ), "PATH_TRAVERSAL evidence should reference the tainted 'path' source"
+                    stack_id = vuln.get("location", {}).get("stackId")
+                    assert isinstance(stack_id, str)
+                    assert stack_id
+                    stack_ids.add(stack_id)
+
+            stack_payloads = span.get_structured_payloads("_dd.stack")
+            assert stack_payloads, "Backend should receive the _dd.stack carrier for IAST"
+            for stack_payload in stack_payloads:
+                vuln_stacks = [s for s in stack_payload.get("vulnerability", []) if s.get("id") in stack_ids]
+                assert vuln_stacks, "Vulnerability stack ID should match the IAST finding"
+                for stack in vuln_stacks:
+                    assert isinstance(stack.get("language"), str)
+                    assert stack["language"]
+                    frames = stack.get("frames")
+                    assert isinstance(frames, list)
+                    assert 0 < len(frames) <= 32
+
+        assert any(
+            data.get("request", {}).get("content", {}).get("request_type") == "generate-metrics"
+            and any(
+                (serie.get("namespace") or data["request"]["content"].get("payload", {}).get("namespace")) == "iast"
+                and serie.get("metric") == "executed.sink"
+                for serie in data["request"]["content"].get("payload", {}).get("series", [])
+            )
+            for data in interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=False)
+        ), "Backend should receive IAST executed.sink telemetry"

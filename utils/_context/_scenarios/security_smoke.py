@@ -14,6 +14,7 @@ class SecuritySmoke(DdTraceEndToEndScenario):
         super().__init__(
             "SECURITY_SMOKE",
             rc_api_enabled=True,
+            iast_enabled=True,
             weblog_env={
                 "DD_TELEMETRY_METRICS_ENABLED": "true",
                 "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",

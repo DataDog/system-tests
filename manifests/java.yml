@@ -1632,6 +1632,10 @@ manifest:
     - weblog_declaration:
         "*": v1.60.3
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast:
+    - weblog_declaration:
+        play: missing_feature
+        ratpack: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
         spring-boot-payara: v1.66.0  # TODO: a lower version might be supported
@@ -1653,6 +1657,11 @@ manifest:
         vertx4: missing_feature (login endpoints not implemented)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
     - declaration: flaky (APPSEC-60872)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast:
+    - declaration: flaky (APPSEC-60872)
+    - weblog_declaration:
+        play: missing_feature
+        ratpack: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - declaration: flaky (APPSEC-60872)
     - weblog_declaration:
@@ -1676,10 +1685,18 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast:
+    - weblog_declaration:
+        play: missing_feature
+        ratpack: missing_feature
   tests/appsec/smoke_tests/test_security.py:
     - weblog_declaration:
         "*": v1.60.3
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        play: missing_feature
+        ratpack: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         spring-boot-payara: v1.66.0

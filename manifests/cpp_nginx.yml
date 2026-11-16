@@ -77,6 +77,7 @@ manifest:
   tests/appsec/iast/test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/rasp/: irrelevant (ASM is not implemented in C++)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity: '>=1.19.1'  # TODO: a lower version might be supported
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast: irrelevant (ASM is not implemented in C++)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
@@ -84,13 +85,16 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity: '>=1.19.1'  # TODO: a lower version might be supported
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast: irrelevant (ASM is not implemented in C++)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast: irrelevant (ASM is not implemented in C++)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity: '>=1.19.1'
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: irrelevant (ASM is not implemented in C++)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig: '>=1.19.1'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke: missing_feature
