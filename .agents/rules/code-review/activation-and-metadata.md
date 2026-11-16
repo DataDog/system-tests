@@ -75,11 +75,6 @@
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
 
-### META-010: Gate each method at the versions that have its behavior.
-- Severity: P0
-- Flag: A version gate that lets a method run on a release without its behavior. If a manifest activates a class or a file at one version, every method must pass from that version. If a method needs a later version, add a method-level entry with that version. If a later release changes the asserted behavior, the range must end before that release. If a change ships on several active release lines, the range must cover each line.
-- Detect: A class-level or file-level entry sets one version, and a method asserts behavior that a later release added. A version floor has no upper bound, and a later release changed the asserted behavior. A version range in a manifest or in `tests/parametric/capabilities.yml` omits an active release line with the same change.
-
 ### META-011: Link a test class to the RFC that it implements.
 - Severity: P1
 - Flag: A test class that implements an RFC and has no `@rfc` decorator. If an RFC defines the behavior that a test class checks, the class must carry `@rfc("<link>")` from `utils`.
