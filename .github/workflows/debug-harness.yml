@@ -16,7 +16,7 @@ on:
         default: datadog/agent:latest
         type: string
       scenario:
-        description: Which scenario
+        description: Whitespace-separated scenario names
         default: DEBUGGER_EXPRESSION_LANGUAGE
         type: string
       run_args:
@@ -27,6 +27,10 @@ on:
         description: How many jobs
         default: "10"
         type: string
+      iterations:
+        description: How many sequential iterations per job (1-100)
+        default: 20
+        type: number
       dev_or_prod:
         description: Run scenario against last release (prod) or last commit on main (dev)?
         default: "prod"
@@ -45,6 +49,7 @@ env:
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
   RUN_ARGS:               ${{ (github.event_name == 'workflow_dispatch' && inputs.run_args)              || '' }}
+  ITERATIONS: ${{ inputs.iterations }}
 
 jobs:
   generate-matrix:
@@ -70,6 +75,14 @@ jobs:
       - name: Get dev artifact
         if: env.DEV_OR_PROD == 'dev'
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
+      - name: Verify original Python wheel
+        if: env.LIBRARY == 'python' && env.LIBRARY_TARGET_BRANCH == '93bfcc62fb918901abe6a24df03fc206a2fcfdf0'
+        run: |
+          wheel='ddtrace-4.18.0rc1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl'
+          curl --fail --location --retry 5 --retry-delay 2 --retry-connrefused \
+            --output "binaries/$wheel" \
+            "https://dd-trace-py-builds.s3.amazonaws.com/93bfcc62fb918901abe6a24df03fc206a2fcfdf0/$wheel"
+          printf '%s  %s\n' 'dfa835ef969266d3517f10bb6ac82a9181ef03a3fb615ab860352f96f3e31090' "binaries/$wheel" | sha256sum --check --strict
       - name: Build weblog
         id: build
         if: env.SCENARIO != 'PARAMETRIC'
@@ -92,6 +105,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      ASM_PROXY_SIGNAL_STACKS: '1'
+      PYTHONPATH: .
     needs:
       - generate-matrix
       - build
@@ -121,17 +137,32 @@ jobs:
     - name: Run scenario
       run: |
         set -e
+        if ! [[ "$ITERATIONS" =~ ^([1-9][0-9]?|100)$ ]]; then
+          echo "iterations must be an integer from 1 to 100" >&2
+          exit 2
+        fi
+        read -ra scenarios <<< "$SCENARIO"
+        if [[ "${#scenarios[@]}" -eq 0 ]]; then
+          echo "At least one scenario is required" >&2
+          exit 2
+        fi
+        for scenario in "${scenarios[@]}"; do
+          if ! [[ "$scenario" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
+            echo "Scenario names must contain uppercase letters, digits and underscores" >&2
+            exit 2
+          fi
+        done
         read -ra run_args <<< "$RUN_ARGS"
         scenario_args=()
         if [[ "$SCENARIO" == "PARAMETRIC" ]]; then
           # the image is only built if missing: by the first run, then reused
           scenario_args=(-L "$LIBRARY" --skip-parametric-build --github-token-file="$RUNNER_TEMP/github_token.txt")
         fi
-        for i in {1..100}
+        for i in $(seq 1 "$ITERATIONS")
         do
           echo "Run #$i"
           # ++ makes run.sh forward run_args to pytest, without parsing them as scenarios
-          ./run.sh "$SCENARIO" "${scenario_args[@]}" ++ "${run_args[@]}"
+          ./run.sh "${scenarios[@]}" "${scenario_args[@]}" ++ "${run_args[@]}"
         done
     - name: Remove secrets
       if: always() && steps.export_token.outcome == 'success'
