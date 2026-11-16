@@ -71,6 +71,8 @@ manifest:
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
         php-fpm-8.6: v1.17.0-dev
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -82,6 +84,8 @@ manifest:
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
         php-fpm-8.6: v1.17.0-dev
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -93,6 +97,8 @@ manifest:
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
         php-fpm-8.6: v1.17.0-dev
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: irrelevant (language not implementing this feature)
@@ -579,7 +585,25 @@ manifest:
   tests/appsec/test_automated_payment_events.py:
     - weblog_declaration:
         "*": v1.17.0-dev
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_checkout_session:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_cancellation:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_failure:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_intent:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_success:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement::test_disable_stripe_rules:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
@@ -992,6 +1016,18 @@ manifest:
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.0.0
@@ -1406,6 +1442,9 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_span_kind:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: v1.17.0
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (PDO integration does not emit db.connection_string)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
@@ -1415,6 +1454,9 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_span_kind:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: v0.91.1
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
