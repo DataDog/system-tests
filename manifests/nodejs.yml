@@ -879,7 +879,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: irrelevant (Next.js reports block:success once RASP blocks its requests)
+    - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
@@ -940,7 +940,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: irrelevant (Next.js reports block:success once RASP blocks its requests)
+    - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
@@ -988,7 +988,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: irrelevant (Next.js reports block:success once RASP blocks its requests)
+    - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
@@ -1040,7 +1040,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: irrelevant (Next.js reports block:success once RASP blocks its requests)
+    - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
@@ -1088,7 +1088,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: irrelevant (Next.js reports block:success once RASP blocks its requests)
+    - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
