@@ -579,6 +579,21 @@ manifest:
   tests/appsec/test_automated_payment_events.py:
     - weblog_declaration:
         "*": v1.17.0-dev
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_checkout_session:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_cancellation:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_failure:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_intent:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules::test_payment_success:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
@@ -992,6 +1007,18 @@ manifest:
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event:
+    - declaration: bug (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.0.0
