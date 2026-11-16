@@ -216,9 +216,8 @@ class Test_Shi_Telemetry_V2:
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
-        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
         assert any(
-            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, block_action=block_action)
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, block_action="block:success")
             for s in series_match
         ), [s.get("tags") for s in series_match]
 
