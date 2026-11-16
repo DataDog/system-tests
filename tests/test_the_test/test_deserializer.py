@@ -300,9 +300,29 @@ def test_deserialize_v1_trace_bytes_attributes_match_convert_bytes_values():
 @scenarios.test_the_test
 def test_deserialize_v1_trace_key_value_list_attribute():
     """Test that span attributes with key_value_list type (V1AnyValueKeys.key_value_list=7)
-    are deserialized to a nested dict.
-    # TODO(v1-kvlist-e2e): add an E2E system test once a tracer emits keyValueList in a V1 payload.
+    are deserialized to a nested dict. A key_value_list is a flat [key, type, value, ...] array.
     """
+    kvl = int(V1AnyValueKeys.key_value_list)
+    # _dd.stack has the shape the PHP tracer sends: arrays of key_value_lists, with string refs.
+    # Streamed strings: 11 is "id" (first seen in the exploit), reused as a ref in the frame.
+    stack = [
+        "exploit",
+        int(V1AnyValueKeys.array),
+        [
+            kvl,
+            [
+                "language",
+                int(V1AnyValueKeys.string),
+                "php",
+                "id",
+                int(V1AnyValueKeys.string),
+                "stack-id",
+                "frames",
+                int(V1AnyValueKeys.array),
+                [kvl, ["line", int(V1AnyValueKeys.int_value), 21, 11, int(V1AnyValueKeys.int_value), 0]],
+            ],
+        ],
+    ]
     content = msgpack.packb(
         {
             2: "cid",
@@ -315,8 +335,11 @@ def test_deserialize_v1_trace_key_value_list_attribute():
                             2: "op",
                             9: [
                                 "my-map",
-                                int(V1AnyValueKeys.key_value_list),
-                                {"nested-key": [int(V1AnyValueKeys.string), "nested-val"]},
+                                kvl,
+                                ["nested-key", int(V1AnyValueKeys.string), "nested-val"],
+                                "_dd.stack",
+                                kvl,
+                                stack,
                             ],
                         }
                     ],
@@ -332,6 +355,9 @@ def test_deserialize_v1_trace_key_value_list_attribute():
     attrs = result["chunks"][0]["spans"][0]["attributes"]
     assert "my-map" in attrs
     assert attrs["my-map"] == {"nested-key": "nested-val"}
+    assert attrs["_dd.stack"] == {
+        "exploit": [{"language": "php", "id": "stack-id", "frames": [{"line": 21, "id": 0}]}],
+    }
 
 
 @scenarios.test_the_test
