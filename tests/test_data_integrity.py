@@ -234,7 +234,7 @@ class Test_Agent:
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.
             span_with_sampling_data = None
             for span in trace:
-                if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:
+                if span.get_sampling_priority() is not None:
                     if span.get("parent_id") in (0, None):
                         return span
                     elif span_with_sampling_data is None:
@@ -250,8 +250,7 @@ class Test_Agent:
             if not span:
                 continue
 
-            metrics = span["metrics"]
-            sampling_priority = metrics.get("_sampling_priority_v1")
+            sampling_priority = span.get_sampling_priority()
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
                 trace_ids_reported_by_tracer.add(trace.trace_id_as_int)
                 if trace.trace_id_as_int not in trace_ids_reported_by_agent:
