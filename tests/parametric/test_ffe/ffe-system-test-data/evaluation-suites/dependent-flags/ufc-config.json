@@ -6,7 +6,8 @@
     "unknownEnvironmentField": "ignored"
   },
   "evaluatorParams": {
-    "maxDependencyDepth": 2
+    "maxDependencyDepth": 2,
+    "unknownEvaluatorField": "ignored"
   },
   "flags": {
     "dependent-leaf-on": {
@@ -25,7 +26,8 @@
           "splits": [
             {
               "variationKey": "on",
-              "shards": []
+              "shards": [],
+              "reason": "STATIC"
             }
           ],
           "doLog": true
@@ -67,7 +69,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -77,7 +80,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -119,7 +123,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -129,7 +134,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -171,7 +177,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -181,7 +188,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -223,7 +231,8 @@
           "splits": [
             {
               "variationKey": "parent-on",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -233,7 +242,8 @@
           "splits": [
             {
               "variationKey": "parent-off",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -275,7 +285,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -285,7 +296,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -323,7 +335,8 @@
           "splits": [
             {
               "variationKey": "ready",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -361,7 +374,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -410,7 +424,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -420,7 +435,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -469,7 +485,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -479,7 +496,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -528,7 +546,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -553,7 +572,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -563,7 +583,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -612,7 +633,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -622,7 +644,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -669,7 +692,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -723,7 +747,8 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -733,7 +758,8 @@
           "splits": [
             {
               "variationKey": "fallback",
-              "shards": []
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
@@ -780,7 +806,86 @@
           "splits": [
             {
               "variationKey": "matched",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-transitive-error-parent": {
+      "key": "dependent-transitive-error-parent",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned-transitive-error-parent"
+        }
+      },
+      "allocations": [
+        {
+          "key": "requires-missing",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-missing-prerequisite"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": [],
+              "reason": "TARGETING_MATCH"
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-transitive-error-root": {
+      "key": "dependent-transitive-error-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned"
+        }
+      },
+      "allocations": [
+        {
+          "key": "requires-parent",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-transitive-error-parent"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "matched"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -818,7 +923,8 @@
           "splits": [
             {
               "variationKey": "a",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
             }
           ],
           "doLog": true
@@ -856,7 +962,66 @@
           "splits": [
             {
               "variationKey": "b",
-              "shards": []
+              "shards": [],
+              "reason": "TARGETING_MATCH"
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-unknown-fields-root": {
+      "key": "dependent-unknown-fields-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "direct-match"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "direct-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "dependent-match",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on",
+                    "unknownFlagEvaluationField": "ignored"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ],
+                  "unknownConditionField": {
+                    "nested": true
+                  }
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": [],
+              "reason": "TARGETING_MATCH"
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": [],
+              "reason": "DEFAULT"
             }
           ],
           "doLog": true
