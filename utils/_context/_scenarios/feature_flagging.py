@@ -29,7 +29,6 @@ class FeatureFlaggingAndExperimentation(DdTraceEndToEndScenario):
             # Allow final EVP batches to reach the backend after the weblog flushes and stops.
             agent_interface_timeout=15,
             weblog_env=_FFE_WEBLOG_ENV,
-            doc="",
             scenario_groups=[scenario_groups.ffe],
         )
 
@@ -41,6 +40,8 @@ class _ProvisionalFeatureFlaggingScenario(DdTraceEndToEndScenario):
 
 
 class FeatureFlaggingEvaluationTelemetryOptOut(_ProvisionalFeatureFlaggingScenario):
+    """Per-subject evaluation telemetry opt-out, with unchanged assignments and exposures."""
+
     def __init__(self) -> None:
         super().__init__(
             "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT",
@@ -51,12 +52,13 @@ class FeatureFlaggingEvaluationTelemetryOptOut(_ProvisionalFeatureFlaggingScenar
                 "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
                 "DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED": "true",
             },
-            doc="Per-subject evaluation telemetry opt-out, with unchanged assignments and exposures.",
             scenario_groups=[scenario_groups.ffe],
         )
 
 
 class FeatureFlaggingEvaluationTelemetryOptOutDisabled(_ProvisionalFeatureFlaggingScenario):
+    """Default-disabled control for per-subject evaluation telemetry opt-out."""
+
     def __init__(self) -> None:
         super().__init__(
             "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED",
@@ -67,19 +69,19 @@ class FeatureFlaggingEvaluationTelemetryOptOutDisabled(_ProvisionalFeatureFlaggi
                 "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
                 # Omit the opt-out option: an attribute must not activate the feature by itself.
             },
-            doc="Default-disabled control for per-subject evaluation telemetry opt-out.",
             scenario_groups=[scenario_groups.ffe],
         )
 
 
 class FeatureFlaggingEvpStress(DdTraceEndToEndScenario):
+    """Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops."""
+
     def __init__(self) -> None:
         super().__init__(
             "FEATURE_FLAGGING_EVP_STRESS",
             rc_api_enabled=True,
             agent_interface_timeout=15,
             weblog_env=_FFE_WEBLOG_ENV,
-            doc="Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops.",
             scenario_groups=[scenario_groups.ffe],
         )
 

@@ -56,13 +56,12 @@ class _DockerSSIScenario(Scenario):
     def __init__(
         self,
         name: str,
-        doc: str,
         extra_env_vars: dict | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         *,
         appsec_enabled: bool | None = None,
     ) -> None:
-        super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
+        super().__init__(name, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
         self._appsec_enabled = appsec_enabled
         self.agent_port = _get_free_port()
@@ -641,29 +640,32 @@ def _get_free_port():
 
 
 class DockerSsi(_DockerSSIScenario):
+    """Validates the installer and the ssi on a docker environment"""
+
     def __init__(self) -> None:
         super().__init__(
             "DOCKER_SSI",
-            doc="Validates the installer and the ssi on a docker environment",
             extra_env_vars={"DD_SERVICE": "payments-service"},
             scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
         )
 
 
 class DockerSsiServicenaming(_DockerSSIScenario):
+    """Validates the installer and the ssi service naming features on a docker environment"""
+
     def __init__(self) -> None:
         super().__init__(
             "DOCKER_SSI_SERVICENAMING",
-            doc="Validates the installer and the ssi service naming features on a docker environment",
             scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
         )
 
 
 class DockerSsiAppsec(_DockerSSIScenario):
+    """Validates the installer and the ssi on a docker environment"""
+
     def __init__(self) -> None:
         super().__init__(
             "DOCKER_SSI_APPSEC",
-            doc="Validates the installer and the ssi on a docker environment",
             extra_env_vars={"DD_SERVICE": "payments-service"},
             appsec_enabled=True,
             scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
@@ -671,9 +673,10 @@ class DockerSsiAppsec(_DockerSSIScenario):
 
 
 class DockerSsiCrashtracking(_DockerSSIScenario):
+    """Validates the crashtracking for ssi on a docker environment"""
+
     def __init__(self) -> None:
         super().__init__(
             "DOCKER_SSI_CRASHTRACKING",
-            doc="Validates the crashtracking for ssi on a docker environment",
             scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
         )

@@ -426,7 +426,6 @@ def _main():
     data = {
         scenario.name: {
             "name": scenario.name,
-            "doc": scenario.doc,
             "github_workflow": scenario.github_workflow,
             "scenario_groups": scenario.scenario_groups,
         }

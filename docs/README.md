@@ -106,5 +106,6 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 - [Cursor guide](ai/cursor-ai-comprehensive-guide.md) -- comprehensive Cursor AI guide
 - [Cursor examples](ai/cursor-practical-examples.md) -- practical usage examples
 - [Prompt validation](ai/ai-tools-prompt-validation.md) -- testing AI prompts with promptfoo
+- [Review learning](ai/review-learning.md) -- mining merged pull requests to improve the code-review rules
 - [Datadog MCP server](ai/datadog-mcp-server.md) -- Datadog MCP server integration
 - [Java endpoint prompt](ai/ai-prompt-java-endpoint-prompt.md) -- Java endpoint creation prompt

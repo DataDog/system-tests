@@ -180,10 +180,11 @@ In the following code (*utils/_context/_scenarios/auto_injection.py*) you can se
 
 ```Python
 class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    """Onboarding Single Step Instrumentation scenario with profiling activated by the app env var"""
+
     def __init__(self) -> None:
         super().__init__(
             "SIMPLE_AUTO_INJECTION_PROFILING",
-            "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
             app_env={
                 "DD_PROFILING_ENABLED": "auto",
                 "DD_PROFILING_UPLOAD_PERIOD": "10",

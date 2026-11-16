@@ -17,12 +17,14 @@ from ._core import Scenario, scenario_groups
 
 
 class K8sInjectorDevSingleService(Scenario):
-    """Scenario that tests kubernetes lib injection using the injector-dev tool"""
+    """Kubernetes Injector Dev Scenario
+
+    Scenario that tests kubernetes lib injection using the injector-dev tool
+    """
 
     def __init__(self) -> None:
         super().__init__(
             "K8S_INJECTOR_DEV_SINGLE_SERVICE",
-            doc="Kubernetes Injector Dev Scenario",
             github_workflow="k8s_injector_dev",
             scenario_groups=[scenario_groups.k8s_injector_dev],
         )

@@ -9,7 +9,6 @@ class _GraphQlEndToEndScenario(EndToEndScenario):
         self,
         name: str,
         *,
-        doc: str,
         agent_env: dict[str, str | None] | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
@@ -18,7 +17,6 @@ class _GraphQlEndToEndScenario(EndToEndScenario):
         super().__init__(
             name,
             agent_env=agent_env,
-            doc=doc,
             scenario_groups=scenario_groups,
             weblog_categories=[WeblogCategory.dd_trace_graphql],
             weblog_env=weblog_env,
@@ -28,6 +26,8 @@ class _GraphQlEndToEndScenario(EndToEndScenario):
 
 # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
 class GraphqlAppsec(_GraphQlEndToEndScenario):
+    """AppSec tests for GraphQL integrations"""
+
     def __init__(self) -> None:
         super().__init__(
             "GRAPHQL_APPSEC",
@@ -36,13 +36,14 @@ class GraphqlAppsec(_GraphQlEndToEndScenario):
                 "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
             },
             weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-            doc="AppSec tests for GraphQL integrations",
             scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
         )
 
 
 # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
 class GraphqlErrorTracking(_GraphQlEndToEndScenario):
+    """GraphQL error tracking tests with OpenTelemetry semantics"""
+
     def __init__(self) -> None:
         super().__init__(
             "GRAPHQL_ERROR_TRACKING",
@@ -51,6 +52,5 @@ class GraphqlErrorTracking(_GraphQlEndToEndScenario):
                 "DD_TRACE_GRAPHQL_ERROR_TRACKING": "true",
             },
             weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-            doc="GraphQL error tracking tests with OpenTelemetry semantics",
             scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
         )

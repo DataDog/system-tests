@@ -3,6 +3,8 @@ from utils.proxy.ports import ProxyPorts
 
 
 class RuntimeMetricsEnabled(DdTraceEndToEndScenario):
+    """Test runtime metrics"""
+
     def __init__(self) -> None:
         super().__init__(
             "RUNTIME_METRICS_ENABLED",
@@ -13,11 +15,12 @@ class RuntimeMetricsEnabled(DdTraceEndToEndScenario):
             weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
             runtime_metrics_enabled=True,
             library_interface_timeout=20,
-            doc="Test runtime metrics",
         )
 
 
 class OtlpRuntimeMetrics(DdTraceEndToEndScenario):
+    """Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names"""
+
     def __init__(self) -> None:
         super().__init__(
             "OTLP_RUNTIME_METRICS",
@@ -32,5 +35,4 @@ class OtlpRuntimeMetrics(DdTraceEndToEndScenario):
             runtime_metrics_enabled=True,
             include_opentelemetry=True,
             library_interface_timeout=20,
-            doc="Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names",
         )

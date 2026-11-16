@@ -10,10 +10,10 @@ ENV DD_TRACE_HEADER_TAGS=user-agent
 
 EXPOSE 7777/tcp
 
-# build.sh only reads from these three subdirectories (see apache-mod/build.sh); keep
-# this list in sync with it, since it drives the base-image content hash.
+# build.sh only reads from these directories (see apache-mod/build.sh, without argument it installs the plain
+# weblog); keep this list in sync with it, since it drives the base-image content hash.
 COPY apache-mod /tmp/php/apache-mod
-COPY weblogs /tmp/php/weblogs
+COPY weblogs/plain /tmp/php/weblogs/plain
 COPY common /tmp/php/common
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
