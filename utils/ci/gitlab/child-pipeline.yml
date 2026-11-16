@@ -40,7 +40,6 @@ setup:
     KUBERNETES_HELPER_CPU_REQUEST: 50m
     KUBERNETES_HELPER_MEMORY_REQUEST: 25Mi
 
-
 .system_tests_build:
   extends: .system_tests_base
   script:
@@ -50,7 +49,7 @@ setup:
       - binaries/
 
 .system_tests_run:
-  extends: 
+  extends:
     - .system_tests_base
     - .kube_requests
   timeout: 15 minutes
