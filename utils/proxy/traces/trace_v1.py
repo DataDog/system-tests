@@ -633,13 +633,46 @@ def _uncompress_span_event(event: dict, strings: list[str]) -> None:
                 event["name"] = strings[name_value]
             else:
                 event["name"] = name_value
+        # Agent payload (idx.SpanEvent protobuf): the name is a reference into the strings table
+        if "nameRef" in event:
+            name_ref = event.pop("nameRef")
+            event["name"] = strings[name_ref] if isinstance(name_ref, int) else name_ref
         # Handle time -> time_unix_nano mapping
         if "time" in event and "time_unix_nano" not in event:
             event["time_unix_nano"] = event.pop("time")
 
     # Uncompress attributes
     if "attributes" in event:
-        event["attributes"] = _uncompress_attributes(event["attributes"], strings)
+        event["attributes"] = {
+            strings[int(k)]: _resolve_agent_v1_any_value(v, strings) for k, v in event["attributes"].items()
+        }
+
+
+def _resolve_agent_v1_any_value(value: dict, strings: list[str]) -> Any:  # noqa: ANN401
+    """Converts an idx.AnyValue, as deserialized by MessageToDict, to a plain python value,
+    resolving string refs (including inside arrays and key/value lists) from the strings table.
+    AnyValue is a oneof, so MessageToDict always emits the set field, even when it holds a default value.
+    """
+
+    if "stringValueRef" in value:
+        return strings[value["stringValueRef"]]
+    if "boolValue" in value:
+        return value["boolValue"]
+    if "intValue" in value:
+        return int(value["intValue"])  # int64 are serialized as strings by MessageToDict
+    if "doubleValue" in value:
+        return value["doubleValue"]
+    if "bytesValue" in value:
+        return base64.b64decode(value["bytesValue"])
+    if "arrayValue" in value:
+        return [_resolve_agent_v1_any_value(v, strings) for v in value["arrayValue"].get("values", [])]
+    if "keyValueList" in value:
+        return {
+            strings[kv.get("key", 0)]: _resolve_agent_v1_any_value(kv.get("value", {}), strings)
+            for kv in value["keyValueList"].get("keyValues", [])
+        }
+
+    raise ValueError(f"Unknown attribute value: {value}")
 
 
 def _uncompress_agent_v1_trace(data: dict, interface: str):
@@ -664,8 +697,8 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
                 # Uncompress span links
                 for link in span.get("links", []):
                     _uncompress_span_link(link, strings)
-                # Uncompress span events (handle both camelCase and snake_case field names)
-                span_events = span.get("spanEvents") or span.get("span_events")
+                # Uncompress span events (idx.Span names the field `events`; also handle legacy-style names)
+                span_events = span.get("events") or span.get("spanEvents") or span.get("span_events")
                 if span_events:
                     for event in span_events:
                         _uncompress_span_event(event, strings)

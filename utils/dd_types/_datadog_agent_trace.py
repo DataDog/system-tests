@@ -207,6 +207,31 @@ class DataDogAgentSpan(ABC):
 
         return [DataDogSpanLink.from_agent_legacy_format(data) for data in raw_deserilialized]
 
+    @abstractmethod
+    def _get_native_span_events(self) -> list[dict] | None:
+        """Returns the span events carried in the span's native span events field, normalized, or None if the
+        field is absent
+        """
+
+    def get_span_events(self) -> list[dict]:
+        """Returns the span events, as a list of {"name": str, "time_unix_nano": int, "attributes": dict}.
+
+        Attribute values are plain python values (str, bool, int, float, list).
+
+        Agents carry span events either in the span's native span events field, or as a JSON string in the
+        `events` tag (OTLP-ingested span events were sent as a tag until DataDog/datadog-agent#59621).
+        """
+
+        native_events = self._get_native_span_events()
+        if native_events is not None:
+            return native_events
+
+        raw = self.meta.get("events")
+        if raw is None:
+            return []
+
+        return json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -243,6 +268,21 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
 
     def get_sampling_priority(self) -> int | None:
         return self.metrics["_sampling_priority_v1"]
+
+    def _get_native_span_events(self) -> list[dict] | None:
+        if "spanEvents" not in self.raw_span:
+            return None
+
+        return [
+            {
+                "name": event.get("name", ""),
+                "time_unix_nano": int(event.get("timeUnixNano", 0)),
+                "attributes": {
+                    key: _parse_legacy_attribute_value(value) for key, value in event.get("attributes", {}).items()
+                },
+            }
+            for event in self.raw_span["spanEvents"]
+        ]
 
 
 class DataDogAgentSpanV10(DataDogAgentSpan):
@@ -282,3 +322,40 @@ class DataDogAgentSpanV10(DataDogAgentSpan):
 
     def get_sampling_priority(self) -> int | None:
         return self.trace.raw_trace.get("priority")
+
+    def _get_native_span_events(self) -> list[dict] | None:
+        # names and attributes are resolved from the strings table by the proxy (see _uncompress_agent_v1_trace)
+        if "events" not in self.raw_span:
+            return None
+
+        return [
+            {
+                "name": event.get("name", ""),
+                "time_unix_nano": int(event.get("time_unix_nano", 0)),
+                "attributes": event.get("attributes", {}),
+            }
+            for event in self.raw_span["events"]
+        ]
+
+
+def _parse_legacy_attribute_value(value: dict) -> Any:  # noqa: ANN401
+    """Converts a datadog.trace.AttributeAnyValue, as deserialized by MessageToDict, to a plain python value.
+
+    MessageToDict omits fields holding their default value: `type` is absent for STRING_VALUE, and the value
+    field is absent when it is empty/zero/false.
+    """
+
+    type_ = value.get("type", "STRING_VALUE")
+
+    if type_ == "STRING_VALUE":
+        return value.get("stringValue", "")
+    if type_ == "BOOL_VALUE":
+        return value.get("boolValue", False)
+    if type_ == "INT_VALUE":
+        return int(value.get("intValue", 0))  # int64 are serialized as strings by MessageToDict
+    if type_ == "DOUBLE_VALUE":
+        return value.get("doubleValue", 0.0)
+    if type_ == "ARRAY_VALUE":
+        return [_parse_legacy_attribute_value(v) for v in value.get("arrayValue", {}).get("values", [])]
+
+    raise ValueError(f"Unsupported span event attribute type {type_} for: {value}")
