@@ -223,7 +223,11 @@ class Test_BuildPipeline:
             extends = job["extends"] if isinstance(job["extends"], list) else [job["extends"]]
             for parent in extends:
                 assert parent in child, f"{name} extends unknown job {parent}"
-                assert child[parent].get("extends", ".system_tests_base") in child.keys() | templates.keys()
+                grandparents = child[parent].get("extends", ".system_tests_base")
+                if not isinstance(grandparents, list):
+                    grandparents = [grandparents]
+                for grandparent in grandparents:
+                    assert grandparent in child.keys() | templates.keys(), f"{parent} extends unknown job {grandparent}"
 
     def test_thread_context_sharing_runs_on_cws_runner(self, tmp_path: Path) -> None:
         params = {
