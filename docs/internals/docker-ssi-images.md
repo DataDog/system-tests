@@ -26,15 +26,15 @@ They are slow to build, so CI stores image 2 in the private registry. Images 3 a
 
 When the base image is **not** in the registry:
 
-1. Build images 1 and 2, without the Docker cache.
-2. Build image 3 on image 2, then image 4 on image 3.
+1. Build images 1 and 2. Docker can reuse its cache for them.
+2. Build image 3 on image 2, then image 4 on image 3, without the Docker cache.
 3. Start the containers and run the tests.
 4. At the end of the session, tag image 2 with the registry tag and push it.
 
 When the base image **is** in the registry:
 
 1. Pull it. Images 1 and 2 are not built.
-2. Build image 3 on the pulled image, then image 4 on image 3.
+2. Build image 3 on the pulled image, then image 4 on image 3. Docker can reuse its cache for them.
 3. Start the containers and run the tests. Nothing is pushed.
 
 ## The registry tag
@@ -83,4 +83,5 @@ equivalent images, and the repository allows a tag to be pushed again.
 ## Local runs
 
 Without `PRIVATE_DOCKER_REGISTRY`, the base image is never found, so it is always built and never pushed.
-Docker reuses cached `RUN` steps for images 3 and 4. Add `--ssi-force-build` to rebuild them.
+Docker reuses its cache for images 1 and 2: the OS packages, the runtime and the Datadog installer can be
+old. Add `--ssi-force-build` to build them again.
