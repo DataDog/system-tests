@@ -83,6 +83,25 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: missing_feature
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
+  tests/appsec/test_event_tracking.py::Test_CustomEvent: incomplete_test_app (The /custom_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: incomplete_test_app (The /custom_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: v12.144.0  # A lower version might be supported
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent::test_user_login_success_event:
+    - weblog_declaration:
+        "*": v12.144.0  # A lower version might be supported
+        nodejs-apigw-rest: missing_feature (The Lambda event extractor uses sourceIp without resolving forwarded headers)
+        nodejs-apigw-http: missing_feature (The Lambda event extractor uses sourceIp without resolving forwarded headers)
+        nodejs-function-url: missing_feature (The Lambda event extractor uses sourceIp without resolving forwarded headers)
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: bug (APPSEC-12255)
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: incomplete_test_app (The v2 login endpoints are not implemented in this Lambda weblog)
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:  # TODO: a lower version might be supported
     - weblog_declaration:
@@ -132,6 +151,11 @@ manifest:
         "*": irrelevant (only api gateway inferred spans are specified for now)
         nodejs-apigw-http: missing_feature
         nodejs-apigw-rest: missing_feature
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_SignupSdk: incomplete_test_app (The custom-event endpoints used for Java signup tracking are not implemented)
+  tests/appsec/test_lambda_sdk.py::Test_Lambda_UserSdk:
+    - weblog_declaration:
+        "*": v12.144.0  # A lower version might be supported
+        nodejs-alb-multi: incomplete_test_app (The /users response uses headers instead of the required multiValueHeaders field)
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_reports.py::Test_AttackTimestamp: '>=12.142.0'  # TODO: a lower version might be supported
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: '>=12.142.0'  # TODO: a lower version might be supported

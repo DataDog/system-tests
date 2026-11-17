@@ -112,6 +112,25 @@ def _parametric_images() -> set[str]:
     return images
 
 
+CI_DOCKERFILES = REPO_ROOT / "utils" / "ci" / "gitlab" / "docker"
+
+
+def _ci_images() -> set[str]:
+    """Source images that the CI images pull through the mirror.
+
+    A CI Dockerfile names the mirrored copy, such as <mirror>/ghcr.io/org/image:1@sha256:abc.
+    Keep its source by tag, ghcr.io/org/image:1, as the mirror lists it, so that the mirror
+    never drops it, even if no weblog uses it anymore. The digest still pins the content
+    in the Dockerfile.
+    """
+    prefix = os.environ.get("MIRROR_DEST_REGISTRY", DEFAULT_DEST_REGISTRY).rstrip("/") + "/"
+    images: set[str] = set()
+    for path in sorted(CI_DOCKERFILES.glob("*.Dockerfile")):
+        mirrored = [image for image in dockerfile_image_list(path) if image.startswith(prefix)]
+        images.update(image.removeprefix(prefix).split("@", 1)[0] for image in mirrored)
+    return images
+
+
 def collect_images(excluded: set[str]) -> list[str]:
     pairs = _library_weblog_pairs()
     images: set[str] = set()
@@ -124,6 +143,7 @@ def collect_images(excluded: set[str]) -> list[str]:
             continue
         for library, weblog in pairs:
             images.update(scenario.get_image_list(library, weblog))
+    images.update(_ci_images())
     return sorted(image for image in images if _is_mirrorable(image))
 
 

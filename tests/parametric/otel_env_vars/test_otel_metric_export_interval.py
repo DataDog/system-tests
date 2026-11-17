@@ -79,9 +79,12 @@ class Test_OTEL_METRIC_EXPORT_INTERVAL:
         assert _effective_interval(test_agent, test_library) == int(interval)
 
     @pytest.mark.parametrize("interval", [pytest.param("0", id="zero-ms")])
-    def test_zero(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        # A duration of zero is zero milliseconds, unlike an unlimited timeout.
-        assert _effective_interval(test_agent, test_library) == 0
+    def test_zero_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        # A reader cannot export every zero milliseconds, so zero is invalid
+        # (unlike a zero timeout, which means unlimited) and falls back to the default.
+        interval = _effective_interval(test_agent, test_library)
+        assert interval > 0, f"Effective interval must be strictly positive, got {interval}"
+        assert interval == _default_interval(test_library)
 
     @pytest.mark.parametrize("interval", [pytest.param(None, id="unset")])
     def test_unset_uses_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
