@@ -261,8 +261,8 @@ class BaseDebuggerTest:
             "Correlation": {"nodejs": [178]},
             "CorrelationMiddle": {"nodejs": [184]},
             "CorrelationLeaf": {"nodejs": [188]},
-            "CorrelationLoopBody": {"golang": [144], "nodejs": [194]},
-            "CorrelationLoopSibling": {"golang": [147], "nodejs": [197]},
+            "CorrelationLoopBody": {"golang": [144], "nodejs": [194], "ruby": [256]},
+            "CorrelationLoopSibling": {"golang": [147], "nodejs": [197], "ruby": [259]},
         }
 
         return definitions.get(method, {}).get(language, [])

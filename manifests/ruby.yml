@@ -2019,11 +2019,12 @@ manifest:
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": irrelevant
-        rails72: missing_feature (feature not implemented)
-        rails80: missing_feature (feature not implemented)
-        uds-rails: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
+        rails72: v2.49.0
+        rails80: v2.49.0
+        uds-rails: v2.49.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: incomplete_test_app (weblog has no /debugger/budgets endpoint)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: incomplete_test_app (weblog has no /debugger/budgets endpoint)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: incomplete_test_app (weblog has no /debugger/budgets endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": irrelevant
@@ -2094,7 +2095,12 @@ manifest:
         rails72: v2.47.0-dev
         rails80: v2.47.0-dev
         uds-rails: v2.47.0-dev
-  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.49.0
+        rails80: v2.49.0
+        uds-rails: v2.49.0
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
