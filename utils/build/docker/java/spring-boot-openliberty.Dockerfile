@@ -5,7 +5,7 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 COPY ./utils/build/docker/java/spring-boot/src ./src
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh "-o -Dmaven.repo.local=/maven"
+RUN /binaries/install_ddtrace.sh --with-openfeature "-o -Dmaven.repo.local=/maven"
 RUN mvn -o -Dmaven.repo.local=/maven -B -Popenliberty package
 
 FROM eclipse-temurin:11-jre
