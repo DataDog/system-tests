@@ -178,8 +178,18 @@ def _assert_rasp_attack(
 class BaseThreatsSmokeTests:
     """Trigger a WAF attack and verify tags, retention, numeric metrics, and report carriers at intake."""
 
+    _attack_response: HttpResponse | None = None
+
+    @classmethod
+    def _get_attack_response(cls) -> HttpResponse:
+        if cls._attack_response is None:
+            cls._attack_response = weblog.get(
+                "/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"}
+            )
+        return cls._attack_response
+
     def setup_attack_detection_smoke(self) -> None:
-        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"})
+        self.r = self._get_attack_response()
 
     def test_attack_detection_smoke(self) -> None:
         for span in _attack_spans(self.r):
@@ -188,9 +198,6 @@ class BaseThreatsSmokeTests:
             assert span.meta.get("http.request.headers.user-agent", "").startswith("Arachni/v1")
             assert span.meta.get("_dd.runtime_family")
             assert _assert_numeric_metric(span, "_dd.appsec.enabled") == 1
-            if context.library.name != "cpp_nginx":
-                assert span.meta.get("_dd.appsec.event_rules.version")
-                _assert_numeric_metric(span, "_dd.appsec.waf.duration")
 
             reports = span.get_structured_payloads("appsec", "_dd.appsec.json")
             assert reports, "Backend should receive an AppSec report"
@@ -210,6 +217,14 @@ class BaseThreatsSmokeTests:
                             assert parameter["key_path"][:1] == ["user-agent"]
                             assert parameter["value"].startswith("Arachni/v1")
                             assert parameter["highlight"]
+
+    def setup_waf_monitoring_smoke(self) -> None:
+        self.r = self._get_attack_response()
+
+    def test_waf_monitoring_smoke(self) -> None:
+        for span in _attack_spans(self.r):
+            assert span.meta.get("_dd.appsec.event_rules.version")
+            _assert_numeric_metric(span, "_dd.appsec.waf.duration")
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from tests.appsec.smoke_tests.utils import (
 
 
 @features.security_events_metadata
+@features.support_in_app_waf_metrics_report
 @scenarios.security_smoke
 class Test_SecuritySmoke_Threats(BaseThreatsSmokeTests):
     pass
