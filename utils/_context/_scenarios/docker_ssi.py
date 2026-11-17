@@ -19,6 +19,7 @@ from utils._context.containers import (
     TestedContainer,
 )
 from utils._context.docker import get_docker_client
+from utils.docker_ssi.base_image_tag import BASE_IMAGE_REPOSITORY, base_image_tag
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
@@ -383,10 +384,21 @@ class DockerSSIImageBuilder:
     def dd_lang(self) -> str:
         return "js" if self._library == "nodejs" else self._library
 
+    def _base_image_buildargs(self) -> dict[str, str | None]:
+        """Build arguments of the lang/deps image. They are also part of the base image tag."""
+        return {
+            "ARCH": self._arch,
+            "DD_LANG": self.dd_lang,
+            "RUNTIME_VERSIONS": self._installable_runtime,
+            "BASE_IMAGE": self._base_image,
+        }
+
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
+        registry_tag = base_image_tag(self.docker_tag, self._base_image_buildargs())
         docker_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
-        self._docker_registry_tag = f"{docker_registry_base_url}/system-tests/ssi_installer_{self.docker_tag}:latest"
+        self._docker_registry_tag = f"{docker_registry_base_url}/{BASE_IMAGE_REPOSITORY}:{registry_tag}"
+        logger.stdout(f"Docker SSI base image: {self._docker_registry_tag}")
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -410,7 +422,7 @@ class DockerSSIImageBuilder:
             logger.info("Base image found on the registry")
             return True
         except Exception:
-            logger.info(f"Base image not found on the registry: ssi_{self.docker_tag}")
+            logger.info(f"Base image not found on the registry: {self._docker_registry_tag}")
             return False
 
     def push_base_image(self):
@@ -500,12 +512,7 @@ class DockerSSIImageBuilder:
             path="utils/build/ssi/",
             dockerfile=dockerfile_template,
             tag=self.docker_tag,
-            buildargs={
-                "ARCH": self._arch,
-                "DD_LANG": self.dd_lang,
-                "RUNTIME_VERSIONS": self._installable_runtime,
-                "BASE_IMAGE": self._base_image,
-            },
+            buildargs=self._base_image_buildargs(),
             error_label=f"Error building docker file [{dockerfile_template}]",
             error_message="Failed to build docker image",
         )

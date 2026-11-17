@@ -18,10 +18,11 @@ COPY spring-boot/src/main/liberty/config/server.xml ./src/main/liberty/config/se
 # web resources directory required by the payara profile. Also warm up the install plugin used by
 # install_ddtrace.sh for custom jars, and the stax2-api jar shipped by the payara weblog. Consumers can then
 # run maven offline.
+# dd-openfeature is removed: install_ddtrace.sh installs the one matching the tested agent.
 RUN mkdir -p /maven src/main/java/warmup src/main/proto src/main/webapp-payara \
  && printf 'package warmup;\npublic class Warmup {\n    public static void main(String[] args) {}\n}\n' > src/main/java/warmup/Warmup.java \
  && printf 'syntax = "proto3";\npackage warmupproto;\nmessage Empty {}\nservice WarmupService {\n  rpc Call (Empty) returns (Empty);\n}\n' > src/main/proto/warmup.proto \
  && mvn -Dmaven.repo.local=/maven -B -P"${MAVEN_PROFILE}" package \
  && if [ "${MAVEN_PROFILE}" = payara ]; then mvn -Dmaven.repo.local=/maven -B dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1; fi \
  && mvn -Dmaven.repo.local=/maven -B install:install-file -Dfile=pom.xml -DgroupId=system-tests -DartifactId=warmup -Dversion=0 -Dpackaging=pom \
- && rm -rf /maven/system-tests /app/*
+ && rm -rf /maven/system-tests /maven/com/datadoghq/dd-openfeature /app/*
