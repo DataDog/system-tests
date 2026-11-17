@@ -24,6 +24,11 @@ VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
 VARINT_CONTINUATION_BIT = 0x80  # MSB indicates more bytes follow
 
 
+def evaluation_reasons_match(expected: object, actual: object) -> bool:
+    """Compare OpenFeature reasons across SDK casing conventions."""
+    return isinstance(expected, str) and isinstance(actual, str) and expected.casefold() == actual.casefold()
+
+
 def load_ufc_fixture_for_cases(case_filename: str) -> dict[str, Any]:
     """Load the canonical flag definitions used by a specific integration suite."""
     fixture_root = Path(__file__).parent / "ffe-system-test-data"
