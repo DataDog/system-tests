@@ -21,7 +21,7 @@ For each candidate that concerns your lens, compare it to the existing rules by 
 | `covered` | A rule already describes the defect, and its `Detect` finds it. |
 | `sharpen` | A rule covers the defect, but its `Detect` or `Flag` misses it. |
 | `add_not_when` | People defend, with a reason, a pattern that the rule forbids. |
-| `lint_owned` | `format.sh` already rejects the pattern. Name the check. |
+| `lint_owned` | `format.sh` already rejects a pattern that a rule names. Trim that part of the rule, and name the check. |
 | `new_rule` | No rule in any lens names the defect. |
 | `contested` | The evidence contradicts a rule, or two rules conflict. |
 | `out_of_lens` | The candidate concerns another lens. Skip it, or say which lens. |
@@ -79,8 +79,9 @@ Write this JSON object to the output path that you get, and nothing else:
 
 Rules for the fields:
 
-- `current_text`: copy it letter for letter from the rule file. Leave it null for `new_rule`.
-- `field`: `Flag`, `Detect`, `Not when`, `✅`, `❌`, or `rule` for a whole new rule.
+- `field`: `Flag`, `Detect`, `Not when`, `✅`, or `❌` for an edit. Use `rule` for a new rule.
+- `current_text`: the value of that field line, letter for letter, without the `- Flag: ` or `- ✅ ` start. A script replaces exactly this line. For `add_not_when` on a rule without a `Not when` line, leave it null, and the script adds the line. Leave it null for `new_rule`.
+- `proposed_text`: the new value of the field line, without its start. For `lint_owned`, it is the value without the part that the lint covers. For `new_rule`, it is the whole rule block: a `### <ID>: <title>` line, then `- Severity: <P0 or P1>`, `- Flag: ...`, and `- Detect: ...` lines.
 - `severity` and `severity_reason`: only for `new_rule`.
 - `lint_check`: only for `lint_owned`. Use one of `format.sh`, `ruff`, `mypy`, `lint-imports`, `yamllint`, `yamlfmt`, `shellcheck`, or `manifest parser`.
 - `cited_path`: only for `add_not_when`, when a document in `docs/` or `.agents/` records the decision.

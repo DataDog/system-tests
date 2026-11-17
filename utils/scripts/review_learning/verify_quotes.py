@@ -1,4 +1,4 @@
-"""Step 4: check, without a model, that every candidate quotes real data.
+"""Step 6: check, without a model, that every candidate quotes real data.
 
 Usage:
     python3 -m utils.scripts.review_learning.verify_quotes --run .review-learning/run

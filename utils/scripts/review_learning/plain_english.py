@@ -1,4 +1,4 @@
-"""Step 5b: lint every proposed rule text with se (https://github.com/TonyCTHsu/simple-english).
+"""Step 8: lint every proposed rule text with se (https://github.com/TonyCTHsu/simple-english).
 
 Usage:
     python3 -m utils.scripts.review_learning.plain_english --run .review-learning/run

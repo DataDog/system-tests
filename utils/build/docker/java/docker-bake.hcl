@@ -8,6 +8,7 @@ group "default" {
   targets = [
     "akka-http",
     "jersey-grizzly2",
+    "parametric",
     "play",
     "ratpack",
     "resteasy-netty3",
@@ -122,4 +123,10 @@ target "spring-boot-3-native" {
   inherits   = ["_common"]
   dockerfile = "spring-boot-3-native.base.Dockerfile"
   tags       = ["datadog/system-tests:spring-boot-3-native.base"]
+}
+
+target "parametric" {
+  inherits   = ["_common"]
+  dockerfile = "parametric.base.Dockerfile"
+  tags       = ["datadog/system-tests:java-parametric.base"]
 }

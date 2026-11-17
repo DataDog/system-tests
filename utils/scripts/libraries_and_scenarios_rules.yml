@@ -394,7 +394,34 @@ patterns:
         libraries: *lambda_libraries
     utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
-    utils/build/docker/*/parametric/*:
+    utils/build/docker/cpp/parametric/*:
+        libraries: cpp
+        scenarios: PARAMETRIC
+    utils/build/docker/dotnet/parametric/*:
+        libraries: dotnet
+        scenarios: PARAMETRIC
+    utils/build/docker/golang/parametric/*:
+        libraries: golang
+        scenarios: PARAMETRIC
+    utils/build/docker/java/parametric/*:
+        libraries: java
+        scenarios: PARAMETRIC
+    utils/build/docker/nodejs/parametric/*:
+        libraries: nodejs
+        scenarios: PARAMETRIC
+    utils/build/docker/php/parametric/*:
+        libraries: php
+        scenarios: PARAMETRIC
+    utils/build/docker/python/parametric/*:
+        libraries: python
+        scenarios: PARAMETRIC
+    utils/build/docker/ruby/parametric/*:
+        libraries: ruby
+        scenarios: PARAMETRIC
+    utils/build/docker/rust/parametric/*:
+        libraries: rust
+        scenarios: PARAMETRIC
+    utils/build/docker/*/parametric/*:  # fallback for a new parametric app
         scenarios: PARAMETRIC
     utils/build/docker/vcr/cassettes/aiguard/*:
       scenario_groups: ai_guard
@@ -506,6 +533,9 @@ patterns:
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
+    utils/build/docker/java/parametric.base.Dockerfile:
+        libraries: java
+        scenarios: PARAMETRIC
     utils/build/docker/java/*:
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
