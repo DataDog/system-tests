@@ -10,6 +10,10 @@ from the registry, and signs each newly built image with ddsign.
 Also used by the ``mirror_images`` job (with ``--check-only``) so both jobs
 share a single implementation of the $CI_IMAGE-vs-computed-tag check instead
 of each re-implementing the sha256sum/comparison logic.
+
+``--check-only`` is a contract with other repositories: dd-trace-php runs it in its own
+pipeline, with only $CI_IMAGE set. So ``--check-only`` checks $CI_IMAGE only. Never make it
+require a new variable. The full run (the ``build_ci_image`` job) checks every image.
 """
 
 from __future__ import annotations
@@ -58,10 +62,11 @@ HARDCODED_IMAGES = {
 }
 
 
-def _check_hardcoded_images(tags: dict[str, str]) -> None:
-    """Report every hardcoded image that does not match its computed tag, then fail once."""
+def _check_hardcoded_images(tags: dict[str, str], names: list[str]) -> None:
+    """Report every hardcoded image in names that does not match its computed tag, then fail once."""
     errors = []
-    for name, (variable, file, command) in HARDCODED_IMAGES.items():
+    for name in names:
+        variable, file, command = HARDCODED_IMAGES[name]
         expected, hardcoded = f"{REGISTRY}/{name}:{tags[name]}", os.environ.get(variable, "")
         if hardcoded != expected:
             errors.append(f"❌ {variable} is '{hardcoded}', expected '{expected}'. Update it in {file}: {command}")
@@ -110,19 +115,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--check-only",
         action="store_true",
-        help="Only check that $CI_IMAGE and $REVIEW_LEARNING_IMAGE match their computed tags, without building.",
+        help="Only check that $CI_IMAGE matches the computed ci-runner tag, without building. Other repos use it.",
     )
     return parser.parse_args()
+
+
+def _ci_runner_tag() -> str:
+    return _sha256_tag(
+        DOCKER_DIR / "system-tests.Dockerfile",
+        REPO_ROOT / "requirements.txt",
+        REPO_ROOT / "utils" / "ci" / "gitlab" / "validate_param_env.py",
+    )
 
 
 def _compute_tags() -> dict[str, str]:
     return {
         "image-builder": _sha256_tag(DOCKER_DIR / "image-builder.Dockerfile"),
-        "ci-runner": _sha256_tag(
-            DOCKER_DIR / "system-tests.Dockerfile",
-            REPO_ROOT / "requirements.txt",
-            REPO_ROOT / "utils" / "ci" / "gitlab" / "validate_param_env.py",
-        ),
+        "ci-runner": _ci_runner_tag(),
         "review-learning": _sha256_tag(DOCKER_DIR / "review-learning.Dockerfile"),
     }
 
@@ -144,10 +153,13 @@ def _build_missing(names: list[str], tags: dict[str, str]) -> None:
 
 def main() -> None:
     args = parse_args()
+    if args.check_only:
+        # See the module docstring: other repositories run this. Read only the ci-runner files.
+        _check_hardcoded_images({"ci-runner": _ci_runner_tag()}, ["ci-runner"])
+        return
     tags = _compute_tags()
-    if not args.check_only:
-        _build_missing([args.image] if args.image else list(IMAGES), tags)
-    _check_hardcoded_images(tags)
+    _build_missing([args.image] if args.image else list(IMAGES), tags)
+    _check_hardcoded_images(tags, list(HARDCODED_IMAGES))
 
 
 if __name__ == "__main__":
