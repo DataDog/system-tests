@@ -780,6 +780,18 @@ class ProxyContainer(TestedContainer):
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
 
+    def remove(self):
+        # Proxy writes flows on a background thread (see utils/proxy/_flow_writer.py). Its response hook
+        # acknowledges the tracer as soon as a flow is queued, so writes may still be in flight at teardown.
+        # TestedContainer.remove() calls docker rm --force which sends SIGKILL and skips the proxy's done
+        # hook, losing queued flows. Pre-stop so docker sends SIGTERM first and the done hook flushes.
+        if self._container:
+            try:
+                self._container.stop(timeout=30)
+            except APIError as e:
+                logger.info(f"Fail to stop container {self.name} before remove ({e})")
+        super().remove()
+
 
 class MockedBackendContainer(TestedContainer):
     """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.

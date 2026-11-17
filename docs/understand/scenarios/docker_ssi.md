@@ -142,42 +142,45 @@ For the details, see [Docker SSI images](../../internals/docker-ssi-images.md).
 
 ## Docker SSI definitions
 
-The key of the matrix of OSes (docker base image), architectures, language versions and weblogs resides on the file: `utils/docker_ssi/docker_ssi_definitions.py`. This file is the glue for all the components of this large matrix.
+Three files define what the Docker SSI tests run:
 
-The first component is the Supported Images definition:
+| File | What it defines |
+|------|-----------------|
+| `utils/docker_ssi/docker_ssi_images.json` | The base images. Each image has a `name`, an `image` reference and an `architecture`. |
+| `utils/docker_ssi/docker_ssi_runtimes.json` | The runtime versions that system-tests can install, by language. Each runtime has a `version_id`, for example `JS2422`, and a `version`, for example `24.22`. |
+| `utils/scripts/ci_orchestrators/docker_ssi.json` | The scenarios that run each weblog (`scenario_matrix`), and the images and runtimes that each weblog supports (`weblogs_spec`). In `allowed_runtime_versions`, `"*"` means every runtime of the language. |
 
-```python
-class SupportedImages:
-    """All supported images"""
+`utils/docker_ssi/docker_ssi_definitions.py` repeats the runtimes of `docker_ssi_runtimes.json` as Python classes. The scenario uses it to find the `version_id` of a runtime.
 
-    def __init__(self) -> None:
-        # Try to set the same name as utils/_context/virtual_machines.py
-        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
-        self.UBUNTU_22_ARM64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_ARM64)
-        self.UBUNTU_16_AMD64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_AMD64)
-        self.UBUNTU_16_ARM64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_ARM64)
-        self.CENTOS_7_AMD64 = DockerImage("CentOS_7", "centos:7", LINUX_AMD64)
-```
+### Add a runtime version
 
-Other component to be defined is the installable runtime versions of the languages that are supported:
+1. Add the runtime to `docker_ssi_runtimes.json`, under its language:
 
-```python
-class JavaRuntimeInstallableVersions:
-    """Java runtime versions that can be installed automatically"""
+   ```json
+   {
+     "version_id": "JS2422",
+     "version": "24.22"
+   }
+   ```
 
-    JAVA_24 = RuntimeInstallableVersion("JAVA_24", "24.0.1-zulu")
-    JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.7-zulu")
-    JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.15-zulu")
-    JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.27-zulu")
+2. Add the same runtime to `docker_ssi_definitions.py`, in the class of its language. Also add it to the list that `get_all_versions()` returns.
+3. If a weblog lists its runtimes by `version_id` in `docker_ssi.json`, add the new `version_id` to that list. A weblog with `"*"` gets the new runtime with no change.
 
-class PHPRuntimeInstallableVersions:
-    """PHP runtime versions that can be installed automatically"""
+The script `utils/build/ssi/base/<lang>_install_runtimes.sh` installs the runtime, so it must accept the new `version`. For Node.js, `<lang>` is `js`. In CI, the first run builds the base image for the new runtime and pushes it. For an example, see [#8504](https://github.com/DataDog/system-tests/pull/8504), which adds Node.js 24.22 and 25.9 and Python 3.15.2.
 
-    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")
-    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
-    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+### Add a base image
 
-```
+1. Add the image to `docker_ssi_images.json`. Use a unique `name`, and add one entry for each architecture:
+
+   ```json
+   {
+     "name": "Tomcat_9_arm64",
+     "image": "public.ecr.aws/docker/library/tomcat:9",
+     "architecture": "linux/arm64"
+   }
+   ```
+
+2. In `docker_ssi.json`, add the image `name` to the `supported_images` of each weblog that must run on it.
 
 ### Expected SSI result of a runtime
 
@@ -245,17 +248,19 @@ ENV WEBLOG_URL=http://localhost:8080/payment-service/
 ENV DD_INSTRUMENT_SERVICE_WITH_APM=true
 ```
 
-As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`) by adding the appropriate Docker images to the `SupportedImages` class:
+As final step, register the new weblog in `utils/scripts/ci_orchestrators/docker_ssi.json`, as explained in [Docker SSI definitions](#docker-ssi-definitions):
 
-```python
-class SupportedImages:
-    """All supported images"""
+* Add the weblog to `weblogs_spec`, under its language. A weblog with a prebuilt image has no `allowed_runtime_versions`:
 
-    def __init__(self) -> None:
-        self.TOMCAT_9_AMD64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_AMD64)
-        self.TOMCAT_9_ARM64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_ARM64)
-...
-```
+  ```json
+  {
+    "name": "tomcat-app",
+    "supported_images": [{ "name": "Tomcat_9_arm64" }]
+  }
+  ```
+
+* Add the weblog to the scenarios that must run it, in `scenario_matrix`.
+* If its image is new, add it to `utils/docker_ssi/docker_ssi_images.json`.
 
 ---
 
@@ -265,10 +270,10 @@ When system-tests builds the docker images it is going to install the SSI softwa
 
 ---
 
-If we want to run the "DOCKER_SSI" test cases for this new weblog:
+To run the tests of this new weblog in the `DOCKER_SSI_SERVICENAMING` scenario:
 
 ```bash
-./run.sh DOCKER_SSI --ssi-weblog tomcat-app --ssi-library java --ssi-base-image tomcat:9 --ssi-arch linux/arm64
+./run.sh DOCKER_SSI_SERVICENAMING --ssi-weblog tomcat-app --ssi-library java --ssi-base-image public.ecr.aws/docker/library/tomcat:9 --ssi-arch linux/arm64
 ```
 
 ### Create a new weblog deployable on different containers or operating systems
@@ -289,33 +294,19 @@ RUN printf "<?php\necho 'hi'; if (function_exists('dd_trace_internal_fn')) dd_tr
 CMD ["sh", "-c", "sleep 2; php -S 0.0.0.0:18080"]
 ```
 
-As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`):
+As final step, register the new weblog in `utils/scripts/ci_orchestrators/docker_ssi.json`, as explained in [Docker SSI definitions](#docker-ssi-definitions). Add it to `weblogs_spec`, with the images and the runtimes it supports:
 
-```python
-class SupportedImages:
-    """All supported images"""
-
-    def __init__(self) -> None:
-        # Try to set the same name as utils/_context/virtual_machines.py
-        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
-        self.UBUNTU_24_ARM64 = DockerImage("Ubuntu_24", "ubuntu:24.04", LINUX_ARM64)
-
-class PHPRuntimeInstallableVersions:
-    """PHP runtime versions that can be installed automatically"""
-
-    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
-    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
-    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
-    PHP72 = RuntimeInstallableVersion("PHP72", "7.2")
-    PHP73 = RuntimeInstallableVersion("PHP73", "7.3")
-    PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
-    PHP80 = RuntimeInstallableVersion("PHP80", "8.0")
-    PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
-    PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
-    PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
-
-...
+```json
+{
+  "name": "php-app",
+  "supported_images": [
+    { "name": "Ubuntu_22_amd64", "allowed_runtime_versions": ["*"] },
+    { "name": "Ubuntu_22_arm64", "allowed_runtime_versions": ["*"] }
+  ]
+}
 ```
+
+Then add it to the scenarios that must run it, in `scenario_matrix`.
 
 ---
 
@@ -325,10 +316,10 @@ When system-tests builds the docker images it is going to install the SSI softwa
 
 ---
 
-If we want to run a "DOCKER_SSI" test case for this new weblog:
+To run the `DOCKER_SSI` tests of this new weblog with PHP 7.0, pass the `version` of the runtime, not its `version_id`:
 
 ```bash
-./run.sh DOCKER_SSI --ssi-weblog php-app --ssi-library php --ssi-base-image ubuntu:22.04 --ssi-arch linux/amd64 --ssi-installable-runtime PHP70
+./run.sh DOCKER_SSI --ssi-weblog php-app --ssi-library php --ssi-base-image public.ecr.aws/lts/ubuntu:22.04 --ssi-arch linux/amd64 --ssi-installable-runtime 7.0
 ```
 
 ## Create a new test case
