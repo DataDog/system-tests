@@ -91,11 +91,6 @@ class K8sClusterProvider:
         self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = "localhost"
 
-    @property
-    def supports_mocked_backend(self) -> bool:
-        """True if the pods can reach the mocked backend running in the pytest process (see expose_mocked_backend)"""
-        return False
-
     def expose_mocked_backend(self, port: int) -> str:
         """Make the mocked backend, listening on port in the pytest process, reachable from the pods. Returns the host
         (name or IP) they reach it through. To call once the cluster exists
@@ -245,6 +240,11 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
         # Method to create a kubernetes secret to access to the internal registry
         if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
+
+    def expose_mocked_backend(self, port: int) -> str:  # noqa: ARG002
+        # minikube resolves it to the docker host, in the node and in CoreDNS. It only redirects the DNS port of the
+        # docker host to the docker DNS, unlike kind
+        return "host.minikube.internal"
 
     def destroy_cluster(self) -> None:
         logger.info("Destroying MiniKube cluster")
@@ -401,10 +401,6 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
-
-    @property
-    def supports_mocked_backend(self) -> bool:
-        return True
 
     def expose_mocked_backend(self, port: int) -> str:
         cluster_info = self.get_cluster_info()

@@ -12,7 +12,7 @@ from utils.k8s_lib_injection.k8s_datadog_kubernetes import add_cluster_agent_img
 _CLUSTER_AGENT_IMG = "gcr.io/datadoghq/cluster-agent:7.85.0"
 
 
-def _datadog_agent_spec(tmp_path: Path, backend_url: str | None) -> dict:
+def _datadog_agent_spec(tmp_path: Path, backend_url: str) -> dict:
     output_file = add_cluster_agent_img_operator_yaml(_CLUSTER_AGENT_IMG, str(tmp_path), backend_url=backend_url)
     return yaml.safe_load(Path(output_file).read_text())["spec"]
 
@@ -37,18 +37,17 @@ def test_operator_agents_send_to_the_mocked_backend(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
-def test_operator_agents_send_to_the_real_backend_without_mocked_backend(tmp_path: Path) -> None:
-    spec = _datadog_agent_spec(tmp_path, None)
+def test_minikube_exposes_the_mocked_backend_through_its_docker_host_name() -> None:
+    provider = K8sProviderFactory().get_provider("minikube")
+    provider.configure()
 
-    assert "endpoint" not in spec["global"]
-    assert spec["override"] == {"clusterAgent": {"image": {"name": _CLUSTER_AGENT_IMG}}}
+    assert provider.expose_mocked_backend(4900) == "host.minikube.internal"
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize("provider_id", ["minikube", "eksremote"])
-def test_only_kind_supports_the_mocked_backend(provider_id: str) -> None:
-    assert K8sProviderFactory().get_provider("kind").supports_mocked_backend
-    assert not K8sProviderFactory().get_provider(provider_id).supports_mocked_backend
+def test_eksremote_cannot_expose_the_mocked_backend() -> None:
+    with pytest.raises(NotImplementedError):
+        K8sProviderFactory().get_provider("eksremote").expose_mocked_backend(4900)
 
 
 @scenarios.test_the_test

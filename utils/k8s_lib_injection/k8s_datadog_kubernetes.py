@@ -46,8 +46,8 @@ class K8sDatadog:
         self.app_key = app_key
         self.helm_chart_version = helm_chart_version
         self.helm_chart_operator_version = helm_chart_operator_version
-        # URL of the mocked backend, as seen from the pods. None: the agents deployed by the operator send their
-        # payloads to the real Datadog backend
+        # URL of the mocked backend, as seen from the pods: the agents deployed by the operator send their payloads
+        # to it. Set once the mocked backend runs
         self.backend_url: str | None = None
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
@@ -252,6 +252,7 @@ class K8sDatadog:
             f"--namespace={namespace}"
         )
         # Configure cluster agent image on the operator file
+        assert self.backend_url, "The mocked backend URL is not set: the agents would send to the real backend"
         operator_config_file = add_cluster_agent_img_operator_yaml(
             self.dd_cluster_img, self.output_folder, backend_url=self.backend_url
         )
@@ -404,8 +405,8 @@ def split_docker_image(image_reference: str) -> tuple[str, str]:
     return reference, tag
 
 
-def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str, backend_url: str | None = None) -> str:
-    """backend_url: if set, URL of the mocked backend the agents send their payloads to"""
+def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str, backend_url: str) -> str:
+    """backend_url: URL of the mocked backend the agents send their payloads to"""
     operator_template = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
     # Read the input YAML file
     with open(operator_template) as file:
@@ -420,16 +421,15 @@ def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str, b
 
     yaml_data["spec"]["override"]["clusterAgent"]["image"] = cluster_agent_image_spec
 
-    if backend_url:
-        # The operator sets DD_DD_URL on every agent from global.endpoint.url, but the trace agent doesn't derive
-        # its intake from it. Same variables as the AWS SSI provisions use for the mocked backend
-        yaml_data["spec"]["global"]["endpoint"] = {"url": backend_url}
-        yaml_data["spec"]["override"]["nodeAgent"] = {
-            "env": [
-                {"name": "DD_APM_DD_URL", "value": backend_url},
-                {"name": "DD_APM_PROFILING_DD_URL", "value": f"{backend_url}/api/v2/profile"},
-            ]
-        }
+    # The operator sets DD_DD_URL on every agent from global.endpoint.url, but the trace agent doesn't derive its
+    # intake from it. Same variables as the AWS SSI provisions use for the mocked backend
+    yaml_data["spec"]["global"]["endpoint"] = {"url": backend_url}
+    yaml_data["spec"]["override"]["nodeAgent"] = {
+        "env": [
+            {"name": "DD_APM_DD_URL", "value": backend_url},
+            {"name": "DD_APM_PROFILING_DD_URL", "value": f"{backend_url}/api/v2/profile"},
+        ]
+    }
 
     # Construct the output file path (the folder should already exist)
     output_file = os.path.join(output_directory, Path(operator_template).name)

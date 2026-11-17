@@ -16,7 +16,7 @@ from utils.k8s.k8s_component_image import (
     extract_cluster_agent_version,
 )
 from utils._logger import logger
-from ._core import Scenario, scenario_groups, ScenarioGroup
+from ._core import FakeDatadogKey, Scenario, scenario_groups, ScenarioGroup
 
 DEFAULT_K8S_SCENARIO_GROUPS = [scenario_groups.all, scenario_groups.lib_injection]
 
@@ -52,9 +52,6 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.k8s_helm_chart_operator_version: str | None = None
         self.k8s_cluster_img: K8sComponentImage | None = None
         self.k8s_injector_img: K8sComponentImage | None = None
-        # When True, the agents deployed by the operator send their payloads to the mocked backend (running in the
-        # pytest process) instead of the real Datadog backend
-        self.mocked_backend_enabled = False
         self._api_key: str | None = None
         self._app_key: str | None = None
 
@@ -112,25 +109,20 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
+        if self.with_datadog_operator and self.k8s_provider_name == "eksremote":
+            # TODO: the pods of a remote cluster can't reach the mocked backend, running in the pytest process
+            raise ValueError(f"{self.name} doesn't support the eksremote provider: use kind or minikube")
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
         self.k8s_cluster_provider.configure()
         self.print_context()
 
         # If we are using the datadog operator, we don't need to deploy the test agent, the operator deploys the
-        # real agent. It sends its payloads to the mocked backend if the pods can reach it, else to the real backend
+        # real agent. It sends its payloads to the mocked backend, running in the pytest process
         if self.with_datadog_operator:
-            self.mocked_backend_enabled = self.k8s_cluster_provider.supports_mocked_backend
-            if self.mocked_backend_enabled:
-                interfaces.mocked_backend.configure(self.host_log_folder, replay=False)
-                # The agents refuse to run without keys, the mocked backend ignores them
-                self._api_key = "0" * 32
-                self._app_key = "0" * 40
-            else:
-                logger.stdout(f"{self.k8s_provider_name} provider: the agent sends its payloads to the real backend")
-                assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-                assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
-                self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
-                self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=False)
+            # The agents refuse to run without keys, the mocked backend ignores them
+            self._api_key = FakeDatadogKey.DEFAULT
+            self._app_key = "0" * 40
 
         # is it on sleep mode?
         self._sleep_mode = config.option.sleep
@@ -167,8 +159,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             self.warmups.append(self.test_weblog.install_weblog_pod)
         elif self.with_datadog_operator:
-            if self.mocked_backend_enabled:
-                self.warmups.append(self._setup_mocked_backend)
+            self.warmups.append(self._setup_mocked_backend)
             self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
             self.warmups.append(self.test_weblog.install_weblog_pod)
         elif not self.with_cluster_agent and not self.with_datadog_operator:
@@ -299,7 +290,7 @@ class K8sLibInjection(K8sScenario):
 
 
 class K8sLibInjectionOperator(K8sScenario):
-    """Use CRD Datadog Operator (uses real agent, sending to the mocked backend on kind).
+    """Use CRD Datadog Operator (uses real agent, sending to the mocked backend).
     Not configure the admission controller, the operator does it
     """
 
