@@ -8,7 +8,7 @@ from utils._context._scenarios._core import FakeDatadogKey
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context._scenarios.aws_lambda import _LambdaScenario
 from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
-from utils._context.containers import MsSqlServerContainer, TestedContainer as _TestedContainer
+from utils._context.containers import MsSqlServerContainer, ProxyContainer, TestedContainer as _TestedContainer
 
 from .utils import extra_hosts_at_start
 
@@ -184,6 +184,14 @@ def test_open_telemetry_collector_sends_to_the_mocked_backend_with_a_fake_key(mo
     collector = _OpenTelemetryScenario("FAKE_OTEL_COLLECTOR").collector_container
     assert collector.environment["DD_API_KEY"] == FakeDatadogKey.OTEL_COLLECTOR
     assert collector.environment["DD_SITE"] == "mocked-backend.invalid"
+
+
+@scenarios.test_the_test
+def test_proxy_does_not_get_the_datadog_keys_of_the_host(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("DD_API_KEY", "DD_APP_KEY", "DD_SITE"):
+        monkeypatch.setenv(name, "value_of_the_host")
+    proxy = ProxyContainer(rc_api_enabled=False, meta_structs_disabled=False, span_events=True, enable_ipv6=False)
+    assert not {"DD_API_KEY", "DD_APP_KEY", "DD_SITE"} & proxy.environment.keys()
 
 
 @scenarios.test_the_test
