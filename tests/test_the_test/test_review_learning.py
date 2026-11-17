@@ -16,6 +16,7 @@ from utils.scripts.review_learning import (
     verify_quotes,
 )
 from utils.scripts.review_learning import apply as apply_step
+from utils.scripts.review_learning import open_pr
 from utils.scripts.review_learning import filter as filter_step
 from utils.scripts.review_learning.common import Json, load_filters, matches_any, read_json, write_json
 
@@ -861,3 +862,111 @@ class Test_ReviewLearningApply:
         results = apply_step.apply_run(run, tmp_path)
         assert results[0]["reason"] == "the lens file has local changes"
         assert "asserts or raises" not in lens.read_text(encoding="utf-8")
+
+
+class _FakeGitHub:
+    def __init__(self, open_prs: list[Json]) -> None:
+        self.open_prs = open_prs
+        self.calls: list[tuple[str, str, object]] = []
+
+    def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:
+        self.calls.append((method, path, data))
+        return self.open_prs if method == "GET" else {"html_url": "https://github.com/pr", "number": 1}
+
+
+@features.not_reported
+@scenarios.test_the_test
+class Test_ReviewLearningOpenPr:
+    def _repo_with_change(self, tmp_path: Path) -> tuple[Path, Path]:
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        lens = repo / ".agents" / "rules" / "code-review" / "lifecycle-and-isolation.md"
+        lens.parent.mkdir(parents=True)
+        lens.write_text(LENS, encoding="utf-8")
+        _git(repo, "init", "-q")
+        _git(repo, "config", "commit.gpgsign", "false")
+        _git(repo, "add", ".")
+        _git(repo, "commit", "-q", "-m", "Add lens (#1)")
+        lens.write_text(LENS.replace("Do not sleep.", "Do not use a fixed sleep."), encoding="utf-8")
+        run = tmp_path / "run"
+        write_json(run / "index.json", {"start": "2026-10-01", "end": "2026-10-31", "pull_requests": []})
+        (run / "report.md").write_text("# Review learning\n", encoding="utf-8")
+        return repo, run
+
+    def test_only_lens_files_can_be_published(self) -> None:
+        open_pr.check_paths([".agents/rules/code-review/test-effectiveness.md"])
+        for path in ("utils/scripts/review_learning/x.py", ".agents/rules/code-review/sub/x.md", ".gitlab-ci.yml"):
+            with pytest.raises(open_pr.UnexpectedChangeError):
+                open_pr.check_paths([path])
+
+    def test_body_holds_the_guide_and_a_cut_report(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        _, run = self._repo_with_change(tmp_path)
+        monkeypatch.setattr(open_pr, "MAX_REPORT_CHARS", 10)
+        (run / "report.md").write_text("x" * 50, encoding="utf-8")
+        body = open_pr.pr_body(run, "https://gitlab/job/1")
+        assert body.startswith(open_pr.REVIEW_GUIDE)
+        assert "Job: https://gitlab/job/1" in body
+        assert "x" * 10 + "\n\n[The report is cut here." in body
+        assert open_pr.pr_title(run) == "Review learning: rule changes from 2026-10-01 to 2026-10-31"
+
+    def _publish(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, open_prs: list[Json]) -> _FakeGitHub:
+        repo, run = self._repo_with_change(tmp_path)
+        pushed: list[str] = []
+
+        def fake_push(_root: Path, base_sha: str, _github: object, _env: object, branch: str) -> str:
+            pushed.append(branch)
+            return base_sha
+
+        monkeypatch.setattr(open_pr, "push_signed_commit", fake_push)
+        github = _FakeGitHub(open_prs)
+        paths = open_pr.changed_paths(repo)
+        assert paths == [".agents/rules/code-review/lifecycle-and-isolation.md"]
+        open_pr.publish(repo, run, paths, github, {})  # type: ignore[arg-type]
+        assert pushed == [open_pr.BRANCH]
+        assert "Do not use a fixed sleep." in _git(
+            repo, "show", "HEAD:.agents/rules/code-review/lifecycle-and-isolation.md"
+        )
+        return github
+
+    def test_publish_opens_a_draft_pull_request(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        github = self._publish(tmp_path, monkeypatch, open_prs=[])
+        method, path, data = github.calls[-1]
+        assert (method, path) == ("POST", "/repos/DataDog/system-tests/pulls")
+        assert isinstance(data, dict)
+        assert data["draft"] is True
+        assert data["head"] == open_pr.BRANCH
+        assert all("merge" not in call[1] for call in github.calls)
+
+    def test_an_open_pull_request_is_never_touched(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, run = self._repo_with_change(tmp_path)
+
+        def must_not_push(*_args: object) -> str:
+            raise AssertionError("an open pull request must stop the push")
+
+        monkeypatch.setattr(open_pr, "push_signed_commit", must_not_push)
+        github = _FakeGitHub([{"number": 42}])
+        result = open_pr.publish(repo, run, open_pr.changed_paths(repo), github, {})  # type: ignore[arg-type]
+        assert result == "#42 is still open: review and close it first. Nothing is published."
+        assert [call[0] for call in github.calls] == ["GET"]
+        assert _git(repo, "branch", "--show-current") != open_pr.BRANCH
+
+    def test_publish_keeps_the_local_git_identity(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        self._publish(tmp_path, monkeypatch, open_prs=[])
+        config = subprocess.run(
+            ["git", "config", "--local", "user.name"], cwd=tmp_path / "repo", capture_output=True, check=False
+        )
+        assert config.returncode != 0, "the commit identity must not be saved in the repository config"
+
+    def test_mentions_in_the_report_never_notify(self, tmp_path: Path) -> None:
+        _, run = self._repo_with_change(tmp_path)
+        (run / "report.md").write_text("Ask @DataDog/some-team to merge", encoding="utf-8")
+        body = open_pr.pr_body(run, None)
+        assert "@DataDog/some-team" not in body
+        assert "@\u200bDataDog/some-team" in body
+
+    def test_publishing_outside_gitlab_is_refused(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        repo, run = self._repo_with_change(tmp_path)
+        monkeypatch.delenv("GITLAB_CI", raising=False)
+        monkeypatch.setattr("sys.argv", ["open_pr", "--run", str(run), "--repo-root", str(repo)])
+        with pytest.raises(SystemExit, match="only publishes from the GitLab job"):
+            open_pr.main()

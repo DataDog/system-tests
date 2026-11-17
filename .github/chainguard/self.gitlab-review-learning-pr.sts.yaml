@@ -1,0 +1,20 @@
+---
+# Policy for: open_pr.py, run by review_learning in DataDog/system-tests/.gitlab-ci.yml
+# It pushes one signed commit with lens changes, and opens or updates a draft pull request.
+# The job asks for this token only after the model is done, so the model never holds it.
+issuer: https://gitlab.ddbuild.io
+
+subject_pattern: "project_path:DataDog/system-tests:ref_type:branch:ref:main"
+
+claim_pattern:
+  project_path: "DataDog/system-tests"
+  ref: "main"
+  ref_type: "branch"
+  ref_path: "refs/heads/main"
+  ref_protected: "true"
+  pipeline_source: "(schedule|web)"
+  ci_config_ref_uri: "gitlab\\.ddbuild\\.io/DataDog/system-tests//\\.gitlab-ci\\.yml@refs/heads/main"
+
+permissions:
+  contents: write
+  pull_requests: write
