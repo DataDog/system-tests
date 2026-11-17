@@ -18,6 +18,7 @@ from tests.ffe.utils.evp import (
     assert_no_evp_proxy_requests,
     expected_evp_origin,
 )
+from tests.parametric.test_ffe.utils import evaluation_reasons_match
 from utils import context, interfaces, scenarios
 from utils._context.component_version import ComponentVersion, Version
 from utils._context._scenarios.agentless_endtoend import (
@@ -34,6 +35,20 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
+
+
+@pytest.mark.parametrize(
+    ("expected", "actual", "matches"),
+    [
+        ("TARGETING_MATCH", "targeting_match", True),
+        ("ERROR", "error", True),
+        ("TARGETING_MATCH", "split", False),
+        ("TARGETING_MATCH", None, False),
+    ],
+)
+@scenarios.test_the_test
+def test_evaluation_reasons_match_across_sdk_casing(*, expected: str, actual: str | None, matches: bool) -> None:
+    assert evaluation_reasons_match(expected, actual) is matches
 
 
 @pytest.mark.parametrize("has_capture", [True, False])

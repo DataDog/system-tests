@@ -130,6 +130,9 @@ capabilities:
     '>=3.54.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
+    '>=3.59.0':
+      - FFE_FLAG_DEPENDENT_FLAG_VARIANT_KEY_V1
+
   cpp:
     base:
       - APM_TRACING_CUSTOM_TAGS
