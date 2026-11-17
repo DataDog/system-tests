@@ -11,7 +11,14 @@ GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
     # THREAD_CONTEXT_SHARING needs a dedicated runner pool: checks that this setup works. One weblog is enough.
     "php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]},
     # GitLab runs containers on the default bridge network: checks that the mocked backend network aliases work there
-    "python": None,
+    "python": {
+        "flask-poc": [
+            "APM_TRACING_E2E_SINGLE_SPAN",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+        ]
+    },
 }
 
 # Libraries run by GitLab end-to-end on main pushes, same format as GITLAB_PR_LIBRARIES
