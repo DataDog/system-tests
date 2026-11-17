@@ -77,12 +77,7 @@ For some purposes, secrets are used in the workflow:
 
 | Name                                   | Description
 | -------------------------------------- | ----------------------------------------------------------------------------------
-| DD_API_KEY                             | Some scenarios requires valid API and APP keys
-| DD_APPLICATION_KEY                     |
-| DD_API_KEY_2                           |
-| DD_APP_KEY_2                           |
-| DD_API_KEY_3                           |
-| DD_APP_KEY_3                           |
+| DD_API_KEY and DD_APPLICATION_KEY      | Not used anymore (scenarios only talk to the mocked backend). Still accepted, so that callers passing them do not break
 | DOCKERHUB_USERNAME and DOCKERHUB_TOKEN | If both are set, all docker pull are authenticated, which offer higher rate limit
 
 
