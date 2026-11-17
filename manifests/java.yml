@@ -4280,7 +4280,9 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
-  : 'missing_feature (Requires a release containing dd-trace-java#13267)'
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Requires a release containing dd-trace-java#13267)
+      component_version: <1.69.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : v1.65.0
@@ -5067,7 +5069,36 @@ manifest:
         "*": v1.68.0
         akka-http: v1.69.0-SNAPSHOT
         play: v1.69.0-SNAPSHOT
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-openliberty: '>=1.69.0'
+        vertx3: '>=1.69.0'
+        spring-boot-wildfly: '>=1.69.0'
+        spring-boot-payara: '>=1.69.0'
+        spring-boot-undertow: '>=1.69.0'
+        akka-http: '>=1.69.0'
+        ratpack: '>=1.69.0'
+        resteasy-netty3: '>=1.69.0'
+        jersey-grizzly2: '>=1.69.0'
+        vertx4: '>=1.69.0'
+        spring-boot-3-native: '>=1.69.0'
+        spring-boot-jetty: '>=1.69.0'
+        spring-boot: '>=1.69.0'
+        uds-spring-boot: '>=1.69.0'
+        play: '>=1.69.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
