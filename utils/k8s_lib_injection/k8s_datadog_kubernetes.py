@@ -256,6 +256,8 @@ class K8sDatadog:
             self.dd_cluster_img, self.output_folder, backend_url=self.backend_url
         )
 
+        # helm doesn't wait for the CRD that the operator chart installs: it may not be served yet
+        execute_command("kubectl wait --for condition=established --timeout=60s crd/datadogagents.datadoghq.com")
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {operator_config_file}")
         execute_command(f"kubectl apply -f {operator_config_file} --namespace={namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
