@@ -278,30 +278,30 @@ images:
     digest: sha256:df492ab30eec1f2e307cef35e4b43a0e192bfc048dbbfac288edbb3aef5e6bae
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-3-native.base-ee5c57800899
     tag: spring-boot-3-native.base-ee5c57800899
-  datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4:
-    digest: sha256:c1e460779469a688b1f6d8dca24aaf48e9d77a33c64a1533c44498157f223d25
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-jetty.base-db426f0fcfc4
-    tag: spring-boot-jetty.base-db426f0fcfc4
-  datadog/system-tests:spring-boot-openliberty.base-e3d2e225f5be:
-    digest: sha256:4392eb8c9c1541e85716cae8f042d91013dd49805a058d33f1b6bbdf4228fd69
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-openliberty.base-e3d2e225f5be
-    tag: spring-boot-openliberty.base-e3d2e225f5be
-  datadog/system-tests:spring-boot-payara.base-721abfb362f5:
-    digest: sha256:6429529c21d74532841463267657a8d2b527dfb723f3ba3447e0bb4f5a46f281
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-payara.base-721abfb362f5
-    tag: spring-boot-payara.base-721abfb362f5
-  datadog/system-tests:spring-boot-undertow.base-39a3b48027d7:
-    digest: sha256:3a82e7ed765a29f9f1db779a344140bfd690bd8b0ec2dedb6e1f37de4ffd1382
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-undertow.base-39a3b48027d7
-    tag: spring-boot-undertow.base-39a3b48027d7
-  datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457:
-    digest: sha256:31493becc3ca70b6dd637c29efb15dda6decc53580af7a4d29e3ea3e083be4b0
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-wildfly.base-fb57a2e96457
-    tag: spring-boot-wildfly.base-fb57a2e96457
-  datadog/system-tests:spring-boot.base-9d7da45cd273:
-    digest: sha256:0b42458813b53fcfdd23c92850c2a3ed5fa39ab958a3ba281769370206b4b8ee
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot.base-9d7da45cd273
-    tag: spring-boot.base-9d7da45cd273
+  datadog/system-tests:spring-boot-jetty.base-45064c2a753c:
+    digest: sha256:b897fc093d02408e47a59835245c0622a854ddefa3eb1f0696e736fcbbca82ac
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-jetty.base-45064c2a753c
+    tag: spring-boot-jetty.base-45064c2a753c
+  datadog/system-tests:spring-boot-openliberty.base-8a0966bdaa22:
+    digest: sha256:9c4f201e81a6e2ceced5539400f2aaf8a7e71e0be859d554c2fa85b82ca42f2d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-openliberty.base-8a0966bdaa22
+    tag: spring-boot-openliberty.base-8a0966bdaa22
+  datadog/system-tests:spring-boot-payara.base-07299dc38884:
+    digest: sha256:49d77e6c063c29448a0e39aa90d979e3e26c6a368a609dbdc74dd4d5964b4d53
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-payara.base-07299dc38884
+    tag: spring-boot-payara.base-07299dc38884
+  datadog/system-tests:spring-boot-undertow.base-bc9d7d822867:
+    digest: sha256:c243c7dfdfa81390cb0ac3fc34040596a902a770cbd5d43564d8d55eea61043b
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-undertow.base-bc9d7d822867
+    tag: spring-boot-undertow.base-bc9d7d822867
+  datadog/system-tests:spring-boot-wildfly.base-68f8721bb225:
+    digest: sha256:c8628c107ac59e1a38ec696f730084c99fdfd579d8da9ac800c5cc39cf3094ed
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot-wildfly.base-68f8721bb225
+    tag: spring-boot-wildfly.base-68f8721bb225
+  datadog/system-tests:spring-boot.base-8bf75e10634f:
+    digest: sha256:3ffa01d025c655f7561374aafc8490258752c729538f2c0dfca24d5abf13e964
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:spring-boot.base-8bf75e10634f
+    tag: spring-boot.base-8bf75e10634f
   datadog/system-tests:symfony7x.base-04f446b5a420:
     digest: sha256:6cc6b4ba0984e1f0563005ee8d968ac7f9252bdfa06d9a6be537fa5172c0c024
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:symfony7x.base-04f446b5a420
