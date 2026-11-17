@@ -94,6 +94,7 @@ class PythonRuntimeInstallableVersions:
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
     PY313 = RuntimeInstallableVersion("PY313", "3.13.18")
     PY314 = RuntimeInstallableVersion("PY314", "3.14.10")
+    PY315 = RuntimeInstallableVersion("PY315", "3.15.2")
     PY316A2 = RuntimeInstallableVersion("PY316A2", "3.16.0a2")  # Not supported (expected_ssi_result: abort)
 
     @staticmethod
@@ -108,6 +109,7 @@ class PythonRuntimeInstallableVersions:
             PythonRuntimeInstallableVersions.PY312,
             PythonRuntimeInstallableVersions.PY313,
             PythonRuntimeInstallableVersions.PY314,
+            PythonRuntimeInstallableVersions.PY315,
             PythonRuntimeInstallableVersions.PY316A2,
         ]
 
@@ -136,6 +138,8 @@ class JSRuntimeInstallableVersions:
     JS2211 = RuntimeInstallableVersion("JS2211", "22.11")
     JS2300 = RuntimeInstallableVersion("JS2300", "23.0")
     JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
+    JS2422 = RuntimeInstallableVersion("JS2422", "24.22")
+    JS2509 = RuntimeInstallableVersion("JS2509", "25.9")
     JS2613 = RuntimeInstallableVersion("JS2613", "26.13")
 
     @staticmethod
@@ -155,6 +159,8 @@ class JSRuntimeInstallableVersions:
             JSRuntimeInstallableVersions.JS2211,
             JSRuntimeInstallableVersions.JS2300,
             JSRuntimeInstallableVersions.JS2303,
+            JSRuntimeInstallableVersions.JS2422,
+            JSRuntimeInstallableVersions.JS2509,
             JSRuntimeInstallableVersions.JS2613,
         ]
 

@@ -841,6 +841,16 @@ The parameters in the body are:
 - `exists`: String with "true" or "false" value
 - `metadata`: Objet with the metadata
 
+### POST /custom_event_v2
+
+This endpoint calls the v2 AppSec event tracking SDK function used for custom events with
+data from the JSON request body.
+
+The parameters in the body are:
+
+- `event_name`: Event name, defaulting to `system_tests_event`.
+- `metadata`: Optional object containing event metadata.
+
 ### GET /inferred-proxy/span-creation
 
 This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy

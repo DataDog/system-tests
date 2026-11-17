@@ -28,6 +28,7 @@ The wizard selects a valid test case and prints the final command.
    * [Run the scenario](#run-the-scenario)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
+   * [How the images are built](#how-the-images-are-built)
    * [Docker SSI definitions](#Docker-SSI-definitions)
    * [Create a new weblog](#Create-a-new-weblog)
      - [Create a new weblog using a prebuilt docker image](#Create-a-new-weblog-using-a-prebuilt-docker-image)
@@ -127,6 +128,17 @@ The following picture shows the main directories for the Docker SSI tests:
 * **utils/build/ssi/[lang]/:** The weblog applications docker definitios.
 * **utils/scripts/ssi_wizards/docker_ssi_wizard.sh:** Wizard that runs one Docker SSI scenario.
 * **utils/docker_ssi:** The core implementation of this test framework.
+
+## How the images are built
+
+The scenario builds the weblog image in four layers. The two lower layers (OS dependencies, language
+runtime and Datadog installer) are the base image. CI stores it in the private registry and reuses it.
+When you change a file under `utils/build/ssi/base/`, CI builds a new base image on its own.
+
+Locally, Docker reuses cached build steps. Add `--ssi-force-build` after you change something, or to get
+the latest SSI version.
+
+For the details, see [Docker SSI images](../../internals/docker-ssi-images.md).
 
 ## Docker SSI definitions
 
