@@ -506,6 +506,9 @@ patterns:
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
+    utils/build/docker/java/parametric.base.Dockerfile:
+        libraries: java
+        scenarios: PARAMETRIC
     utils/build/docker/java/*:
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
