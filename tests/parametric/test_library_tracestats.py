@@ -426,9 +426,8 @@ class Test_Library_Tracestats:
             span2.set_meta(key="_dd.origin", val="not_synthetics")
             span2.set_meta(key="http.status_code", val="202")
 
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) == 1, "Only one stats request is expected"
+        # Some libraries flush on a timer that is not aligned to the test, and may send several stats requests
+        assert len(test_agent.get_v06_stats_requests()) >= 1, "At least one stats request"
         stats = _merged_v06_stats(test_agent)
         assert len(stats) == 1, "There should be one stats entry which contains stats for 2 top level spans"
 
