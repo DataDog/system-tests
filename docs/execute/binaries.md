@@ -249,6 +249,10 @@ For fast local development (for `PARAMETRIC`, `INTEGRATION_FRAMEWORKS`, otel and
 - Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
 - Build and run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
 
+## Python Lambda library (python_lambda)
+
+- Add a `datadog_lambda_py-<arch>-3.13.zip` layer in `binaries`, built by `scripts/build_layers.sh` in datadog-lambda-python. Without it, the latest GitHub release is used
+- Add a `datadog-agent` file in `binaries`, a Linux build of the Datadog Lambda extension (`bottlecap`) for the weblog architecture, to replace the extension of the base image. Add its `scripts/datadog_wrapper` next to it to replace the wrapper too
 
 ## Ruby library
 

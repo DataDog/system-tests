@@ -55,6 +55,9 @@ from .aws_lambda import (
     AppsecLambdaBlocking,
     AppsecLambdaDefault,
     AppsecLambdaInferredSpans,
+    AppsecLambdaAwsAccessKeyId,
+    AppsecLambdaAwsAccessKeyIdDefault,
+    AppsecLambdaAwsAccessKeyIdExtension,
     AppsecLambdaRasp,
     AppsecLambdaSca,
 )
@@ -399,6 +402,9 @@ class _Scenarios:
     appsec_lambda_sca = AppsecLambdaSca()
     appsec_lambda_rasp = AppsecLambdaRasp()
     appsec_lambda_inferred_spans = AppsecLambdaInferredSpans()
+    appsec_lambda_aws_access_key_id = AppsecLambdaAwsAccessKeyId()
+    appsec_lambda_aws_access_key_id_extension = AppsecLambdaAwsAccessKeyIdExtension()
+    appsec_lambda_aws_access_key_id_default = AppsecLambdaAwsAccessKeyIdDefault()
     otel_collector = OtelCollectorScenario()
     integration_frameworks = IntegrationFrameworksScenario()
     ai_guard = AiGuard()

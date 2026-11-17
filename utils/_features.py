@@ -3705,5 +3705,14 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
+    @staticmethod
+    def appsec_aws_lambda_access_key_id(test_object):
+        """AppSec tags Lambda invocation spans with the execution environment's AWS access key ID (CADR)
+
+        Prototype: placeholder ID, the Feature Parity entry is created at build (JULIO-11)
+        https://feature-parity.us1.prod.dog/#/?feature=650
+        """
+        return _mark_test_object(test_object, feature_id=650, owner=_Owner.asm)
+
 
 features = _Features()

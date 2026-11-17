@@ -171,6 +171,7 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v8.117.0.dev
   tests/appsec/test_alpha.py::Test_Basic: v7.112.0
+  tests/appsec/test_aws_lambda_access_key_id.py: v8.131.0.dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
     - weblog_declaration:
         "*": v8.113.0

@@ -292,3 +292,49 @@ class AppsecLambdaInferredSpans(_LambdaScenario):
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
             trace_managed_services=True,
         )
+
+
+# RFC "CADR for AWS Lambda" (JULIO-11 prototype): fake credentials, the secret and the token are canaries
+AWS_LAMBDA_ACCESS_KEY_ID = "ASIAEXAMPLE000000001"
+AWS_LAMBDA_CREDENTIAL_CANARIES = ("canary-secret-ee3f9c1b", "canary-token-7d41a0c2")
+_AWS_CREDENTIALS_ENV: dict[str, str | None] = {
+    "AWS_ACCESS_KEY_ID": AWS_LAMBDA_ACCESS_KEY_ID,
+    "AWS_SECRET_ACCESS_KEY": AWS_LAMBDA_CREDENTIAL_CANARIES[0],
+    "AWS_SESSION_TOKEN": AWS_LAMBDA_CREDENTIAL_CANARIES[1],
+}
+
+
+class AppsecLambdaAwsAccessKeyId(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID",
+            weblog_env=_AWS_CREDENTIALS_ENV | {"DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED": "true"},
+            doc="Tracer AppSec in Lambda tags invocation spans with the AWS access key ID",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaAwsAccessKeyIdExtension(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_EXTENSION",
+            weblog_env=_AWS_CREDENTIALS_ENV
+            | {
+                "DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED": "true",
+                # extension AppSec: the wrapper proxies the Runtime API, and turns tracer AppSec off (extension v102+)
+                "DD_SERVERLESS_APPSEC_ENABLED": "true",
+                "AWS_LAMBDA_EXEC_WRAPPER": "/opt/datadog_wrapper",
+            },
+            doc="Extension AppSec in Lambda tags invocation spans with the AWS access key ID",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaAwsAccessKeyIdDefault(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_AWS_ACCESS_KEY_ID_DEFAULT",
+            weblog_env=_AWS_CREDENTIALS_ENV,
+            doc="Valid AWS credentials, DD_APPSEC_AWS_ACCESS_KEY_ID_TAG_ENABLED unset: no access key ID tag",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
