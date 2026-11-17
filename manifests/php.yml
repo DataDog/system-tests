@@ -1876,6 +1876,9 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: v1.17.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Synchronous_Cumulative_Carry_Forward: v1.23.0
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Synchronous_Cumulative_Carry_Forward::test_updowncounter_default_temporality
+  : bug (APMAPI-2567)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:

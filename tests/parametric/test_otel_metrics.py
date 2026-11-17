@@ -1,3 +1,5 @@
+from collections.abc import Callable
+import time
 from urllib.parse import urlparse
 from utils import pytest
 
@@ -978,6 +980,149 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+CUMULATIVE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative"}
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_Otel_Metrics_Synchronous_Cumulative_Carry_Forward:
+    """Synchronous cumulative instruments are exported on every collection, even without new measurements.
+
+    From the OpenTelemetry metrics SDK specification (MetricReader):
+        For synchronous instruments with Cumulative aggregation temporality, MetricReader.Collect MUST receive
+        data points exposed in previous collections regardless of whether new measurements have been recorded.
+
+    https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#metricreader
+
+    Each test records one measurement, then triggers several collections with ForceFlush.
+    Every collection must export the series with the same running total.
+    """
+
+    collections = 3
+    value = 42
+
+    def _record_then_collect(self, test_library: APMLibrary, record: Callable[[], None]) -> None:
+        test_library.otel_get_meter(
+            DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+        record()
+        for _ in range(self.collections):
+            assert test_library.otel_metrics_force_flush()
+
+    def _wait_for_exports(self, test_agent: TestAgentAPI, name: str) -> list[dict]:
+        """Return every exported metric named `name`, waiting until one per collection is received."""
+        exported: list[dict] = []
+        for _ in range(50):
+            exported = find_metrics_by_name(test_agent.metrics(), name)
+            if len(exported) >= self.collections:
+                break
+            time.sleep(0.1)
+        assert len(exported) >= self.collections, (
+            f"Metric {name} was exported {len(exported)} time(s) over {self.collections} collections; "
+            "a synchronous cumulative series must be exported on every collection"
+        )
+        return exported
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_updowncounter_default_temporality(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """UpDownCounter is cumulative under every temporality preference, including the default one."""
+        self._assert_updowncounter_carried_forward(test_agent, test_library, "updowncounter-carry-forward-default")
+
+    @pytest.mark.parametrize("library_env", [{**CUMULATIVE_ENVVARS}])
+    def test_updowncounter_cumulative_preference(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_updowncounter_carried_forward(test_agent, test_library, "updowncounter-carry-forward-cumulative")
+
+    def _assert_updowncounter_carried_forward(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, name: str
+    ) -> None:
+        def record() -> None:
+            test_library.otel_create_updowncounter(
+                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            test_library.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                self.value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        self._record_then_collect(test_library, record)
+
+        for metric in self._wait_for_exports(test_agent, name):
+            assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=self.value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+    @pytest.mark.parametrize("library_env", [{**CUMULATIVE_ENVVARS}])
+    def test_counter_cumulative_preference(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        name = "counter-carry-forward-cumulative"
+
+        def record() -> None:
+            test_library.otel_create_counter(
+                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            test_library.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                self.value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        self._record_then_collect(test_library, record)
+
+        for metric in self._wait_for_exports(test_agent, name):
+            assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=True,
+                value=self.value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+    @pytest.mark.parametrize("library_env", [{**CUMULATIVE_ENVVARS}])
+    def test_histogram_cumulative_preference(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        name = "histogram-carry-forward-cumulative"
+
+        def record() -> None:
+            test_library.otel_create_histogram(
+                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            test_library.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                self.value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        self._record_then_collect(test_library, record)
+
+        for metric in self._wait_for_exports(test_agent, name):
+            assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_histogram_aggregation(
+                metric["histogram"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                count=1,
+                sum_value=self.value,
+                min_value=self.value,
+                max_value=self.value,
+                bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+                bucket_counts=get_expected_bucket_counts([self.value], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
 
 
 @scenarios.parametric
