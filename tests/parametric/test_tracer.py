@@ -68,11 +68,16 @@ class Test_TracerSCITagging:
         assert len(trace) == 2
 
         first_span = find_first_span_in_trace_payload(trace)
-        # v1 sets git tags at the payload level, so other spans may carry them too
-        assert first_span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
-        for span in trace:
-            if "_dd.git.repository_url" in span.get("meta", {}):
+        spans_with_git = [span for span in trace if span.get("meta", {}).get("_dd.git.repository_url")]
+        if test_agent.uses_v1_trace_payloads():
+            # V1 sets git tags at the payload level, and the test agent copies them to every span
+            for span in spans_with_git:
                 assert span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
+        else:
+            # the git tag should be injected ONLY in the first span of the trace
+            assert len(spans_with_git) == 1
+            assert first_span == spans_with_git[0]
+        assert first_span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
@@ -95,11 +100,16 @@ class Test_TracerSCITagging:
         assert len(trace) == 2
 
         first_span = find_first_span_in_trace_payload(trace)
-        # v1 sets git tags at the payload level, so other spans may carry them too
-        assert first_span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
-        for span in trace:
-            if "_dd.git.commit.sha" in span.get("meta", {}):
+        spans_with_git = [span for span in trace if span.get("meta", {}).get("_dd.git.commit.sha")]
+        if test_agent.uses_v1_trace_payloads():
+            # V1 sets git tags at the payload level, and the test agent copies them to every span
+            for span in spans_with_git:
                 assert span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
+        else:
+            # the git tag should be injected ONLY in the first span of the trace
+            assert len(spans_with_git) == 1
+            assert first_span == spans_with_git[0]
+        assert first_span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
 
     @parametrize(
         "library_env",

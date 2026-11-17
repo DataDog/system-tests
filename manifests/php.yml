@@ -2340,7 +2340,13 @@ manifest:
     - declaration: bug (APMAPI-924)
       excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
-  tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport: v1.28.0
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
+    - declaration: missing_feature
+      component_version: '<1.16.0'
+    - declaration: irrelevant (V1 sends span events natively; the agent's span_events flag only applies to v0.4)
+      component_version: '>=1.28.0'
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)

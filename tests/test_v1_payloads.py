@@ -11,14 +11,19 @@ class Test_V1PayloadByDefault:
         self.r = weblog.get("/")
 
     def test_main(self):
-        # Only this test's request: traces sent before the tracer learns from the agent's /info that
-        # /v1.0/traces is supported (e.g. the weblog startup healthcheck) may fall back to v0.4
         traces = list(interfaces.library.get_traces(self.r))
         assert traces, "Expected at least one trace"
 
         for data, trace in traces:
             assert data["path"] == "/v1.0/traces"
             assert trace.format == LibraryTraceFormat.v10
+
+        # Traces sent before the tracer learns from the agent's /info that /v1.0/traces is supported
+        # (e.g. the weblog startup healthcheck) may use v0.4, but once it sends V1 it must never fall back
+        requests = list(interfaces.library.get_data(path_filters=interfaces.library.trace_paths))
+        first_v1 = next(i for i, data in enumerate(requests) if data["path"] == "/v1.0/traces")
+        downgraded = [data["log_filename"] for data in requests[first_v1:] if data["path"] != "/v1.0/traces"]
+        assert not downgraded, f"Legacy trace payloads sent after the first V1 payload: {downgraded}"
 
 
 @scenarios.apm_tracing_efficient_payload
