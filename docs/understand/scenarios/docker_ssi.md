@@ -166,7 +166,7 @@ Three files define what the Docker SSI tests run:
 2. Add the same runtime to `docker_ssi_definitions.py`, in the class of its language. Also add it to the list that `get_all_versions()` returns.
 3. If a weblog lists its runtimes by `version_id` in `docker_ssi.json`, add the new `version_id` to that list. A weblog with `"*"` gets the new runtime with no change.
 
-The script `utils/build/ssi/base/<lang>_install_runtimes.sh` installs the runtime, so it must accept the new `version`. In CI, the first run builds the base image for the new runtime and pushes it. For an example, see [#8504](https://github.com/DataDog/system-tests/pull/8504), which adds Node.js 24.22 and 25.9 and Python 3.15.2.
+The script `utils/build/ssi/base/<lang>_install_runtimes.sh` installs the runtime, so it must accept the new `version`. For Node.js, `<lang>` is `js`. In CI, the first run builds the base image for the new runtime and pushes it. For an example, see [#8504](https://github.com/DataDog/system-tests/pull/8504), which adds Node.js 24.22 and 25.9 and Python 3.15.2.
 
 ### Add a base image
 
