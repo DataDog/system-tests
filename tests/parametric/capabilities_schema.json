@@ -44,7 +44,7 @@
       "description": "List of capability names. Each must match a valid Capabilities enum value from utils/dd_constants.py",
       "items": {
         "type": "string",
-        "pattern": "^[A-Z_]+$",
+        "pattern": "^[A-Z][A-Z0-9_]*$",
         "description": "Capability name in UPPER_SNAKE_CASE format (e.g., 'APM_TRACING_SAMPLE_RATE', 'ASM_ACTIVATION')"
       },
       "uniqueItems": true,
