@@ -33,7 +33,7 @@ docker info
 | --- | --- | --- |
 | Docker SSI | None for most tests | Private ECR access only for `websphere-app` and `jboss-app` |
 | AWS SSI | AWS CLI, aws-vault, and Pulumi 3.69 or later | AWS account, AppGate, and Datadog keys |
-| K8s library injection | AWS CLI, aws-vault, kubectl, Kind or Minikube, and Helm | Private ECR. Operator also needs Datadog keys |
+| K8s library injection | AWS CLI, aws-vault, kubectl, Kind or Minikube, and Helm | Private ECR. Operator on `eksremote` also needs Datadog keys |
 | K8s injector-dev | `injector-dev`, Colima, Minikube, Helm, kubectl | A private registry. Datadog ECR is the default |
 
 The K8s library injection wizard can install Kind or Minikube and Helm. It does
@@ -125,8 +125,8 @@ Connect to the Datadog private network before you run the AWS SSI wizard.
 
 ## Configure Datadog keys
 
-AWS SSI and `K8S_LIB_INJECTION_OPERATOR` use the real Datadog backend. Both
-need:
+AWS SSI and `K8S_LIB_INJECTION_OPERATOR` on the `eksremote` provider use the
+real Datadog backend. Both need:
 
 - `DD_API_KEY_ONBOARDING`
 - `DD_APP_KEY_ONBOARDING`
@@ -140,8 +140,9 @@ The AWS SSI wizard asks for these keys. It also asks for
 `PULUMI_CONFIG_PASSPHRASE`. The wizard can save all three values in the local
 `.env` file.
 
-For the K8s Operator scenario, add the two Datadog keys to `.env` before you
-run the wizard:
+For the K8s Operator scenario on `eksremote`, add the two Datadog keys to `.env`
+before you run the wizard. On Kind, the scenario uses the mocked backend and
+needs no Datadog keys:
 
 ```text
 DD_API_KEY_ONBOARDING=<api-key>
