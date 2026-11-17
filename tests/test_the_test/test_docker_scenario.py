@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
+from utils._context._scenarios._core import FakeDatadogKey
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context._scenarios.aws_lambda import _LambdaScenario
 from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
@@ -164,7 +165,7 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
 
 @scenarios.test_the_test
 def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -> None:
-    scenario = _OpenTelemetryScenario("FAKE_OTEL", include_intake=False, include_collector=False)
+    scenario = _OpenTelemetryScenario("FAKE_OTEL", include_collector=False)
     agent = scenario.agent_container
     # every intake hostname is derived from it, and is an alias of the mocked backend
     assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
@@ -173,6 +174,16 @@ def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -
     # removed in reverse order: the agent stops before the mocked backend, that receives all it sends
     containers = scenario._containers  # noqa: SLF001
     assert containers.index(scenario.mocked_backend_container) < containers.index(agent)
+
+
+@scenarios.test_the_test
+def test_open_telemetry_collector_sends_to_the_mocked_backend_with_a_fake_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    # real keys of the host must never reach the collector
+    monkeypatch.setenv("DD_API_KEY_3", "real_api_key_of_the_host")
+    monkeypatch.setenv("DD_SITE", "datad0g.com")
+    collector = _OpenTelemetryScenario("FAKE_OTEL_COLLECTOR").collector_container
+    assert collector.environment["DD_API_KEY"] == FakeDatadogKey.OTEL_COLLECTOR
+    assert collector.environment["DD_SITE"] == "mocked-backend.invalid"
 
 
 @scenarios.test_the_test

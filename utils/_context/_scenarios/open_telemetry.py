@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from watchdog.observers.polling import PollingObserver
@@ -41,7 +39,6 @@ class _OpenTelemetryScenario(DockerScenario):
         weblog_env: dict | None = None,
         include_agent: bool = True,
         include_collector: bool = True,
-        include_intake: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -67,7 +64,9 @@ class _OpenTelemetryScenario(DockerScenario):
             # what the agent sends until the agent stops
             self._containers.append(self.agent_container)
         if include_collector:
-            self.collector_container = OpenTelemetryCollectorContainer()
+            self.collector_container = OpenTelemetryCollectorContainer(
+                environment={"DD_API_KEY": FakeDatadogKey.OTEL_COLLECTOR, "DD_SITE": MOCKED_BACKEND_DOMAIN}
+            )
             self._containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
@@ -77,21 +76,12 @@ class _OpenTelemetryScenario(DockerScenario):
         self._containers.append(self.weblog_container)
         self.include_agent = include_agent
         self.include_collector = include_collector
-        self.include_intake = include_intake
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-        self._check_env_vars()
 
-        dd_site = MOCKED_BACKEND_DOMAIN
-        if self.include_intake:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
-            self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
-            self.weblog_container.environment["DD_SITE"] = dd_site
         if self.include_collector:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
-            self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
-            self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
@@ -184,16 +174,6 @@ class _OpenTelemetryScenario(DockerScenario):
 
         interface.wait(timeout)
 
-    def _check_env_vars(self):
-        if self.include_intake:
-            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
-                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
-            )
-        if self.include_collector:
-            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
-                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
-            )
-
     @property
     def library(self):
         return self.weblog_container.library
@@ -227,7 +207,6 @@ class OtelIntegrations(_OpenTelemetryScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
                 "OTEL_INTEGRATIONS_TEST": True,
             },
-            include_intake=False,
             include_collector=False,
             extra_containers=(
                 MsSqlServerContainer,
