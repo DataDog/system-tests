@@ -38,10 +38,13 @@ def _get_unique_id(host_log_folder: str, *, replay: bool) -> str:
 
 
 class Integrations(EndToEndScenario):
+    """Spawns tracer, agent, and a full set of database. Test the integrations of those databases with tracers"""
+
     def __init__(self) -> None:
         super().__init__(
             "INTEGRATIONS",
             weblog_env={
+                "DD_DATA_STREAMS_ENABLED": "true",
                 "DD_DBM_PROPAGATION_MODE": "full",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
@@ -63,10 +66,6 @@ class Integrations(EndToEndScenario):
                 MsSqlServerContainer,
                 MySqlContainer,
             ),
-            doc=(
-                "Spawns tracer, agent, and a full set of database. "
-                "Test the integrations of those databases with tracers"
-            ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
             weblog_categories=[WeblogCategory.dd_trace],
         )
@@ -77,6 +76,10 @@ class Integrations(EndToEndScenario):
 
 
 class DbmDynamicServiceScenario(EndToEndScenario):
+    """Verifies DD_DBM_PROPAGATION_MODE=dynamic_service injects ddsh into SQL comments and sets _dd.propagated_hash
+    on SQL spans with the same value.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "DBM_DYNAMIC_SERVICE",
@@ -84,16 +87,14 @@ class DbmDynamicServiceScenario(EndToEndScenario):
                 "DD_DBM_PROPAGATION_MODE": "dynamic_service",
             },
             other_weblog_containers=(PostgresContainer,),
-            doc=(
-                "Verifies DD_DBM_PROPAGATION_MODE=dynamic_service injects ddsh into SQL comments "
-                "and sets _dd.propagated_hash on SQL spans with the same value."
-            ),
             scenario_groups=[scenario_groups.integrations],
             weblog_categories=[WeblogCategory.dd_trace],
         )
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
+    """Spawns tracer, and agent. Test AWS integrations."""
+
     unique_id: str = ""
 
     def __init__(self) -> None:
@@ -106,7 +107,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
-            doc="Spawns tracer, and agent. Test AWS integrations.",
             other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
             weblog_categories=[WeblogCategory.dd_trace],
@@ -118,13 +118,14 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
 
 class CrossedTracingLibraryScenario(EndToEndScenario):
+    """Spawns a buddy for each supported language of APM, requires AWS authentication."""
+
     unique_id: str = ""
 
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
             include_buddies=True,
-            doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",

@@ -6,6 +6,7 @@ source utils/scripts/ssi_wizards/common_wizard_functions.sh
 
 
 select_base_image_and_arch() {
+    wizard_usage_step base_image
     spacer
     echo -e "${YELLOW}📌 Step: Select the base image ${NC}"
     echo "🔄 Fetching available base images for:"
@@ -116,6 +117,7 @@ EOF
 }
 
 select_runtime_version(){
+    wizard_usage_step runtime
 
     output=$(python - <<EOF
 import json
@@ -167,6 +169,7 @@ EOF
 }
 
 select_environment(){
+    wizard_usage_step environment
     spacer
     # 📌 Step: Select environment
     echo -e "${YELLOW}📌 Step: Choose the environment${NC}"
@@ -189,6 +192,7 @@ select_environment(){
         echo "✅ Selected environment: $CI_ENVIRONMENT"
 }
 select_optional_params(){
+    wizard_usage_step versions
     spacer
     # 📌 Step : Optional parameters
     echo "🛠️ Optional: Use a custom version of the tracer or injector OCI image."
@@ -219,6 +223,7 @@ select_optional_params(){
         fi
 }
 run_the_tests(){
+    wizard_usage_step confirm
     # 🔹 Construct the command
     CMD=("./run.sh" "$SCENARIO" "--ssi-weblog" "$WEBLOG" "--ssi-library" "$TEST_LIBRARY" "--ssi-base-image" "$BASE_IMAGE" "--ssi-arch" "$ARCH" "--ssi-env" "$CI_ENVIRONMENT")
 
@@ -268,9 +273,24 @@ run_the_tests(){
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
 
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}" \
+        "base_image=${BASE_IMAGE}" \
+        "arch=${ARCH}" \
+        "runtime=${INSTALLABLE_RUNTIME:-}" \
+        "env=${CI_ENVIRONMENT}" \
+        "custom_tracer=$([[ -n ${SSI_LIBRARY_VERSION:-} ]] && echo true || echo false)" \
+        "custom_injector=$([[ -n ${SSI_INJECTOR_VERSION:-} ]] && echo true || echo false)"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing the command...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start
+        run_start=$(date +%s)
 
         # Copy binaries folder to Docker build context
         cp -r binaries utils/build/ssi/base/binaries
@@ -286,14 +306,24 @@ run_the_tests(){
         rm -rf utils/build/ssi/base/binaries
         echo -e "${CYAN}ℹ️  Removed binaries folder from build context${NC}"
 
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
+            "outcome=$([[ ${TEST_EXIT_CODE} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${TEST_EXIT_CODE}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
+
         # Return the original exit code
         exit $TEST_EXIT_CODE
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
 
 configure_private_registry() {
+    wizard_usage_step registry
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry (not mandatory) ${NC}"
     read -p "Do you want to configure a private registry? (y/n) [default: n]: " configure_choice
@@ -334,6 +364,7 @@ configure_private_registry() {
     fi
 }
 
+wizard_usage_begin docker
 welcome "Docker SSI Tests"
 ask_load_requirements
 configure_private_registry

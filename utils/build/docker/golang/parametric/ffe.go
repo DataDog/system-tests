@@ -56,7 +56,13 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		}
 		if err := of.SetProviderWithContextAndWait(ctx, registered); err != nil {
 			var initErr *of.ProviderInitError
-			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
+			if !errors.As(err, &initErr) {
+				return err
+			}
+			// Keep the client of the failed provider; evaluations report its state.
+			s.ddProvider = provider
+			s.ofClient = of.NewClient("system-tests-weblog-client")
+			if initErr.ErrorCode != of.ProviderNotReadyCode {
 				return err
 			}
 		}
@@ -170,12 +176,13 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 
 	writer.WriteHeader(http.StatusOK)
 	response := struct {
-		Value         any              `json:"value"`
-		Reason        string           `json:"reason"`
-		ErrorCode     string           `json:"errorCode"`
-		FlagMetadata  of.FlagMetadata  `json:"flagMetadata"`
-		ExposureHooks []map[string]any `json:"exposureHooks,omitempty"`
-	}{value, reason, errorCode, flagMetadata, rows}
+		Value          any              `json:"value"`
+		Reason         string           `json:"reason"`
+		ErrorCode      string           `json:"errorCode"`
+		FlagMetadata   of.FlagMetadata  `json:"flagMetadata"`
+		ProviderStatus string           `json:"providerStatus"`
+		ExposureHooks  []map[string]any `json:"exposureHooks,omitempty"`
+	}{value, reason, errorCode, flagMetadata, string(s.ofClient.State()), rows}
 
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "failed to encode response: "+err.Error(), http.StatusInternalServerError)

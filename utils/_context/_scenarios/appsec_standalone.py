@@ -2,6 +2,8 @@ from ._core import DdTraceEndToEndScenario, scenario_groups
 
 
 class AppsecStandalone(DdTraceEndToEndScenario):
+    """Appsec standalone mode (APM opt out), with the infra product disabled on the agent"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_STANDALONE",
@@ -18,12 +20,13 @@ class AppsecStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class AppsecApmStandalone(DdTraceEndToEndScenario):
+    """Appsec with APM Standalone (infra opt out)"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_APM_STANDALONE",
@@ -38,12 +41,13 @@ class AppsecApmStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="Appsec with APM Standalone (infra opt out)",
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class AppsecStandaloneApmStandalone(DdTraceEndToEndScenario):
+    """Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_STANDALONE_APM_STANDALONE",
@@ -58,13 +62,14 @@ class AppsecStandaloneApmStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 # Combined scenario for API Security in standalone mode
 class AppsecStandaloneApiSecurity(DdTraceEndToEndScenario):
+    """Scenario to test API Security in AppSec standalone mode"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_STANDALONE_API_SECURITY",
@@ -77,12 +82,13 @@ class AppsecStandaloneApiSecurity(DdTraceEndToEndScenario):
                 "DD_API_SECURITY_ENABLED": "true",
                 "DD_API_SECURITY_SAMPLE_DELAY": "3",
             },
-            doc="Scenario to test API Security in AppSec standalone mode",
             scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
         )
 
 
 class IastStandalone(DdTraceEndToEndScenario):
+    """Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent"""
+
     def __init__(self) -> None:
         super().__init__(
             "IAST_STANDALONE",
@@ -99,12 +105,13 @@ class IastStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class ScaStandalone(DdTraceEndToEndScenario):
+    """SCA standalone mode (APM opt out), with the infra product disabled on the agent"""
+
     def __init__(self) -> None:
         super().__init__(
             "SCA_STANDALONE",
@@ -119,6 +126,5 @@ class ScaStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
-            doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )

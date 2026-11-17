@@ -190,10 +190,25 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [165]},
-            "LogProbe": {"nodejs": [20]},
-            "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
-            "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
+            "Budgets": {
+                "java": [140],
+                "dotnet": [138],
+                "python": [144],
+                "golang": [117],
+                "nodejs": [165],
+                "php": [269],
+            },
+            "LogProbe": {"nodejs": [20], "php": [118]},
+            "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64], "php": [144]},
+            "Expression": {
+                "java": [73],
+                "dotnet": [76],
+                "python": [74],
+                "ruby": [82],
+                "nodejs": [82],
+                "golang": [71],
+                "php": [219],
+            },
             # In-scope line for the probe_capture_expressions_line line probe. Kept separate
             # from "Expression" because Node.js captures at a different line (71) than its
             # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
@@ -204,15 +219,44 @@ class BaseDebuggerTest:
                 "nodejs": [71],
                 "golang": [71],
                 "ruby": [82],
+                "php": [219],
             },
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [84], "dotnet": [92], "python": [89], "ruby": [102], "nodejs": [90]},
-            "StringOperations": {"java": [89], "dotnet": [99], "python": [98], "ruby": [122], "nodejs": [96]},
-            "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
-            "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
-            "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
-            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173], "python": [183]},
+            "ExpressionOperators": {
+                "java": [84],
+                "dotnet": [92],
+                "python": [89],
+                "ruby": [102],
+                "nodejs": [90],
+                "php": [228],
+            },
+            "StringOperations": {
+                "java": [89],
+                "dotnet": [99],
+                "python": [98],
+                "ruby": [122],
+                "nodejs": [96],
+                "php": [232],
+            },
+            "CollectionOperations": {
+                "java": [116],
+                "dotnet": [116],
+                "python": [125],
+                "ruby": [162],
+                "nodejs": [120],
+                "php": [257],
+            },
+            "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126], "php": [264]},
+            "SnapshotLimits": {
+                "java": [155],
+                "python": [174],
+                "nodejs": [136],
+                "ruby": [233],
+                "dotnet": [152],
+                "php": [279],
+            },
+            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173], "python": [183], "php": [284]},
             # Lines the probed methods of the correlation endpoint return on, for tracers without method probes
             "Correlation": {"nodejs": [178]},
             "CorrelationMiddle": {"nodejs": [184]},
@@ -328,21 +372,15 @@ class BaseDebuggerTest:
                         go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
                         source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
-                        # PHP does not support line probes; convert to a method probe.
-                        php_line_to_method = {
-                            "20": "LogProbe",
-                            "71": "expression",
-                        }
-                        lines = probe["where"].get("lines", [])
-                        method = next((php_line_to_method[line] for line in lines if line in php_line_to_method), None)
-                        if method:
-                            probe["where"]["typeName"] = "DebuggerController"
-                            probe["where"]["methodName"] = method
-                            probe["where"]["sourceFile"] = None
-                            probe["where"]["lines"] = []
-                            probe["evaluateAt"] = "EXIT"
-                        else:
-                            source_file = "debugger.php"
+                        # The weblog is served from /var/www/html. PHP matches sourceFile as a path suffix,
+                        # so a leading directory the runtime path lacks does not match.
+                        source_file = "html/debugger.php"
+                        # The shared probe definitions name lines of the other weblogs; map them to the
+                        # equivalent statements of debugger.php.
+                        php_lines = {"20": "118", "28": "123", "44": "133", "52": "137", "71": "219"}
+                        probe["where"]["lines"] = [
+                            php_lines.get(str(line), str(line)) for line in probe["where"].get("lines", [])
+                        ]
 
                     if source_file != "":
                         if uppercase_source_files:

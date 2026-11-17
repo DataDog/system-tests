@@ -43,8 +43,16 @@ setup:
   extends: .system_tests_base
   timeout: 15 minutes
   variables:
-    KUBERNETES_CPU_REQUEST: 0.5
-    KUBERNETES_MEMORY_REQUEST: 1.3Gi
+    # Requests sized from the measured usage of the run jobs (limits are unchanged, so peaks can still burst above
+    # them). The pod is scheduled on the sum of the job, DinD service and helper containers; without the
+    # SERVICE/HELPER overrides the runner defaults apply (4 CPU / 50Gi for DinD, 1 CPU / 2Gi for the helper), which
+    # limits how many jobs fit on a node.
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_MEMORY_REQUEST: 1Gi
+    KUBERNETES_SERVICE_CPU_REQUEST: 2
+    KUBERNETES_SERVICE_MEMORY_REQUEST: 6Gi
+    KUBERNETES_HELPER_CPU_REQUEST: 100m
+    KUBERNETES_HELPER_MEMORY_REQUEST: 256Mi
   script:
     - python utils/ci/gitlab/run_job.py run_scenario
   artifacts:

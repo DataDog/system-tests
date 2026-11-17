@@ -18,6 +18,8 @@ from ._core import DockerFixturesScenario, scenario_groups as groups
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
+    """Tests for third-party integration frameworks"""
+
     _test_client_factory: FrameworkTestClientFactory
     _required_cassette_generation_api_keys: dict[str, list[str]] = {
         # DD_API_KEY / DD_APP_KEY are needed by the AI Guard client, which calls the real
@@ -33,7 +35,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     def __init__(self) -> None:
         super().__init__(
             "INTEGRATION_FRAMEWORKS",
-            doc="Tests for third-party integration frameworks",
             github_workflow="endtoend",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             scenario_groups=(groups.integration_frameworks,),

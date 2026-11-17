@@ -18,7 +18,7 @@ else
   TARBALL="mod_datadog_artifact.zip"
   URL="https://github.com/DataDog/httpd-datadog/releases/download/${HTTPD_DATADOG_VERSION}/${TARBALL}"
   echo "Get APACHE plugin from $URL"
-  curl -Lf -o "$TARBALL" "$URL"
+  curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -Lf -o "$TARBALL" "$URL"
   unzip "$TARBALL" -d "$DEST_FOLDER"
   rm "$TARBALL"
 fi

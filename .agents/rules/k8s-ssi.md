@@ -1,9 +1,18 @@
 # K8s Library Injection
 
-* About K8s Library Injection tests use the document files: docs/understand/scenarios/k8s_library_injection_overview.md, docs/understand/scenarios/k8s_lib_injection.md and docs/understand/scenarios/k8s_injector_dev.md to provide an accurate answers.
-* If a user inquires about Kubernetes (k8s) library injection, note that there are two distinct testing approaches: 'K8s Lib Injection' and 'K8s Injector Dev', both use different mechanisms.
-* To run the K8s Lib Injection tests the easy way is to run the wizard script utils/scripts/ssi_wizards/k8s_ssi_wizard.sh, to know how to run manually check the document: docs/understand/scenarios/k8s_lib_injection.md.
-* To run the K8s Injector dev tests the easy way is to run the wizard script utils/scripts/ssi_wizards/k8s_injector_dev_wizard.sh, to know how to run manually check the document: docs/understand/scenarios/k8s_injector_dev.md.
+* For first runs, use the [SSI quick start](../../docs/execute/ssi.md) and
+  [SSI access guide](../../docs/execute/ssi-access.md).
+* K8s library injection and K8s injector-dev are different test suites. Use
+  [the overview](../../docs/understand/scenarios/k8s_library_injection_overview.md)
+  to choose one.
+* Run normal K8s library injection with
+  `utils/scripts/ssi_wizards/k8s_ssi_wizard.sh`. Use
+  [the K8s guide](../../docs/understand/scenarios/k8s_lib_injection.md) for
+  manual commands.
+* Run K8s injector-dev with
+  `utils/scripts/ssi_wizards/k8s_injector_dev_wizard.sh`. Use
+  [the injector-dev guide](../../docs/understand/scenarios/k8s_injector_dev.md)
+  for manual commands.
 * After add a new K8s Lib Injection scenario, you must declare it in utils/scripts/ci_orchestrators/k8s_ssi.json, to allow to create the tests matrix for CI and for the wizard.
 * After add a new K8s injector dev scenario, you must declare it in utils/scripts/ci_orchestrators/k8s_injector_dev.json, to allow to create the tests matrix for CI and for the wizard.
 * After add a new K8s Lib Injection weblog, you must declare it in utils/scripts/ci_orchestrators/k8s_ssi.json, to allow to create the tests matrix for CI and for the wizard.

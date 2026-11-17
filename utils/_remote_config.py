@@ -434,7 +434,12 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     extra_timeout = 10  # give more room for startup
     timeout = len(commands) * rc_poll_interval + extra_timeout
     logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
-    library.wait_for(all_payload_sent, timeout=timeout)
+    wait_started = time.monotonic()
+    completed = library.wait_for(all_payload_sent, timeout=timeout)
+    elapsed = time.monotonic() - wait_started
+    logger.info(
+        f"RC sequence wait {'completed' if completed else 'timed out'} after {elapsed:.3f}s (timeout={timeout}s)"
+    )
 
 
 def _create_base_rcm():

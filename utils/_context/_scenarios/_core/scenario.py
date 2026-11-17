@@ -112,13 +112,11 @@ class Scenario:
         self,
         name: str,
         github_workflow: str | None,
-        doc: str,
         weblog_categories: list[WeblogCategory] | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
         self.name = name
         self.replay = False
-        self.doc = doc
         self.rc_api_enabled = False
         self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow

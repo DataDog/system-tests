@@ -382,6 +382,8 @@ def image_exists(
 def build_and_push(
     bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile_name: str, platform: str
 ) -> None:
+    # Select architecture-tagged parent images from the same platform as the CI build.
+    target_arch = platform.split("/")[1]
     logger.info("Building and pushing %s", tag)
     _run_streaming(
         [
@@ -398,6 +400,8 @@ def build_and_push(
             f"{target}.dockerfile={dockerfile_name}",
             "--set",
             f"{target}.platform={platform}",
+            "--set",
+            f"{target}.args.TARGETARCH={target_arch}",
             "-f",
             str(bake_file),
             target,

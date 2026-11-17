@@ -150,6 +150,15 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         else:
             return default_checks
 
+    def adjust_meta_checks_for_schema(
+        self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
+    ) -> dict[str, str | Callable | None]:
+        if "_dd.appsec.s.req.headers" in span["meta"]:
+            # the API Security sampling window expired before this request: its schema was collected, so the trace
+            # is kept by ASM (priority 2, see fix_priority_lambda) and the trace source tag is set
+            return {**default_checks, self.propagated_tag(): self.propagated_tag_value()}
+        return default_checks
+
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
@@ -157,7 +166,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "meta", self.adjust_meta_checks_for_schema(span, tested_meta))
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -202,7 +211,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "meta", self.adjust_meta_checks_for_schema(span, tested_meta))
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -247,7 +256,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "meta", self.adjust_meta_checks_for_schema(span, tested_meta))
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -292,7 +301,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "meta", self.adjust_meta_checks_for_schema(span, tested_meta))
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222

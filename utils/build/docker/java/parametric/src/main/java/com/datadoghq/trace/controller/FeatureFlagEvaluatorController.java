@@ -16,6 +16,7 @@ import dev.openfeature.sdk.OpenFeatureAPI;
 import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
+import dev.openfeature.sdk.exceptions.OpenFeatureError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,13 @@ public class FeatureFlagEvaluatorController {
         }
     }
 
+    // dd-openfeature reads no initialization-timeout variable, so the app maps the one other SDKs read.
+    // Unset keeps the short timeout that existing tests rely on.
+    private static long initTimeoutMillis() {
+        final String configured = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS");
+        return configured == null || configured.isBlank() ? 100 : Long.parseLong(configured.trim());
+    }
+
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
 
@@ -77,7 +85,7 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
+                provider = new Provider(new Provider.Options().initTimeout(initTimeoutMillis(), TimeUnit.MILLISECONDS));
             } else {
                 provider = new NoOpProvider() {
                     @Override
@@ -86,7 +94,12 @@ public class FeatureFlagEvaluatorController {
                     }
                 };
             }
-            api.setProviderAndWait(provider);
+            try {
+                api.setProviderAndWait(provider);
+            } catch (OpenFeatureError e) {
+                // Keep the client for the failed provider; /ffe/start reports its state.
+                LOGGER.warn("FFE provider initialization failed", e);
+            }
             Client client = api.getClient();
             if (CAPTURE_HOOK_FEATURES) {
                 captureHookFeatures(client);
@@ -158,6 +171,7 @@ public class FeatureFlagEvaluatorController {
         result.put("errorCode", errorCode);
         result.put("value", value);
         result.put("flagMetadata", flagMetadata);
+        result.put("providerStatus", client.getProviderState().name());
         if (request.isExposureHooks()) {
             result.put("exposureHooks", exposureRows);
         }

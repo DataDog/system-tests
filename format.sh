@@ -156,7 +156,12 @@ else
     esac
 
     YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
-    curl -Lo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
+    # --retry-all-errors needs curl 7.71, a developer machine may have an older one
+    curl_retry=(--retry 3 --retry-delay 5 --retry-connrefused)
+    if curl --retry-all-errors --version >/dev/null 2>&1; then
+        curl_retry+=(--retry-all-errors)
+    fi
+    curl "${curl_retry[@]}" -fLo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
 
     # Validate checksum of downloaded archive
     if command -v sha256sum > /dev/null; then
@@ -204,12 +209,12 @@ echo "Checking AI Guard redaction fixtures..."
 # from ever matching the requests the tests send. The generator is deterministic, so it can report
 # drift on its own; --check compares against the files it owns without writing any of them.
 if [ "$COMMAND" == "check" ]; then
-  gen_redaction_args="--check"
+  fixture_generator_args="--check"
 else
-  gen_redaction_args=""
+  fixture_generator_args=""
 fi
 
-if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $gen_redaction_args 2>&1)"; then
+if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $fixture_generator_args 2>&1)"; then
   echo "$gen_redaction_output"
   echo "AI Guard redaction fixtures are out of date or invalid. Regenerate them with"
   echo "python utils/scripts/gen_redaction_cassettes.py 💥 💔 💥"
@@ -217,10 +222,19 @@ if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $ge
 fi
 
 echo "Checking AI Guard extra_tags fixtures..."
-if ! gen_extra_tags_output="$(python utils/scripts/gen_extra_tags_cassettes.py $gen_redaction_args 2>&1)"; then
+if ! gen_extra_tags_output="$(python utils/scripts/gen_extra_tags_cassettes.py $fixture_generator_args 2>&1)"; then
   echo "$gen_extra_tags_output"
   echo "AI Guard extra_tags fixtures are out of date or invalid. Regenerate them with"
   echo "python utils/scripts/gen_extra_tags_cassettes.py 💥 💔 💥"
+  exit 1
+fi
+
+echo "Checking AI Guard MCP cassettes..."
+# Same as above: the hand-crafted MCP cassettes are addressed by a hash of the request body.
+if ! gen_mcp_output="$(python utils/scripts/gen_aiguard_mcp_cassettes.py $fixture_generator_args 2>&1)"; then
+  echo "$gen_mcp_output"
+  echo "AI Guard MCP cassettes are out of date. Regenerate them with"
+  echo "python utils/scripts/gen_aiguard_mcp_cassettes.py 💥 💔 💥"
   exit 1
 fi
 

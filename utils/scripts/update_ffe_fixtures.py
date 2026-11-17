@@ -16,6 +16,7 @@ FIXTURE_REPOSITORY = "https://github.com/DataDog/ffe-system-test-data.git"
 FIXTURE_REF_PATTERN = re.compile(r"[A-Za-z0-9._/-]+")
 SELECTION_VECTORS_PATH = Path("flag-selection/selection-vectors.json")
 SELECTION_DROP_REASONS = frozenset({"malformed_selection", "too_many_values", "invalid_key_pattern", "invalid_tag"})
+SUITE_FLAG_TAGS_FILE = "flag-tags.json"
 
 
 def _validate_fixture_ref(fixture_ref: str) -> None:
@@ -113,6 +114,32 @@ def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:
     return case_count
 
 
+def _validate_flag_entries(flags: object, location: str) -> None:
+    if (
+        not isinstance(flags, list)
+        or not flags
+        or not all(
+            isinstance(flag, dict)
+            and isinstance(flag.get("key"), str)
+            and isinstance(flag.get("tags"), list)
+            and all(isinstance(tag, str) for tag in flag["tags"])
+            for flag in flags
+        )
+    ):
+        msg = f"{location} flags must be a non-empty array of key and tags entries"
+        raise ValueError(msg)
+
+
+def _validate_flag_tags(path: Path) -> None:
+    location = f"{path.parent.name}/{path.name}"
+    with path.open(encoding="utf-8") as tags_file:
+        content = json.load(tags_file)
+    if not isinstance(content, dict) or set(content) != {"flags"}:
+        msg = f"{location} must contain only flags"
+        raise ValueError(msg)
+    _validate_flag_entries(content["flags"], location)
+
+
 def _validate_fixture_snapshot(snapshot: Path) -> int:
     fixture_count = _validate_evaluation_suite(snapshot / "ufc-config.json", snapshot / "evaluation-cases")
 
@@ -130,9 +157,15 @@ def _validate_fixture_snapshot(snapshot: Path) -> int:
         if not suite_directory.is_dir() or suite_directory.is_symlink():
             msg = "FFE evaluation-suites must contain only suite directories"
             raise ValueError(msg)
-        if {entry.name for entry in suite_directory.iterdir()} != {"ufc-config.json", "cases"}:
-            msg = f"FFE feature suite {suite_directory.name} must contain only ufc-config.json and cases"
+        entries = {entry.name for entry in suite_directory.iterdir()}
+        if not {"ufc-config.json", "cases"} <= entries <= {"ufc-config.json", "cases", SUITE_FLAG_TAGS_FILE}:
+            msg = (
+                f"FFE feature suite {suite_directory.name} must contain only ufc-config.json, cases and an optional "
+                f"{SUITE_FLAG_TAGS_FILE}"
+            )
             raise ValueError(msg)
+        if SUITE_FLAG_TAGS_FILE in entries:
+            _validate_flag_tags(suite_directory / SUITE_FLAG_TAGS_FILE)
         fixture_count += _validate_evaluation_suite(
             suite_directory / "ufc-config.json",
             suite_directory / "cases",
@@ -148,6 +181,8 @@ def _validate_selection_vectors(snapshot: Path) -> int:
     if not isinstance(cases, list) or not cases:
         msg = "FFE selection vectors must contain a non-empty cases array"
         raise ValueError(msg)
+    # The mocked backend's flag selection unit tests read flags and each case's expected outcome.
+    _validate_flag_entries(vectors.get("flags"), SELECTION_VECTORS_PATH.name)
 
     names: set[str] = set()
     sdk_count = 0
@@ -160,6 +195,9 @@ def _validate_selection_vectors(snapshot: Path) -> int:
             msg = f"Duplicate FFE selection vector name: {name}"
             raise ValueError(msg)
         names.add(name)
+        if not isinstance(case.get("expected"), dict) or case["expected"].get("outcome") not in {"applied", "ignored"}:
+            msg = f"FFE selection vector must have an applied or ignored expected outcome: {name}"
+            raise ValueError(msg)
         if ("query" in case) == ("rawQuery" in case):
             msg = f"FFE selection vector must have exactly one query form: {name}"
             raise ValueError(msg)
