@@ -208,6 +208,26 @@ def mark_duplicate_new_ids(decisions: list[Json]) -> None:
         seen.add(decision["rule_id"])
 
 
+def same_evidence(first: Json, second: Json) -> bool:
+    """Two decisions share at least half of the evidence of the smaller one."""
+    first_ids = {c["id"] for c in first["evidence"]}
+    second_ids = {c["id"] for c in second["evidence"]}
+    return len(first_ids & second_ids) >= min(len(first_ids), len(second_ids)) / 2
+
+
+def mark_twin_new_rules(decisions: list[Json]) -> None:
+    """Two lenses can write a new rule for the same defect. The strongest one stays, and a person picks the other."""
+    new_rules = [d for d in decisions if d["action"] == "new_rule" and d["status"] == APPLY]
+    kept: list[Json] = []
+    for decision in sorted(new_rules, key=strength, reverse=True):
+        twin = next((k for k in kept if same_evidence(decision, k)), None)
+        if twin is None:
+            kept.append(decision)
+        else:
+            decision["status"] = NEEDS_DECISION
+            decision["status_reason"] = f"same evidence as {twin['rule_id']} ({twin['lens']}): keep one of the two"
+
+
 def apply_cap(decisions: list[Json], max_changes: int) -> None:
     ready = sorted((d for d in decisions if d["status"] == APPLY), key=strength, reverse=True)
     for decision in ready[max_changes:]:
@@ -253,6 +273,7 @@ def decide_run(run_dir: Path, root: Path, max_changes: int) -> list[Json]:
         data = read_json(path)
         decisions += [decide_proposal(data["lens"], p, inputs) for p in data["proposals"]]
     mark_duplicate_new_ids(decisions)
+    mark_twin_new_rules(decisions)  # before the cap, so that the next change takes the free place
     apply_cap(decisions, max_changes)
     write_json(run_dir / "decisions.json", decisions)
     (run_dir / "report.md").write_text(report.render(run_dir, decisions, list(LENS_PREFIX)), encoding="utf-8")

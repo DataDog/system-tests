@@ -704,6 +704,27 @@ class Test_ReviewLearningDecide:
         strong = {**self.sharpen, "candidate_ids": ["m"]}
         assert self._statuses(tmp_path, [weak, strong], candidates, max_changes=1) == [decide.OVER_CAP, decide.APPLY]
 
+    def test_twin_new_rules_need_a_person(self, tmp_path: Path) -> None:
+        root = _decide_root(tmp_path)
+        run = tmp_path / "run"
+        _write_run(run, [])
+        write_json(run / "verified.json", [_candidate("a", 1, "miss"), _candidate("b", 2, "miss")])
+
+        def rule(rule_id: str, candidate_ids: list[str]) -> Json:
+            return {"action": "new_rule", "rule_id": rule_id, "severity": "P1",
+                    "proposed_text": _new_rule(rule_id), "candidate_ids": candidate_ids}  # fmt: skip
+
+        infra = {"lens": "infrastructure-and-conventions", "proposals": [rule("INFRA-005", ["a"])]}
+        life = {"lens": "lifecycle-and-isolation", "proposals": [rule("LIFE-005", ["a"]), rule("LIFE-006", ["b"])]}
+        write_json(run / "proposals" / "infrastructure-and-conventions.json", infra)
+        write_json(run / "proposals" / "lifecycle-and-isolation.json", life)
+        plain_english.lint_run(run, lambda _text: [])
+        decisions = {d["rule_id"]: d for d in decide.decide_run(run, root, max_changes=2)}
+        assert decisions["INFRA-005"]["status"] == decide.APPLY
+        assert decisions["LIFE-005"]["status"] == decide.NEEDS_DECISION
+        assert decisions["LIFE-005"]["status_reason"].startswith("same evidence as INFRA-005")
+        assert decisions["LIFE-006"]["status"] == decide.APPLY  # the twin frees its place under the cap
+
     def test_report_lists_the_next_candidates(self, tmp_path: Path) -> None:
         candidates = [_candidate("a", 1, "correction"), _candidate("b", 2, "correction"), _candidate("m", 3, "miss")]
         weak = {**self.sharpen, "proposed_text": "A setup method never asserts.", "reason": "Two reviewers asked for it.",

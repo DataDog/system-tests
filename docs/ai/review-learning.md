@@ -162,6 +162,7 @@ It also does these checks:
 - An edited rule must exist in its lens, and its current text must be in the lens file.
 - A new rule needs a free ID with the lens prefix, and the severity `P0` or `P1`. Two new rules in one run cannot share an ID.
 - A text with `se` findings needs a human decision. So does a text that `plain_english.py` did not lint.
+- Two lenses can write a new rule for the same defect. Two new rules are twins when they share at least half of the evidence of the rule with less evidence. Only the strongest twin gets the status `apply`, or the first one in the report when they are equal. The other twin needs a human decision, so it does not take a place under `max_changes`.
 - At most `max_changes` proposals get the status `apply`. The strongest ones come first. The default is 10.
 - The other proposals that pass the thresholds get the status `over_cap`. The report lists them as next candidates, with their text and evidence. Nothing applies them.
 
