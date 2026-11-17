@@ -477,13 +477,7 @@ jobs:
       run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+      run: ./run.sh OTEL_INTEGRATIONS
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
