@@ -36,6 +36,7 @@ It only edits `.agents/rules/code-review/`.
 
 **How to review**
 - The report below lists the evidence of each change: the pull requests and the verified quotes.
+- The report also lists the next candidates: changes over the cap of this run. To take one, add it by hand.
 - To keep a change, leave no comment, or write `ok`.
 - To drop a change, comment `discard` on it, or `discard: <reason>`.
 - To change the text, add a GitHub suggestion block, or write the new text in a comment.
