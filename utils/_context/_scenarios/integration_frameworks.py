@@ -30,6 +30,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         "openai": ["OPENAI_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "anthropic": ["ANTHROPIC_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "google_genai": ["GEMINI_API_KEY"],
+        "litellm": ["OPENAI_API_KEY"],
     }
 
     def __init__(self) -> None:
