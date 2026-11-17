@@ -33,6 +33,11 @@ EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_HIGH_CARDINALITY_EVALS = 12_000
 TEST_ENVIRONMENT_ID = "11111111-1111-4111-8111-111111111111"
 OTHER_TEST_ENVIRONMENT_ID = "22222222-2222-4222-8222-222222222222"
+REPLACEMENT_ENVIRONMENT_IDENTITIES: tuple[tuple[str, str], ...] = (
+    (TEST_ENVIRONMENT_ID, "Production"),
+    (TEST_ENVIRONMENT_ID, "Renamed"),
+    (OTHER_TEST_ENVIRONMENT_ID, "Production"),
+)
 
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
@@ -478,14 +483,9 @@ class Test_FFE_EVP_Flagevaluation_Environment_Identity:
     def setup_ffe_evp_flagevaluation_environment_replacement(self) -> None:
         self.replacement_flag_key = "evp-environment-replacement-flag"
         config_path = f"{RC_PATH}/ffe-evp-environment-replacement/config"
-        self.replacement_identities = [
-            (TEST_ENVIRONMENT_ID, "Production"),
-            (TEST_ENVIRONMENT_ID, "Renamed"),
-            (OTHER_TEST_ENVIRONMENT_ID, "Production"),
-        ]
         self.replacement_responses: list[HttpResponse] = []
         rc.tracer_rc_state.reset()
-        for environment_id, environment_name in self.replacement_identities:
+        for environment_id, environment_name in REPLACEMENT_ENVIRONMENT_IDENTITIES:
             rc.tracer_rc_state.set_config(
                 config_path,
                 make_ufc_fixture(
@@ -518,7 +518,7 @@ class Test_FFE_EVP_Flagevaluation_Environment_Identity:
             identity = (environment_id, environment_name)
             counts[identity] = counts.get(identity, 0) + evaluation_count
 
-        assert counts == dict.fromkeys(self.replacement_identities, 2), (
+        assert counts == dict.fromkeys(REPLACEMENT_ENVIRONMENT_IDENTITIES, 2), (
             "configuration replacements and environment renames must form distinct aggregation buckets"
         )
         assert_no_duplicate_visible_events(events)
