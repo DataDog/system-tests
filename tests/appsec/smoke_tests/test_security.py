@@ -7,6 +7,7 @@
 from utils import features, scenarios
 from tests.appsec.smoke_tests.utils import (
     BaseApiSecuritySmokeTests,
+    BaseIastSmokeTests,
     BaseRaspSmokeTests,
     BaseRemoteConfigSmokeTests,
     BaseTelemetrySmokeTests,
@@ -54,4 +55,11 @@ class Test_SecuritySmoke_ApiSecurity(BaseApiSecuritySmokeTests):
 @features.user_monitoring
 @scenarios.security_smoke
 class Test_SecuritySmoke_UserEvents(BaseUserEventsSmokeTests):
+    pass
+
+
+@features.iast_sink_path_traversal
+@features.iast_stack_trace
+@scenarios.security_smoke
+class Test_SecuritySmoke_Iast(BaseIastSmokeTests):
     pass

@@ -8,6 +8,7 @@ from utils import features, scenarios
 
 from tests.appsec.smoke_tests.utils import (
     BaseApiSecuritySmokeTests,
+    BaseIastSmokeTests,
     BaseRaspSmokeTests,
     BaseRemoteConfigSmokeTests,
     BaseTelemetrySmokeTests,
@@ -65,6 +66,13 @@ class Test_AppSecAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
     pass
 
 
+@apm_standalone_rfc
+@features.appsec_apm_standalone
+@scenarios.appsec_apm_standalone
+class Test_AppSecAPMStandalone_Iast(BaseIastSmokeTests):
+    pass
+
+
 # --- APPSEC_STANDALONE_APM_STANDALONE (DD_APM_TRACING_ENABLED=false) ---------
 
 
@@ -107,4 +115,21 @@ class Test_AppSecStandaloneAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
 @features.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
 class Test_AppSecStandaloneAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
+    pass
+
+
+@apm_standalone_rfc
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_Iast(BaseIastSmokeTests):
+    pass
+
+
+# --- IAST_STANDALONE (DD_APPSEC_ENABLED=false, DD_APM_TRACING_ENABLED=false) -
+
+
+@apm_standalone_rfc
+@features.iast_standalone
+@scenarios.iast_standalone
+class Test_IastStandalone_Iast(BaseIastSmokeTests):
     pass

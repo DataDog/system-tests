@@ -1232,6 +1232,7 @@ manifest:
         "*": v2.29.0
         "graphql23": irrelevant
   tests/appsec/smoke_tests/test_apm_standalone.py: v2.30.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke:
@@ -1253,6 +1254,7 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke:
@@ -1274,7 +1276,9 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast: missing_feature
   tests/appsec/smoke_tests/test_security.py: v2.30.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:

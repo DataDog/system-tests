@@ -1124,6 +1124,10 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast:
+    - weblog_declaration:
+        aiohttp: missing_feature
+        tornado: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -1139,6 +1143,12 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast:
+    - weblog_declaration:
+        aiohttp: missing_feature
+        flask-poc: v4.7.0-rc1
+        tornado: missing_feature
+        uds-flask: v4.7.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -1151,10 +1161,20 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast:
+    - weblog_declaration:
+        aiohttp: missing_feature
+        flask-poc: v4.7.0-rc1
+        tornado: missing_feature
+        uds-flask: v4.7.0-rc1
   tests/appsec/smoke_tests/test_security.py: v4.6.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        aiohttp: missing_feature
+        tornado: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1

@@ -1099,6 +1099,9 @@ manifest:
         nextjs: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0  # TODO: a lower version might be supported
@@ -1108,6 +1111,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast:
+    - weblog_declaration:
         nextjs: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - weblog_declaration:
@@ -1119,7 +1125,13 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/appsec/smoke_tests/test_security.py: v5.92.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0
