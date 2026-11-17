@@ -880,6 +880,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -938,6 +941,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_24_0
@@ -983,6 +989,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -1032,6 +1041,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_23_0
@@ -1077,6 +1089,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_20_0
