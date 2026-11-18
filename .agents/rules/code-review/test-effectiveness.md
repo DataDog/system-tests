@@ -47,7 +47,7 @@
 - Old_id: codex-11
 - Severity: P1
 - Flag: Do not write the expected tag, code, or exporter result in the test app. The SDK must produce it. The assertion may name the value it expects. It must read that value from SDK output..
-- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects.
+- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects. The app reports a made-up value for a setting the tracer does not support, instead of None. The app catches every exception and returns a success status. The app changes SDK behavior, such as the parent of a child span.
 - ✅ The tracer sets `runtime-id`, and the test asserts it on the captured span.
 - ❌ The app sets `runtime-id` on the span, and the test asserts that tag.
 
@@ -55,7 +55,7 @@
 - Old_id: codex-21
 - Severity: P1
 - Flag: When the test uses a fake Agent or backend, its request and response must match the real service. Check that shape in the spec, the real code, or a real capture. Do not copy the expected JSON from the fake. A deliberately broken response belongs only in the test of that error.
-- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for.
+- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for. The fake compares the whole query to an exact value, so it rejects a valid extra parameter. The test asserts a header that the test agent rewrites before capture.
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
