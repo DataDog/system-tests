@@ -52,6 +52,7 @@ jobs:
 | `force_execute`                  | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    | *empty*       |
 | `library`                        | Library to test                                                                                 | string  | true     | —             |
 | `parametric_job_count`           | How many jobs should be used to run PARAMETRIC scenario                                         | number  | false    | 1             |
+| `_experimental_parametric_runs_on` | JSON-encoded runner label, label array, or runner group definition for PARAMETRIC              | string  | false    | `{"group":"APM Larger Runners"}` |
 | `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Fetches credentials automatically via dd-sts   | boolean | false    | false         |
 | `test_optimization_datadog_site` | DataDog site to use for test optimization                                                       | string  | false    | datadoghq.com |
 | `ref`                            | system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo) | string  | false    | main          |
@@ -61,6 +62,26 @@ jobs:
 
 
 Note: if `test_optimization_datadog_site` is set to `true`, then the calling repo must be referenced in [dd-sts](https://github.com/DataDog/dd-source/blob/main/domains/seceng/sit/apps/apis/dd-sts/config/policies/us1.ddbuild.io/system-tests.yaml).
+
+### Parametric runners and parallelism
+
+To run parametric tests on standard GitHub-hosted runners, pass a JSON-encoded
+runner label:
+
+```yaml
+with:
+  _experimental_parametric_runs_on: '"ubuntu-24.04"'
+  parametric_job_count: 32
+```
+
+`parametric_job_count` controls the number of shards. Within each Ruby parametric
+job, pytest automatically chooses its worker count from the runner's CPU count.
+When moving to smaller runners, increase the shard count to compensate for fewer
+workers per job, then tune it using CI timings. Each shard builds its own test
+image, so additional shards also add build overhead.
+
+`desired_execution_time` controls end-to-end sharding; it does not size parametric
+shards or set a job timeout.
 
 ## Permissions
 
