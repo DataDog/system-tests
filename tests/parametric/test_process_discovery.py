@@ -95,12 +95,20 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
         assert rc
         pid = int(out)
     elif context.library.name == "golang":
-        # The Go parametric container wraps the server in a shell so the
-        # crashtracker monitor keeps the container alive while it uploads the
-        # crash report. The server is the only direct child of PID 1.
+        # The Go parametric container wraps the server in a shell (PID 1). With
+        # crashtracking, the server process also has a child: a crash monitor in
+        # older releases, or the application when the server process is the
+        # crash supervisor. The tracer runs in exactly one of these processes.
         rc, out = test_library.container_exec_run("pgrep -P 1")
         assert rc
-        pid = int(out)
+        candidates = [int(p) for p in out.split()]
+        for parent in list(candidates):
+            rc, out = test_library.container_exec_run(f"pgrep -P {parent}")
+            if rc:
+                candidates.extend(int(p) for p in out.split())
+        holders = [p for p in candidates if find_dd_memfds(test_library, p)]
+        assert len(holders) == 1, f"expected one process with the tracer memfd, found {holders}"
+        pid = holders[0]
     memfds = find_dd_memfds(test_library, pid)
     assert len(memfds) == 1
     rc, tracer_metadata = read_memfd(test_library, memfds[0])
