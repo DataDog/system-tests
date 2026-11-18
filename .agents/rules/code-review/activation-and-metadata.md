@@ -41,7 +41,7 @@
 - Old_id: claude-07
 - Severity: P1
 - Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
-- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
+- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup from invalid configuration or a missing secret, and the marker does not describe it. A new declaration has no reason. A marker blames the library, but a test defect causes the failure. For example, no library can pass the assertion, or the test setup is nondeterministic.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
 - ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`, causing the library to exit at startup while the run reports an expected failure.
 - Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
@@ -74,3 +74,8 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Gate each test at the version that ships its behavior.
+- Severity: P0
+- Flag: A method that needs behavior from a later release than its class must have its own version declaration. A class that tests behavior an SDK later changed must stop at the version before the change. A version gate for a change on several active release lines must cover each line.
+- Detect: A class-level version activates a method whose behavior shipped in a later release. A version gate starts before the SDK emits the data that the test needs. A class that tests a legacy behavior has no upper version bound. A version range in a manifest or `tests/parametric/capabilities.yml` omits an active release line.
