@@ -1010,7 +1010,7 @@ Request body (not declared by the reference server, which reads the raw request;
 | Field | Type | Required |
 |--|--|--|
 | `configuration` | object | no |
-| `flag_selection` | any: passed untouched to the flag selection option of the SDK | no |
+| `flag_selection` | object `{tags?: string[], keyPatterns?: string[]}`: passed as is to the flag selection option of the SDK; absent means no selection. Other shapes are not part of the contract | no |
 
 Response:
 
