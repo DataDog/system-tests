@@ -1410,7 +1410,9 @@ manifest:
   tests/ffe/test_flag_eval_evp.py:
     - weblog_declaration:
         "*": missing_feature (FFL-3509, PHP weblog not yet validated)
+        laravel11x: incomplete_test_app (weblog has no /ffe endpoint)
         php-fpm-8.2: v2.0.0
+        symfony7x: incomplete_test_app (weblog has no /ffe endpoint)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: missing_feature (Agentless activation is separate from FFL-3509)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: missing_feature (Agentless activation is separate from FFL-3509)
