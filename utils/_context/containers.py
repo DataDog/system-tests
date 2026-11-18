@@ -984,11 +984,31 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # read from the image, so that the version is known before the agent starts
+        version = self.image.labels.get("org.opencontainers.image.version", "")
+        if not version:
+            pytest.exit(
+                f"The agent image {self.image.name} has no org.opencontainers.image.version label, "
+                "so its version can't be known before it starts. Add this label to the image.",
+                1,
+            )
+        self.agent_version = ComponentVersion("agent", version).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = ComponentVersion("agent", data["version"]).version
+        reported_version = Version(data["version"])
+        # dev images labels have more build metadata than /info: compare without it
+        # e.g. 7.87.0-devel+git.810.4e18469.pipeline.153953738 vs 7.87.0-devel+git.810.4e18469
+        if reported_version.truncate("prerelease") != self.agent_version.truncate("prerelease"):
+            pytest.exit(
+                f"The agent runs {reported_version}, but its image {self.image.name} is labeled {self.agent_version}",
+                1,
+            )
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
