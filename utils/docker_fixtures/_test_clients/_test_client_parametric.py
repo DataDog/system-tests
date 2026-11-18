@@ -514,6 +514,13 @@ class ParametricTestClientApi(TestClientApi):
 
         return HTTPStatus(r.status_code).is_success
 
+    def dsm_produce_checkpoint(self, checkpoint_type: str, target: str) -> bool:
+        """Set a Data Streams Monitoring produce checkpoint through the SDK's manual API."""
+        r = self._session.post(
+            self._url("/trace/dsm/produce_checkpoint"), json={"type": checkpoint_type, "target": target}
+        )
+        return HTTPStatus(r.status_code).is_success
+
     def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
         """Synchronously drain pending Remote Config and return the applied set.
 
@@ -1185,6 +1192,9 @@ class APMLibrary:
 
     def dd_flush_stats(self) -> bool:
         return self._client.dd_flush_stats()
+
+    def dsm_produce_checkpoint(self, checkpoint_type: str, target: str) -> bool:
+        return self._client.dsm_produce_checkpoint(checkpoint_type, target)
 
     def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
         """Synchronously drain pending Remote Config and return the applied set.

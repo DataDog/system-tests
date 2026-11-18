@@ -30,6 +30,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/manual_drop", SpanManualDrop);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+        app.MapPost("/trace/dsm/produce_checkpoint", DsmProduceCheckpoint);
     }
 
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
@@ -267,6 +268,23 @@ public abstract class ApmTestApi
         {
             http_headers = httpHeaders
         });
+    }
+
+    private static async Task DsmProduceCheckpoint(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var type = requestJson.GetProperty("type").GetString()!;
+        var target = requestJson.GetProperty("target").GetString()!;
+
+        // The manual DSM API of .NET sets the checkpoint while injecting a span context.
+        using var scope = Tracer.Instance.StartActive("dsm.produce");
+        var headers = new Dictionary<string, string>();
+        SpanContextInjector.InjectIncludingDsm(
+            headers,
+            (carrier, key, value) => carrier[key] = value,
+            scope.Span.Context,
+            type,
+            target);
     }
 
     private static async Task FinishSpan(HttpRequest request)

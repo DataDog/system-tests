@@ -525,6 +525,24 @@ def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
     return TraceStatsFlushReturn()
 
 
+class DsmProduceCheckpointArgs(BaseModel):
+    type: str
+    target: str
+
+
+class DsmProduceCheckpointReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/dsm/produce_checkpoint")
+def dsm_produce_checkpoint(args: DsmProduceCheckpointArgs) -> DsmProduceCheckpointReturn:
+    from ddtrace.data_streams import set_produce_checkpoint
+
+    headers: Dict[str, str] = {}
+    set_produce_checkpoint(args.type, args.target, headers.__setitem__)
+    return DsmProduceCheckpointReturn()
+
+
 class TraceRemoteConfigApplyArgs(BaseModel):
     pass  # Reserved for future per-config_id semantics; see contract doc.
 

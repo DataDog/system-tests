@@ -396,6 +396,21 @@ class Test_Parametric_DDTrace_Flush:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
+class Test_Parametric_DSM_Produce_Checkpoint:
+    def test_produce_checkpoint(self, test_library: APMLibrary):
+        """Validates that /trace/dsm/produce_checkpoint sets a Data Streams Monitoring produce checkpoint
+        through the SDK's manual API, and succeeds whether or not DSM is enabled.
+
+        Supported Parameters:
+        - type: str
+        - target: str
+        Supported Return Values:
+        """
+        assert test_library.dsm_produce_checkpoint("kafka", "parametric-topic")
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Baggage:
     def test_set_baggage(self, test_library: APMLibrary):
         """Validates that /trace/span/set_baggage sets a baggage item.

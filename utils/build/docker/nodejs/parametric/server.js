@@ -330,6 +330,12 @@ app.post('/trace/stats/flush', (req, res) => {
   }
 });
 
+app.post('/trace/dsm/produce_checkpoint', (req, res) => {
+  const { type, target } = req.body
+  tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, {})
+  res.json({})
+});
+
 app.post('/trace/span/error', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
