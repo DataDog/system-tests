@@ -6,7 +6,13 @@ But we often want to run system tests against unmerged changes. The general appr
 ## Agent
 
 * Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
-* `SECURITY_SMOKE_OTLP` uses `datadog/agent:latest-full` by default. Set `binaries/ddot-agent-image` to override it with an image that includes the bundled DDOT Collector. To test a change to DDOT conversion, the override must contain the updated `otel-agent`; replacing only the standalone `trace-agent` binary does not change that path.
+* `SECURITY_SMOKE_OTLP` uses `datadog/agent:latest-full` by default. Set `binaries/ddot-agent-image` to override it with a full image containing the updated `otel-agent`. Replacing only the standalone `trace-agent` binary does not change bundled DDOT conversion.
+
+To check a DDOT conversion fix, use the same weblog image for both runs and change only `binaries/ddot-agent-image`. For example, with a Java tracer that exports structured reports over OTLP, run the following against the unfixed and fixed images. `--runxfail` makes a broken carrier an ordinary failure instead of an expected failure:
+
+```bash
+./run.sh SECURITY_SMOKE_OTLP --runxfail tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp
+```
 
 ### Building an agent image from a local datadog-agent branch
 
