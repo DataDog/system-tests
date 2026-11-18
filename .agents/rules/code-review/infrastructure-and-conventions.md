@@ -76,7 +76,7 @@
 
 ### INFRA-012: Mount the GitHub token where the build calls the GitHub API.
 - Severity: P1
-- Flag: A weblog build that calls the GitHub API must mount the `github_token` secret in that `RUN` step. Use the shared `get_latest_release` helper, not raw `curl` or `wget`. Turn off `set -x` around the call, so the log does not show the token.
-- Detect: The build passes the `github_token` secret, and the `RUN` step that calls the API has no `--mount=type=secret,id=github_token`. An install script calls the GitHub API with `curl -s` and no `--fail`.
-- ✅ Add `--mount=type=secret,id=github_token` to the `RUN` step of `install_ddtrace.sh`, and call `get_latest_release`.
-- ❌ Call the GitHub API with `curl -s` and no token, so a rate limit returns a null tag.
+- Flag: A weblog `RUN` step that calls the GitHub API must mount the `github_token` secret. Call the API with the shared `get_latest_release` helper. Do not use raw `curl` or `wget`. Turn off `set -x` around the call. Then the build log does not show the token.
+- Detect: The build passes the `github_token` secret. The `RUN` step that calls the API has no `--mount=type=secret,id=github_token`. An install script calls the GitHub API with `curl -s` and no `--fail`.
+- ✅ Add `--mount=type=secret,id=github_token` to the `RUN` step of `install_ddtrace.sh`. Call `get_latest_release` in that script.
+- ❌ Call the GitHub API with `curl -s` and no token. A rate limit then returns a null tag.
