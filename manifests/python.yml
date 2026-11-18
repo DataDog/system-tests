@@ -4050,7 +4050,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp:
     - weblog_declaration:
         '*': '>=4.12.0-rc1'
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.1  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
