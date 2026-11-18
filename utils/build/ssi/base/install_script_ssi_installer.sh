@@ -16,3 +16,6 @@ if ! run_with_retry \
     echo "[ERROR] aborting SSI install after Datadog Agent installer failure" >&2
     exit 1
 fi
+
+# Do not keep the script in the base image: the SSI layer downloads the latest one in every run
+rm -f ./install_script_agent7.sh
