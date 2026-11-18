@@ -768,6 +768,25 @@ manifest:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_ApiSecurity:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: missing_feature (DDOT does not preserve OTLP structured reports; datadog-agent#60077)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFI detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig: missing_feature (DDOT does not preserve OTLP structured reports; datadog-agent#60077)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFI detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Threats:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Threats::test_attack_detection_smoke: missing_feature (DDOT does not preserve OTLP structured reports; datadog-agent#60077)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_UserEvents: missing_feature (Login events are not supported in the Go weblogs)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v2.11.0-dev

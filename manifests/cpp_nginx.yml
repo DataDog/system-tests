@@ -111,6 +111,7 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats: '>=1.19.1'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats::test_waf_monitoring_smoke: missing_feature (WAF monitoring tags not implemented)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_security_otlp.py: missing_feature (OTLP trace export is not supported)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script

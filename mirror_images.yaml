@@ -12,6 +12,7 @@
 - "apache/kafka:3.7.1"
 - "cassandra:latest"
 - "datadog/agent:latest"
+- "datadog/agent:latest-full"
 - "datadog/serverless-init:1.10.4"
 - "datadog/system-tests:golang_buddy-v2"
 - "datadog/system-tests:java_buddy-v1"

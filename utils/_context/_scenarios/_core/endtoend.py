@@ -213,6 +213,7 @@ class EndToEndScenario(DockerScenario):
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str | None] | None = None,
+        agent_container_class: type[AgentContainer] = AgentContainer,
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
@@ -271,7 +272,7 @@ class EndToEndScenario(DockerScenario):
             self.rc_api_enabled = True
             self.rc_backend_enabled = True
 
-        self.agent_container = AgentContainer(
+        self.agent_container = agent_container_class(
             dd_api_key=self.dd_api_key,
             # the mocked backend always serves remote config
             rc_backend_enabled=True,
@@ -584,6 +585,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         *,
         additional_trace_header_tags: tuple[str, ...] = (),
         agent_env: dict[str, str | None] | None = None,
+        agent_container_class: type[AgentContainer] = AgentContainer,
         agent_interface_timeout: int = 5,
         appsec_enabled: bool = True,
         client_drop_p0s: bool | None = None,
@@ -609,6 +611,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             name,
             additional_trace_header_tags=additional_trace_header_tags,
             agent_env=agent_env,
+            agent_container_class=agent_container_class,
             agent_interface_timeout=agent_interface_timeout,
             appsec_enabled=appsec_enabled,
             client_drop_p0s=client_drop_p0s,

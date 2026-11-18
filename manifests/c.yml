@@ -3,6 +3,7 @@
 manifest:
   tests/ai_guard/: irrelevant (dd-trace-c does not implement AI Guard)
   tests/appsec/: irrelevant (dd-trace-c does not implement AppSec or IAST)
+  tests/appsec/smoke_tests/test_security_otlp.py: missing_feature (OTLP trace export is not supported)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/ffe/test_evaluation_telemetry_opt_out.py: incomplete_test_app (The Perl Mojolicious workload does not provide the /ffe endpoint)
   tests/integrations/test_dbm.py: incomplete_test_app (The Perl Mojolicious workload does not provide database endpoints)
