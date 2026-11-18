@@ -133,7 +133,10 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature

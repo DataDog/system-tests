@@ -195,7 +195,19 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
