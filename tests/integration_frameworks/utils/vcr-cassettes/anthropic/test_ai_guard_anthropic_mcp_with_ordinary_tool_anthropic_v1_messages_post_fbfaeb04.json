@@ -1,0 +1,70 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "x-stainless-timeout": "600",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "AsyncAnthropic/Python 0.84.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "0.84.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "x64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.18",
+      "X-Stainless-Async": "async:asyncio",
+      "anthropic-version": "2023-06-01",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "687",
+      "x-datadog-trace-id": "3639222931159065042",
+      "x-datadog-parent-id": "15402819114062985997",
+      "x-datadog-sampling-priority": "2",
+      "x-datadog-tags": "_dd.p.dm=-4,_dd.p.tid=6af43a5d00000000,_dd.p.ts=20",
+      "traceparent": "00-6af43a5d0000000032811df9763121d2-d5c1ce6069523b0d-01",
+      "tracestate": "dd=p:d5c1ce6069523b0d;s:2;t.dm:-4;t.tid:6af43a5d00000000;t.ts:20,ot=rv:0d814657451903"
+    },
+    "body": "{\"max_tokens\":200,\"messages\":[{\"role\":\"user\",\"content\":\"In a single turn, call both tools in parallel: echo exactly this text: hello from system-tests, and get the weather in San Francisco, CA.\"}],\"model\":\"claude-sonnet-4-5-20250929\",\"temperature\":0,\"tools\":[{\"name\":\"get_weather\",\"description\":\"Get the current weather in a given location\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"location\":{\"type\":\"string\",\"description\":\"The city and state, e.g. San Francisco, CA\"}},\"required\":[\"location\"]}},{\"name\":\"echo\",\"description\":\"Echo the text back.\",\"input_schema\":{\"properties\":{\"text\":{\"title\":\"Text\",\"type\":\"string\"}},\"required\":[\"text\"],\"title\":\"echoArguments\",\"type\":\"object\"}}]}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Wed, 11 Nov 2026 09:50:23 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "anthropic-ratelimit-input-tokens-limit": "20300000",
+      "anthropic-ratelimit-input-tokens-remaining": "20300000",
+      "anthropic-ratelimit-input-tokens-reset": "2026-11-11T09:50:23Z",
+      "anthropic-ratelimit-output-tokens-limit": "10400000",
+      "anthropic-ratelimit-output-tokens-remaining": "10400000",
+      "anthropic-ratelimit-output-tokens-reset": "2026-11-11T09:50:23Z",
+      "anthropic-ratelimit-requests-limit": "40000",
+      "anthropic-ratelimit-requests-remaining": "39999",
+      "anthropic-ratelimit-requests-reset": "2026-11-11T09:50:22Z",
+      "anthropic-ratelimit-tokens-limit": "30700000",
+      "anthropic-ratelimit-tokens-remaining": "30700000",
+      "anthropic-ratelimit-tokens-reset": "2026-11-11T09:50:23Z",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "request-id": "req_011Cgvw4pK1gQsoSVUJ2TnpQ",
+      "traceresponse": "00-33a2f1919703e9677f3ad02843419a36-3493aab42ae32d5f-01",
+      "anthropic-organization-id": "9c200896-5432-457d-9657-de2aa1125ae3",
+      "anthropic-workspace-id": "wrkspc_01GiAojk8ENoirZ8wBhEepPE",
+      "vary": "Accept-Encoding",
+      "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+      "Server": "cloudflare",
+      "server-timing": "x-originResponse;dur=1329",
+      "cf-cache-status": "DYNAMIC",
+      "X-Robots-Tag": "none",
+      "Content-Encoding": "gzip",
+      "CF-RAY": "a58c646e8a8cca73-MAD"
+    },
+    "body": "{\"model\":\"claude-sonnet-4-5-20250929\",\"id\":\"msg_011Cgvw4pVgFcDGrDqwaEqBY\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"toolu_011AHto6HFCmgEn7VxoRovPL\",\"name\":\"echo\",\"input\":{\"text\":\"hello from system-tests\"},\"caller\":{\"type\":\"direct\"}},{\"type\":\"tool_use\",\"id\":\"toolu_013Qo3KoMXSLjRacAwtayKU6\",\"name\":\"get_weather\",\"input\":{\"location\":\"San Francisco, CA\"},\"caller\":{\"type\":\"direct\"}}],\"container\":null,\"stop_reason\":\"tool_use\",\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":674,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":94,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\",\"speed\":\"standard\"},\"diagnostics\":null}"
+  }
+}

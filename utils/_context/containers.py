@@ -775,6 +775,18 @@ class ProxyContainer(TestedContainer):
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
 
+    def remove(self):
+        # Proxy writes flows on a background thread (see utils/proxy/_flow_writer.py). Its response hook
+        # acknowledges the tracer as soon as a flow is queued, so writes may still be in flight at teardown.
+        # TestedContainer.remove() calls docker rm --force which sends SIGKILL and skips the proxy's done
+        # hook, losing queued flows. Pre-stop so docker sends SIGTERM first and the done hook flushes.
+        if self._container:
+            try:
+                self._container.stop(timeout=30)
+            except APIError as e:
+                logger.info(f"Fail to stop container {self.name} before remove ({e})")
+        super().remove()
+
 
 class MockedBackendContainer(TestedContainer):
     """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
@@ -967,11 +979,31 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # read from the image, so that the version is known before the agent starts
+        version = self.image.labels.get("org.opencontainers.image.version", "")
+        if not version:
+            pytest.exit(
+                f"The agent image {self.image.name} has no org.opencontainers.image.version label, "
+                "so its version can't be known before it starts. Add this label to the image.",
+                1,
+            )
+        self.agent_version = ComponentVersion("agent", version).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = ComponentVersion("agent", data["version"]).version
+        reported_version = Version(data["version"])
+        # dev images labels have more build metadata than /info: compare without it
+        # e.g. 7.87.0-devel+git.810.4e18469.pipeline.153953738 vs 7.87.0-devel+git.810.4e18469
+        if reported_version.truncate("prerelease") != self.agent_version.truncate("prerelease"):
+            pytest.exit(
+                f"The agent runs {reported_version}, but its image {self.image.name} is labeled {self.agent_version}",
+                1,
+            )
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
