@@ -3810,7 +3810,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # Easy win for aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.17.0
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.1  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_client_error_statuses_config_excludes_500
@@ -3830,7 +3830,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:  # Easy win for aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.17.0
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.1  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
@@ -3848,13 +3848,13 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:  # Easy win for fastapi, flask-poc, uds-flask, uwsgi-poc and version 4.16.3
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.1  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.1  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.15.3
