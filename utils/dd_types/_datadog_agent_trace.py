@@ -195,6 +195,20 @@ class DataDogAgentSpan(ABC):
     def get_sampling_priority(self) -> int | None:
         pass
 
+    @abstractmethod
+    def get_metastruct(self, key: str) -> Any:  # noqa: ANN401
+        pass
+
+    def get_structured_payloads(self, key: str, json_tag: str | None = None) -> list[dict[str, Any]]:
+        """Return every decoded structured payload carrier present on an intake span."""
+        values = [self.get_metastruct(key)]
+        if json_tag is not None:
+            values.append(self.meta.get(json_tag))
+        payloads = [value for value in values if value is not None]
+        for payload in payloads:
+            assert isinstance(payload, dict), f"Expected decoded dict for {key!r}, got {type(payload).__name__}"
+        return payloads
+
     def get_span_links(self) -> list[DataDogSpanLink]:
         if self.get("spanLinks") is not None:
             return [DataDogSpanLink.from_agent_span_links(data) for data in self.get("spanLinks")]
@@ -234,6 +248,8 @@ class DataDogAgentSpan(ABC):
 
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):
+    trace: DataDogTraceAgentLegacy
+
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         return self.raw_span.get(key, default)
 
@@ -267,7 +283,11 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
         return self.meta["_dd.origin"]
 
     def get_sampling_priority(self) -> int | None:
-        return self.metrics["_sampling_priority_v1"]
+        priority = self.metrics.get("_sampling_priority_v1", self.trace.raw_trace.get("priority"))
+        return int(priority) if priority is not None else None
+
+    def get_metastruct(self, key: str) -> Any:  # noqa: ANN401
+        return self.raw_span.get("metaStruct", {}).get(key)
 
     def _get_native_span_events(self) -> list[dict] | None:
         if "spanEvents" not in self.raw_span:
@@ -322,6 +342,9 @@ class DataDogAgentSpanV10(DataDogAgentSpan):
 
     def get_sampling_priority(self) -> int | None:
         return self.trace.raw_trace.get("priority")
+
+    def get_metastruct(self, key: str) -> Any:  # noqa: ANN401
+        return self.raw_span["attributes"].get(key)
 
     def _get_native_span_events(self) -> list[dict] | None:
         # names and attributes are resolved from the strings table by the proxy (see _uncompress_agent_v1_trace)

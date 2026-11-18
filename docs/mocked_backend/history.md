@@ -84,7 +84,7 @@ This revamp was pretty big, and would probably have taken around 30 days. In thi
   * [#8282](https://github.com/DataDog/system-tests/pull/8282) `IPV6`
   * [#8286](https://github.com/DataDog/system-tests/pull/8286) `DEFAULT`, `SAMPLING`, `TRACING_CONFIG_NONDEFAULT(_2, _3)` and `RUNTIME_METRICS_ENABLED`
   * [#8322](https://github.com/DataDog/system-tests/pull/8322) `THREAD_CONTEXT_SHARING`
-  * [#8340](https://github.com/DataDog/system-tests/pull/8340) (open) All the other scenarios, and the Lambda extension. `interfaces.agent` and `interfaces.backend_legacy` are removed
+  * [#8340](https://github.com/DataDog/system-tests/pull/8340) All the other scenarios, and the Lambda extension. `interfaces.agent` and `interfaces.backend_legacy` are removed
 * Related
   * [#8150](https://github.com/DataDog/system-tests/pull/8150) Run the FFE contract self-tests in `TEST_THE_TEST`
   * [#8165](https://github.com/DataDog/system-tests/pull/8165) Each scenario is defined in its own module, so changing one only runs it in the CI

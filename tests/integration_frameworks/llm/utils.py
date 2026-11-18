@@ -1,3 +1,4 @@
+import contextlib
 import time
 from unittest import mock
 
@@ -7,7 +8,7 @@ from utils import context
 from utils.docker_fixtures import TestAgentAPI
 
 from collections.abc import Callable
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 class LlmObsSpanEvent(TypedDict, total=False):
@@ -280,19 +281,47 @@ def find_ai_guard_spans_with_reason(test_agent: TestAgentAPI, reason: str) -> li
     )
 
 
-def wait_for_ai_guard_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
-    """Poll until at least count ai_guard spans arrived and return all of them, so the caller can
-    assert the exact count: extra spans are returned, never hidden (fewer on timeout).
-    """
-    spans: list[dict] = []
+# Longer than the 1s default flush interval of the Python tracer (DD_TRACE_WRITER_INTERVAL_SECONDS), so a span of
+# a separate trace finished by the same request has reached the test agent; other tracers may need more.
+SPANS_SETTLE_SECONDS = 2.0
 
-    def select(traces: list[list[dict]]) -> list[dict]:
+
+def wait_for_spans(
+    test_agent: TestAgentAPI,
+    select: Callable[[list[list[dict[str, Any]]]], list[dict[str, Any]]],
+    count: int,
+    *,
+    settle_seconds: float = 0.0,
+) -> list[dict[str, Any]]:
+    """Poll until select returns at least count spans, then keep polling for settle_seconds, and return them
+    all so the caller can assert the exact count: extra spans are returned, never hidden (fewer on timeout).
+    """
+    spans: list[dict[str, Any]] = []
+
+    def at_least(traces: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
         nonlocal spans
-        spans = ai_guard_spans(traces)
+        spans = select(traces)
         return spans if len(spans) >= count else []
 
-    _wait_for(test_agent, select)
+    if _wait_for(test_agent, at_least) and settle_seconds > 0:
+        deadline = time.monotonic() + settle_seconds
+        while time.monotonic() < deadline:
+            time.sleep(0.1)
+            with contextlib.suppress(requests.exceptions.RequestException):
+                spans = select(test_agent.traces(clear=False))
     return spans
+
+
+def wait_for_ai_guard_spans(
+    test_agent: TestAgentAPI, count: int, *, settle_seconds: float = 0.0
+) -> list[dict[str, Any]]:
+    """wait_for_spans for the ai_guard spans."""
+    return wait_for_spans(test_agent, ai_guard_spans, count, settle_seconds=settle_seconds)
+
+
+def spans_named(traces: list[list[dict[str, Any]]], name: str) -> list[dict[str, Any]]:
+    """The spans of traces with the given operation name."""
+    return [span for trace in traces for span in trace if span.get("name") == name]
 
 
 def ai_guard_spans(traces: list[list[dict]], target: str | None = None) -> list[dict]:
@@ -322,6 +351,17 @@ def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
 def ai_guard_messages(span: dict) -> list[dict]:
     """The messages AI Guard evaluated, as captured in meta_struct.ai_guard.messages."""
     return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
+
+
+def ai_guard_tool_calls(span: dict[str, Any], name: str | None = None) -> list[dict[str, Any]]:
+    """The assistant tool calls AI Guard evaluated, only those of the tool name when it is set."""
+    return [
+        tool_call
+        for message in ai_guard_messages(span)
+        if message.get("role") == "assistant"
+        for tool_call in message.get("tool_calls") or []
+        if name is None or tool_call["function"]["name"] == name
+    ]
 
 
 def ai_guard_mcp_servers(span: dict) -> list[dict] | None:

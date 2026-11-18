@@ -427,3 +427,47 @@ def test_uncompress_agent_v1_trace_with_span_events():
         "name": "exception",
         "attributes": {"exception.type": "ValueError", "exception.escaped": False, "attempt": 2, "tags": ["a", 0]},
     }
+
+
+@scenarios.test_the_test
+def test_uncompress_agent_v1_trace_int_and_key_value_list_attributes():
+    """Agent v1 protobuf attributes convert int64 strings to ints and recursively uncompress keyValueList/arrayValue."""
+    from google.protobuf.json_format import MessageToDict  # noqa: PLC0415
+    from typing import Any  # noqa: PLC0415
+    from utils.proxy._decoders.protobuf_schemas import TracePayload  # noqa: PLC0415
+
+    msg: Any = TracePayload()
+    tp = msg.idxTracerPayloads.add()
+    tp.strings.extend(
+        ["exploit", "_dd.appsec.enabled", "_dd.stack", "language", "php", "id", "stack-id", "frames", "line"]
+    )
+    chunk = tp.chunks.add()
+    chunk.traceID = bytes([0] * 15 + [1])
+    span = chunk.spans.add()
+    span.attributes[1].intValue = 1
+
+    kv_exp = span.attributes[2].keyValueList.keyValues.add()
+    kv_exp.key = 0  # default 0 omitted by MessageToDict -> "exploit"
+    elem = kv_exp.value.arrayValue.values.add()
+    kv_lang = elem.keyValueList.keyValues.add()
+    kv_lang.key = 3
+    kv_lang.value.stringValueRef = 4
+    kv_id = elem.keyValueList.keyValues.add()
+    kv_id.key = 5
+    kv_id.value.stringValueRef = 6
+    kv_frames = elem.keyValueList.keyValues.add()
+    kv_frames.key = 7
+    frame = kv_frames.value.arrayValue.values.add()
+    kv_line = frame.keyValueList.keyValues.add()
+    kv_line.key = 8
+    kv_line.value.intValue = 21
+
+    result = MessageToDict(TracePayload.FromString(msg.SerializeToString()))
+    _uncompress_agent_v1_trace(result, "agent")
+
+    attrs = result["idxTracerPayloads"][0]["chunks"][0]["spans"][0]["attributes"]
+    assert attrs["_dd.appsec.enabled"] == 1
+    assert isinstance(attrs["_dd.appsec.enabled"], int)
+    assert attrs["_dd.stack"] == {
+        "exploit": [{"language": "php", "id": "stack-id", "frames": [{"line": 21}]}],
+    }

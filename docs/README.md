@@ -90,6 +90,7 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 - [Internals overview](internals/README.md) -- index of internal documentation
 - [End-to-end lifecycle](internals/end-to-end-life-cycle.md) -- how e2e scenarios execute step by step
 - [Parametric lifecycle](understand/scenarios/parametric.md#parametric-lifecycle) -- how parametric scenarios execute
+- [Docker SSI images](internals/docker-ssi-images.md) -- how Docker SSI builds and caches its images
 - [MITM certificate](internals/recreating_MITM_certificate.md) -- recreating the proxy certificate
 - [Mocked backend](mocked_backend/README.md) -- the stand-in for the Datadog backend: goal, design rules, key features
 - [Core dump generation](internals/generate-core-dump.md) -- generating core dumps for debugging
