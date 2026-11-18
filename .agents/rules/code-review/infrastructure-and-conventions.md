@@ -73,3 +73,13 @@
 - ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
 - ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
 - Ref: [Weblogs](../../../docs/understand/weblogs/README.md)
+
+### INFRA-011: Authenticate GitHub API calls in image builds.
+- Severity: P1
+- Flag: A build script that calls the GitHub API must use the shared `get_latest_release` helper and the `github_token` secret. Each Dockerfile step that calls the API must mount that secret with `RUN --mount=type=secret,id=github_token`. A change to the secret flow must update every language Dockerfile in the same pull request.
+- Detect: The build passes `--secret id=github_token`, and a Dockerfile step that calls the GitHub API has no secret mount. A script calls the releases API with `wget` or `curl` and no token or no `--fail`. A script prints the token under `set -x`.
+
+### INFRA-013: Stop the session when provisioning fails.
+- Severity: P0
+- Flag: A VM provisioning or warmup step must check that its result works. If it fails, it must stop the session. Do not store an unknown error and then run every test against a broken environment.
+- Detect: A provisioning step installs a package or an engine and never checks it, for example with `docker info`. An error handler stores an unknown provisioning error and continues instead of calling `pytest.exit`.
