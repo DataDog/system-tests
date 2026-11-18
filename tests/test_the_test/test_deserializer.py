@@ -379,6 +379,57 @@ def test_decode_appsec_s_value_accepts_bytes():
 
 
 @scenarios.test_the_test
+def test_uncompress_agent_v1_trace_with_span_events():
+    """Test that span events names and attributes are resolved from the strings table in idxTracerPayloads."""
+    data = {
+        "idxTracerPayloads": [
+            {
+                "strings": [
+                    "",
+                    "exception",
+                    "exception.type",
+                    "ValueError",
+                    "exception.escaped",
+                    "attempt",
+                    "tags",
+                    "a",
+                ],
+                "chunks": [
+                    {
+                        "traceID": base64.b64encode(bytes(16)).decode("utf-8"),
+                        "spans": [
+                            {
+                                "events": [
+                                    {
+                                        "time": "1794607861156080339",
+                                        "nameRef": 1,
+                                        "attributes": {
+                                            "2": {"stringValueRef": 3},
+                                            "4": {"boolValue": False},
+                                            "5": {"intValue": "2"},
+                                            "6": {"arrayValue": {"values": [{"stringValueRef": 7}, {"intValue": "0"}]}},
+                                        },
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+
+    result = _uncompress_agent_v1_trace(data, "agent")
+
+    event = result["idxTracerPayloads"][0]["chunks"][0]["spans"][0]["events"][0]
+    assert event == {
+        "time_unix_nano": "1794607861156080339",
+        "name": "exception",
+        "attributes": {"exception.type": "ValueError", "exception.escaped": False, "attempt": 2, "tags": ["a", 0]},
+    }
+
+
+@scenarios.test_the_test
 def test_uncompress_agent_v1_trace_int_and_key_value_list_attributes():
     """Agent v1 protobuf attributes convert int64 strings to ints and recursively uncompress keyValueList/arrayValue."""
     from google.protobuf.json_format import MessageToDict  # noqa: PLC0415

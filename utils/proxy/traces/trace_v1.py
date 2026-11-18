@@ -635,6 +635,10 @@ def _uncompress_span_event(event: dict, strings: list[str]) -> None:
                 event["name"] = strings[name_value]
             else:
                 event["name"] = name_value
+        # Agent payload (idx.SpanEvent protobuf): the name is a reference into the strings table
+        if "nameRef" in event:
+            name_ref = event.pop("nameRef")
+            event["name"] = strings[name_ref] if isinstance(name_ref, int) else name_ref
         # Handle time -> time_unix_nano mapping
         if "time" in event and "time_unix_nano" not in event:
             event["time_unix_nano"] = event.pop("time")
@@ -666,8 +670,8 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
                 # Uncompress span links
                 for link in span.get("links", []):
                     _uncompress_span_link(link, strings)
-                # Uncompress span events (handle both camelCase and snake_case field names)
-                span_events = span.get("spanEvents") or span.get("span_events")
+                # Uncompress span events (idx.Span names the field `events`; also handle legacy-style names)
+                span_events = span.get("events") or span.get("spanEvents") or span.get("span_events")
                 if span_events:
                     for event in span_events:
                         _uncompress_span_event(event, strings)
