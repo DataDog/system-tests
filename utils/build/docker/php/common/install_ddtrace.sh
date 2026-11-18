@@ -84,7 +84,9 @@ if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; the
   # package format is being installed.
   PKG_HAS_PROFILING=0
   if [ -n "${PKG:-}" ]; then
-    if tar -tzf "$PKG" 2>/dev/null | grep -q -e "datadog-profiling" -e '\.ddtrace\(-zts\|-debug\)\?\.profiling$'; then
+    # list the package first: a failing tar must stop the build, not silently disable profiling
+    tar -tzf "$PKG" > /tmp/pkg_files.txt
+    if grep -q -e "datadog-profiling" -e '\.ddtrace\(-zts\|-debug\)\?\.profiling$' /tmp/pkg_files.txt; then
       PKG_HAS_PROFILING=1
     fi
   else
@@ -122,6 +124,18 @@ find_installed_extension() {
   echo "$ext_dir/$name"
 }
 
+# Print the path of the installed libddappsec-helper.so. The custom helpers and libddwaf.so from /binaries are
+# installed next to it: if it can't be found, fail instead of silently testing the packaged binaries.
+find_installed_helper() {
+  local helper
+  helper=$(find /root /opt -name libddappsec-helper.so | grep -v /binaries | head -1)
+  if [ -z "$helper" ]; then
+    echo "ERROR: installed libddappsec-helper.so not found in /root or /opt, cannot install the custom binaries" >&2
+    exit 1
+  fi
+  echo "$helper"
+}
+
 # After package installation, override with custom ddtrace.so if present
 if [ -f $DDTRACE_SO ]; then
   echo "Overriding package ddtrace.so with custom binary from $DDTRACE_SO"
@@ -138,35 +152,23 @@ if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
   cp -f $DDAPPSEC_SO "$INSTALLED_DDAPPSEC"
 
   # Find and replace the installed helper
-  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
-  if [ -n "$INSTALLED_HELPER" ]; then
-    echo "Found installed helper at $INSTALLED_HELPER, replacing with custom binary"
-    cp -f $APPSEC_HELPER_SO $INSTALLED_HELPER
-  else
-    echo "Warning: Could not find installed libddappsec-helper.so to replace"
-  fi
+  INSTALLED_HELPER=$(find_installed_helper)
+  echo "Found installed helper at $INSTALLED_HELPER, replacing with custom binary"
+  cp -f $APPSEC_HELPER_SO "$INSTALLED_HELPER"
 fi
 
 # Install the Rust helper alongside the C++ helper so DD_APPSEC_HELPER_RUST_REDIRECTION works
 if [ -f $APPSEC_RUST_HELPER_SO ]; then
-  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
-  if [ -n "$INSTALLED_HELPER" ]; then
-    echo "Installing Rust helper at $(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
-    cp -f $APPSEC_RUST_HELPER_SO "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
-  else
-    echo "Warning: Could not find installed libddappsec-helper.so to install Rust helper alongside"
-  fi
+  INSTALLED_HELPER=$(find_installed_helper)
+  echo "Installing Rust helper at $(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+  cp -f $APPSEC_RUST_HELPER_SO "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
 fi
 
 if [ -f $LIBDDWAF_SO ]; then
   echo "Copying libddwaf.so from /binaries"
-  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
-  if [ -n "$INSTALLED_HELPER" ]; then
-    echo "Found installed helper at $INSTALLED_HELPER, installing custom libddwaf.so alongside"
-    cp -v $LIBDDWAF_SO "$(dirname "$INSTALLED_HELPER")"
-  else
-    echo "Warning: Could not find installed libddappsec-helper.so"
-  fi
+  INSTALLED_HELPER=$(find_installed_helper)
+  echo "Found installed helper at $INSTALLED_HELPER, installing custom libddwaf.so alongside"
+  cp -v $LIBDDWAF_SO "$(dirname "$INSTALLED_HELPER")"
 fi
 
 
