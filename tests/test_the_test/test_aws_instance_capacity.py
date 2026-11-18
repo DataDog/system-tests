@@ -2,7 +2,6 @@ from utils import features, scenarios
 from utils.virtual_machine.aws_provider import (
     _MAX_EC2_INSTANCES,
     _counts_by_instance_type,
-    _ec2_count_tags,
     _instance_count_summary,
 )
 
@@ -25,15 +24,10 @@ class Test_AwsInstanceCapacity:
         assert _counts_by_instance_type([]) == {}
         assert _instance_count_summary({}) == "total=0"
 
-    def test_summary_and_event_tags_name_each_type(self) -> None:
+    def test_summary_names_each_type(self) -> None:
         counts = {"t4g.medium": 400, "t3.medium": 327}
 
         assert _instance_count_summary(counts) == "total=727 (t3.medium=327, t4g.medium=400)"
-        assert _ec2_count_tags(counts) == [
-            "ec2_instances:727",
-            "ec2_t3_medium:327",
-            "ec2_t4g_medium:400",
-        ]
 
     def test_cap_is_700_instances(self) -> None:
         assert _MAX_EC2_INSTANCES == 700

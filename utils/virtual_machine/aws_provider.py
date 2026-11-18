@@ -37,7 +37,7 @@ import pytest
 _VM_LOG_REMOTE_PATHS = ["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"]  # noqa: S108
 
 # Pending and running system-tests EC2 instances allowed before a job waits.
-# The cap is the total across every instance type. Each type is counted and reported separately.
+# The cap is the total across every instance type. The log line lists each type.
 _MAX_EC2_INSTANCES = 700
 _EC2_INSTANCE_STATES = ["pending", "running"]
 # Datadog event text is truncated to this length before being sent.
@@ -146,14 +146,6 @@ def _instance_count_summary(counts_by_type: dict[str, int]) -> str:
     total = sum(counts_by_type.values())
     by_type = ", ".join(f"{instance_type}={count}" for instance_type, count in sorted(counts_by_type.items()))
     return f"total={total} ({by_type})" if by_type else f"total={total}"
-
-
-def _ec2_count_tags(counts_by_type: dict[str, int]) -> list[str]:
-    """Datadog tags for the total and for each instance type."""
-    tags = [f"ec2_instances:{sum(counts_by_type.values())}"]
-    for instance_type, count in sorted(counts_by_type.items()):
-        tags.append(f"ec2_{instance_type.replace('.', '_')}:{count}")
-    return tags
 
 
 class AWSPulumiProvider(CandidateBoot, VmProvider):
@@ -447,14 +439,11 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
     def _check_running_instances(self) -> None:
         """Wait while pending and running system-tests instances are above the cap.
 
-        The total includes every instance type. This check logs the count for each type and
-        adds those counts to the Datadog event for this stack.
+        The total includes every instance type. This check logs the count for each type.
         """
 
         counts = _counts_by_instance_type(_system_tests_instance_reservations())
         summary = _instance_count_summary(counts)
-        self.datadog_event_sender.ec2_count_summary = summary
-        self.datadog_event_sender.extra_tags = _ec2_count_tags(counts)
         logger.info(f"AWS system-tests EC2 instances pending or running: {summary}")
         if sum(counts.values()) > _MAX_EC2_INSTANCES:
             logger.stdout(
@@ -712,12 +701,10 @@ class PulumiSSH:
 class DatadogEventSender:
     """Send events to Datadog ddev organization"""
 
-    def __init__(self) -> None:
-        self.ddev_api_key: str | None = os.getenv("DDEV_API_KEY")
+    def __init__(self):
+        self.ddev_api_key: str = os.getenv("DDEV_API_KEY")
         self.ci_project_name: str = os.getenv("CI_PROJECT_NAME", "local")
         self.ci_job_url: str = os.getenv("CI_JOB_URL", "local")
-        self.extra_tags: list[str] = []
-        self.ec2_count_summary: str = ""
 
     def send_event_to_datadog(self, title: str, message: str, tags: list[str]) -> None:
         if not self.ddev_api_key:
@@ -736,12 +723,13 @@ class DatadogEventSender:
                 f"weblog:{context.weblog_variant}",
                 "source:pulumi",
             ]
-            default_tags = default_tags + tags + self.extra_tags
+            default_tags = default_tags + tags
             default_tags.append(f"ci_project_name:{self.ci_project_name}")
-            text = f"{self.ec2_count_summary}. {message}".strip() if self.ec2_count_summary else message
             data_to_send = {
                 "title": title,
-                "text": (text[:_MAX_EVENT_MESSAGE_LENGTH] + "..") if len(text) > _MAX_EVENT_MESSAGE_LENGTH else text,
+                "text": (message[:_MAX_EVENT_MESSAGE_LENGTH] + "..")
+                if len(message) > _MAX_EVENT_MESSAGE_LENGTH
+                else message,
                 "tags": default_tags,
             }
             logger.debug(f"Sending event payload: [{data_to_send}]")
