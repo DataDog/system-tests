@@ -47,7 +47,7 @@
 - Old_id: codex-11
 - Severity: P1
 - Flag: Do not write the expected tag, code, or exporter result in the test app. The SDK must produce it. The assertion may name the value it expects. It must read that value from SDK output..
-- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects.
+- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects. It returns a made-up default instead of None for a setting the SDK does not support. It catches every exception and still returns OK. Its span helpers ignore the stored parent or write fields the tracer does not use.
 - ✅ The tracer sets `runtime-id`, and the test asserts it on the captured span.
 - ❌ The app sets `runtime-id` on the span, and the test asserts that tag.
 
