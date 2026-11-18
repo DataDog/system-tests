@@ -36,8 +36,8 @@ import pytest
 
 _VM_LOG_REMOTE_PATHS = ["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"]  # noqa: S108
 
-# Pending and running system-tests EC2 instances allowed before a job waits.
-# The cap is the total across every instance type. The log line lists each type.
+# Pending and running system-tests EC2 instances of one type allowed before a job waits.
+# The cap applies to the instance type this job is about to launch.
 _MAX_EC2_INSTANCES = 700
 _EC2_INSTANCE_STATES = ["pending", "running"]
 # Datadog event text is truncated to this length before being sent.
@@ -109,43 +109,33 @@ def _select_cached_ami(
     return select_usable_ami(cached_amis, now=now)
 
 
-def _system_tests_instance_reservations() -> list[dict[str, Any]]:
-    """Pending and running EC2 instances tagged CI=system-tests."""
+def _system_tests_instance_reservations(instance_type: str) -> list[dict[str, Any]]:
+    """Pending and running system-tests EC2 instances of this instance type."""
     region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
     paginator = boto3.client("ec2", region_name=region).get_paginator("describe_instances")
     reservations: list[dict[str, Any]] = []
-    for page in paginator.paginate(
-        Filters=[
-            {"Name": "tag:CI", "Values": ["system-tests"]},
-            {"Name": "instance-state-name", "Values": _EC2_INSTANCE_STATES},
-        ]
-    ):
+    for page in paginator.paginate(Filters=_ec2_instance_filters(instance_type)):
         reservations.extend(page.get("Reservations", []))
     return reservations
 
 
-def _counts_by_instance_type(reservations: list[Mapping[str, Any]]) -> dict[str, int]:
-    """Count instances in these reservations by EC2 instance type."""
-    counts: dict[str, int] = {}
+def _ec2_instance_filters(instance_type: str) -> list[dict[str, list[str]]]:
+    """Filters for system-tests instances of one type that are pending or running."""
+    return [
+        {"Name": "tag:CI", "Values": ["system-tests"]},
+        {"Name": "instance-state-name", "Values": list(_EC2_INSTANCE_STATES)},
+        {"Name": "instance-type", "Values": [instance_type]},
+    ]
+
+
+def _count_instances(reservations: list[Mapping[str, Any]]) -> int:
+    """Count the instances in these reservations."""
+    total = 0
     for reservation in reservations:
         instances = reservation.get("Instances", [])
-        if not isinstance(instances, list):
-            continue
-        for instance in instances:
-            if not isinstance(instance, Mapping):
-                continue
-            instance_type = instance.get("InstanceType")
-            if not isinstance(instance_type, str) or not instance_type:
-                instance_type = "unknown"
-            counts[instance_type] = counts.get(instance_type, 0) + 1
-    return counts
-
-
-def _instance_count_summary(counts_by_type: dict[str, int]) -> str:
-    """One line: total, then each instance type."""
-    total = sum(counts_by_type.values())
-    by_type = ", ".join(f"{instance_type}={count}" for instance_type, count in sorted(counts_by_type.items()))
-    return f"total={total} ({by_type})" if by_type else f"total={total}"
+        if isinstance(instances, list):
+            total += len(instances)
+    return total
 
 
 class AWSPulumiProvider(CandidateBoot, VmProvider):
@@ -174,7 +164,7 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vm)
-            # Wait when too many system-tests EC2 instances are pending or running.
+            # Wait when too many instances of this type are pending or running.
             self._check_running_instances()
             # Debug purposes. How many AMI CACHES, created by system-tests are available in the AWS account?
             # self._check_available_cached_amis()
@@ -437,17 +427,15 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
 
     @retry(delay=10, tries=30)
     def _check_running_instances(self) -> None:
-        """Wait while pending and running system-tests instances are above the cap.
+        """Wait while pending and running instances of this job's type are above the cap."""
 
-        The total includes every instance type. This check logs the count for each type.
-        """
-
-        counts = _counts_by_instance_type(_system_tests_instance_reservations())
-        summary = _instance_count_summary(counts)
-        logger.info(f"AWS system-tests EC2 instances pending or running: {summary}")
-        if sum(counts.values()) > _MAX_EC2_INSTANCES:
+        instance_type = self.vm.aws_config.ami_instance_type
+        count = _count_instances(_system_tests_instance_reservations(instance_type))
+        logger.info(f"AWS system-tests EC2 instances pending or running for {instance_type}: {count}")
+        if count > _MAX_EC2_INSTANCES:
             logger.stdout(
-                f"THERE ARE TOO MANY EC2 INSTANCES RUNNING ({summary}). Waiting for the instances to be destroyed"
+                f"THERE ARE TOO MANY EC2 INSTANCES RUNNING ({instance_type}={count}). "
+                "Waiting for the instances to be destroyed"
             )
             raise RuntimeError("Too many ec2 instances running")
 
