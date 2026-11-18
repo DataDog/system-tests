@@ -341,6 +341,10 @@ class EndToEndScenario(DockerScenario):
         self._set_containers_dependancies()
 
         super().configure(config)
+        if self.include_agent:
+            # known before the agent starts, from its image
+            self.components["agent"] = self.agent_version
+
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
@@ -423,8 +427,6 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
-        if self.include_agent:
-            self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
 
