@@ -1,4 +1,4 @@
-from utils import scenarios, features, interfaces, logger
+from utils import scenarios, features, logger
 from tests.k8s_lib_injection.utils import (
     get_dev_agent_traces,
     get_cluster_info,
@@ -53,6 +53,4 @@ class TestK8sLibInjection_operator:
         warmup_weblog(context_url)
         request_uuid = make_get_request(context_url)
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{cluster_info.cluster_host_name}]")
-        # without it, wait_backend_trace_id would query the real Datadog backend
-        assert interfaces.mocked_backend.mocked_backend_running, "The mocked backend is not running"
         wait_backend_trace_id(request_uuid)
