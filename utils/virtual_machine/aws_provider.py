@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import datetime
 from io import TextIOWrapper
 import os
@@ -11,6 +11,9 @@ import tempfile
 from random import randint
 from retry import retry
 import json
+from typing import Any
+
+import boto3
 
 from pulumi import automation as auto
 import pulumi
@@ -33,8 +36,10 @@ import pytest
 
 _VM_LOG_REMOTE_PATHS = ["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"]  # noqa: S108
 
-# Maximum number of concurrent system-tests EC2 instances allowed before waiting for teardown.
-_MAX_RUNNING_INSTANCES = 1200
+# Pending and running system-tests EC2 instances allowed before a job waits.
+# The cap is the total across every instance type. Each type is counted and reported separately.
+_MAX_EC2_INSTANCES = 700
+_EC2_INSTANCE_STATES = ["pending", "running"]
 # Datadog event text is truncated to this length before being sent.
 _MAX_EVENT_MESSAGE_LENGTH = 255
 # Timeout (seconds) for the Datadog event HTTP request.
@@ -104,6 +109,53 @@ def _select_cached_ami(
     return select_usable_ami(cached_amis, now=now)
 
 
+def _system_tests_instance_reservations() -> list[dict[str, Any]]:
+    """Pending and running EC2 instances tagged CI=system-tests."""
+    region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
+    paginator = boto3.client("ec2", region_name=region).get_paginator("describe_instances")
+    reservations: list[dict[str, Any]] = []
+    for page in paginator.paginate(
+        Filters=[
+            {"Name": "tag:CI", "Values": ["system-tests"]},
+            {"Name": "instance-state-name", "Values": _EC2_INSTANCE_STATES},
+        ]
+    ):
+        reservations.extend(page.get("Reservations", []))
+    return reservations
+
+
+def _counts_by_instance_type(reservations: list[Mapping[str, Any]]) -> dict[str, int]:
+    """Count instances in these reservations by EC2 instance type."""
+    counts: dict[str, int] = {}
+    for reservation in reservations:
+        instances = reservation.get("Instances", [])
+        if not isinstance(instances, list):
+            continue
+        for instance in instances:
+            if not isinstance(instance, Mapping):
+                continue
+            instance_type = instance.get("InstanceType")
+            if not isinstance(instance_type, str) or not instance_type:
+                instance_type = "unknown"
+            counts[instance_type] = counts.get(instance_type, 0) + 1
+    return counts
+
+
+def _instance_count_summary(counts_by_type: dict[str, int]) -> str:
+    """One line: total, then each instance type."""
+    total = sum(counts_by_type.values())
+    by_type = ", ".join(f"{instance_type}={count}" for instance_type, count in sorted(counts_by_type.items()))
+    return f"total={total} ({by_type})" if by_type else f"total={total}"
+
+
+def _ec2_count_tags(counts_by_type: dict[str, int]) -> list[str]:
+    """Datadog tags for the total and for each instance type."""
+    tags = [f"ec2_instances:{sum(counts_by_type.values())}"]
+    for instance_type, count in sorted(counts_by_type.items()):
+        tags.append(f"ec2_{instance_type.replace('.', '_')}:{count}")
+    return tags
+
+
 class AWSPulumiProvider(CandidateBoot, VmProvider):
     def __init__(self):
         super().__init__()
@@ -130,7 +182,7 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vm)
-            # Debug purposes. How many instances, created by system-tests are running in the AWS account?
+            # Wait when too many system-tests EC2 instances are pending or running.
             self._check_running_instances()
             # Debug purposes. How many AMI CACHES, created by system-tests are available in the AWS account?
             # self._check_available_cached_amis()
@@ -392,27 +444,23 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         return tags
 
     @retry(delay=10, tries=30)
-    def _check_running_instances(self):
-        """Check the number of running instances in the AWS account
-        if there are more than 500 instances, we will wait until they are destroyed
+    def _check_running_instances(self) -> None:
+        """Wait while pending and running system-tests instances are above the cap.
+
+        The total includes every instance type. This check logs the count for each type and
+        adds those counts to the Datadog event for this stack.
         """
 
-        ec2_ids = self._print_running_instances()
-        if len(ec2_ids) > _MAX_RUNNING_INSTANCES:
-            logger.stdout("THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
+        counts = _counts_by_instance_type(_system_tests_instance_reservations())
+        summary = _instance_count_summary(counts)
+        self.datadog_event_sender.ec2_count_summary = summary
+        self.datadog_event_sender.extra_tags = _ec2_count_tags(counts)
+        logger.info(f"AWS system-tests EC2 instances pending or running: {summary}")
+        if sum(counts.values()) > _MAX_EC2_INSTANCES:
+            logger.stdout(
+                f"THERE ARE TOO MANY EC2 INSTANCES RUNNING ({summary}). Waiting for the instances to be destroyed"
+            )
             raise RuntimeError("Too many ec2 instances running")
-
-    def _print_running_instances(self):
-        """Print the instances created by system-tests and still running in the AWS account"""
-
-        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests"}, instance_state_names=["running"])
-
-        logger.info("AWS Listing running instances with system-tests tag")
-        for instance_id in instances.ids:
-            logger.info(f"- Instance id: [{instance_id}]  status:[running] (created by other execution)")
-
-        logger.info(f"Total tags: {instances.instance_tags}")
-        return instances.ids
 
     def _check_available_cached_amis(self):
         """Print the AMI Caches availables in the AWS account and created by system-tests"""
@@ -664,10 +712,12 @@ class PulumiSSH:
 class DatadogEventSender:
     """Send events to Datadog ddev organization"""
 
-    def __init__(self):
-        self.ddev_api_key: str = os.getenv("DDEV_API_KEY")
+    def __init__(self) -> None:
+        self.ddev_api_key: str | None = os.getenv("DDEV_API_KEY")
         self.ci_project_name: str = os.getenv("CI_PROJECT_NAME", "local")
         self.ci_job_url: str = os.getenv("CI_JOB_URL", "local")
+        self.extra_tags: list[str] = []
+        self.ec2_count_summary: str = ""
 
     def send_event_to_datadog(self, title: str, message: str, tags: list[str]) -> None:
         if not self.ddev_api_key:
@@ -686,13 +736,12 @@ class DatadogEventSender:
                 f"weblog:{context.weblog_variant}",
                 "source:pulumi",
             ]
-            default_tags = default_tags + tags
+            default_tags = default_tags + tags + self.extra_tags
             default_tags.append(f"ci_project_name:{self.ci_project_name}")
+            text = f"{self.ec2_count_summary}. {message}".strip() if self.ec2_count_summary else message
             data_to_send = {
                 "title": title,
-                "text": (message[:_MAX_EVENT_MESSAGE_LENGTH] + "..")
-                if len(message) > _MAX_EVENT_MESSAGE_LENGTH
-                else message,
+                "text": (text[:_MAX_EVENT_MESSAGE_LENGTH] + "..") if len(text) > _MAX_EVENT_MESSAGE_LENGTH else text,
                 "tags": default_tags,
             }
             logger.debug(f"Sending event payload: [{data_to_send}]")
