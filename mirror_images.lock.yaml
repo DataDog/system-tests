@@ -146,6 +146,10 @@ images:
     digest: sha256:074f19da54c870131b674f184ff5a392c79e42a3f86055dbcdefceb7c9836fb7
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57
     tag: java-lambda-runtime.base-e9a494d2bc57
+  datadog/system-tests:java-parametric.base-299efdb56635:
+    digest: sha256:fc8ff3f28ce96653f49dcbbae8b3030189748556fc7ae489bb2b8af77cecb766
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java-parametric.base-299efdb56635
+    tag: java-parametric.base-299efdb56635
   datadog/system-tests:java_buddy-v1:
     digest: sha256:67aac2b7c0c88b40da498fbc74b48f0a62702148e5c9256c5752a9e624d972ce
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java_buddy-v1
@@ -170,10 +174,10 @@ images:
     digest: sha256:0a2f5fb74b2ef70c60f54e2943820c4cc400f2f728c631cba890eec9c145f6e6
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:laravel11x.base-8ae223eebb97
     tag: laravel11x.base-8ae223eebb97
-  datadog/system-tests:nextjs.base-5c42165eff3e:
-    digest: sha256:6bd2ee0978706e19660e8ca881079f2157e85a8ea581358128856d168591a1f5
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-5c42165eff3e
-    tag: nextjs.base-5c42165eff3e
+  datadog/system-tests:nextjs.base-7af1ceda261c:
+    digest: sha256:69a302340e9e80122b85692c2f5fcbc9da4ec20956f04b1b1af68b07df7539c1
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-7af1ceda261c
+    tag: nextjs.base-7af1ceda261c
   datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9:
     digest: sha256:1f0911d1c060b4fd062f4a521edd8faa5cb677b2cb51ee465de482b8dff7ced9
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9

@@ -16,7 +16,7 @@ every mcp.server_id of the reported messages resolves to a server.
 """
 
 import json
-import time
+from typing import Any
 
 from utils import pytest
 
@@ -28,9 +28,12 @@ from tests.integration_frameworks.llm.utils import (
     ai_guard_mcp_servers,
     ai_guard_messages,
     ai_guard_spans,
+    ai_guard_tool_calls,
     assert_ai_guard_evaluated,
     find_ai_guard_spans_with_reason,
+    spans_named,
     wait_for_ai_guard_spans,
+    wait_for_spans,
 )
 from .utils import BaseOpenaiTest
 
@@ -157,7 +160,7 @@ def _matched_evaluations(
         "meta_struct.ai_guard.mcp_servers must report the mcp_servers sent to AI Guard"
     )
     reported_ids = {server["id"] for server in mcp_servers or []}
-    for tool_call in _tool_calls(response_span):
+    for tool_call in ai_guard_tool_calls(response_span):
         if "mcp" in tool_call:
             assert tool_call["mcp"]["server_id"] in reported_ids, (
                 f"mcp.server_id {tool_call['mcp']['server_id']} does not resolve to a reported MCP server"
@@ -165,33 +168,10 @@ def _matched_evaluations(
     return spans, response_span
 
 
-def _tool_calls(span: dict) -> list[dict]:
-    return [
-        tool_call
-        for message in ai_guard_messages(span)
-        if message.get("role") == "assistant"
-        for tool_call in message.get("tool_calls") or []
-    ]
-
-
-def _tool_call(span: dict, name: str) -> dict:
-    calls = [tool_call for tool_call in _tool_calls(span) if tool_call["function"]["name"] == name]
-    assert len(calls) == 1, f"expected one {name} tool call in the AI Guard evaluation, got {_tool_calls(span)}"
+def _tool_call(span: dict[str, Any], name: str) -> dict[str, Any]:
+    calls = ai_guard_tool_calls(span, name)
+    assert len(calls) == 1, f"expected one {name} tool call in the AI Guard evaluation, got {ai_guard_tool_calls(span)}"
     return calls[0]
-
-
-def _wait_for_openai_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
-    """Poll until at least count openai.request spans arrived and return all of them, so the caller
-    can assert the exact count: extra spans are returned, never hidden (fewer on timeout).
-    """
-    spans: list[dict] = []
-    for _ in range(30):
-        traces = test_agent.traces(clear=False)
-        spans = [span for trace in traces for span in trace if span.get("name") == "openai.request"]
-        if len(spans) >= count:
-            break
-        time.sleep(0.1)
-    return spans
 
 
 @pytest.fixture
@@ -306,7 +286,7 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         ]
 
         # Both calls failed with the AI Guard abort, and the continuation added no evaluation.
-        openai_spans = _wait_for_openai_spans(test_agent, 2)
+        openai_spans = wait_for_spans(test_agent, lambda traces: spans_named(traces, "openai.request"), 2)
         assert len(openai_spans) == 2, f"expected two openai.request spans, got {len(openai_spans)}"
         for openai_span in openai_spans:
             assert "AIGuardAbortError" in openai_span["meta"].get("error.type", ""), openai_span["meta"]
@@ -343,4 +323,4 @@ class Test_OpenAiAiGuardMcpDisabled(BaseOpenaiTest):
         # The matched cassette has no mcp_servers key and no mcp field in its messages.
         _, span = _matched_evaluations(test_agent, request, None)
         assert "mcp" not in _tool_call(span, "ask_question")
-        assert all("mcp" not in tool_call for tool_call in _tool_calls(span))
+        assert all("mcp" not in tool_call for tool_call in ai_guard_tool_calls(span))

@@ -7,7 +7,8 @@ import io
 import json
 import logging
 import os
-from typing import Any, cast
+import signal
+from typing import TYPE_CHECKING, cast
 from datetime import datetime, UTC
 
 import zstandard
@@ -17,10 +18,13 @@ from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
-from ._deserializer import deserialize, Interface
+from ._flow_writer import FlowWriter
 from .ports import ProxyPorts
 from .mocked_response import MOCKED_TRACER_RESPONSES_PATH, MockedTracerResponse
 from .utils import logger
+
+if TYPE_CHECKING:
+    from ._deserializer import Interface
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -93,13 +97,6 @@ def get_decoded_content(message: http.Message) -> bytes | None:
         return message.content
 
 
-class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o: Any) -> Any:  # noqa: ANN401
-        if isinstance(o, bytes):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
-
-
 class _RequestLogger:
     def __init__(self) -> None:
         handler = logging.StreamHandler()
@@ -120,6 +117,13 @@ class _RequestLogger:
 
         self.internal_mocked_tracer_responses = MockedTracerResponse.many_from_file()
         """Tracer mocked responses valid for the entire session, controlled by scenarios"""
+
+        self._writer = FlowWriter()
+        """Persists flows off the event loop, so a slow disk does not stall the proxy (see _flow_writer.py)"""
+
+    def done(self) -> None:
+        """Shutdown hook called by mitmproxy: flush the flows still waiting to be written"""
+        self._writer.close()
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
@@ -273,29 +277,21 @@ class _RequestLogger:
             },
         }
 
-        deserialize(
-            data,
-            key="request",
-            content=request_content,
-            interface=interface,
-            export_content_files_to=export_content_files_to,
-        )
+        response_killed = bool(flow.error and flow.error.msg == FlowError.KILLED_MESSAGE)
 
-        if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
-            data["response"] = None
-        else:
-            deserialize(
-                data,
-                key="response",
-                content=response_content,
-                interface=interface,
-                export_content_files_to=export_content_files_to,
-            )
-
+        # Everything the file needs has been captured from the flow. Deserializing and writing (which may also
+        # export multipart files) happen on the writer thread, so the client gets its response right away
+        # even if the disk is slow.
         logger.info(f"Flow {flow.id}: Saving as {log_filename}")
-
-        with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
-            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
+        self._writer.submit(
+            flow.id,
+            data,
+            interface,
+            request_content,
+            response_content,
+            export_content_files_to,
+            response_killed=response_killed,
+        )
 
     def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
@@ -337,6 +333,11 @@ def start_proxy() -> None:
     proxy.addons.add(_RequestLogger())
 
     async def _run() -> None:
+        # The proxy runs as PID 1, which ignores SIGTERM without a handler: `docker stop` would end with a
+        # SIGKILL, losing the flows still queued on the writer thread. Shut down gracefully instead, so that
+        # the addons' done hook runs and flushes them.
+        asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, proxy.shutdown)
+
         await _start_udp_forwarder(
             listen_host=listen_host,
             listen_port=ProxyPorts.dogstatsd_weblog,
