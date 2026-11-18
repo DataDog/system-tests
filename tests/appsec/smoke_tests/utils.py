@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""AppSec smoke tests at the agent interface level"""
+"""Shared AAP smoke tests verifying payload carriers at backend intake."""
 
 from utils import context, interfaces, remote_config as rc, weblog
-from utils.dd_types import is_same_boolean
 from utils._weblog import HttpResponse
+from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogAgentSpan, is_same_boolean
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
 SMOKE_RC_RASP_RULE_ID = "rasp-930-100"
@@ -90,25 +91,83 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
-def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
-    """Walk agent appsec data and assert the expected RASP rule triggered."""
-    for _, _, appsec_data in interfaces.mocked_backend.get_appsec_data(response):
-        for trigger in appsec_data.get("triggers", []):
-            if trigger.get("rule", {}).get("id") != expected_rule:
-                continue
-            for match in trigger.get("rule_matches", []):
-                for params in match.get("parameters", []):
-                    if not isinstance(params, dict):
-                        continue
-                    if all(
-                        isinstance(params.get(name), dict)
-                        and params[name].get("address") == fields.get("address")
-                        and ("value" not in fields or params[name].get("value") == fields["value"])
-                        for name, fields in expected_params.items()
-                    ):
-                        return
+def _assert_numeric_metric(span: DataDogAgentSpan, name: str) -> float:
+    value = span.metrics.get(name)
+    assert isinstance(value, (int, float)), f"Backend should receive numeric {name}"
+    assert not isinstance(value, bool), f"Backend should receive numeric {name}"
+    assert value >= 0, name
+    return float(value)
 
-    raise AssertionError(f"No RASP attack found for rule {expected_rule}")
+
+def _attack_spans(request: HttpResponse) -> list[DataDogAgentSpan]:
+    spans = [
+        span
+        for _, span in interfaces.mocked_backend.get_spans(request)
+        if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
+    ]
+    assert spans, "Backend should receive the detected attack"
+    for span in spans:
+        assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
+    return spans
+
+
+def _has_rule_in_all_reports(span: DataDogAgentSpan, rule_id: str) -> bool:
+    reports = span.get_structured_payloads("appsec", "_dd.appsec.json")
+    return bool(reports) and all(
+        any(trigger.get("rule", {}).get("id") == rule_id for trigger in report.get("triggers", []))
+        for report in reports
+    )
+
+
+def _assert_rasp_attack(
+    response: HttpResponse,
+    expected_rule: str,
+    expected_params: dict[str, dict[str, str]],
+    *,
+    expect_stack: bool = True,
+) -> None:
+    """Verify RASP trigger, numeric timing metric, and linked exploit stack carriers at intake."""
+    matched_span = False
+    for span in _attack_spans(response):
+        reports = span.get_structured_payloads("appsec", "_dd.appsec.json")
+        assert reports, "Backend should receive an AppSec report"
+        stack_ids: set[str] = set()
+        for report in reports:
+            matched_trigger = False
+            for trigger in report.get("triggers", []):
+                if trigger.get("rule", {}).get("id") != expected_rule:
+                    continue
+                for match in trigger.get("rule_matches", []):
+                    for params in match.get("parameters", []):
+                        if isinstance(params, dict) and all(
+                            isinstance(params.get(name), dict)
+                            and params[name].get("address") == fields.get("address")
+                            and ("value" not in fields or params[name].get("value") == fields["value"])
+                            for name, fields in expected_params.items()
+                        ):
+                            matched_trigger = True
+                            if "stack_id" in trigger:
+                                stack_ids.add(trigger["stack_id"])
+            if not matched_trigger:
+                break
+        else:
+            _assert_numeric_metric(span, "_dd.appsec.rasp.duration")
+            if expect_stack:
+                assert stack_ids, "RASP trigger should link to an exploit stack"
+                stack_payloads = span.get_structured_payloads("_dd.stack")
+                assert stack_payloads, "Backend should receive the _dd.stack carrier"
+                for stack_payload in stack_payloads:
+                    exploits = [s for s in stack_payload.get("exploit", []) if s.get("id") in stack_ids]
+                    assert exploits, "Exploit stack ID should match the RASP trigger"
+                    for stack in exploits:
+                        assert isinstance(stack.get("language"), str)
+                        assert stack["language"]
+                        frames = stack.get("frames")
+                        assert isinstance(frames, list)
+                        assert 0 < len(frames) <= 32
+            matched_span = True
+
+    assert matched_span, f"No RASP attack found for rule {expected_rule}"
 
 
 # ---------------------------------------------------------------------------
@@ -117,24 +176,55 @@ def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_par
 
 
 class BaseThreatsSmokeTests:
-    """Verify basic WAF attack detection is forwarded by the agent."""
+    """Trigger a WAF attack and verify tags, retention, numeric metrics, and report carriers at intake."""
+
+    _attack_response: HttpResponse | None = None
+
+    @classmethod
+    def _get_attack_response(cls) -> HttpResponse:
+        if cls._attack_response is None:
+            cls._attack_response = weblog.get(
+                "/waf", headers={"User-Agent": "Arachni/v1", "X-Forwarded-For": "42.42.42.42"}
+            )
+        return cls._attack_response
 
     def setup_attack_detection_smoke(self) -> None:
-        rc.tracer_rc_state.reset().apply()
-        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+        self.r = self._get_attack_response()
 
     def test_attack_detection_smoke(self) -> None:
-        found_attack = False
-        has_appsec_data = False
+        for span in _attack_spans(self.r):
+            assert span.meta.get("http.client_ip") == "42.42.42.42"
+            assert span.meta.get("http.request.headers.x-forwarded-for") == "42.42.42.42"
+            assert span.meta.get("http.request.headers.user-agent", "").startswith("Arachni/v1")
+            assert span.meta.get("_dd.runtime_family")
+            assert _assert_numeric_metric(span, "_dd.appsec.enabled") == 1
 
-        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
-            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
-                found_attack = True
-                has_appsec_data = True
-                break
+            reports = span.get_structured_payloads("appsec", "_dd.appsec.json")
+            assert reports, "Backend should receive an AppSec report"
+            for report in reports:
+                triggers = [trigger for trigger in report.get("triggers", []) if trigger["rule"]["id"] == "ua0-600-12x"]
+                assert triggers, "Backend should receive the Arachni rule match"
+                for trigger in triggers:
+                    assert trigger["rule"]["tags"]["type"] in ("attack_tool", "security_scanner")
+                    assert trigger["rule"]["tags"]["category"] == "attack_attempt"
+                    assert trigger["rule_matches"], "Rule match details should reach intake"
+                    for match in trigger["rule_matches"]:
+                        assert match["operator"] == "match_regex"
+                        assert match["operator_value"]
+                        assert match["parameters"]
+                        for parameter in match["parameters"]:
+                            assert parameter["address"] == "server.request.headers.no_cookies"
+                            assert parameter["key_path"][:1] == ["user-agent"]
+                            assert parameter["value"].startswith("Arachni/v1")
+                            assert parameter["highlight"]
 
-        assert found_attack, "Agent should forward detected attacks in span metadata"
-        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+    def setup_waf_monitoring_smoke(self) -> None:
+        self.r = self._get_attack_response()
+
+    def test_waf_monitoring_smoke(self) -> None:
+        for span in _attack_spans(self.r):
+            assert span.meta.get("_dd.appsec.event_rules.version")
+            _assert_numeric_metric(span, "_dd.appsec.waf.duration")
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +233,7 @@ class BaseThreatsSmokeTests:
 
 
 class BaseRaspSmokeTests:
-    """Verify RASP attacks are detected and forwarded by the agent."""
+    """Verify RASP attacks, timing metrics, and linked exploit stacks reach intake."""
 
     def setup_lfi_smoke(self) -> None:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -212,7 +302,6 @@ class BaseTelemetrySmokeTests:
 
     def test_telemetry_smoke(self) -> None:
         telemetry_data = list(interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=False))
-
         assert telemetry_data, "Agent should forward telemetry data from the library"
 
         found_metrics = False
@@ -220,17 +309,10 @@ class BaseTelemetrySmokeTests:
 
         for data in telemetry_data:
             content = data.get("request", {}).get("content", {})
-            request_type = content.get("request_type")
-
-            if request_type == "generate-metrics":
+            if content.get("request_type") == "generate-metrics":
                 found_metrics = True
-
-                payload = content.get("payload", {})
-                series = payload.get("series", [])
-
-                for metric_series in series:
-                    metric_name = metric_series.get("metric", "")
-                    if metric_name.startswith("waf."):
+                for metric_series in content.get("payload", {}).get("series", []):
+                    if metric_series.get("metric", "").startswith("waf."):
                         found_waf_metric = True
                         break
 
@@ -258,14 +340,9 @@ class BaseRemoteConfigSmokeTests:
         assert self.config_state == rc.ApplyState.ACKNOWLEDGED, (
             f"Remote config should be acknowledged, got {self.config_state}"
         )
-
-        assert any(
-            is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
-            and any(
-                trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in appsec_data.get("triggers", [])
-            )
-            for _, span, appsec_data in interfaces.mocked_backend.get_appsec_data(self.r)
-        ), "Agent should forward AppSec events for the RC-updated rule"
+        assert any(_has_rule_in_all_reports(span, SMOKE_RC_RULE_ID) for span in _attack_spans(self.r)), (
+            "Agent should forward AppSec events for the RC-updated rule"
+        )
 
     def setup_rasp_blocking_smoke(self) -> None:
         """Push RASP LFI blocking rule via RC, then trigger the attack."""
@@ -282,6 +359,7 @@ class BaseRemoteConfigSmokeTests:
                 "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
                 "params": {"address": "server.request.query", "value": "../etc/passwd"},
             },
+            expect_stack=False,
         )
 
     def setup_ip_blocking_smoke(self) -> None:
@@ -302,6 +380,9 @@ class BaseRemoteConfigSmokeTests:
 
     def test_ip_blocking_smoke(self) -> None:
         assert self.r.status_code == 403
+        assert any(_has_rule_in_all_reports(span, SMOKE_RC_IP_BLOCK_RULE_ID) for span in _attack_spans(self.r)), (
+            "Agent should forward AppSec events for the blocked IP"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -310,16 +391,29 @@ class BaseRemoteConfigSmokeTests:
 
 
 class BaseApiSecuritySmokeTests:
-    """Verify API security schemas are collected and forwarded."""
+    """Verify compressed API security schema carriers are decoded at intake."""
 
     def setup_api_security_smoke(self) -> None:
-        self.r = weblog.get("/waf")
+        self.r = weblog.get("/waf", params={"smoke_query": "example"}, cookies={"smoke_cookie": "example"})
 
     def test_api_security_smoke(self) -> None:
-        assert any(
-            any(key.startswith("_dd.appsec.s.") for key in span.meta)
-            for _, span in interfaces.mocked_backend.get_spans(self.r)
+        expected_fields = (
+            ("req.headers", "user-agent"),
+            ("req.query", "smoke_query"),
+            ("req.cookies", "smoke_cookie"),
         )
+        for _, span in interfaces.mocked_backend.get_spans(self.r):
+            if not all(f"_dd.appsec.s.{address}" in span.meta for address, _ in expected_fields):
+                continue
+            for address, field in expected_fields:
+                schema = span.meta[f"_dd.appsec.s.{address}"]
+                assert isinstance(schema, list), f"Expected decoded schema list for {address}"
+                assert schema, f"Expected decoded schema list for {address}"
+                assert isinstance(schema[0], dict), f"Expected schema dict for {address}"
+                assert isinstance(schema[0].get(field), list), f"Missing {field!r} in {address} schema"
+            return
+
+        raise AssertionError("Backend should receive decoded API Security request schemas")
 
 
 # ---------------------------------------------------------------------------
@@ -328,7 +422,7 @@ class BaseApiSecuritySmokeTests:
 
 
 class BaseUserEventsSmokeTests:
-    """Verify user login events are tracked in standalone mode."""
+    """Verify user login events reach intake."""
 
     def setup_login_success_smoke(self) -> None:
         username_key = "user[username]" if "rails" in context.weblog_variant else "username"
