@@ -3953,18 +3953,7 @@ manifest:
   tests/test_otlp_runtime_metrics.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        python3.12: '>=4.10.5'
-        django-poc: '>=4.10.5'
-        flask-poc: '>=4.10.5'
-        tornado: '>=4.10.5'
-        fastapi: '>=4.10.5'
-        uwsgi-poc: '>=4.10.5'
-        uds-flask: '>=4.10.5'
-        django-py3.13: '>=4.10.5'
-        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are sent through DogStatsD, OTEL-3447)
   tests/test_profiling.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
