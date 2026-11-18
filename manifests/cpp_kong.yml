@@ -6,6 +6,7 @@ manifest:
   tests/ai_guard/: irrelevant (Kong is a proxy, not an application)
   tests/apm_tracing_e2e/: missing_feature (missing endpoints on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in Kong plugin)
+  tests/appsec/smoke_tests/test_security_otlp.py: missing_feature (OTLP trace export is not supported)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/: irrelevant
   tests/ffe/: missing_feature

@@ -1022,6 +1022,46 @@ class AgentContainer(TestedContainer):
         return str(self.environment["DD_SITE"])
 
 
+class DdotAgentContainer(AgentContainer):
+    """Full Agent image with the bundled DDOT Collector owning the OTLP receiver."""
+
+    def __init__(
+        self,
+        *,
+        dd_api_key: str,
+        rc_backend_enabled: bool = False,
+        mocked_backend: bool = False,
+        environment: dict[str, str | None] | None = None,
+    ) -> None:
+        super().__init__(
+            dd_api_key=dd_api_key,
+            rc_backend_enabled=rc_backend_enabled,
+            mocked_backend=mocked_backend,
+            environment=environment,
+        )
+        self.image = ImageInfo(
+            self._get_image_name("ddot-agent-image", default_name="datadog/agent:latest-full"), local_image_only=False
+        )
+        self.environment["DD_OTELCOLLECTOR_ENABLED"] = "true"
+        # Verify both listeners, but only emit /info for AgentContainer.post_start().
+        assert self.healthcheck is not None
+        self.healthcheck["test"] = (
+            "sh -c 'curl --fail --silent --show-error --max-time 2 --output /dev/null "
+            '--header "Content-Type: application/json" --data "{}" http://localhost:4318/v1/traces && '
+            f"{self.healthcheck['test']}'"
+        )
+        # The regular Agent OTLP receiver must not also bind the Collector's port.
+        del self.volumes["./utils/build/docker/agent/datadog.yaml"]
+        self.volumes["./utils/build/docker/agent/ddot-datadog.yaml"] = {
+            "bind": "/etc/datadog-agent/datadog.yaml",
+            "mode": "ro",
+        }
+        self.volumes["./utils/build/docker/agent/ddot-otel-config.yaml"] = {
+            "bind": "/etc/datadog-agent/otel-config.yaml",
+            "mode": "ro",
+        }
+
+
 class ServerlessInitContainer(TestedContainer):
     """Run serverless-init as the local trace and Feature Flags relay."""
 
