@@ -165,13 +165,8 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         self, request: HttpResponse, *, with_api_key: str | None = None
     ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
         for data, span in self.get_spans(request, with_api_key=with_api_key):
-            json_data = span.meta.get("_dd.appsec.json")
-            if json_data is not None:
-                yield data, span, json_data
-            elif (legacy_metastruct_data := span.get("metaStruct", {}).get("appsec")) is not None:
-                yield data, span, legacy_metastruct_data
-            elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
-                yield data, span, v1_metastruct_data
+            for report in span.get_structured_payloads("appsec", "_dd.appsec.json"):
+                yield data, span, report
 
     def get_profiling_data(self, *, with_api_key: str | None = None):
         yield from self.get_data(path_filters="/api/v2/profile", with_api_key=with_api_key)
