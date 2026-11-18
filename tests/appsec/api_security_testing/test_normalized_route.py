@@ -328,9 +328,7 @@ class Test_NormalizedRouteCatchAll:
         """RFC-1125 test 49: an empty catch-all is left out, and the route keeps its trailing `/`."""
         meta = _get_meta(self.r_empty)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/catch-all/", (
-            f"expected '/api_security/catch-all/', got {normalized!r}"
-        )
+        assert normalized == "/api_security/catch-all/", f"expected '/api_security/catch-all/', got {normalized!r}"
 
 
 @rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
@@ -366,9 +364,7 @@ class Test_NormalizedRouteOptionalAfterStaticText:
         """Test 19: absent, the `.` goes with it."""
         meta = _get_meta(self.r_optional_after_static_text_absent)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/search", (
-            f"expected '/api_security/search', got {normalized!r}"
-        )
+        assert normalized == "/api_security/search", f"expected '/api_security/search', got {normalized!r}"
 
     def setup_optional_after_static_text_present(self):
         self.r_optional_after_static_text_present = weblog.get("/api_security/search.json")
@@ -492,9 +488,7 @@ class Test_NormalizedRouteOptionalStaticText:
         """Test 27: absent, it is left out."""
         meta = _get_meta(self.r_optional_static_text_absent)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/drafts", (
-            f"expected '/api_security/drafts', got {normalized!r}"
-        )
+        assert normalized == "/api_security/drafts", f"expected '/api_security/drafts', got {normalized!r}"
 
     def setup_optional_static_text_routes_are_distinct(self):
         self.r_present = weblog.get("/api_security/drafts/preview")
