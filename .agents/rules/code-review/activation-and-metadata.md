@@ -50,7 +50,7 @@
 - Old_id: cursor-08
 - Severity: P1
 - Flag: Do not declare a minimum dev version, such as `v4.15.0-dev`, when a release candidate (RC) of that version lacks the feature. Use the exact version without the `v` prefix until a release contains the feature. Then switch back to a minimum version.
-- Detect: A manifest declares a minimum dev version, and an RC of that version predates the change.
+- Detect: A manifest or a `context.library` check declares a minimum dev or `-pre` version. A release, an RC, or a development build in that range lacks the change.
 - Not when: A bare dev version intentionally prevents an older release candidate from matching.
 - ✅ Use `Test_Foo: 4.15.0-dev` until a release that contains the feature, such as `4.15.0`, then use `Test_Foo: v4.15.0`.
 - ❌ Use `Test_Foo: v4.15.0-dev` while `4.15.0-rc1` lacks the feature.
