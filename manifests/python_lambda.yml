@@ -245,7 +245,10 @@ manifest:
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v8.113.0
   tests/appsec/test_event_tracking.py::Test_CustomEvent: incomplete_test_app (The /custom_event endpoint is not implemented)
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: incomplete_test_app (The /custom_event endpoint is not implemented)
-  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
+      component_version: <8.130.0
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent::test_user_login_failure_event: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: incomplete_test_app (The /user_login_failure_event endpoint is not implemented)
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: v8.130.0  # A lower version might be supported
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v8.130.0  # A lower version might be supported

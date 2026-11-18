@@ -1,4 +1,5 @@
 from functools import lru_cache
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
     _get_execution_time,
     _get_endtoend_weblogs,
+    get_docker_ssi_matrix,
     get_endtoend_definitions,
 )
 
@@ -224,3 +226,48 @@ def test_all_weblog_has_metadata():
                 assert name in known_weblog_names, (
                     f"Please add {name} in utils/build/docker/{library}/weblog_metadata.yml"
                 )
+
+
+def _write_docker_ssi_files(folder: Path) -> tuple[str, str, str]:
+    images = {
+        "docker_ssi_images": [{"name": "Ubuntu_22_amd64", "image": "ubuntu:22.04", "architecture": "linux/amd64"}]
+    }
+    runtimes = {
+        "docker_ssi_runtimes": {
+            "python": [
+                {"version_id": "PY314", "version": "3.14.10"},
+                {"version_id": "PY316A2", "version": "3.16.0a2", "expected_ssi_result": "abort"},
+            ]
+        }
+    }
+    docker_ssi = {
+        "scenario_matrix": [{"scenarios": ["DOCKER_SSI"], "weblogs": [{"python": ["py-app", "py-explicit-app"]}]}],
+        "weblogs_spec": {
+            "python": [
+                {
+                    "name": "py-app",
+                    "supported_images": [{"name": "Ubuntu_22_amd64", "allowed_runtime_versions": ["*"]}],
+                },
+                {
+                    "name": "py-explicit-app",
+                    "supported_images": [{"name": "Ubuntu_22_amd64", "allowed_runtime_versions": ["PY314", "PY316A2"]}],
+                },
+            ]
+        },
+    }
+    paths = []
+    for name, content in (("images.json", images), ("runtimes.json", runtimes), ("docker_ssi.json", docker_ssi)):
+        path = folder / name
+        path.write_text(json.dumps(content))
+        paths.append(str(path))
+    return paths[0], paths[1], paths[2]
+
+
+@scenarios.test_the_test
+def test_docker_ssi_matrix_excludes_abort_runtimes(tmp_path: Path) -> None:
+    images, runtimes, docker_ssi = _write_docker_ssi_files(tmp_path)
+
+    matrix: dict = get_docker_ssi_matrix(images, runtimes, docker_ssi, [scenarios.docker_ssi], "python")
+
+    assert matrix["DOCKER_SSI"]["py-app"] == [{"ubuntu:22.04": ["3.14.10"], "arch": "linux/amd64"}]
+    assert matrix["DOCKER_SSI"]["py-explicit-app"] == [{"ubuntu:22.04": ["3.14.10"], "arch": "linux/amd64"}]

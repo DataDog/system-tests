@@ -2021,6 +2021,7 @@ manifest:
       weblog: [anthropic-js@0.71.0]
     - declaration: missing_feature (APPSEC-69630, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [anthropic-js@0.71.0]
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: incomplete_test_app (anthropic-js weblog is missing the /mcp/create endpoint)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released
@@ -2832,8 +2833,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
       component_version: <6.8.0
-    - declaration: flaky (APMLP-2085)
-      component_version: '>=6.21.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
       component_version: <6.8.0

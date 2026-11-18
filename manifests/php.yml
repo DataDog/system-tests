@@ -41,6 +41,9 @@ manifest:
         laravel11x: flaky (APPSEC-69204)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: v1.11.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v1.11.0
+  tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status::test_sampling_delay:
+    - weblog_declaration:
+        laravel11x: flaky (APPSEC-69204)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v1.11.0
   tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
@@ -273,10 +276,14 @@ manifest:
     - weblog_declaration:
         '*': missing_feature
         laravel11x: '>=1.23.3'
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
         laravel11x: '>=1.23.3'
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: missing_feature
@@ -337,10 +344,14 @@ manifest:
     - weblog_declaration:
         '*': missing_feature
         laravel11x: '>=1.23.3'
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
         laravel11x: '>=1.23.3'
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: missing_feature
@@ -357,11 +368,15 @@ manifest:
         "*": missing_feature
         laravel11x: v1.6.2
         symfony7x: v1.6.2
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
     - weblog_declaration:
         "*": missing_feature
         laravel11x: v1.6.2
         symfony7x: v1.6.2
+    - declaration: flaky (APMLP-2283)
+      component_version: ">=1.28.0-dev"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v1.6.2
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:  # TODO: a lower version might be supported
     - weblog_declaration:
