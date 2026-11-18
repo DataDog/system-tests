@@ -69,7 +69,7 @@ fi
 echo "Running Maven build with profiles ${MAVEN_PROFILES}"
 
 # shellcheck disable=SC2086
-mvn -q $MAVEN_PROFILES package
+mvn -o -Dmaven.repo.local=/maven -q $MAVEN_PROFILES package
 
 # Extract application and its dependencies from class lookup performance improvements
 java -Djarmode=tools -jar target/dd-trace-java-client-1.0.0.jar extract --destination application

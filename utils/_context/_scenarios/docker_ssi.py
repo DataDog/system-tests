@@ -53,6 +53,8 @@ class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
+    # Only runtimes with this "expected_ssi_result" in docker_ssi_runtimes.json run in this scenario
+    expected_ssi_result: str = "instrumented"
 
     def __init__(
         self,
@@ -401,17 +403,16 @@ class DockerSSIImageBuilder:
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
     def build_weblog(self):
-        """Manages the build process of the weblog image"""
-        if not self.exist_base_image() or self._push_base_images or self._force_build:
-            # Build the base image
-            self.build_lang_deps_image()
-            self.build_ssi_installer_image()
-            self.should_push_base_images = not self.exist_base_image() or self._push_base_images
-        self.build_weblog_image(
-            self.ssi_installer_docker_tag
-            if self._force_build or self.should_push_base_images
-            else self._docker_registry_tag
-        )
+        """Build the weblog image on the base image from the registry, or on a new base image"""
+        base_image_exists = self.exist_base_image()
+        if base_image_exists and not self._push_base_images and not self._force_build:
+            self.build_weblog_image(self._docker_registry_tag)
+            return
+
+        self.build_lang_deps_image()
+        self.build_ssi_installer_image()
+        self.should_push_base_images = self._push_base_images or not base_image_exists
+        self.build_weblog_image(self.ssi_installer_docker_tag)
 
     def exist_base_image(self):
         """Check if the base image is available in the docker registry"""

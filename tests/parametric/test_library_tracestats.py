@@ -55,6 +55,43 @@ def _all_v06_stats_entries(test_agent: TestAgentAPI) -> list[dict]:
     return entries
 
 
+def _merged_v06_stats(test_agent: TestAgentAPI) -> list[V06StatsAggr]:
+    """Return the decoded stats of every /v0.6/stats request, merged across time buckets.
+
+    Stats are partitioned into 10s time buckets: spans finishing on both sides of a bucket
+    boundary are reported in two buckets, with one entry per bucket for the same aggregation key.
+    Their counters are summed, so assertions don't depend on when the spans finished.
+    The key only has the dimensions of the decoded view: don't use it for spans that only differ
+    on other dimensions (span kind, peer tags, ...).
+    """
+    merged: dict[tuple[str | int | bool, ...], V06StatsAggr] = {}
+    for request in test_agent.get_v06_stats_requests():
+        for bucket in request["body"]["Stats"]:
+            bucket_keys: set[tuple[str | int | bool, ...]] = set()
+            for stats in bucket["Stats"]:
+                key = (
+                    stats["Name"],
+                    stats["Resource"],
+                    stats["Service"],
+                    stats["Type"],
+                    stats["HTTPStatusCode"],
+                    stats["GRPCStatusCode"],
+                    stats["Synthetics"],
+                )
+                assert key not in bucket_keys, f"Stats of a bucket must be aggregated by key: {_human_stats(stats)}"
+                bucket_keys.add(key)
+
+                if key not in merged:
+                    merged[key] = stats.copy()
+                else:
+                    merged[key]["Hits"] += stats["Hits"]
+                    merged[key]["TopLevelHits"] += stats["TopLevelHits"]
+                    merged[key]["Duration"] += stats["Duration"]
+                    merged[key]["Errors"] += stats["Errors"]
+
+    return list(merged.values())
+
+
 def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
     """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
@@ -175,25 +212,15 @@ class Test_Library_Tracestats:
         if test_library.lang in ("golang", "java"):
             test_library.dd_flush()
 
-        requests = test_agent.get_v06_stats_requests()
-        assert len(requests) >= 1, "At least one stats request"
-        cnt = 0
-        for req in requests:
-            request = req["body"]
-            buckets = request["Stats"]
-            assert len(buckets) == 1, "There should be one bucket containing the stats"
+        assert len(test_agent.get_v06_stats_requests()) >= 1, "At least one stats request"
+        stats = _merged_v06_stats(test_agent)
+        for s in stats:
+            assert s["Hits"] == 1
+            assert s["TopLevelHits"] == 1
+            assert s["Duration"] > 0
 
-            bucket = buckets[0]
-            stats = bucket["Stats"]
-            cnt += len(stats)
-
-            for s in stats:
-                assert s["Hits"] == 1
-                assert s["TopLevelHits"] == 1
-                assert s["Duration"] > 0
-
-        assert cnt == 7, (
-            "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+        assert len(stats) == 7, (
+            "There should be seven stats entries. There is one baseline entry and 6 that are unique along each of 6 dimensions."
         )
 
     @enable_tracestats()
@@ -219,10 +246,9 @@ class Test_Library_Tracestats:
             with test_library.dd_start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
                 pass
 
-        requests = test_agent.get_v06_stats_requests()
-        assert len(requests) > 0
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
+        assert len(test_agent.get_v06_stats_requests()) > 0
+        stats = _merged_v06_stats(test_agent)
+        assert len(stats) != 0, "Stats should be computed"
         logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
 
@@ -400,18 +426,10 @@ class Test_Library_Tracestats:
             span2.set_meta(key="_dd.origin", val="not_synthetics")
             span2.set_meta(key="http.status_code", val="202")
 
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) == 1, "Only one stats request is expected"
-        request = requests[0]["body"]
-        buckets = request["Stats"]
-        assert len(buckets) == 1, "There should be one bucket containing the stats"
-
-        bucket = buckets[0]
-        stats = bucket["Stats"]
-        assert len(stats) == 1, (
-            "There should be one stats entry in the bucket which contains stats for 2 top level spans"
-        )
+        # Some libraries flush on a timer that is not aligned to the test, and may send several stats requests
+        assert len(test_agent.get_v06_stats_requests()) >= 1, "At least one stats request"
+        stats = _merged_v06_stats(test_agent)
+        assert len(stats) == 1, "There should be one stats entry which contains stats for 2 top level spans"
 
         assert stats[0]["Name"] == name
         assert stats[0]["TopLevelHits"] == 2
