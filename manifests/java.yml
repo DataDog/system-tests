@@ -4029,11 +4029,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v1.62.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 1.69.0
-    - component_version: <1.62.0
-      declaration: missing_feature
-    - component_version: '>=1.62.0'
-      declaration: bug (APMAPI-2471)
+  : v1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
   :  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2471)

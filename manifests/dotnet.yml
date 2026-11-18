@@ -992,19 +992,11 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 3.57.0
-    - component_version: <3.37.0
-      declaration: missing_feature
-    - component_version: '>=3.37.0'
-      declaration: bug (APMAPI-2468)
+  : v3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_default_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_override: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 3.57.0
-    - component_version: <3.37.0
-      declaration: missing_feature
-    - component_version: '>=3.37.0'
-      declaration: bug (APMAPI-2468)
+  : v3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=3.57.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
@@ -1053,19 +1045,11 @@ manifest:
       component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v3.29.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
-  :  # Easy win for all weblogs and version 3.57.0
-    - component_version: <3.37.0
-      declaration: missing_feature
-    - component_version: '>=3.37.0'
-      declaration: bug (APMAPI-2479)
+  : v3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 3.57.0
-    - component_version: <3.37.0
-      declaration: missing_feature
-    - component_version: '>=3.37.0'
-      declaration: bug (APMAPI-2468)
+  : v3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_signal_overrides
   : v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_unset_falls_back
