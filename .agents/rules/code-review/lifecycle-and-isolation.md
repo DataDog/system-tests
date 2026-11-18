@@ -32,8 +32,3 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
-
-### LIFE-005: Stop the scenario when its infrastructure setup fails.
-- Severity: P0
-- Flag: A failed provisioning or service step of the scenario must stop the run with that error. The run must not treat the failed step as a success. Tests must not each fail with a vague message.
-- Detect: A provisioning error is only logged or stored, and the session continues. A provision script ignores a failed command, such as a service restart, and runs the next steps.
