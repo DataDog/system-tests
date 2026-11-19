@@ -1,7 +1,5 @@
 """AAP smoke coverage with native trace export and OTLP through bundled DDOT."""
 
-import pytest
-
 from utils._context.containers import DdotAgentContainer
 from utils.proxy.ports import ProxyPorts
 
@@ -41,24 +39,12 @@ class SecuritySmokeOtlp(DdTraceEndToEndScenario):
             open_telemetry_interface_timeout=5,
             weblog_env={
                 **_SMOKE_WEBLOG_ENV,
-                "DD_TRACE_OTEL_ENABLED": "false",
+                "DD_TRACE_OTEL_ENABLED": "true",
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "false",
+                # DDOT accepts both HTTP/JSON and HTTP/protobuf; exercise the SDK's default.
                 "OTEL_TRACES_EXPORTER": "otlp",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
             scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
         )
-
-    def configure(self, config: pytest.Config) -> None:
-        super().configure(config)
-        environment = self.weblog_container.environment
-        if self.weblog_infra.library_name == "java":
-            # Java gates the OTEL_* aliases on the OTel API bridge.
-            environment["DD_TRACE_OTEL_EXPORTER"] = "otlp"
-            environment["DD_OTLP_TRACES_PROTOCOL"] = "HTTP_PROTOBUF"
-            environment["DD_OTLP_TRACES_ENDPOINT"] = environment["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"]
-            environment["DD_OTLP_TRACES_HEADERS"] = environment["OTEL_EXPORTER_OTLP_TRACES_HEADERS"]
-        elif self.weblog_infra.library_name in ("nodejs", "dotnet"):
-            environment["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/json"
