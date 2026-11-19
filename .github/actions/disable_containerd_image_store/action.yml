@@ -1,13 +1,13 @@
 ---
 name: Disable the containerd image store
-description: >
-  Switch the docker daemon to the classic image store (overlay2 graph driver). Must run before the job pulls, builds or
-  loads any image: images stored in the containerd image store are not visible from the classic one.
-
-  With the containerd image store (the default from Docker 29, e.g. on ubuntu-26.04 GitHub runners), the first
-  container creation of a runner mounts and unmounts its snapshot to write the init layer. The unmount syncs the whole
-  filesystem, so this creation waits until every pending write of the runner is on disk: usually a few seconds, but
-  sometimes over the 60s timeout of the docker client ("Container proxy can't be started").
+# With the containerd image store (the default from Docker 29, e.g. on ubuntu-26.04 GitHub runners), the first
+# container creation of a runner mounts and unmounts its snapshot to write the init layer. The unmount syncs the whole
+# filesystem, so this creation waits until every pending write of the runner is on disk: usually a few seconds, but
+# sometimes over the 60s timeout of the docker client ("Container proxy can't be started").
+#
+# Images stored in the containerd image store are not visible from the classic one: run this action before the job
+# pulls, builds or loads any image.
+description: "Switch the docker daemon to the classic image store (overlay2 graph driver)"
 
 runs:
   using: composite
@@ -29,9 +29,9 @@ runs:
           exit 0
         fi
 
-        if [[ -n "$(docker images --quiet)" ]]; then
-          echo "::warning::Images already in the containerd image store won't be visible after the switch: run this action before any pull, build or load"
-        fi
+        # The runner image comes with a few images. They are pulled again if needed
+        echo "Images that won't be visible after the switch:"
+        docker images --format '  {{.Repository}}:{{.Tag}}'
 
         config=/etc/docker/daemon.json
         sudo mkdir -p /etc/docker
