@@ -1340,7 +1340,7 @@ manifest:
   ? tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Allocation_Cycle::test_ffe_exposure_caching_allocation_cycle
   : - declaration: bug (FFL-3790)
       component_version: '>=2.1.0-dev'
-      weblog: [apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
+      weblog: [apache-mod-7.0-zts, apache-mod-7.1-zts, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
@@ -1356,7 +1356,7 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle::test_ffe_exposure_caching_serial_id_cycle:
     - declaration: bug (FFL-3790)
       component_version: '>=2.1.0-dev'
-      weblog: [apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
+      weblog: [apache-mod-7.0-zts, apache-mod-7.1-zts, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
       component_version: <1.26.0
@@ -1366,7 +1366,7 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Variant_Cycle::test_ffe_exposure_caching_variant_cycle:
     - declaration: bug (FFL-3790)
       component_version: '>=2.1.0-dev'
-      weblog: [apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
+      weblog: [apache-mod-7.0-zts, apache-mod-7.1-zts, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
     - declaration: missing_feature (EX-3425)
