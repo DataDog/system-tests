@@ -222,13 +222,11 @@ manifest:
     - weblog_declaration:
         '*': '>=3.17.0'
         aiohttp: v4.17.0-rc1
-  tests/appsec/api_security/test_endpoint_discovery.py:
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": v3.13.0.dev
         *django : v3.12.0.dev
+        aiohttp: v4.18.0-rc1
         tornado: v4.7.0-rc1
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant
@@ -1198,25 +1196,25 @@ manifest:
         tornado: v4.6.4  # TODO: a lower version might be supported
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
@@ -1598,7 +1596,7 @@ manifest:
         "*": v3.11.0.dev
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
   tests/appsec/test_rate_limiter.py:
     - weblog_declaration:
@@ -3953,18 +3951,7 @@ manifest:
   tests/test_otlp_runtime_metrics.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        python3.12: '>=4.10.5'
-        django-poc: '>=4.10.5'
-        flask-poc: '>=4.10.5'
-        tornado: '>=4.10.5'
-        fastapi: '>=4.10.5'
-        uwsgi-poc: '>=4.10.5'
-        uds-flask: '>=4.10.5'
-        django-py3.13: '>=4.10.5'
-        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are sent through DogStatsD, OTEL-3447)
   tests/test_profiling.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
