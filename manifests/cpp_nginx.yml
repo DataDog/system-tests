@@ -470,6 +470,7 @@ manifest:
   tests/test_otel_http_semantics.py: missing_feature (nginx-datadog does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are not implemented)
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_resource_renaming.py: '>=1.20.0'  # TODO: a lower version might be supported
