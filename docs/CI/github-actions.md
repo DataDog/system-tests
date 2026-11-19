@@ -109,6 +109,17 @@ For some purposes, secrets are used in the workflow:
 
 You can sends them ,either by using `secrets: inherit` ([doc](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretsinherit)), or [use explicit secret ids](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretssecret_id)
 
+## Running system-tests in your own workflow
+
+If you don't use the reusable workflow, add the [`disable_containerd_image_store`](../../.github/actions/disable_containerd_image_store/action.yml) action to every job that runs system-tests, before the job pulls, builds or loads any docker image:
+
+```yaml
+- name: Disable the containerd image store
+  uses: DataDog/system-tests/.github/actions/disable_containerd_image_store@main
+```
+
+On runners using the containerd image store (the default from Docker 29, e.g. `ubuntu-26.04`), the first container of a job can take more than 60s to be created, and the scenario fails with `Container proxy can't be started`.
+
 
 ## Private parameters
 

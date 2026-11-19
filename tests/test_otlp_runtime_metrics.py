@@ -292,8 +292,10 @@ class Test_OtlpRuntimeMetrics:
         assert self.req.status_code == 200
 
         library = context.library.name
-        if library not in EXPECTED_METRICS:
-            return
+        assert library in EXPECTED_METRICS, (
+            f"No expected OTel runtime metrics are declared for {library}: add them to EXPECTED_METRICS, "
+            "or declare the test as missing_feature in the manifest"
+        )
 
         observed = get_runtime_metrics_by_name()
         attribute_values = EXPECTED_METRIC_ATTRIBUTE_VALUES.get(library, {})
@@ -349,9 +351,11 @@ class Test_OtlpRuntimeMetrics:
         assert self.req.status_code == 200
 
         library = context.library.name
-        dd_prefix = DD_PROPRIETARY_PREFIXES.get(library)
-        if not dd_prefix:
-            return
+        assert library in DD_PROPRIETARY_PREFIXES, (
+            f"No DD-proprietary runtime metric prefix is declared for {library}: add it to DD_PROPRIETARY_PREFIXES, "
+            "or declare the test as missing_feature in the manifest"
+        )
+        dd_prefix = DD_PROPRIETARY_PREFIXES[library]
 
         observed = get_runtime_metrics_by_name()
         dd_named_metrics = [n for n in observed if n.startswith(dd_prefix)]
