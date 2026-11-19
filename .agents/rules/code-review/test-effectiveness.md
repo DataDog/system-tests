@@ -47,7 +47,7 @@
 - Old_id: codex-11
 - Severity: P1
 - Flag: Do not write the expected tag, code, or exporter result in the test app. The SDK must produce it. The assertion may name the value it expects. It must read that value from SDK output..
-- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects.
+- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects. It reports a default value for a setting the SDK does not support, instead of None. It catches every exception and returns OK, so a status-code check always passes. It drives the SDK differently from a real app, so the path under test never runs.
 - ✅ The tracer sets `runtime-id`, and the test asserts it on the captured span.
 - ❌ The app sets `runtime-id` on the span, and the test asserts that tag.
 
@@ -59,3 +59,13 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Check the type when the contract defines it.
+- Severity: P0
+- Flag: Check the type as well as the value. This applies to a boolean or a number in the contract. In Python, `1 == True` and `1.0 == True` are both true. The contract can accept `True`, `1`, and `"true"` as one value. Then use `is_same_boolean()`.
+- Detect: An assertion compares a boolean or a number with `==` and has no type check. A coerced value then passes.
+
+### TEST-009: Assert every expectation on its own.
+- Severity: P0
+- Flag: Check each subject and each fixture expectation on its own. Do not merge expected counts, and do not drop the shared checks that sibling tests run.
+- Detect: A test sums the expected counts of two subjects into one total. A test skips the shared assertion helper that its siblings call. A runner loads fixture expectations, such as `result.features`, and never asserts them.
