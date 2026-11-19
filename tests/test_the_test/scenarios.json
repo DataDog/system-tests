@@ -5788,97 +5788,97 @@
   "tests/test_the_test/test_group_rules.py::test_tracer_release": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_missing_feature": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_missing_feature": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_irrelevant_legacy": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_irrelevant_legacy": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_pass": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_pass": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_clean_test_data": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_clean_test_data": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_context_serialization": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_context_serialization": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_feature_id": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_feature_id": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_skip_reason": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_skip_reason": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_xpassed": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_xpassed": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_released_manifest": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_released_manifest": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_irrelevant": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_irrelevant": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_flaky_in_irrelevant": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_flaky_in_irrelevant": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_bug_in_irrelevant": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_bug_in_irrelevant": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_doubleskip": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_doubleskip": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_flaky": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_flaky": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Json_Report::test_logs": [
+  "tests/test_the_test/test_junit_report.py::Test_Junit_Report::test_logs": [
     "TEST_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Mock::test_mock": [
+  "tests/test_the_test/test_junit_report.py::Test_Mock::test_mock": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Mock::test_missing_feature": [
+  "tests/test_the_test/test_junit_report.py::Test_Mock::test_missing_feature": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Mock::test_irrelevant": [
+  "tests/test_the_test/test_junit_report.py::Test_Mock::test_irrelevant": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Mock2::test_skipped": [
+  "tests/test_the_test/test_junit_report.py::Test_Mock2::test_skipped": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_BugClass::test_xpassed_method": [
+  "tests/test_the_test/test_junit_report.py::Test_BugClass::test_xpassed_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_BugClass::test_xfailed_method": [
+  "tests/test_the_test/test_junit_report.py::Test_BugClass::test_xfailed_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_NotReleased::test_method": [
+  "tests/test_the_test/test_junit_report.py::Test_NotReleased::test_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_IrrelevantClass::test_method": [
+  "tests/test_the_test/test_junit_report.py::Test_IrrelevantClass::test_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_IrrelevantClass::test_flaky_method_in_irrelevant_class": [
+  "tests/test_the_test/test_junit_report.py::Test_IrrelevantClass::test_flaky_method_in_irrelevant_class": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_IrrelevantClass::test_bug_method_in_irrelevant_class": [
+  "tests/test_the_test/test_junit_report.py::Test_IrrelevantClass::test_bug_method_in_irrelevant_class": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Class::test_irrelevant_method": [
+  "tests/test_the_test/test_junit_report.py::Test_Class::test_irrelevant_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Class::test_flaky_method": [
+  "tests/test_the_test/test_junit_report.py::Test_Class::test_flaky_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Class::test_good_method": [
+  "tests/test_the_test/test_junit_report.py::Test_Class::test_good_method": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Class::test_skipping_prio": [
+  "tests/test_the_test/test_junit_report.py::Test_Class::test_skipping_prio": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_Class::test_skipping_prio2": [
+  "tests/test_the_test/test_junit_report.py::Test_Class::test_skipping_prio2": [
     "MOCK_THE_TEST"
   ],
-  "tests/test_the_test/test_json_report.py::Test_FlakyClass::test_method": [
+  "tests/test_the_test/test_junit_report.py::Test_FlakyClass::test_method": [
     "MOCK_THE_TEST"
   ],
   "tests/test_the_test/test_junit.py::Test_Cases::test_pass": [
