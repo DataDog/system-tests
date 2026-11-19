@@ -2403,7 +2403,7 @@ manifest:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py::TestAnthropicAiGuard: v4.11.0
-  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py:
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py:  # Easy win for anthropic-py@0.84.0 and version 4.17.1
     - weblog_declaration:
         "*": v4.18.0-rc1
         anthropic-py@0.75.0: "irrelevant (anthropic<0.84.0 has no MCP tool helpers)"
