@@ -17,6 +17,10 @@ Hand edit: the real backend allows the benign request of test_ai_guard_anthropic
 so the response of its response evaluation cassette (the one whose request has mcp_servers) was edited
 to action DENY, is_blocking_enabled true and a reason. Its request was left as recorded.
 
+Copied cassettes: test_ai_guard_anthropic_mcp_reconnect_same_server_id sends the request of
+test_ai_guard_anthropic_mcp_tool_use twice, so its cassettes are copies of that test's ones, renamed
+to its own test name. The file names hash the request body only, so the copies match unchanged.
+
 A direct tool.call() with no preceding response evaluation is not covered: the tracer gives it a
 random tool call ID, so its evaluate body cannot match a body-hashed cassette.
 """
@@ -172,6 +176,28 @@ class Test_AnthropicAiGuardMcp(BaseAnthropicTest):
         (weather,) = ai_guard_tool_calls(span, "get_weather")
         assert "mcp" not in weather
         assert len(_tool_uses(response, "get_weather")) == 1
+
+    def test_ai_guard_anthropic_mcp_reconnect_same_server_id(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ) -> None:
+        """The server ID does not depend on the connection: each request spawns a new stdio server and
+        opens a new MCP session, and both response evaluations report the same server entry and ID.
+        """
+        with test_agent.vcr_context():
+            responses = [_mcp_create(test_client, ECHO_PROMPT).json() for _ in range(2)]
+
+        anthropic_spans = wait_for_spans(test_agent, lambda traces: spans_named(traces, "anthropic.request"), 2)
+        assert len(anthropic_spans) == 2, f"expected two anthropic.request spans, got {len(anthropic_spans)}"
+        spans = wait_for_ai_guard_spans(test_agent, 4, settle_seconds=SPANS_SETTLE_SECONDS)
+        assert len(spans) == 4, f"expected a prompt and a response evaluation per request, got {len(spans)}"
+        for span in spans:
+            assert "ai_guard.action" in span["meta"], f"an AI Guard evaluation missed its cassette: {span['meta']}"
+
+        tool_spans = [span for span in spans if span["meta"]["ai_guard.target"] == "tool"]
+        assert len(tool_spans) == 2, f"expected one response evaluation per request, got {len(tool_spans)}"
+        for span, response in zip(tool_spans, responses, strict=True):
+            assert ai_guard_mcp_servers(span) == [ECHO_SERVER]
+            _assert_echo_call(span, response, {"server_id": ECHO_SERVER_ID})
 
     def test_ai_guard_anthropic_mcp_response_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
