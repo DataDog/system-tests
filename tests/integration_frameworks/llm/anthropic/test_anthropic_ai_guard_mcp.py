@@ -18,8 +18,10 @@ so the response of its response evaluation cassette (the one whose request has m
 to action DENY, is_blocking_enabled true and a reason. Its request was left as recorded.
 
 Copied cassettes: test_ai_guard_anthropic_mcp_reconnect_same_server_id sends the request of
-test_ai_guard_anthropic_mcp_tool_use twice, so its cassettes are copies of that test's ones, renamed
-to its own test name. The file names hash the request body only, so the copies match unchanged.
+test_ai_guard_anthropic_mcp_tool_use twice, and test_ai_guard_anthropic_mcp_command_path sends it
+once with the echo server started from an absolute path. Their cassettes are copies of that test's
+ones, renamed to their own test name. The file names hash the request body only, so the copies match
+unchanged.
 
 A direct tool.call() with no preceding response evaluation is not covered: the tracer gives it a
 random tool call ID, so its evaluate body cannot match a body-hashed cassette.
@@ -49,7 +51,8 @@ from .utils import TOOLS, BaseAnthropicTest
 
 
 # Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], with
-# key "stdio|python|integration_frameworks.mcp_echo_server" (command, then the module of python -m).
+# key "stdio|python|integration_frameworks.mcp_echo_server" (the program name of the command, then the
+# module of python -m).
 ECHO_SERVER_ID = "mcp_9d097fe19379c0dd"
 # The mcp_servers entry of the weblog echo server: its env and extra args are never reported.
 ECHO_SERVER: dict[str, Any] = {
@@ -88,13 +91,14 @@ def _mcp_create(
     tools: list[dict[str, Any]] | None = None,
     *,
     raise_for_status: bool = True,
+    command_path: bool = False,
 ) -> requests.Response:
-    return test_client.request(
-        "POST",
-        "/mcp/create",
-        dict(model=MODEL, messages=[{"role": "user", "content": prompt}], parameters=PARAMETERS, tools=tools or []),
-        raise_for_status=raise_for_status,
+    body: dict[str, Any] = dict(
+        model=MODEL, messages=[{"role": "user", "content": prompt}], parameters=PARAMETERS, tools=tools or []
     )
+    if command_path:
+        body["command_path"] = True
+    return test_client.request("POST", "/mcp/create", body, raise_for_status=raise_for_status)
 
 
 def _anthropic_spans(test_agent: TestAgentAPI) -> list[dict[str, Any]]:
@@ -198,6 +202,21 @@ class Test_AnthropicAiGuardMcp(BaseAnthropicTest):
         for span, response in zip(tool_spans, responses, strict=True):
             assert ai_guard_mcp_servers(span) == [ECHO_SERVER]
             _assert_echo_call(span, response, {"server_id": ECHO_SERVER_ID})
+
+    def test_ai_guard_anthropic_mcp_command_path(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ) -> None:
+        """A stdio server started from an absolute path is reported and hashed with its program name only:
+        the path can hold a user name and changes from machine to machine, so it never reaches AI Guard.
+        """
+        with test_agent.vcr_context():
+            response = _mcp_create(test_client, ECHO_PROMPT, command_path=True).json()
+
+        # The cassettes match only when mcp_servers carries command "python" and ECHO_SERVER_ID.
+        spans, span = _evaluations(test_agent, [ECHO_SERVER])
+        _assert_echo_call(span, response, {"server_id": ECHO_SERVER_ID})
+        for guard_span in spans:
+            assert "/python" not in json.dumps(guard_span.get("meta_struct")), "the command path reached AI Guard"
 
     def test_ai_guard_anthropic_mcp_response_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
