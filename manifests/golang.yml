@@ -701,10 +701,10 @@ manifest:
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/smoke_tests/test_security.py: v2.7.0
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke:
@@ -717,7 +717,7 @@ manifest:
     - declaration: irrelevant (there is no equivalent to system(3) in go)
     - weblog_declaration:
         fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
@@ -726,7 +726,7 @@ manifest:
         net-http-orchestrion: v2.7.0
     - weblog_declaration:
         fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
-  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature

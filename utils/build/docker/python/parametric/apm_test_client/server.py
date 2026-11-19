@@ -1523,14 +1523,25 @@ async def ffe(request: Request) -> JSONResponse:
 
 
 @app.post("/ffe/start", response_class=JSONResponse)
-async def ffe_start() -> JSONResponse:
+async def ffe_start(request: Request) -> JSONResponse:
     """Initialize OpenFeature provider."""
     global openfeature_client
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
 
-        api.set_provider(DataDogProvider())
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        provider_kwargs = {}
+        if isinstance(body, dict) and "flag_selection" in body:
+            selection = body["flag_selection"]
+            if isinstance(selection, dict):
+                selection = {("key_patterns" if k == "keyPatterns" else k): v for k, v in selection.items()}
+            provider_kwargs["flag_selection"] = selection
+
+        api.set_provider(DataDogProvider(**provider_kwargs))
         openfeature_client = api.get_client()
         return JSONResponse({}, status_code=200)
     except Exception as e:
