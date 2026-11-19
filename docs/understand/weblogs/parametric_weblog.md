@@ -1004,6 +1004,7 @@ Called by `ParametricTestClientApi.ffe_fetch_rules_configuration()`. Fetch and s
 #### `POST /ffe/start`
 
 Called by `ParametricTestClientApi.ffe_start()`. Initialize the FFE (Feature Flagging & Experimentation) provider.
+The client applies its configured HTTP timeout (60 seconds in the normal parametric fixture) so an unresponsive startup request can finish even if application termination fails.
 
 Request body (not declared by the reference server, which reads the raw request; fields sent by the client):
 

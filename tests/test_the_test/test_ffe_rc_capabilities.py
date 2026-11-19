@@ -3,8 +3,11 @@
 import base64
 import hashlib
 import json
-from concurrent.futures import Future
-from threading import Event
+from collections.abc import Generator
+from concurrent.futures import Future, ThreadPoolExecutor
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Event, Thread
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -24,6 +27,48 @@ def _request(mask: int, *, byte_array: bool) -> dict[str, Any]:
             "client": {"id": "ffe-client", "capabilities": list(raw) if byte_array else base64.b64encode(raw).decode()}
         }
     }
+
+
+HTTP_TIMEOUT_SECONDS = 1
+HELPER_COMPLETION_TIMEOUT_SECONDS = 5
+SILENT_RESPONSE_TIMEOUT_SECONDS = 2 * HELPER_COMPLETION_TIMEOUT_SECONDS
+
+
+@contextmanager
+def _startup_http_client(
+    *, response_delay_seconds: float = SILENT_RESPONSE_TIMEOUT_SECONDS
+) -> Generator[tuple[ParametricTestClientApi, Event, Event], None, None]:
+    requested = Event()
+    release = Event()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            self.send_response(404)
+            self.end_headers()
+
+        def do_POST(self) -> None:
+            self.rfile.read(int(self.headers.get("Content-Length", "0")))
+            requested.set()
+            release.wait(timeout=response_delay_seconds)
+            self.send_response(200)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+    with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+        worker = Thread(target=server.serve_forever)
+        worker.start()
+        try:
+            library = ParametricTestClientApi(
+                "python", f"http://127.0.0.1:{server.server_port}", HTTP_TIMEOUT_SECONDS, MagicMock(status="running")
+            )
+            try:
+                yield library, requested, release
+            finally:
+                release.set()
+                library._session.close()  # noqa: SLF001 - close the HTTP session owned by this control
+        finally:
+            server.shutdown()
+            worker.join()
 
 
 @scenarios.test_the_test
@@ -271,3 +316,44 @@ class Test_FFE_RC_Delivery:
         assert raised.value is failure
         library.terminate.assert_called_once_with()
         assert finished.is_set(), "Startup worker leaked beyond the helper"
+
+    @pytest.mark.parametrize("termination_fails", [False, True])
+    def test_startup_http_request_finishes_when_cleanup_fails(self, *, termination_fails: bool) -> None:
+        failure = AssertionError("Missing dependent flag capability")
+        with _startup_http_client() as (library, requested, release), ThreadPoolExecutor(max_workers=1) as executor:
+
+            def observe(*_args: object, **_kwargs: object) -> None:
+                assert requested.wait(timeout=HELPER_COMPLETION_TIMEOUT_SECONDS)
+                raise failure
+
+            if termination_fails:
+                library.container.kill.side_effect = RuntimeError("Docker termination failed")
+            else:
+                library.container.kill.side_effect = lambda **_kwargs: release.set()
+
+            with patch("tests.parametric.test_ffe.utils.observe_polls", side_effect=observe):
+                pending = executor.submit(
+                    start_and_deliver,
+                    MagicMock(spec=TestAgentAPI),
+                    library,
+                    config_id="flags",
+                    payload={"flags": {}},
+                    version=1,
+                    supported=True,
+                )
+                try:
+                    with pytest.raises(AssertionError) as raised:
+                        pending.result(timeout=HELPER_COMPLETION_TIMEOUT_SECONDS)
+                    assert raised.value is failure
+                    library.container.kill.assert_called_once_with(signal="SIGKILL")
+                    if termination_fails:
+                        assert "Docker termination failed" in " ".join(failure.__notes__)
+                        assert not release.is_set(), "Server was released before the HTTP timeout"
+                finally:
+                    # Ensure even a regression cannot hang the executor's cleanup.
+                    release.set()
+
+    def test_startup_http_request_accepts_delayed_response(self) -> None:
+        with _startup_http_client(response_delay_seconds=0.2) as (library, requested, _release):
+            assert library.ffe_start()
+            assert requested.is_set()
