@@ -39,16 +39,22 @@ jobs:
           docker pull -q datadog/agent:latest
           docker pull -q datadog/system-tests:proxy-v1
       - name: Leave writes pending on the root filesystem
-        run: ./utils/scripts/throwaway_pending_writes.sh 1500 10M 120
+        run: ./utils/scripts/throwaway_pending_writes.sh start 1500 10M
       - name: Run DEFAULT scenario
         id: run
         continue-on-error: true
-        run: ./run.sh DEFAULT tests/test_standard_tags.py 2>&1 | tee run.log
+        run: |
+          # once the proxy is started (or not), drop the pending writes: only its start is measured
+          (
+            timeout 300 bash -c 'until grep -qE "Healthcheck successful for proxy|Error while starting proxy" logs/tests.log 2>/dev/null; do sleep 0.5; done'
+            ./utils/scripts/throwaway_pending_writes.sh stop
+          ) > pending-writes-stop.log 2>&1 &
+          ./run.sh DEFAULT tests/test_standard_tags.py 2>&1 | tee run.log
       - name: Pending writes after the scenario
         if: ${{ !cancelled() }}
         run: |
+          cat pending-writes-stop.log
           grep -E "^(Dirty|Writeback):" /proc/meminfo
-          systemctl status pending-writes.service --no-pager || true
       - name: Collect the result
         if: ${{ !cancelled() }}
         run: |

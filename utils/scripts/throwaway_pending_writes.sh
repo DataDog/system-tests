@@ -1,34 +1,56 @@
 #!/bin/bash
-# Throwaway (do not merge): leave writes pending on the root filesystem, flushed slowly for a while.
+# Throwaway (do not merge): leave writes pending on the root filesystem, that only a sync of the filesystem flushes,
+# slowly.
 #
-# The data is written by a service limited to <bandwidth> of disk writes: its pending writes are flushed at this
-# bandwidth, and anything that syncs the root filesystem waits for them. After <seconds>, the service is stopped,
-# and what is left is flushed at full speed.
+# start: the kernel is told to keep dirty pages in memory (no background writeback). A service limited to
+#   <bandwidth> of disk writes writes <size> MB: they stay pending, until something syncs the root filesystem, which
+#   then waits for them to be written at <bandwidth>.
+# stop: drop the pending writes (deleting a file discards its dirty pages), and restore the writeback settings.
 #
-# usage: throwaway_pending_writes.sh <size in MB> <bandwidth, e.g. 10M> <seconds>
+# usage: throwaway_pending_writes.sh start <size in MB> <bandwidth, e.g. 10M>
+#        throwaway_pending_writes.sh stop
 set -euo pipefail
-
-size_mb=${1:?size in MB}
-bandwidth=${2:?bandwidth}
-duration=${3:?seconds}
 
 # not /tmp: it's a tmpfs on ubuntu-26.04
 file=/var/tmp/pending-writes
-sudo rm -f "$file"
+saved_settings=/var/tmp/pending-writes.sysctl
+settings=(vm.dirty_ratio vm.dirty_background_ratio vm.dirty_expire_centisecs vm.dirty_writeback_centisecs)
 
-sudo systemd-run --unit=pending-writes --collect --property="IOWriteBandwidthMax=/var/tmp $bandwidth" \
-    /bin/bash -c "dd if=/dev/zero of=$file bs=1M count=$size_mb status=none; sleep infinity"
-sudo systemd-run --unit=pending-writes-stop --collect --on-active="$duration" systemctl stop pending-writes.service
-echo "$(date -u +%H:%M:%S) writing ${size_mb}MB, flushed at $bandwidth until $(date -u -d "+$duration sec" +%H:%M:%S)"
-echo "io.max: $(cat /sys/fs/cgroup/system.slice/pending-writes.service/io.max)"
-
-dirty_mb() {
-    awk '/^Dirty:/ { printf "%d", $2 / 1024 }' /proc/meminfo
+meminfo() {
+    echo "$(date -u +%H:%M:%S.%3N) $(grep -E '^(Dirty|Writeback):' /proc/meminfo | tr -s ' ' | tr '\n' ' ')"
 }
 
-# wait until most of the data is pending, for at most 30s
-for _ in $(seq 6); do
-    echo "$(date -u +%H:%M:%S) $(grep -E '^(Dirty|Writeback):' /proc/meminfo | tr -s ' ' | tr '\n' ' ')"
-    [ "$(dirty_mb)" -ge $((size_mb * 7 / 10)) ] && break
-    sleep 5
-done
+case "${1:?start or stop}" in
+start)
+    size_mb=${2:?size in MB}
+    bandwidth=${3:?bandwidth}
+
+    sudo sysctl "${settings[@]}" | sudo tee "$saved_settings" >/dev/null
+    sudo sysctl -q -w vm.dirty_ratio=80 vm.dirty_background_ratio=70 vm.dirty_expire_centisecs=360000 \
+        vm.dirty_writeback_centisecs=0
+
+    sudo rm -f "$file"
+    sudo systemd-run --unit=pending-writes --collect --property="IOWriteBandwidthMax=/var/tmp $bandwidth" \
+        /bin/bash -c "dd if=/dev/zero of=$file bs=1M count=$size_mb status=none; sleep infinity"
+    echo "io.max: $(cat /sys/fs/cgroup/system.slice/pending-writes.service/io.max)"
+
+    # dd only fills the page cache: wait until most of it is there
+    for _ in $(seq 60); do
+        [ "$(awk '/^Dirty:/ { printf "%d", $2 / 1024 }' /proc/meminfo)" -ge $((size_mb * 9 / 10)) ] && break
+        sleep 0.5
+    done
+    meminfo
+    ;;
+stop)
+    meminfo
+    sudo rm -f "$file"
+    sudo systemctl stop pending-writes.service || true
+    [ -f "$saved_settings" ] && sudo sysctl -q -p "$saved_settings"
+    echo "pending writes dropped"
+    meminfo
+    ;;
+*)
+    echo "usage: $0 start <size in MB> <bandwidth> | stop"
+    exit 1
+    ;;
+esac
