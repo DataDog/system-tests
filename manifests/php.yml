@@ -1393,7 +1393,12 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:  # TODO: a lower version might be supported
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      component_version: <2.0.0
+      weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      excluded_weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
@@ -1402,7 +1407,12 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:  # TODO: a lower version might be supported
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      component_version: <2.0.0
+      weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      excluded_weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
