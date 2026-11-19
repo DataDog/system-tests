@@ -82,3 +82,13 @@
 - ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
 - ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
 - Ref: [Code format standards](../code-format-standards.md)
+
+### INFRA-013: Mount the GitHub token in every build that calls the GitHub API.
+- Severity: P1
+- Flag: Every Dockerfile that runs a GitHub API call must mount the `github_token` secret that the build passes. Install scripts must use the shared `get_latest_release` helper, not a raw `curl` or `wget` call. A secret that is passed but not mounted is silently absent. Then rate limits break the build.
+- Detect: A Dockerfile runs an install script that calls the GitHub API, and its `RUN` step has no `--mount=type=secret,id=github_token`. A script calls the GitHub releases API without a token or without `--fail`.
+
+### INFRA-014: Stop the run when provisioning fails.
+- Severity: P1
+- Flag: A failed VM or environment provisioning step must stop the run with that error. It must not record the error and then run every test. A provisioning step must check that the installed tool works before it reports success.
+- Detect: A provisioning error handler stores an unknown error and continues the session. A provisioning step installs a tool and exits 0 without a check such as `docker info`.
