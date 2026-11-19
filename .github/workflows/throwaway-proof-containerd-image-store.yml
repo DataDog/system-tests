@@ -39,7 +39,7 @@ jobs:
           docker pull -q datadog/agent:latest
           docker pull -q datadog/system-tests:proxy-v1
       - name: Leave writes pending on the root filesystem
-        run: ./utils/scripts/throwaway_pending_writes.sh start 1500 10M
+        run: ./utils/scripts/throwaway_pending_writes.sh start 1500 3M
       - name: Run DEFAULT scenario
         id: run
         continue-on-error: true
