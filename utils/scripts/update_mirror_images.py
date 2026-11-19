@@ -37,6 +37,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
 from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
 from utils._context.containers import dockerfile_image_list  # noqa: E402
+from utils._context.weblog_metadata import WeblogMetaData  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
@@ -74,16 +75,22 @@ DEFAULT_EXCLUDED = ("DEBUGGER_EXPRESSION_LANGUAGE",)
 
 
 def _library_weblog_pairs() -> list[tuple[str, str]]:
-    """Every (library, weblog) pair, derived from the weblog Dockerfiles.
+    """Every (library, weblog) pair with a weblog Dockerfile, from the libraries' weblog metadata.
 
-    WeblogContainer.get_image_list reads utils/build/docker/<library>/<weblog>.Dockerfile,
-    so the directory name is the library and the file stem is the weblog. The
-    empty pair captures library-independent images (agent, integrations,
-    buddies) that every get_image_list call returns regardless of arguments.
+    WeblogContainer.get_image_list reads utils/build/docker/<library>/<weblog>.Dockerfile, so
+    weblogs without one (e.g. envoy) need no image. Integration-framework weblogs fan out into
+    <weblog>@<version>, which all build from <weblog>.Dockerfile. The empty pair captures
+    library-independent images (agent, integrations, buddies) that every get_image_list call
+    returns regardless of arguments.
     """
     pairs = {("", "")}
-    for path in Path("utils/build/docker").glob("*/*.Dockerfile"):
-        pairs.add((path.parent.name, path.stem))
+    for library_dir in Path("utils/build/docker").iterdir():
+        if not library_dir.is_dir():
+            continue
+        for weblog in WeblogMetaData.load(library_dir.name):
+            name = weblog.name.partition("@")[0]
+            if (library_dir / f"{name}.Dockerfile").is_file():
+                pairs.add((library_dir.name, name))
     return sorted(pairs)
 
 
