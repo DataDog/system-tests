@@ -1277,7 +1277,8 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: *ref_5_137_0  # TODO: a lower version might be supported
+        nextjs: *ref_5_137_0
+        # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
     - weblog_declaration:
         nextjs: *ref_6_26_0
