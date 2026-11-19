@@ -12,7 +12,8 @@ on:
         default: apache-mod-8.1
         type: string
       agent_image:
-        description: Optional Agent image override (SECURITY_SMOKE_OTLP requires a full image)
+        description: Which agent image? (Use datadog/agent-dev:master-py3 for latest dev)
+        default: datadog/agent:latest
         type: string
       scenario:
         description: Which scenario
@@ -40,7 +41,7 @@ env:
   WEBLOG:                 ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)                || 'apache-mod-8.1' }}
   SCENARIO:               ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)              || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
   JOB_COUNT:              ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)             || '10' }}
-  AGENT_IMAGE:            ${{ inputs.agent_image }}
+  AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
   RUN_ARGS:               ${{ (github.event_name == 'workflow_dispatch' && inputs.run_args)              || '' }}
@@ -65,12 +66,7 @@ jobs:
         if: env.SCENARIO != 'PARAMETRIC'
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Select agent image
-        if: env.AGENT_IMAGE != ''
-        run: |
-          image_file=binaries/agent-image
-          if [[ "$SCENARIO" == SECURITY_SMOKE_OTLP ]]; then image_file=binaries/ddot-agent-image; fi
-          printf '%s\n' "$AGENT_IMAGE" > "$image_file"
-          printf 'Using %s for %s\n' "$AGENT_IMAGE" "$SCENARIO"
+        run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
       - name: Get dev artifact
         if: env.DEV_OR_PROD == 'dev'
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
