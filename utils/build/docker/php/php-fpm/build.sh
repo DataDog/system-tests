@@ -3,6 +3,7 @@
 set -e
 
 PHP_VERSION=$1
+PHP_MIN_PACKAGE_VERSION=$2
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
 
 # Override apt sources to avoid backpports, restricted and multiverse (speed up update runs).
@@ -40,6 +41,13 @@ if [ "$PHP_VERSION" = "8.6" ]; then
 fi
 
 nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git unzip php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml $MONGODB_PKG php$PHP_VERSION-mbstring $RDKAFKA_PKG
+
+# Fail if the PPA served an older PHP build than the target's floor (see docker-bake.hcl).
+PHP_PACKAGE_VERSION=$(dpkg-query -W -f='${Version}' "php$PHP_VERSION-fpm")
+if [ -n "$PHP_MIN_PACKAGE_VERSION" ] && ! dpkg --compare-versions "$PHP_PACKAGE_VERSION" ge "$PHP_MIN_PACKAGE_VERSION"; then
+  echo "php$PHP_VERSION-fpm $PHP_PACKAGE_VERSION is older than $PHP_MIN_PACKAGE_VERSION"
+  exit 1
+fi
 
 rm -rf /usr/sbin/policy-rc.d
 rm -rf /var/lib/apt/lists/*

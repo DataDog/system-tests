@@ -220,7 +220,7 @@ target "php-fpm-8_5" {
 target "php-fpm-8_6" {
   inherits   = ["_common"]
   dockerfile = "php-fpm.base.Dockerfile"
-  args       = { PHP_VERSION = "8.6" }
+  args       = { PHP_VERSION = "8.6", PHP_MIN_PACKAGE_VERSION = "8.6.0" }
   tags       = ["datadog/system-tests:php-fpm-8.6.base"]
 }
 
