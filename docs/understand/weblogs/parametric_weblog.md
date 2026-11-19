@@ -995,6 +995,24 @@ Response: not declared by the reference server. It contains `value`, `reason`, `
 (see [Feature Flag evaluation provider status](../scenarios/parametric.md#feature-flag-evaluation-provider-status)),
 and `exposureHooks` when requested.
 
+#### `POST /ffe/core-provider`
+
+Called by `ParametricTestClientApi.ffe_core_provider()`. Node.js-only fresh-process
+portable-provider probe; it resolves the built `@datadog/openfeature-node-server/rules-based`
+package shipped inside `dd-trace`, without importing or initializing the tracer.
+
+The request contains `operation` (`bootstrap`, `overlap`, `refresh`, or `tracking`),
+portable `wire`, and an array of evaluation `contexts`. `refresh` additionally takes
+`replacementWire` and server-channel `fetchOptions`. The custom Fetch transport
+uses `SYSTEM_TESTS_FFE_RULES_BASE_URL`, as for the standalone rules helper.
+
+The response reports actual OpenFeature startup/final status, operation results,
+configuration-change notifications or explicit sink records, package/runtime
+versions, and HTTP/exposure-channel counts observed until child-process exit.
+An unexpected failure, process timeout, or invalid child output returns HTTP 500.
+The parent strips `NODE_OPTIONS` and imposes a 10-second deadline.
+This does not test tracer hook attachment or delivery to an intake.
+
 #### `POST /ffe/fetch-rules-configuration`
 
 Called by `ParametricTestClientApi.ffe_fetch_rules_configuration()`. Fetch and serialize portable rules in a process without tracer/provider initialization.

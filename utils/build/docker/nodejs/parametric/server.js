@@ -611,6 +611,27 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/core-provider', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-core-provider.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE provider failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE provider failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE provider output' })
+    }
+  })
+})
+
 app.post('/ffe/fetch-rules-configuration', (req, res) => {
   const { execFile } = require('node:child_process')
   const path = require('node:path')
