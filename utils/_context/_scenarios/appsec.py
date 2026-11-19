@@ -1,9 +1,11 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from ._core import DdTraceEndToEndScenario, EndToEndScenario, scenario_groups
-from ._core.sca import configure_sca_advisories
 from utils._context.constants import WeblogCategory
-from utils._context.containers import PostgresContainer
+from utils._context.containers import PostgresContainer, TestedContainer
 
 
 # ASM scenarios
@@ -148,6 +150,51 @@ class AppsecRuntimeActivation(DdTraceEndToEndScenario):
         )
 
 
+# Synthetic tracer-native advisory catalogs shared by the regular and Lambda SCA scenarios.
+_SCA_ADVISORIES = {
+    "java": {
+        "version": 1,
+        "entries": [
+            {
+                "vuln_id": "system-tests-sca",
+                "artifact": "com.github.junrar:junrar",
+                "version_ranges": [">=0"],
+                "symbols": [{"class": "com/github/junrar/LocalFolderExtractor", "method": "createDirectory"}],
+            }
+        ],
+    },
+    "python": {
+        "targets": [
+            {
+                "id": "system-tests-sca",
+                "lang": "python",
+                "dependency_name": "requests",
+                "package_versions": [">=0"],
+                "targets": ["requests.sessions:Session.send"],
+                "vulnerability": {
+                    "id": "system-tests-sca",
+                    "severity": "LOW",
+                    "description": "Synthetic requests target for system-tests SCA reachability coverage.",
+                },
+            }
+        ]
+    },
+}
+
+
+def configure_sca_advisories(container: TestedContainer) -> None:
+    language = container.image.labels["system-tests-library"].removesuffix("_lambda")
+    if language not in _SCA_ADVISORIES:
+        return
+
+    catalog = Path(container.log_folder_path) / "sca-advisories.json"
+    catalog.write_text(json.dumps(_SCA_ADVISORIES[language]), encoding="utf-8")
+
+    container_path = "/sca/advisories.json"
+    container.volumes[str(catalog)] = {"bind": container_path, "mode": "ro"}
+    container.environment["_DD_APPSEC_SCA_CVE_FILE"] = container_path
+
+
 class RuntimeScaReachability(DdTraceEndToEndScenario):
     """Scenario to test SCA telemetry events"""
 
@@ -162,7 +209,8 @@ class RuntimeScaReachability(DdTraceEndToEndScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
-        configure_sca_advisories(self.weblog_infra.library_container)
+        if not self.replay:
+            configure_sca_advisories(self.weblog_infra.library_container)
 
 
 class IastDeduplication(DdTraceEndToEndScenario):
