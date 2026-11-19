@@ -14,7 +14,6 @@ if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; the
 	export COMPOSER=composer.gte8.2.json
 fi
 if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
-  apt-get update -qq && apt-get install -y --no-install-recommends unzip
   if [[ "$(printf '%s\n' "$PHP_VERSION" "8.1" | sort -V | head -n1)" = "8.1" ]]; then
     # Also require open-telemetry/sdk so composer does not remove it from vendor/:
     # the Dockerfile ADD overwrites composer.json with the repo version (which has
