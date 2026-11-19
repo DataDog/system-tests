@@ -28,7 +28,7 @@
 - Old_id: claude-13
 - Severity: P0
 - Flag: A test of behavior that does not depend on the trace encoding must give the same result for v0.4, v0.5, and v1.0 payloads. Compare trace IDs with `trace_id_equals()`, read the sampling priority with `get_sampling_priority()`, and filter intake requests with `interfaces.library.trace_paths`. Use `is_same_boolean()` only when the contract accepts `True`, `1`, and `"true"` as the same value. A test of the wire format itself must check the exact fields and types of its encoding.
-- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter lists only `/v0.4/traces` or `/v0.5/traces`.
+- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter or a mocked response lists only `/v0.4/traces` or `/v0.5/traces` and omits `/v1.0/traces`.
 - Not when: The test is explicitly validating the wire format itself.
 - ✅ `assert span.trace_id_equals(int(expected_id))`.
 - ❌ `assert span["trace_id"] == int(expected_id)`.
@@ -64,8 +64,3 @@
 - Severity: P0
 - Flag: Check the type as well as the value. This applies to a boolean or a number in the contract. In Python, `1 == True` and `1.0 == True` are both true. The contract can accept `True`, `1`, and `"true"` as one value. Then use `is_same_boolean()`.
 - Detect: An assertion compares a boolean or a number with `==` and has no type check. A coerced value then passes.
-
-### TEST-009: Assert every expectation on its own.
-- Severity: P0
-- Flag: Check each subject and each fixture expectation on its own. Do not merge expected counts, and do not drop the shared checks that sibling tests run.
-- Detect: A test sums the expected counts of two subjects into one total. A test skips the shared assertion helper that its siblings call. A runner loads fixture expectations, such as `result.features`, and never asserts them.
