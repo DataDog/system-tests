@@ -1726,9 +1726,16 @@ manifest:
         vertx4: incomplete_test_app (login endpoints not implemented)
   tests/appsec/smoke_tests/test_security_otlp.py:
     - weblog_declaration:
-        "*": v1.60.3
+        "*": v1.62.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: "missing_feature (OTLP RASP stacks require dd-trace-java#13391 and datadog-agent#60077)"
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp:
+    - declaration: "missing_feature (The Java exporter does not emit OTLP structured reports; dd-trace-java#13391)"
+      component_version: '<1.70.0-SNAPSHOT'
+    - weblog_declaration:
+        spring-boot-payara: v1.66.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3, vertx4: missing_feature (APPSEC-55781)
   tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         spring-boot-payara: missing_feature (APPSEC-54966)

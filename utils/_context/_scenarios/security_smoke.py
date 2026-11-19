@@ -38,7 +38,6 @@ class SecuritySmokeOtlp(DdTraceEndToEndScenario):
             rc_api_enabled=True,
             agent_container_class=DdotAgentContainer,
             include_opentelemetry=True,
-            library_interface_timeout=0,
             open_telemetry_interface_timeout=5,
             weblog_env={
                 **_SMOKE_WEBLOG_ENV,

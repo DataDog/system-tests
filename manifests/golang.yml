@@ -770,9 +770,9 @@ manifest:
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
   tests/appsec/smoke_tests/test_security_otlp.py:
     - weblog_declaration:
-        "*": v2.7.0
+        "*": v2.8.0
         fiber-v2-orchestrion: v2.12.0
-  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: "missing_feature (Structured RASP reports do not reach intake over OTLP/DDOT; datadog-agent#60077)"
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: missing_feature (The Go exporter does not encode structured reports as MessagePack byte attributes)
   tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_lfi_smoke:
     - weblog_declaration:
         '*': irrelevant (LFI detection requires Orchestrion)

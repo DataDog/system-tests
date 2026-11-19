@@ -1178,8 +1178,11 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
-  tests/appsec/smoke_tests/test_security_otlp.py: v5.92.0
-  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: "missing_feature (DDOT does not preserve OTLP structured reports; datadog-agent#60077)"
+  tests/appsec/smoke_tests/test_security_otlp.py: *ref_5_98_0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp:
+    - declaration: missing_feature (The Node.js exporter encodes structured reports as JSON bytes rather than MessagePack)
+    - weblog_declaration:
+        nextjs: v6.19.0
   tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         nextjs: missing_feature
