@@ -32,3 +32,8 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Stop the session when scenario infrastructure fails.
+- Severity: P0
+- Flag: A failed provisioning, warmup, or install step must stop the session with a clear error. A provisioning step must verify its result, for example with `docker info`. Do not store the error and run every test against a broken environment.
+- Detect: A provisioning error handler stores an unknown error and continues the session. An install step exits 0 without checking that the installed tool works.
