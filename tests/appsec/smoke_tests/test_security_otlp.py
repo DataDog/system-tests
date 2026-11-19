@@ -1,6 +1,6 @@
 """Run the native AAP smoke contracts with OTLP traces converted by bundled DDOT."""
 
-from utils import features, interfaces, pytest, scenarios
+from utils import features, pytest, scenarios
 from tests.appsec.smoke_tests.utils import (
     BaseApiSecuritySmokeTests,
     BaseRaspSmokeTests,
@@ -8,16 +8,13 @@ from tests.appsec.smoke_tests.utils import (
     BaseTelemetrySmokeTests,
     BaseThreatsSmokeTests,
     BaseUserEventsSmokeTests,
+    assert_ddot_export,
 )
 
 
 @pytest.fixture(autouse=True)
 def _require_otlp_export(request: pytest.FixtureRequest) -> None:
-    # Each shared setup method records a weblog response. Check its actual trace
-    # transport so that SDKs silently falling back to native cannot pass.
-    assert any(interfaces.open_telemetry.get_otel_trace_id(request.instance.r)), (
-        "The request must be traced via OTLP through DDOT, not native trace export"
-    )
+    assert_ddot_export(request.instance.r)
 
 
 @features.security_events_metadata
