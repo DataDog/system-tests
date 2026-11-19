@@ -14,7 +14,7 @@ from utils import (
     scenarios,
     slow,
 )
-from utils.dd_constants import RemoteConfigApplyState
+from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import (
@@ -22,6 +22,8 @@ from tests.parametric.test_ffe.utils import (
     events_match,
     ffe_events_for_target,
     ffe_events_from_requests,
+    unclaimed_ffe_events,
+    validate_ffe_telemetry_expectations,
 )
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -316,17 +318,16 @@ def _find_telemetry_drain_case(ufc_data: dict[str, Any]) -> dict[str, Any]:
     raise AssertionError("Telemetry expectations require a static doLog=true flag for the drain barrier")
 
 
-def _expected_event_matchers(expectations: dict[str, Any], event_type: str, platform: str) -> list[dict[str, Any]]:
-    matchers = expectations.get(event_type, [])
-    assert isinstance(matchers, list), f"expectations.{event_type} must be an array"
+def _expected_event_matchers(expectations: object, event_type: str, platform: str) -> list[dict[str, Any]]:
+    validated_expectations = validate_ffe_telemetry_expectations(expectations)
+    matchers = validated_expectations.get(event_type, [])
     expanded: list[dict[str, Any]] = []
     for matcher in matchers:
         assert isinstance(matcher, dict), f"{event_type} matcher must be an object"
         if not _filter_for_platform([matcher], platform):
             continue
         count = matcher.get("_count", 1)
-        assert isinstance(count, int), f"{event_type} matcher count must be an integer"
-        assert count >= 1, f"{event_type} matcher count must be positive"
+        assert type(count) is int
         expanded.extend([matcher] * count)
     return expanded
 
@@ -348,7 +349,8 @@ def _expected_events_for_cases(
         for matcher in _expected_event_matchers(case["expectations"], "evaluationEvents", platform)
     ]
     exact = len(expectation_cases) == len(cases) and all(
-        case["expectations"].get("noUnmatchedEvents") is True for case in expectation_cases
+        validate_ffe_telemetry_expectations(case["expectations"]).get("noUnmatchedEvents") is True
+        for case in expectation_cases
     )
     return exposures, evaluations, exact
 
@@ -422,11 +424,14 @@ def _assert_evaluation_telemetry(
     for test_case in test_cases:
         grouped_cases.setdefault(test_case["targetingKey"], []).append(test_case)
     captured: dict[Optional[str], dict[str, list[dict[str, Any]]]] = {}
+    unexpected: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
 
     for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
         requests = test_agent.requests()
         all_events = ffe_events_from_requests(requests)
         captured = {targeting_key: ffe_events_for_target(all_events, targeting_key) for targeting_key in grouped_cases}
+
+        unexpected = unclaimed_ffe_events(all_events, {*grouped_cases, *reserved_targeting_keys})
 
         # Each writer preserves event order. Seeing the post-batch marker from both writers
         # proves that all telemetry from the evaluation cases has drained before exact checks.
@@ -449,6 +454,8 @@ def _assert_evaluation_telemetry(
         time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
     else:
         raise AssertionError(f"evaluation telemetry did not stabilize: marker={marker_events}, captured={captured}")
+
+    assert not any(unexpected.values()), f"unclaimable evaluation telemetry events: {unexpected}"
 
     for targeting_key, cases in grouped_cases.items():
         expected = _expected_events_for_cases(cases, platform)
@@ -513,6 +520,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         """Run the imported dependent-flags feature suite through the shared evaluator harness."""
         if test_case_file is None:
             raise FileNotFoundError(f"No canonical evaluation cases found in {DEPENDENT_FLAGS_CASES_DIR}")
+        test_agent.assert_rc_capabilities({Capabilities.FFE_FLAG_DEPENDENT_FLAG_VARIANT_KEY_V1})
         _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_PATH, test_agent, test_library)
 
 

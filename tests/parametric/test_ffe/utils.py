@@ -22,6 +22,10 @@ from typing import Any, Optional, Union
 # Varint encoding constants
 VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
 VARINT_CONTINUATION_BIT = 0x80  # MSB indicates more bytes follow
+FFE_TELEMETRY_EXPECTATION_KEYS = frozenset({"evaluationEvents", "exposures", "noUnmatchedEvents"})
+FFE_TELEMETRY_MATCHER_KEYS = frozenset(
+    {"_count", "_include", "_skip", "allocation", "errorCode", "flag", "runtimeDefaultUsed", "variant"}
+)
 
 
 def load_ufc_fixture_for_cases(case_filename: str) -> dict[str, Any]:
@@ -223,6 +227,50 @@ def ffe_events_for_target(
             if _targeting_key_matches(actual_targeting_key, targeting_key):
                 result[destination].append(event)
     return result
+
+
+def unclaimed_ffe_events(
+    events: Mapping[str, Sequence[dict[str, Any]]], targeting_keys: set[Optional[str]]
+) -> dict[str, list[dict[str, Any]]]:
+    """Return events whose identifier cannot be attributed to any evaluated target."""
+    unclaimed: dict[str, list[dict[str, Any]]] = {destination: [] for destination in events}
+    for destination, destination_events in events.items():
+        for event in destination_events:
+            if destination == "EXPOSURE":
+                subject = event.get("subject")
+                has_identifier = isinstance(subject, dict) and "id" in subject
+                actual_targeting_key = subject.get("id") if isinstance(subject, dict) else None
+            else:
+                has_identifier = "targeting_key" in event
+                actual_targeting_key = event.get("targeting_key")
+
+            if not has_identifier or not any(
+                _targeting_key_matches(actual_targeting_key, targeting_key) for targeting_key in targeting_keys
+            ):
+                unclaimed[destination].append(event)
+    return unclaimed
+
+
+def validate_ffe_telemetry_expectations(expectations: object) -> dict[str, Any]:
+    """Reject malformed expectation fields instead of silently weakening checks."""
+    assert isinstance(expectations, dict), "expectations must be an object"
+    unknown_expectation_keys = expectations.keys() - FFE_TELEMETRY_EXPECTATION_KEYS
+    assert not unknown_expectation_keys, f"unknown expectation fields: {sorted(unknown_expectation_keys)}"
+
+    no_unmatched_events = expectations.get("noUnmatchedEvents", False)
+    assert type(no_unmatched_events) is bool, "expectations.noUnmatchedEvents must be a boolean"
+
+    for event_type in ("exposures", "evaluationEvents"):
+        matchers = expectations.get(event_type, [])
+        assert isinstance(matchers, list), f"expectations.{event_type} must be an array"
+        for matcher in matchers:
+            assert isinstance(matcher, dict), f"{event_type} matcher must be an object"
+            unknown_matcher_keys = matcher.keys() - FFE_TELEMETRY_MATCHER_KEYS
+            assert not unknown_matcher_keys, f"unknown {event_type} matcher fields: {sorted(unknown_matcher_keys)}"
+            count = matcher.get("_count", 1)
+            assert type(count) is int, f"{event_type} matcher count must be an integer"
+            assert count >= 1, f"{event_type} matcher count must be positive"
+    return expectations
 
 
 def ffe_event_matches(event: dict[str, Any], matcher: dict[str, Any]) -> bool:
