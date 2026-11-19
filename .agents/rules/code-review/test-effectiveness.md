@@ -47,7 +47,7 @@
 - Old_id: codex-11
 - Severity: P1
 - Flag: Do not write the expected tag, code, or exporter result in the test app. The SDK must produce it. The assertion may name the value it expects. It must read that value from SDK output..
-- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects.
+- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects. The app reports a config value that the SDK does not expose, instead of None. An endpoint catches every exception and always returns 200.
 - ✅ The tracer sets `runtime-id`, and the test asserts it on the captured span.
 - ❌ The app sets `runtime-id` on the span, and the test asserts that tag.
 
@@ -59,3 +59,13 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Check the type as well as the value.
+- Severity: P0
+- Flag: A contract can fix the type of a value. Then the test must assert that type in both directions. In Python, `1 == True` and `1.0 == 1` are true. Equality alone then accepts the wrong type.
+- Detect: The assertion checks the bool type only when the expected value is a bool. A float such as `1.0` passes where the contract requires a bool or an int.
+
+### TEST-009: Assert every expectation that the test data defines.
+- Severity: P0
+- Flag: A fixture or a shared helper can define an expected result. Then the test must assert it. A test must not skip the shared assertion helper that its sibling tests use.
+- Detect: Imported fixtures contain expectations, such as `result.features`, that no assertion reads. A test checks part of the result while its siblings call the shared helper, such as `_assert_context_evaluation`.
