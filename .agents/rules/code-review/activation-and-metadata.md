@@ -74,3 +74,8 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Match each declared version to the tested behavior.
+- Severity: P0
+- Flag: A manifest version must start at the first release that has the tested behavior. If a method needs a later release than its class, give that method its own version. If a later SDK release replaces the tested behavior, end the old range before that release. If one change ships on several release lines, declare a range for each line.
+- Detect: A class declaration activates a method that needs a later release. A legacy range stays open after the SDK replaced the behavior. A range covers one release line, but the change also shipped on another line.
