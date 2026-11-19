@@ -17,6 +17,12 @@ import (
 // tracer's own timeout governs whenever it applies one.
 const ffeStartTimeout = 15 * time.Second
 
+// ffeFlagSelection is the /ffe/start body's flag_selection, passed to the SDK as is.
+type ffeFlagSelection struct {
+	Tags        []string `json:"tags"`
+	KeyPatterns []string `json:"keyPatterns"`
+}
+
 // ffeStartMu guards ffeStarted, which records a *successful* start. sync.Once
 // would burn its one shot on a failed attempt and then report 200 with no
 // client, so a retry could never recover.
@@ -33,7 +39,14 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 			return nil
 		}
 
-		provider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
+		var startBody struct {
+			FlagSelection *ffeFlagSelection `json:"flag_selection"`
+		}
+		if request.Body != nil {
+			_ = json.NewDecoder(request.Body).Decode(&startBody)
+		}
+
+		provider, err := ddof.NewDatadogProvider(ffeProviderConfig(startBody.FlagSelection))
 		if err != nil {
 			return err
 		}
@@ -56,7 +69,13 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		}
 		if err := of.SetProviderWithContextAndWait(ctx, registered); err != nil {
 			var initErr *of.ProviderInitError
-			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
+			if !errors.As(err, &initErr) {
+				return err
+			}
+			// Keep the client of the failed provider; evaluations report its state.
+			s.ddProvider = provider
+			s.ofClient = of.NewClient("system-tests-weblog-client")
+			if initErr.ErrorCode != of.ProviderNotReadyCode {
 				return err
 			}
 		}
@@ -170,12 +189,13 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 
 	writer.WriteHeader(http.StatusOK)
 	response := struct {
-		Value         any              `json:"value"`
-		Reason        string           `json:"reason"`
-		ErrorCode     string           `json:"errorCode"`
-		FlagMetadata  of.FlagMetadata  `json:"flagMetadata"`
-		ExposureHooks []map[string]any `json:"exposureHooks,omitempty"`
-	}{value, reason, errorCode, flagMetadata, rows}
+		Value          any              `json:"value"`
+		Reason         string           `json:"reason"`
+		ErrorCode      string           `json:"errorCode"`
+		FlagMetadata   of.FlagMetadata  `json:"flagMetadata"`
+		ProviderStatus string           `json:"providerStatus"`
+		ExposureHooks  []map[string]any `json:"exposureHooks,omitempty"`
+	}{value, reason, errorCode, flagMetadata, string(s.ofClient.State()), rows}
 
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "failed to encode response: "+err.Error(), http.StatusInternalServerError)

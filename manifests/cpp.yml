@@ -258,6 +258,9 @@ manifest:
   : missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: ">1.0.0"
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (the first observed traceparent is used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_version_illegal_characters: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (the first observed tracestate is used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (the first observed tracestate is used)
@@ -302,7 +305,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: '>=2.4.1'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_env_var_take_precedence: missing_feature
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: missing_feature
   tests/parametric/test_otel_logs.py: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script

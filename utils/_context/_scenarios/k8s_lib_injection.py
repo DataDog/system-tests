@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from utils import interfaces
 from utils._context.component_version import ComponentVersion, Version
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
@@ -15,7 +16,7 @@ from utils.k8s.k8s_component_image import (
     extract_cluster_agent_version,
 )
 from utils._logger import logger
-from ._core import Scenario, scenario_groups, ScenarioGroup
+from ._core import FakeDatadogKey, Scenario, scenario_groups, ScenarioGroup
 
 DEFAULT_K8S_SCENARIO_GROUPS = [scenario_groups.all, scenario_groups.lib_injection]
 
@@ -30,7 +31,6 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     def __init__(
         self,
         name: str,
-        doc: str,
         *,
         use_uds: bool = False,
         weblog_env: dict[str, str] | None = None,
@@ -41,7 +41,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     ) -> None:
         if scenario_groups is None:
             scenario_groups = DEFAULT_K8S_SCENARIO_GROUPS
-        super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
+        super().__init__(name, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env or {}
@@ -52,17 +52,11 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.k8s_helm_chart_operator_version: str | None = None
         self.k8s_cluster_img: K8sComponentImage | None = None
         self.k8s_injector_img: K8sComponentImage | None = None
+        self._api_key: str | None = None
+        self._app_key: str | None = None
 
     def configure(self, config: pytest.Config):
         k8s_components_parser = K8sComponentsParser()
-        # If we are using the datadog operator, we don't need to deploy the test agent
-        # But we'll use the real agent deployed automatically by the operator
-        # We'll use the real backend, we need the real api key and app key
-        if self.with_datadog_operator:
-            assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-            assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
-            self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
-            self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
 
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
         self.k8s_weblog = config.option.k8s_weblog
@@ -115,9 +109,20 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
+        if self.with_datadog_operator and self.k8s_provider_name == "eksremote":
+            # TODO: the pods of a remote cluster can't reach the mocked backend, running in the pytest process
+            raise ValueError(f"{self.name} doesn't support the eksremote provider: use kind or minikube")
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
         self.k8s_cluster_provider.configure()
         self.print_context()
+
+        # If we are using the datadog operator, we don't need to deploy the test agent, the operator deploys the
+        # real agent. It sends its payloads to the mocked backend, running in the pytest process
+        if self.with_datadog_operator:
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=False)
+            # The agents refuse to run without keys, the mocked backend ignores them
+            self._api_key = FakeDatadogKey.DEFAULT
+            self._app_key = "0" * 40
 
         # is it on sleep mode?
         self._sleep_mode = config.option.sleep
@@ -129,8 +134,8 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
             dd_cluster_img=self.k8s_cluster_img.registry_url if self.k8s_cluster_img else None,
-            api_key=self._api_key if self.with_datadog_operator else None,
-            app_key=self._app_key if self.with_datadog_operator else None,
+            api_key=self._api_key,
+            app_key=self._app_key,
             helm_chart_version=self.k8s_helm_chart_version,
             helm_chart_operator_version=self.k8s_helm_chart_operator_version,
         )
@@ -154,6 +159,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             self.warmups.append(self.test_weblog.install_weblog_pod)
         elif self.with_datadog_operator:
+            self.warmups.append(self._setup_mocked_backend)
             self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
             self.warmups.append(self.test_weblog.install_weblog_pod)
         elif not self.with_cluster_agent and not self.with_datadog_operator:
@@ -163,6 +169,14 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             # perform the auto injection
             self.warmups.append(self.k8s_datadog.deploy_test_agent)
             self.warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
+
+    def _setup_mocked_backend(self) -> None:
+        """Start the mocked backend, and point the agents the operator is going to deploy to it"""
+        logger.terminal.write_sep("=", "Starting mocked backend", bold=True)
+        interfaces.mocked_backend.start_mocked_backend()
+        port = interfaces.mocked_backend.mocked_backend_port
+        host = self.k8s_cluster_provider.expose_mocked_backend(port)
+        self.k8s_datadog.backend_url = f"http://{host}:{port}"
 
     def print_context(self) -> None:
         logger.stdout(".:: K8s Lib injection test components ::.")
@@ -186,15 +200,18 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.close_targets()
 
     def close_targets(self) -> None:
-        if self._sleep_mode:
-            logger.info("Sleep mode enabled, not extracting debug cluster")
+        try:
+            if self._sleep_mode:
+                logger.info("Sleep mode enabled, not extracting debug cluster")
+                self.k8s_cluster_provider.destroy_cluster()
+                return
+            logger.info("K8sInstance Exporting debug info")
+            self.k8s_datadog.export_debug_info(namespace="default")
+            self.test_weblog.export_debug_info(namespace="default")
+            logger.info("Destroying cluster")
             self.k8s_cluster_provider.destroy_cluster()
-            return
-        logger.info("K8sInstance Exporting debug info")
-        self.k8s_datadog.export_debug_info(namespace="default")
-        self.test_weblog.export_debug_info(namespace="default")
-        logger.info("Destroying cluster")
-        self.k8s_cluster_provider.destroy_cluster()
+        finally:
+            interfaces.mocked_backend.stop_mocked_backend()
 
     @property
     def library(self):
@@ -220,10 +237,13 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
 
 
 class K8sLibInjectionSparkDjm(K8sScenario):
-    """Scenario that tests kubernetes lib injection for Spark applications"""
+    """Kubernetes lib injection DJM
+
+    Scenario that tests kubernetes lib injection for Spark applications
+    """
 
     def __init__(self) -> None:
-        super().__init__("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
+        super().__init__("K8S_LIB_INJECTION_SPARK_DJM")
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -263,46 +283,51 @@ class K8sLibInjectionSparkDjm(K8sScenario):
 
 
 class K8sLibInjection(K8sScenario):
+    """Kubernetes lib injection with admission controller"""
+
     def __init__(self) -> None:
-        super().__init__("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+        super().__init__("K8S_LIB_INJECTION")
 
 
 class K8sLibInjectionOperator(K8sScenario):
+    """Use CRD Datadog Operator (uses real agent, sending to the mocked backend).
+    Not configure the admission controller, the operator does it
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_OPERATOR",
-            doc=(
-                "Use CRD Datadog Operator (uses real agent). "
-                "Not configure the admission controller, the operator does it"
-            ),
             with_datadog_operator=True,
         )
 
 
 class K8sLibInjectionUds(K8sScenario):
+    """Kubernetes lib injection with admission controller and uds"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_UDS",
-            doc="Kubernetes lib injection with admission controller and uds",
             use_uds=True,
         )
 
 
 class K8sLibInjectionNoAc(K8sScenario):
+    """Kubernetes lib injection without admission controller"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_NO_AC",
-            doc="Kubernetes lib injection without admission controller",
             with_cluster_agent=False,
             with_datadog_operator=False,
         )
 
 
 class K8sLibInjectionNoAcUds(K8sScenario):
+    """Kubernetes lib injection without admission controller and UDS"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_NO_AC_UDS",
-            doc="Kubernetes lib injection without admission controller and UDS",
             use_uds=True,
             with_cluster_agent=False,
             with_datadog_operator=False,
@@ -310,10 +335,11 @@ class K8sLibInjectionNoAcUds(K8sScenario):
 
 
 class K8sLibInjectionProfilingDisabled(K8sScenario):
+    """Kubernetes lib injection with admission controller and profiling disabled by default"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_PROFILING_DISABLED",
-            doc="Kubernetes lib injection with admission controller and profiling disabled by default",
             weblog_env={
                 "DD_PROFILING_UPLOAD_PERIOD": "10",
                 "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
@@ -324,10 +350,11 @@ class K8sLibInjectionProfilingDisabled(K8sScenario):
 
 
 class K8sLibInjectionProfilingEnabled(K8sScenario):
+    """Kubernetes lib injection with admission controller and profiling enaabled by cluster config"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_PROFILING_ENABLED",
-            doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
             weblog_env={
                 "DD_PROFILING_UPLOAD_PERIOD": "10",
                 "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
@@ -339,10 +366,11 @@ class K8sLibInjectionProfilingEnabled(K8sScenario):
 
 
 class K8sLibInjectionProfilingOverride(K8sScenario):
+    """Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
-            doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
             weblog_env={
                 "DD_PROFILING_UPLOAD_PERIOD": "10",
                 "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
@@ -357,19 +385,21 @@ class K8sLibInjectionProfilingOverride(K8sScenario):
 
 
 class K8sLibInjectionAppsecDisabled(K8sScenario):
+    """Kubernetes lib injection with admission controller and appsec disabled by default"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_APPSEC_DISABLED",
-            doc="Kubernetes lib injection with admission controller and appsec disabled by default",
             scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
         )
 
 
 class K8sLibInjectionAppsecEnabled(K8sScenario):
+    """Kubernetes lib injection with admission controller and appsec enabled by cluster config"""
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_LIB_INJECTION_APPSEC_ENABLED",
-            doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
             dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
             scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
         )

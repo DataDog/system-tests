@@ -25,11 +25,21 @@ configure_custom_jar() {
 # Look for custom dd-trace-api jar in custom binaries folder
 configure_custom_jar "dd-trace-api*.jar" "dd-trace-api" "customDdTraceApi"
 
+# Look for custom dd-java-agent jar in custom binaries folder
+CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)
+CUSTOM_DD_OPENFEATURE_COUNT=$(find /binaries/ -name "dd-openfeature*.jar" 2>/dev/null | wc -l)
+
+# The dd-openfeature provider must have the same version as the agent: either both jars are in binaries,
+# or none of them, and the dd-openfeature release matching the latest agent release is used
+if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" != "$CUSTOM_DD_OPENFEATURE_COUNT" ]; then
+    echo "dd-java-agent and dd-openfeature must have the same version: put both jars in binaries, or none of them" >&2
+    echo "Found $CUSTOM_DD_JAVA_AGENT_COUNT dd-java-agent jar(s) and $CUSTOM_DD_OPENFEATURE_COUNT dd-openfeature jar(s)" >&2
+    exit 1
+fi
+
 # Look for custom dd-openfeature jar in custom binaries folder
 configure_custom_jar "dd-openfeature*.jar" "dd-openfeature" "customDdOpenfeature"
 
-# Look for custom dd-java-agent jar in custom binaries folder
-CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)
 if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 0 ]; then
     echo "Using latest dd-java-agent"
     wget -O /client/tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
@@ -44,10 +54,22 @@ fi
 
 java -jar /client/tracer/dd-java-agent.jar  > /client/SYSTEM_TESTS_LIBRARY_VERSION
 
+if [ "$CUSTOM_DD_OPENFEATURE_COUNT" = 0 ]; then
+    # release versions are printed as X.Y.Z~<sha>
+    DD_OPENFEATURE_VERSION=$(sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/' /client/SYSTEM_TESTS_LIBRARY_VERSION)
+    DD_OPENFEATURE_URL="https://repo1.maven.org/maven2/com/datadoghq/dd-openfeature/${DD_OPENFEATURE_VERSION}/dd-openfeature-${DD_OPENFEATURE_VERSION}.jar"
+    echo "Using dd-openfeature from Maven Central: ${DD_OPENFEATURE_URL}"
+    if ! wget --tries=3 --retry-connrefused -O /client/tracer/dd-openfeature.jar --no-cache "$DD_OPENFEATURE_URL"; then
+        echo "Failed to download dd-openfeature ${DD_OPENFEATURE_VERSION}" >&2
+        exit 1
+    fi
+    MAVEN_PROFILES="$MAVEN_PROFILES -DcustomDdOpenfeature=/client/tracer/dd-openfeature.jar"
+fi
+
 echo "Running Maven build with profiles ${MAVEN_PROFILES}"
 
 # shellcheck disable=SC2086
-mvn -q $MAVEN_PROFILES package
+mvn -o -Dmaven.repo.local=/maven -q $MAVEN_PROFILES package
 
 # Extract application and its dependencies from class lookup performance improvements
 java -Djarmode=tools -jar target/dd-trace-java-client-1.0.0.jar extract --destination application

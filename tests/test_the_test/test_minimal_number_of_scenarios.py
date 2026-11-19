@@ -91,7 +91,6 @@ def test_minimal_number_of_scenarios():
         # LEVEL 1: Check if scenarios are completely equivalent
         ignored = {
             # scenario specific
-            ".doc",
             ".name",
             ".scenario_groups",
             # duplicated values

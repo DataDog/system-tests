@@ -30,6 +30,10 @@ The following text must be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /add_event
+
+Add a span event to the request root span, with any name and attribute values.
+
 ### GET /headers
 
 This endpoint must set the following headers:
@@ -840,6 +844,16 @@ The parameters in the body are:
 - `login`: String with the login data
 - `exists`: String with "true" or "false" value
 - `metadata`: Objet with the metadata
+
+### POST /custom_event_v2
+
+This endpoint calls the v2 AppSec event tracking SDK function used for custom events with
+data from the JSON request body.
+
+The parameters in the body are:
+
+- `event_name`: Event name, defaulting to `system_tests_event`.
+- `metadata`: Optional object containing event metadata.
 
 ### GET /inferred-proxy/span-creation
 

@@ -1,7 +1,7 @@
 Some of images used in system-tests are prebuild and used threw [hub.docker.com/datadog/system-tests](https://hub.docker.com/repository/docker/datadog/system-tests/).
 
-For weblog base images (nodejs, python, php, java), publishing and consumer selection use a
-two-step lock-file workflow:
+For weblog base images (every library with a `utils/build/docker/<library>/docker-bake.hcl`), publishing and
+consumer selection use a two-step lock-file workflow:
 
 1. GitLab CI's `build_base_images` job (`utils/base_images/build_base_images.py`) runs on every push, on every
    branch. For each target in a library's `docker-bake.hcl`, it derives the target's dependencies from the

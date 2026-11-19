@@ -208,15 +208,19 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-To view the available HTTP endpoints , follow these steps:
-Note: These are based off of the Python tracer's http server which should be held as the standard example interface across implementations.
+The HTTP interface every parametric server implements (startup, readiness, and all endpoints with their request and
+response fields) is described in [Parametric weblogs: HTTP interface](../weblogs/parametric_weblog.md). When you add
+or change an endpoint, update that document in the same PR.
 
+The Python server is the reference implementation. To browse its OpenAPI documentation:
 
 1. `./utils/scripts/parametric/run_reference_http.sh`
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
-Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
+#### Feature Flag evaluation provider status
+
+`test_library.ffe_evaluate(...)` returns `providerStatus`: the OpenFeature provider status that the SDK reports for the app's client (`NOT_READY`, `READY`, `STALE`, `ERROR`, or `FATAL`). Apps read it from their OpenFeature SDK (for example `client.providerStatus` in Node.js or `get_provider_status()` in Python) and never derive it from the evaluation result. The Ruby app reads the SDK's private provider state on openfeature-sdk 0.5.x, the newest its image's Ruby supports. An app whose SDK cannot report it omits the field or returns `null`. Tests use it as positive evidence of a provider state, for example that initialization failed when `/ffe/start` returns success.
 
 #### Standalone Rules Configuration
 

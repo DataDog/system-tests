@@ -324,7 +324,10 @@ def _flag_selection_for_query(raw_query: str, forced_reason: str | None) -> tupl
 
 def _has_expected_config_query(raw_query: str) -> bool:
     other_pairs = [pair for pair in raw_query.split("&") if not is_selection_parameter(pair)]
-    return parse_qs("&".join(other_pairs), keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}
+    query = parse_qs("&".join(other_pairs), keep_blank_values=True)
+    # Capability negotiation must not change environment routing.
+    query.pop("cap_dependent-flags-variant-key", None)
+    return query == {"dd_env": [EXPECTED_DD_ENV]}
 
 
 def ufc_etag_for(selection: Selection | None, suite: str | None = None) -> str:

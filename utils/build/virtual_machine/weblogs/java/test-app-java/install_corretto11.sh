@@ -1,6 +1,7 @@
 #!/bin/sh
 # Fallback JDK 11 install for distros whose package mirrors are not usable from the test VMs
-# (EOL Ubuntu repositories returning 404, Fedora mirrors timing out).
+# (EOL Ubuntu repositories returning 404, Fedora mirrors timing out), or whose packaged
+# JDK 11 is too old for profiling (see select_java11.sh).
 # Installs the official Amazon Corretto 11 tarball, verified against its published sha256.
 set -eu
 
