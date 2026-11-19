@@ -12,16 +12,36 @@ durations="$out/durations.tsv"
 now() { date +%s.%N; }
 log() { echo "$(date -u +%H:%M:%S.%3N) $*" | tee -a "$out/timeline.log"; }
 
-# run a command, and record its duration under a name
+failures=0
+
+# run a command, and record its duration under a name. A failed command is not a measure: record it as failed
 timed() {
-    local name=$1 start end duration
+    local name=$1 start end duration rc
     shift
     start=$(now)
     "$@" >>"$out/commands.log" 2>&1
+    rc=$?
     end=$(now)
     duration=$(awk -v s="$start" -v e="$end" 'BEGIN { printf "%.2f", e - s }')
+    if [ "$rc" -ne 0 ]; then
+        failures=$((failures + 1))
+        printf '%s\tFAILED\n' "$name" >>"$durations"
+        log "ERROR: $name failed with exit code $rc after ${duration}s, see commands.log"
+        return
+    fi
     printf '%s\t%s\n' "$name" "$duration" >>"$durations"
     log "$name: ${duration}s"
+}
+
+# pulls are not measured for themselves: retry transient registry errors
+pull() {
+    local attempt
+    for attempt in 1 2 3; do
+        docker pull -q "$1" && return 0
+        log "pull of $1 failed (attempt $attempt)"
+        sleep 5
+    done
+    return 1
 }
 
 # while the first create runs: host pressure, blocked processes, and the daemons' goroutine stacks
@@ -66,8 +86,8 @@ mkdir -p logs_exp/interfaces
 } >"$out/host.txt" 2>&1
 log "host uptime: $(uptime)"
 
-timed pull_agent docker pull -q datadog/agent:latest
-timed pull_proxy docker pull -q datadog/system-tests:proxy-v1
+timed pull_agent pull datadog/agent:latest
+timed pull_proxy pull datadog/system-tests:proxy-v1
 docker network create system-tests-ipv4 >/dev/null
 
 # the first create of the runner, with two samples while it runs
@@ -94,4 +114,5 @@ timed 4_start_proxy_after_restart docker start system-tests-proxy
 wait
 sudo journalctl -u docker.service -u containerd.service --since -15min --no-pager 2>&1 | tee "$out/journal.log" >/dev/null
 sudo dmesg -T 2>&1 | tee "$out/dmesg.log" >/dev/null
-log "done"
+log "done, $failures failed step(s)"
+[ "$failures" -eq 0 ]

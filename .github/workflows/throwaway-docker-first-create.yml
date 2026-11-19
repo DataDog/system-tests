@@ -48,7 +48,7 @@ jobs:
         run: ./utils/scripts/throwaway_docker_first_create.sh "results/${{ matrix.arm }}-${{ matrix.attempt }}"
 
       - name: Upload results
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: results-${{ matrix.arm }}-${{ matrix.attempt }}
@@ -56,7 +56,7 @@ jobs:
 
   summary:
     needs: measure
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Download results
@@ -74,22 +74,27 @@ jobs:
           from pathlib import Path
 
           durations = defaultdict(lambda: defaultdict(list))
+          failed = defaultdict(lambda: defaultdict(int))
           for path in sorted(Path("results").glob("*/durations.tsv")):
               arm = path.parent.name.rsplit("-", 1)[0]
               for line in path.read_text().splitlines():
                   step, value = line.split("\t")
-                  durations[step][arm].append(float(value))
+                  if value == "FAILED":
+                      failed[step][arm] += 1
+                  else:
+                      durations[step][arm].append(float(value))
 
           arms = ["24.04-default", "26.04-default", "26.04-restart-only", "26.04-no-containerd-image-store"]
           lines = ["| step | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
-          for step in sorted(durations):
+          for step in sorted(set(durations) | set(failed)):
               cells = []
               for arm in arms:
                   values = sorted(durations[step][arm])
+                  failures = f" failed={failed[step][arm]}" if failed[step][arm] else ""
                   if values:
-                      cells.append(f"n={len(values)} p50={values[len(values) // 2]:.2f} max={values[-1]:.2f}")
+                      cells.append(f"n={len(values)} p50={values[len(values) // 2]:.2f} max={values[-1]:.2f}{failures}")
                   else:
-                      cells.append("-")
+                      cells.append(f"-{failures}")
               lines.append(f"| {step} | " + " | ".join(cells) + " |")
 
           lines.append("")
