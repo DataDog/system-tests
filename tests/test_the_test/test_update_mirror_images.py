@@ -213,9 +213,14 @@ class Test_UpdateMirrorImages:
         """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
         images = set(update_mirror_images.collect_images(set()))
 
-        # public image, and system-tests base image resolved from its alias
         assert "golang:1.26" in images
-        assert any(image.startswith("datadog/system-tests:python-parametric.base-") for image in images)
+
+    def test_collect_images_excludes_base_images(self):
+        """build_base_images.py pushes the weblog base images to the mirror itself."""
+        images = update_mirror_images.collect_images(set())
+
+        assert not [image for image in images if ".base-" in image]
+        assert "datadog/system-tests:proxy-v1" in images  # other system-tests images are still mirrored
 
     def test_collect_images_skips_parametric_images_when_excluded(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(update_mirror_images, "_parametric_images", lambda: {"parametric:only"})

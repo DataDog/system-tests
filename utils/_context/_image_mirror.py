@@ -18,7 +18,11 @@ BuildKit's per-registry mirror protocol works without Dockerfile rewriting:
   mcr.microsoft.com          -> mirror/mcr.microsoft.com/<path>
   public.ecr.aws             -> mirror/public.ecr.aws/<path>
 
-Anything not listed in the lock file (locally built `system_tests/*` images,
+Weblog base images (`datadog/system-tests:<name>.base-<hash>`) are not in the
+lock file: `build_base_images.py` pushes them to the mirror itself, at the same
+docker.io layout (mirror/datadog/system-tests:<name>.base-<hash>).
+
+Anything else not listed in the lock file (locally built `system_tests/*` images,
 unmirrored refs) is left untouched.
 """
 
@@ -27,6 +31,8 @@ import os
 from pathlib import Path
 
 import yaml
+
+from utils.base_images.base_image import is_base_image, mirror_base_image
 
 # mirror_images.lock.yaml lives at the repo root (this file is utils/_context/).
 _LOCK_PATH = Path(__file__).resolve().parents[2] / "mirror_images.lock.yaml"
@@ -59,9 +65,11 @@ def _mapping() -> dict[str, str]:
 def mirror_image(name: str) -> str:
     """Return the mirror target for `name` when mirroring is enabled, else `name`.
 
-    Only exact matches in the lock file are rewritten, so unmirrored and
-    locally-built references pass through unchanged.
+    Only exact matches in the lock file, and base images, are rewritten, so
+    unmirrored and locally-built references pass through unchanged.
     """
     if not mirror_enabled():
         return name
+    if is_base_image(name):
+        return mirror_base_image(name)
     return _mapping().get(name, name)

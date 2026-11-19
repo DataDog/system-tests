@@ -21,6 +21,9 @@ logger = _LOGGER
 LOCK_VERSION = 1
 LOCK_PATH = Path(__file__).resolve().parents[1] / "build" / "docker" / "base-images.lock.json"
 ALIAS_PREFIX = "system_tests_base_"
+# build_base_images.py pushes every base image to Docker Hub and to this mirror. The path must stay where the
+# docker.io mirror of utils/build/docker/buildkitd.toml resolves it: <mirror>/datadog/system-tests:<tag>.
+MIRROR_REGISTRY = "registry.ddbuild.io/system-tests/mirror"
 
 _FROM_IMAGE = re.compile(r"^\s*FROM\s+(?:--\S+\s+)*(\S+)", re.IGNORECASE | re.MULTILINE)
 _LOCKED_IMAGE = re.compile(r"^datadog/system-tests:[a-zA-Z0-9_.-]+\.base-[0-9a-f]{12}$")
@@ -29,6 +32,16 @@ _ALIAS = re.compile(rf"^{ALIAS_PREFIX}[a-z0-9_]+$")
 
 class BaseImageLockError(ValueError):
     """The base-image lock or a symbolic Dockerfile reference is invalid."""
+
+
+def is_base_image(image: str) -> bool:
+    """Return whether ``image`` is a content-addressed weblog base image (``datadog/system-tests:*.base-<hash>``)."""
+    return _LOCKED_IMAGE.fullmatch(image) is not None
+
+
+def mirror_base_image(image: str) -> str:
+    """Return the reference of a base image's copy in the system-tests mirror."""
+    return f"{MIRROR_REGISTRY}/{image}"
 
 
 def load_base_image_lock(lock_path: Path = LOCK_PATH) -> dict[str, str]:

@@ -10,7 +10,7 @@ via the dd-repo-tools ``mirror_images.py add`` command, then resolves digests
 into ``mirror_images.lock.yaml`` via ``lock``.
 
 ``mirror_images.yaml`` is rebuilt from scratch on every run: images no longer
-required by any scenario (e.g. a base image whose content tag was replaced) are
+required by any scenario (e.g. an image whose tag was replaced) are
 dropped, and ``lock`` then prunes their entries from ``mirror_images.lock.yaml``.
 
 It never pushes or mirrors anything: commit the updated ``mirror_images.yaml``
@@ -37,6 +37,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
 from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
 from utils._context.containers import dockerfile_image_list  # noqa: E402
+from utils.base_images.base_image import is_base_image  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
@@ -93,6 +94,8 @@ def _is_mirrorable(image: str) -> bool:
         return False  # built locally, never pulled from a registry
     if "$" in image:
         return False  # unresolved Dockerfile/template placeholder (e.g. ${NORMALIZED_BRANCH})
+    if is_base_image(image):
+        return False  # build_base_images.py pushes weblog base images to the mirror itself
     # already on the destination registry => nothing to mirror
     return not image.startswith("registry.ddbuild.io/")
 
