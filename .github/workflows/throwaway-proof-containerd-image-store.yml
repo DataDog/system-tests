@@ -39,11 +39,16 @@ jobs:
           docker pull -q datadog/agent:latest
           docker pull -q datadog/system-tests:proxy-v1
       - name: Leave writes pending on the root filesystem
-        run: ./utils/scripts/throwaway_pending_writes.sh 1200 10M 100
+        run: ./utils/scripts/throwaway_pending_writes.sh 1500 10M 120
       - name: Run DEFAULT scenario
         id: run
         continue-on-error: true
         run: ./run.sh DEFAULT tests/test_standard_tags.py 2>&1 | tee run.log
+      - name: Pending writes after the scenario
+        if: ${{ !cancelled() }}
+        run: |
+          grep -E "^(Dirty|Writeback):" /proc/meminfo
+          systemctl status pending-writes.service --no-pager || true
       - name: Collect the result
         if: ${{ !cancelled() }}
         run: |
