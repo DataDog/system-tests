@@ -87,8 +87,3 @@
 - Severity: P1
 - Flag: Every Dockerfile that runs a GitHub API call must mount the `github_token` secret that the build passes. Install scripts must use the shared `get_latest_release` helper, not a raw `curl` or `wget` call. A secret that is passed but not mounted is silently absent. Then rate limits break the build.
 - Detect: A Dockerfile runs an install script that calls the GitHub API, and its `RUN` step has no `--mount=type=secret,id=github_token`. A script calls the GitHub releases API without a token or without `--fail`.
-
-### INFRA-014: Stop the run when provisioning fails.
-- Severity: P1
-- Flag: A failed VM or environment provisioning step must stop the run with that error. It must not record the error and then run every test. A provisioning step must check that the installed tool works before it reports success.
-- Detect: A provisioning error handler stores an unknown error and continues the session. A provisioning step installs a tool and exits 0 without a check such as `docker info`.
