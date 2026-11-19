@@ -1,18 +1,14 @@
-FROM maven:3.9.9-eclipse-temurin-17-focal
-
-# Install required bsdtar
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+# The base image holds a maven repository filled from spring-boot-native/pom.xml, and sets OTEL_VERSION:
+# maven runs offline here
+FROM system_tests_base_java_otel_java_otel_spring_boot_native
 
 WORKDIR /app
 
-# Copy application sources and cache dependencies
 COPY ./utils/build/docker/java_otel/spring-boot-native/pom.xml .
 COPY ./utils/build/docker/java_otel/spring-boot-native/src ./src
 
-ENV OTEL_VERSION="1.26.0"
 # Compile application
-RUN mvn clean package
+RUN mvn -o -Dmaven.repo.local=/maven -B package
 
 # Set up required args
 RUN mkdir -p /binaries && echo $OTEL_VERSION > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

@@ -24,8 +24,19 @@ if curl --retry-all-errors --version >/dev/null 2>&1; then
     curl_retry+=(--retry-all-errors)
 fi
 
+# Bash globs rather than `find`, which some build images lack (e.g. the GraalVM image of spring-boot-3-native).
+# globstar keeps the recursive lookup `find` used to do, nullglob makes a pattern without match expand to nothing.
+shopt -s globstar nullglob
+
+# Usage: find_jars <pattern>, sets the JARS array to the jars in /binaries/ (recursively) matching the pattern
+find_jars() {
+    # shellcheck disable=SC2206 # the pattern must be expanded as a glob
+    JARS=(/binaries/**/$1)
+}
+
 count_jars() {
-    find /binaries/ -name "$1" 2>/dev/null | wc -l
+    find_jars "$1"
+    echo "${#JARS[@]}"
 }
 
 install_jar() {
@@ -44,8 +55,8 @@ install_custom_jar() {
     if [ "$jar_count" = 0 ]; then
         echo "Using default $artifact_id"
     elif [ "$jar_count" = 1 ]; then
-        local custom_jar
-        custom_jar=$(find /binaries/ -name "${jar_pattern}")
+        find_jars "${jar_pattern}"
+        local custom_jar="${JARS[0]}"
         echo "Using custom $artifact_id: ${custom_jar}"
         install_jar "$custom_jar" "$artifact_id"
     else
@@ -81,7 +92,8 @@ if [ "$AGENT_JAR_COUNT" = 0 ]; then
     echo "install from Github release: $BUILD_URL"
     curl "${curl_retry[@]}" -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
 else
-    AGENT_JAR=$(find /binaries/ -name "dd-java-agent*.jar")
+    find_jars "dd-java-agent*.jar"
+    AGENT_JAR="${JARS[0]}"
     echo "Install local file $AGENT_JAR"
     cp "$AGENT_JAR" /dd-tracer/dd-java-agent.jar
 fi
