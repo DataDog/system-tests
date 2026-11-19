@@ -73,3 +73,12 @@
 - ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
 - ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
 - Ref: [Weblogs](../../../docs/understand/weblogs/README.md)
+
+### INFRA-011: Do not hide shell errors that select what is tested.
+- Severity: P0
+- Flag: A shell command whose result decides what is built or tested must not hide its errors. If it fails, the script must stop with a message. It must not fall back to a default, such as the latest release instead of the jar in `binaries/`. A build image can lack a tool that another image has: the GraalVM image has no `find`. The error was hidden, the jar count was 0, and the dev job tested the release.
+- Detect: The script discards stderr (`2>/dev/null`, `&>/dev/null`) or ignores a failure (`|| true`) on a command whose output is counted, parsed, or tested, and an error then looks like an empty result. A pipeline drops the failure of its first command because `pipefail` is off, as in `cmd 2>/dev/null | wc -l` or `cmd | jq`. A failed check goes silently to a fallback branch. A command runs under `if !` with its stderr discarded, so the failure message loses the cause.
+- Not when: The check tests only whether a tool or option exists (`command -v`, `curl --retry-all-errors --version`), and the code after it fails loudly if needed. The step is best-effort cleanup or log collection that cannot change what is tested.
+- ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
+- ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
+- Ref: [Code format standards](../code-format-standards.md)
