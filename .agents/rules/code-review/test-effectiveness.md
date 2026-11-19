@@ -59,3 +59,8 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Assert every expectation of each case.
+- Severity: P0
+- Flag: The test must assert every expectation that a case declares. Check each subject on its own. Do not sum counts across subjects. A new sibling test must use the shared assertion helper of its siblings. Compare booleans by type, because `1 == True` in Python.
+- Detect: A test sums expected counts across subjects for a shared flag. A test skips the assertion helper that its siblings use. Imported fixtures hold expectations, such as `result.features`, that the runner never asserts. A bool check passes for the value `1`.
