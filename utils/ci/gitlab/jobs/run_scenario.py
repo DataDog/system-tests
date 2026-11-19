@@ -29,6 +29,35 @@ def import_built_binaries() -> None:
             shutil.move(item, target / item.name)
 
 
+def pull_images(library: str, weblog: str, scenario: str) -> None:
+    """Pull the images of the scenario before running it, like the GitHub workflow: an image missing when the
+    session starts its container is pulled then, which is slow and fails on any transient registry error.
+
+    The images needed to build the weblog are not pulled: build.sh builds it with the mirror BuildKit builder, that
+    pulls them itself.
+    """
+    compose_file = Path("compose.yaml")
+    ci.run(
+        [
+            "env",
+            "PYTHONPATH=.",
+            "python",
+            "utils/scripts/get-image-list.py",
+            scenario,
+            f"--library={library}",
+            f"--weblog={weblog}",
+            f"--output={compose_file}",
+        ]
+    )
+
+    # the pull script fails on an empty compose file
+    if not compose_file.is_file() or "image:" not in compose_file.read_text(encoding="utf-8"):
+        ci.log("No image to pull")
+        return
+
+    ci.run([".github/actions/pull_images/main.sh"])
+
+
 def main() -> None:
     library = ci.env("TEST_LIBRARY")
     weblog = ci.env("SYSTEM_TESTS_WEBLOG")
@@ -40,6 +69,9 @@ def main() -> None:
         ci.copy_upstream_binaries()
         if build_required:
             import_built_binaries()
+
+    with ci.section("pull_images", "Pulling docker images"):
+        pull_images(library, weblog, scenario)
 
     with ci.section("scenario_run", "Running scenario", collapsed=False):
         ci.tag_job("run")

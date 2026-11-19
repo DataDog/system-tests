@@ -1,3 +1,28 @@
+# Troubleshooting
+
+Start with the terminal error and the scenario log folder. See
+[log files](logs.md) and [test outcomes](test-outcomes.md).
+
+## SSI
+
+If an SSI wizard stops before it runs a test, check the
+[SSI access requirements](ssi-access.md).
+
+Use the guide for your test suite:
+
+| Test suite | Guide |
+| --- | --- |
+| Docker SSI | [Docker SSI reference](../understand/scenarios/docker_ssi.md) |
+| AWS SSI | [AWS SSI troubleshooting](../understand/scenarios/onboarding.md#troubleshooting) |
+| K8s library injection | [K8s result logs](../understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results) |
+| K8s injector-dev | [K8s injector-dev reference](../understand/scenarios/k8s_injector_dev.md) |
+
+AWS SSI can keep an EC2 instance running for inspection. See
+[debug a running virtual machine](../understand/scenarios/onboarding.md#how-to-debug-a-virtual-machine-at-runtime).
+
+K8s library injection can keep its cluster running. See
+[debug a running cluster](../understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-at-runtime).
+
 ## macOS: missing `timeout` command
 
 If `build.sh` fails with a missing `timeout` command, install GNU coreutils:

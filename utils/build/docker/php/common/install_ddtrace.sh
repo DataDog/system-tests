@@ -64,7 +64,7 @@ fi
 
 if [ "$PKG" == "" ]; then
   #Download latest release
-  curl --fail --location --show-error --remote-name \
+  curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --location --show-error --remote-name \
     https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
 

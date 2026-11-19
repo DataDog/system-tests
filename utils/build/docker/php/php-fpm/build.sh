@@ -32,12 +32,14 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d
 chmod +x /usr/sbin/policy-rc.d
 
 MONGODB_PKG=php$PHP_VERSION-mongodb
-# ondrej/php has no php8.6-mongodb yet (PECL builds lag new PHP minors)
+RDKAFKA_PKG=php$PHP_VERSION-rdkafka
+# ondrej/php has no php8.6-mongodb or php8.6-rdkafka yet (PECL builds lag new PHP minors)
 if [ "$PHP_VERSION" = "8.6" ]; then
   MONGODB_PKG=
+  RDKAFKA_PKG=
 fi
 
-nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git unzip php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml $MONGODB_PKG php$PHP_VERSION-mbstring
+nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git unzip php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml $MONGODB_PKG php$PHP_VERSION-mbstring $RDKAFKA_PKG
 
 rm -rf /usr/sbin/policy-rc.d
 rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Search my dropbox for the quarterly report.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"mcp_system_tests_3\", \"function\": {\"name\": \"search\", \"arguments\": \"{\\\"query\\\":\\\"quarterly report\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_abe2e7cd19597a09\"}}]}, {\"role\": \"tool\", \"tool_call_id\": \"mcp_system_tests_3\", \"content\": \"Found 1 file: Q3-report.pdf\"}], \"meta\": {\"service\": \"openai\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_abe2e7cd19597a09\", \"managed_by\": \"provider\", \"name\": \"dropbox\", \"transport\": \"unknown\", \"tools\": {\"search\": \"search\"}}]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json"
+    },
+    "body": "{\"data\": {\"id\": \"system-tests-test_ai_guard_openai_mcp_call_connector\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"reason\": \"system-tests MCP response matched: test_ai_guard_openai_mcp_call_connector\", \"tags\": [], \"tag_probs\": null, \"global_prob\": 0.001, \"is_blocking_enabled\": false}}}"
+  }
+}

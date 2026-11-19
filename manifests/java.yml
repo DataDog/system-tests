@@ -2304,6 +2304,7 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::setup_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": v1.48.0
@@ -3167,7 +3168,7 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
     - declaration: bug (DEBUG-3390)
-      # Added by easy win activation script
+      component_version: '<1.50.0'
     - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
@@ -3331,7 +3332,9 @@ manifest:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: incomplete_test_app (no /debugger/correlation/loop endpoint)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets:
+    - declaration: bug (DEBUG-3797)
+      component_version: '<1.60.0'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
@@ -3540,6 +3543,7 @@ manifest:
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
@@ -3883,6 +3887,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.1
+        spring-boot-openliberty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.2  # TODO: a lower version might be supported
+        uds-spring-boot: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.2  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": irrelevant
@@ -3948,6 +3958,14 @@ manifest:
     - weblog_declaration:
         "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  ? tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2::test_api_gateway_http_inferred_span_creation_optional_tags
+  : - declaration: flaky (IDMPL-1241)
+      component_version: '>=1.67.1'
+      weblog: play
+  ? tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2::test_api_gateway_rest_inferred_span_creation_with_error
+  : - declaration: flaky (IDMPL-1241)
+      component_version: '>=1.67.1'
+      weblog: play
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
@@ -4141,6 +4159,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_spec_default: v1.62.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero_is_ignored: bug (APMAPI-2462)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2462)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -4259,6 +4278,11 @@ manifest:
     - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.64.2
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: v1.65.0
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Requires a release containing dd-trace-java#13267)
+      component_version: <1.69.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : v1.65.0
@@ -4281,6 +4305,7 @@ manifest:
   tests/parametric/test_ffe/test_exposure_hooks.py: v1.68.0-SNAPSHOT
   tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_evaluation_feature_aggregation: missing_feature (Test agent needs EVP flagevaluation capture)
   tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_multiprovider_exposure_guard: irrelevant (Go exposure hook composition guard)
+  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v1.66.0
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -4327,6 +4352,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_context_leak:
     - declaration: missing_feature (Not implemented)
       component_version: <1.36
@@ -5034,14 +5062,43 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-openliberty: '>=1.69.0'
+        vertx3: '>=1.69.0'
+        spring-boot-wildfly: '>=1.69.0'
+        spring-boot-payara: '>=1.69.0'
+        spring-boot-undertow: '>=1.69.0'
+        akka-http: '>=1.69.0'
+        ratpack: '>=1.69.0'
+        resteasy-netty3: '>=1.69.0'
+        jersey-grizzly2: '>=1.69.0'
+        vertx4: '>=1.69.0'
+        spring-boot-3-native: '>=1.69.0'
+        spring-boot-jetty: '>=1.69.0'
+        spring-boot: '>=1.69.0'
+        uds-spring-boot: '>=1.69.0'
+        play: '>=1.69.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT

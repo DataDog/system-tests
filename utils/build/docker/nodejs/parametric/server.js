@@ -398,7 +398,9 @@ app.post('/trace/otel/start_span', (req, res) => {
         links,
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
-    const ctx = span._ddSpan.context()
+    // With tracing disabled, dd-trace returns a non-recording span. It has no Datadog span,
+    // but its span context still wraps the Datadog span context.
+    const ctx = span._ddSpan?.context() ?? span.spanContext()._ddContext
     const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 
@@ -693,7 +695,8 @@ app.post('/ffe/evaluate', async (req, res) => {
     value: details.value,
     reason: details.reason,
     errorCode: details.errorCode,
-    flagMetadata: details.flagMetadata ?? null
+    flagMetadata: details.flagMetadata ?? null,
+    providerStatus: openFeatureClient?.providerStatus ?? null
   });
 });
 

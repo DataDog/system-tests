@@ -55,3 +55,21 @@
 - Not when: A package follows the version of the SDK under test, or a range stays open on purpose to detect upstream drift, and a comment explains the exception.
 - ✅ Lock both `opentelemetry-sdk` and `opentelemetry-metrics-sdk`.
 - ❌ Pin `opentelemetry-sdk`, leave `opentelemetry-metrics-sdk` open, and omit it from the lockfile.
+
+### INFRA-009: Give new tooling paths a CI selection rule.
+- Severity: P1
+- Flag: A new folder or file that no test uses needs a rule in `utils/scripts/libraries_and_scenarios_rules.yml`. Without a rule, the CI selects every library and every scenario group for that path.
+- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups.
+- Not when: The new files are framework code that tests use, such as `utils/_context/` or `utils/interfaces/`. Then the full run is the intended behavior.
+- ✅ Add `utils/scripts/<tool>/*` with `scenario_groups: null` and `libraries: null`, and add a test in `tests/test_the_test/test_compute_libraries_and_scenarios.py`.
+- ❌ Add `utils/scripts/<tool>/` with no rule, so the pull request runs the whole end-to-end CI.
+- Ref: [libraries_and_scenarios_rules.yml](../../../utils/scripts/libraries_and_scenarios_rules.yml)
+
+### INFRA-010: Keep the weblog specifications in sync with the code.
+- Severity: P1
+- Flag: A change to the interface of a weblog must update its specification in `docs/understand/weblogs/` in the same pull request. The code is the source of truth. The specifications are `end-to-end_weblog.md` (end-to-end endpoints), `parametric_weblog.md` (parametric HTTP interface), `graphql_weblog.md` (GraphQL weblogs), and `weblog-metadata.md` (`weblog_metadata.yml` format). An interface change adds, removes, or renames an endpoint. It also changes a request parameter, a response field, a status code, or an expected behavior.
+- Detect: The diff changes an endpoint in a weblog under `utils/build/docker/<library>/`, in the parametric client `utils/docker_fixtures/_test_clients/_test_client_parametric.py`, or in the `weblog_metadata.yml` parser `utils/_context/weblog_metadata.py`, but not the matching specification. A test calls a new weblog endpoint that the specification does not list. The diff changes a specification so that it no longer matches the code.
+- Not when: The change keeps the interface: an internal refactoring, a dependency bump, or a fix that makes a weblog follow its specification.
+- ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
+- ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
+- Ref: [Weblogs](../../../docs/understand/weblogs/README.md)

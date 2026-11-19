@@ -22,7 +22,7 @@ def commands(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     """Record the commands run by the steps instead of running them."""
     recorded: list[list[str]] = []
 
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         recorded.append(command)
 
     monkeypatch.setattr(finalizer, "run", run)
@@ -121,6 +121,52 @@ def test_k8s_profile_deletes_clusters_and_collects_every_log_folder(tmp_path: Pa
 
 
 @scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "env"),
+    [
+        ("aws", {"SCENARIO": "SIMPLE_INSTALLER_AUTO_INJECTION", "VM": "Ubuntu_22_amd64", "WEBLOG": "test-app-java"}),
+        ("k8s", {"K8S_SCENARIO": "K8S_LIB_INJECTION"}),
+    ],
+)
+def test_ssi_profiles_upload_junit_reports_from_any_repository(
+    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, profile: str, env: dict[str, str]
+):
+    """Test failures must reach Test Optimization, else Green CI counts them as infra failures."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    folder = f"logs_{(env.get('SCENARIO') or env['K8S_SCENARIO']).lower()}"
+    _write(tmp_path / "system-tests" / folder / "reportJunit.xml", "<testsuites/>")
+    job = _job(
+        profile, tmp_path, CI_PIPELINE_ID="42", CI_PROJECT_NAME="dd-trace-java", CI_COMMIT_BRANCH="master", **env
+    )
+
+    assert finalizer.finalize(job) == 0
+
+    uploads = [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
+    assert len(uploads) == 1
+    assert str(tmp_path / "project" / "reports" / folder / "reportJunit.xml") in uploads[0]
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "variable"),
+    [("docker", "ONBOARDING_FILTER_ENV"), ("aws", "ONBOARDING_FILTER_ENV"), ("k8s", "REPORT_ENVIRONMENT")],
+)
+def test_junit_reports_are_labelled_with_the_generated_job_environment(tmp_path: Path, profile: str, variable: str):
+    assert _job(profile, tmp_path, **{variable: "dev"}).ci_environment == "dev"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="custom").ci_environment == "custom"
+    assert _job(profile, tmp_path).ci_environment == "prod"
+
+
+@scenarios.test_the_test
+def test_canceled_jobs_do_not_upload_junit_reports(tmp_path: Path, commands: list[list[str]]):
+    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "reportJunit.xml", "<testsuites/>")
+    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_JOB_STATUS="canceled")
+
+    assert finalizer.finalize(job) == 0
+    assert not [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
+
+
+@scenarios.test_the_test
 def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[list[str]]):
     logs = tmp_path / "system-tests" / "logs_docker_ssi"
     _write(logs / "interfaces" / "library" / "00001.json", "{}")
@@ -139,7 +185,7 @@ def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[l
 def test_a_failing_step_does_not_stop_the_next_ones(
     tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
 ):
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         if command[0] == "datadog-ci":
             raise subprocess.CalledProcessError(1, command)
         commands.append(command)

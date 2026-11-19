@@ -34,7 +34,7 @@ def test_main():
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A", events)
             container_b = FakeContainer("B", events)
@@ -60,7 +60,7 @@ def test_main():
 def test_recursive():
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A")
             container_b = FakeContainer("B")
@@ -84,7 +84,7 @@ def test_recursive_2():
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
-            super().__init__(name="fake_scenario", github_workflow=None, doc="")
+            super().__init__(name="fake_scenario", github_workflow=None)
 
             container_a = FakeContainer("A")
             container_b = FakeContainer("B")
@@ -120,7 +120,6 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 ) -> None:
     scenario = DdTraceEndToEndScenario(
         "FAKE_END_TO_END",
-        doc="",
         include_agent=include_agent,
         use_proxy_for_weblog=False,
     )
@@ -143,7 +142,7 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 
 @scenarios.test_the_test
 def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_MOCKED_BACKEND_V2", doc="")
+    scenario = DdTraceEndToEndScenario("FAKE_MOCKED_BACKEND_V2")
     mocked_backend = scenario.mocked_backend_container
     assert mocked_backend in scenario._containers  # noqa: SLF001
 
@@ -165,7 +164,7 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
 
 @scenarios.test_the_test
 def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -> None:
-    scenario = _OpenTelemetryScenario("FAKE_OTEL", doc="", include_intake=False, include_collector=False)
+    scenario = _OpenTelemetryScenario("FAKE_OTEL", include_intake=False, include_collector=False)
     agent = scenario.agent_container
     # every intake hostname is derived from it, and is an alias of the mocked backend
     assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
@@ -181,7 +180,6 @@ def test_mocked_backend_does_not_make_the_weblog_databases_depend_on_it() -> Non
     # everything else depends on MsSql, so it starts alone: MsSql depending on the mocked backend would be a cycle
     scenario = DdTraceEndToEndScenario(
         "FAKE_MOCKED_BACKEND_MSSQL",
-        doc="",
         other_weblog_containers=(MsSqlServerContainer,),
     )
     scenario._set_containers_dependancies()  # noqa: SLF001
@@ -193,7 +191,7 @@ def test_mocked_backend_does_not_make_the_weblog_databases_depend_on_it() -> Non
 
 @scenarios.test_the_test
 def test_lambda_extension_sends_to_the_mocked_backend_container() -> None:
-    scenario = _LambdaScenario("FAKE_LAMBDA", doc="")
+    scenario = _LambdaScenario("FAKE_LAMBDA")
     weblog = scenario.lambda_weblog
     # every intake hostname is derived from it, and is an alias of the mocked backend
     assert weblog.environment["DD_SITE"] == "mocked-backend.invalid"

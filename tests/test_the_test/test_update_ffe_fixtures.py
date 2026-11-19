@@ -10,6 +10,20 @@ from utils import pytest
 from utils import scenarios
 from utils.scripts import update_ffe_fixtures
 
+VALID_VECTORS = json.dumps(
+    {
+        "flags": [{"key": "one", "tags": []}],
+        "cases": [
+            {
+                "name": "case",
+                "query": {},
+                "expected": {"outcome": "applied", "selectedKeys": ["one"]},
+                "sdk": {"selection": {"tags": [], "keyPatterns": []}},
+            }
+        ],
+    }
+)
+
 
 def _write_selection_vectors(root: Path, cases: list[dict[str, Any]] | None = None) -> None:
     path = root / update_ffe_fixtures.SELECTION_VECTORS_PATH
@@ -19,7 +33,10 @@ def _write_selection_vectors(root: Path, cases: list[dict[str, Any]] | None = No
             {"name": "empty selection", "query": {}, "sdk": {"selection": {"tags": [], "keyPatterns": []}}},
             {"name": "raw query", "rawQuery": "selected_flag_tags=%zz"},
         ]
-    path.write_text(json.dumps({"cases": cases}), encoding="utf-8")
+    for case in cases:
+        if isinstance(case, dict):
+            case.setdefault("expected", {"outcome": "applied", "selectedKeys": []})
+    path.write_text(json.dumps({"flags": [{"key": "one", "tags": []}], "cases": cases}), encoding="utf-8")
 
 
 @scenarios.test_the_test
@@ -104,6 +121,63 @@ def test_copy_fixture_snapshot_rejects_selection_symbolic_links(tmp_path: Path, 
         )
     with pytest.raises(ValueError, match="Refusing to copy symbolic link"):
         update_ffe_fixtures._copy_fixture_snapshot(source, snapshot)
+
+
+@scenarios.test_the_test
+def test_validate_selection_vectors_rejects_what_the_mock_tests_cannot_read(tmp_path: Path) -> None:
+    vectors = tmp_path / update_ffe_fixtures.SELECTION_VECTORS_PATH
+    vectors.parent.mkdir()
+    case = {"name": "case", "query": {}, "sdk": {"selection": {"tags": [], "keyPatterns": []}}}
+    for content, message in (
+        ({"cases": [{**case, "expected": {"outcome": "applied"}}]}, "flags must be a non-empty array"),
+        (
+            {"flags": [{"key": "one", "tags": [1]}], "cases": [{**case, "expected": {"outcome": "applied"}}]},
+            "flags must be a non-empty array",
+        ),
+        ({"flags": [{"key": "one", "tags": []}], "cases": [case]}, "applied or ignored expected outcome"),
+        ({"flags": [{"key": "one", "tags": []}], "cases": [{**case, "expected": {}}]}, "applied or ignored"),
+    ):
+        vectors.write_text(json.dumps(content), encoding="utf-8")
+        with pytest.raises(ValueError, match=message):
+            update_ffe_fixtures._validate_selection_vectors(tmp_path)
+
+
+def _write_suite(snapshot: Path) -> Path:
+    (snapshot / "evaluation-cases").mkdir(parents=True)
+    (snapshot / "ufc-config.json").write_text('{"flags": {"one": {}}}', encoding="utf-8")
+    (snapshot / "evaluation-cases" / "case.json").write_text('[{"flag": "one"}]', encoding="utf-8")
+    suite = snapshot / "evaluation-suites" / "flag-selection"
+    (suite / "cases").mkdir(parents=True)
+    (suite / "ufc-config.json").write_text('{"flags": {"two": {}}}', encoding="utf-8")
+    (suite / "cases" / "tags.json").write_text('[{"flag": "two"}]', encoding="utf-8")
+    return suite
+
+
+@scenarios.test_the_test
+def test_validate_fixture_snapshot_accepts_suite_flag_tags(tmp_path: Path) -> None:
+    suite = _write_suite(tmp_path)
+    (suite / "flag-tags.json").write_text('{"flags": [{"key": "two", "tags": ["team:checkout"]}]}', encoding="utf-8")
+
+    assert update_ffe_fixtures._validate_fixture_snapshot(tmp_path) == 2
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("name", "content", "message"),
+    [
+        ("flag-tags.json", '{"flags": {}}', "flags must be a non-empty array of key and tags entries"),
+        ("flag-tags.json", '{"flags": [{"key": "two"}]}', "flags must be a non-empty array of key and tags entries"),
+        ("flag-tags.json", '{"flags": [], "extra": 1}', "must contain only flags"),
+        ("notes.json", "{}", "must contain only ufc-config.json, cases and an optional flag-tags.json"),
+    ],
+)
+def test_validate_fixture_snapshot_rejects_invalid_suite_entries(
+    tmp_path: Path, name: str, content: str, message: str
+) -> None:
+    (_write_suite(tmp_path) / name).write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        update_ffe_fixtures._validate_fixture_snapshot(tmp_path)
 
 
 @scenarios.test_the_test
@@ -250,3 +324,31 @@ def test_update_fixtures_records_source_and_removes_stale_files(
         source / update_ffe_fixtures.SELECTION_VECTORS_PATH
     ).read_bytes()
     assert (destination / "evaluation-cases" / "case.json").read_bytes() == case_file.read_bytes()
+
+
+@scenarios.test_the_test
+def test_update_fixtures_vendors_and_checks_selection_vectors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "upstream"
+    destination = tmp_path / "destination"
+    _write_suite(source)
+    (source / "flag-selection").mkdir()
+    (source / "flag-selection" / "selection-vectors.json").write_text(VALID_VECTORS, encoding="utf-8")
+    (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
+    destination.mkdir()
+
+    def fake_git(working_directory: Path, *arguments: str) -> str:
+        if arguments[0] == "checkout":
+            shutil.copytree(source, working_directory, dirs_exist_ok=True)
+        return "a" * 40
+
+    monkeypatch.setattr(update_ffe_fixtures, "_run_git", fake_git)
+    monkeypatch.setattr(update_ffe_fixtures, "FIXTURE_DESTINATION", destination)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path / "outputs"))
+    assert update_ffe_fixtures.update_fixtures("main")
+    assert [path.name for path in (destination / "flag-selection").iterdir()] == ["selection-vectors.json"]
+
+    invalid = json.loads(VALID_VECTORS) | {"flags": []}
+    (source / "flag-selection" / "selection-vectors.json").write_text(json.dumps(invalid), encoding="utf-8")
+    with pytest.raises(ValueError, match="flags must be a non-empty array"):
+        update_ffe_fixtures.update_fixtures("main")
+    assert (destination / "flag-selection" / "selection-vectors.json").read_text(encoding="utf-8") == VALID_VECTORS

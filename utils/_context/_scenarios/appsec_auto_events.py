@@ -3,6 +3,8 @@ from utils._context.containers import InternalServerContainer
 
 
 class AppsecAutoEventsExtended(DdTraceEndToEndScenario):
+    """Scenario for checking extended mode in automatic user events"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_AUTO_EVENTS_EXTENDED",
@@ -12,26 +14,26 @@ class AppsecAutoEventsExtended(DdTraceEndToEndScenario):
                 "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
             },
             appsec_enabled=True,
-            doc="Scenario for checking extended mode in automatic user events",
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class AppsecAutoEventsRc(DdTraceEndToEndScenario):
+    """Scenario to test User ID collection config change via Remote config"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_AUTO_EVENTS_RC",
             weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
             rc_api_enabled=True,
-            doc="""
-            Scenario to test User ID collection config change via Remote config
-        """,
             scenario_groups=[scenario_groups.appsec],
             other_weblog_containers=(InternalServerContainer,),
         )
 
 
 class AppsecAtoSdk(DdTraceEndToEndScenario):
+    """Rules file with unsafe login and user id"""
+
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_ATO_SDK",
@@ -42,6 +44,5 @@ class AppsecAtoSdk(DdTraceEndToEndScenario):
                     "mode": "ro",
                 }
             },
-            doc="Rules file with unsafe login and user id",
             scenario_groups=[scenario_groups.appsec],
         )

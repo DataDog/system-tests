@@ -12,7 +12,7 @@ else
     echo "Fetching from latest GitHub release..."
     ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     echo https://github.com/DataDog/datadog-lambda-python/releases/latest/download/datadog_lambda_py-"$ARCH"-3.13.zip
-    curl -fsSLO https://github.com/DataDog/datadog-lambda-python/releases/latest/download/datadog_lambda_py-"$ARCH"-3.13.zip
+    curl -fsSLO --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors https://github.com/DataDog/datadog-lambda-python/releases/latest/download/datadog_lambda_py-"$ARCH"-3.13.zip
     unzip -o datadog_lambda_py-"$ARCH"-3.13.zip -d /opt
 
     if [ ! -f datadog_lambda_py-"$ARCH"-3.13.zip ]; then
