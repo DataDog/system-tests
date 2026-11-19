@@ -1,10 +1,10 @@
 ### TEST-001: Do not reject valid output because of unrelated data.
 - Old_id: codex-09
 - Severity: P1
-- Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input.
-- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`. A test compares serialized JSON as a string instead of parsed values. A test requires one stats request, one bucket, or an exact metric count, but the tracer flushes on a timer.
+- Flag: An assertion must check only the data under test. If the protocol allows other values next to that data, the test must accept them. For a protocol flag, mask the bit under test and ignore the other allowed bits. For a list field such as `tracestate` or `x-datadog-tags`, find the member under test. Do not require a count or an order that the protocol does not define. For a redaction leak check, search for a distinctive marker or read the relevant parsed field. Then unrelated payload values cannot look like leaked input.
+- Detect: A sampled-bit assertion requires the exact flags `01`. A test requires `len(tracestate) == 1`. A test compares `x-datadog-tags` as a raw string. A redaction check searches a whole payload for a short marker such as `1234`. A test compares serialized JSON as a string instead of parsed values. The tracer flushes on a timer, and a test requires one stats request, one bucket, or an exact metric count.
 - Not when: The whole field is under test.
-- ✅ For the sampled bit, accept `01` and `03` when the extra bit is allowed. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp containing `1234` must not count as leaked input.
+- ✅ For the sampled bit, accept `01` and `03` when the protocol allows the extra bit. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp that contains `1234` must not count as leaked input.
 - ❌ `assert len(tracestate) == 1`.
 
 ### TEST-002: Do not treat missing data as proof that suppression works.
