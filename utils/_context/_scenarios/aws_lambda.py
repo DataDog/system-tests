@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -8,7 +11,6 @@ from ._core import (
     scenario_groups as all_scenario_groups,
     ScenarioGroup,
 )
-from .appsec import configure_sca_advisories
 from utils._context.constants import WeblogCategory
 from utils._context.containers import (
     InternalServerContainer,
@@ -241,6 +243,38 @@ class AppsecLambdaApiSecurity(_LambdaScenario):
         )
 
 
+# Inline fixtures so edits select this scenario in CI without importing appsec.py.
+_SCA_ADVISORIES = {
+    "java_lambda": {
+        "version": 1,
+        "entries": [
+            {
+                "vuln_id": "system-tests-sca",
+                "artifact": "com.github.junrar:junrar",
+                "version_ranges": [">=0"],
+                "symbols": [{"class": "com/github/junrar/LocalFolderExtractor", "method": "createDirectory"}],
+            }
+        ],
+    },
+    "python_lambda": {
+        "targets": [
+            {
+                "id": "system-tests-sca",
+                "lang": "python",
+                "dependency_name": "requests",
+                "package_versions": [">=0"],
+                "targets": ["requests.sessions:Session.send"],
+                "vulnerability": {
+                    "id": "system-tests-sca",
+                    "severity": "LOW",
+                    "description": "Synthetic requests target for system-tests SCA reachability coverage.",
+                },
+            }
+        ]
+    },
+}
+
+
 class AppsecLambdaSca(_LambdaScenario):
     """SCA dependency metadata and runtime reachability in Lambda with AppSec disabled"""
 
@@ -253,11 +287,23 @@ class AppsecLambdaSca(_LambdaScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
-        if not self.replay:
-            configure_sca_advisories(self.lambda_weblog)
+        if self.replay:
+            return
+
+        container = self.lambda_weblog
+        advisory = _SCA_ADVISORIES.get(container.image.labels["system-tests-library"])
+        if advisory is None:
+            return
+
+        catalog = Path(container.log_folder_path) / "sca-advisories.json"
+        catalog.write_text(json.dumps(advisory), encoding="utf-8")
+
+        container_path = "/sca/advisories.json"
+        container.volumes[str(catalog)] = {"bind": container_path, "mode": "ro"}
+        container.environment["_DD_APPSEC_SCA_CVE_FILE"] = container_path
 
     def get_libraries(self) -> set[str]:
-        return {"java_lambda", "python_lambda"}
+        return set(_SCA_ADVISORIES)
 
 
 class AppsecLambdaRasp(_LambdaScenario):
