@@ -82,3 +82,13 @@
 - ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
 - ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
 - Ref: [Code format standards](../code-format-standards.md)
+
+### INFRA-013: Mount the GitHub token in every build that calls the GitHub API.
+- Severity: P1
+- Flag: A build that passes the `github_token` secret must mount it in every Dockerfile step that calls the GitHub API. The script must use the shared `get_latest_release` helper, not its own `curl` or `wget` call. Without the secret, the calls are unauthenticated and hit rate limits.
+- Detect: The workflow passes `--secret id=github_token`, and a Dockerfile of another language or weblog does not mount it. An install script calls the GitHub releases API with `curl -s` or `wget` and no `--fail`. An authenticated call runs under `set -x`, so the token can leak into logs.
+
+### INFRA-014: Stop the session when the infrastructure fails to provision.
+- Severity: P1
+- Flag: An unknown VM provisioning error must stop the session with one clear failure. The handler must not store the error and run every test. A diagnostic step, such as an event or a log download, must not hide that failure. If the diagnostic step fails, print a warning and keep the original error.
+- Detect: A provisioning error handler stores an unknown error on the VM object and continues the session. A diagnostic step can raise or write to stdout before the main failure is reported.
