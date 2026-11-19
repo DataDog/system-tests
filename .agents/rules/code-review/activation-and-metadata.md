@@ -74,3 +74,8 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Gate each test at the first release that has its behavior.
+- Severity: P0
+- Flag: A version declaration must match the first release that contains the behavior each test asserts. If a method asserts behavior newer than its class, declare that method separately. If the SDK changes the behavior in a later release, bound the old test with a range. If a change ships on several release lines or as a backport, cover each line.
+- Detect: A new test method asserts behavior newer than its class declaration and has no method entry. A class for legacy behavior has only a minimum version and stays active after the SDK changed. A gate targets the next dev version, but a patch release or another release line already ships the change. Version ranges in `tests/parametric/capabilities.yml` follow the same rule.
