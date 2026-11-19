@@ -30,6 +30,10 @@ The following text must be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /add_event
+
+Add a span event to the request root span, with any name and attribute values.
+
 ### GET /headers
 
 This endpoint must set the following headers:

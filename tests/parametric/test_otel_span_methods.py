@@ -538,7 +538,6 @@ class Test_Otel_Span_Methods:
             otel_span.set_attributes({"operation.name": "overriden.name"})
             otel_span.set_attributes({"service.name": "new.service.name"})
             otel_span.set_attributes({"span.type": "new.span.type"})
-            otel_span.set_attributes({"analytics.event": "true"})
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, otel_span.trace_id)
@@ -550,13 +549,11 @@ class Test_Otel_Span_Methods:
         assert result_span["resource"] == "new.name"
         assert result_span["service"] == "new.service.name"
         assert result_span["type"] == "new.span.type"
-        assert result_span["metrics"].get("_dd1.sr.eausr") == 1
 
         assert "resource.name" not in result_span["meta"]
         assert "operation.name" not in result_span["meta"]
         assert "service.name" not in result_span["meta"]
         assert "span.type" not in result_span["meta"]
-        assert "analytics.event" not in result_span["meta"]
 
     @pytest.mark.parametrize(
         ("analytics_event_value", "expected_metric_value"),

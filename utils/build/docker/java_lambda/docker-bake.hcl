@@ -6,6 +6,7 @@
 
 group "default" {
   targets = [
+    "maven",
     "runtime",
   ]
 }
@@ -18,4 +19,10 @@ target "runtime" {
   inherits   = ["_common"]
   dockerfile = "runtime.base.Dockerfile"
   tags       = ["datadog/system-tests:java-lambda-runtime.base"]
+}
+
+target "maven" {
+  inherits   = ["_common"]
+  dockerfile = "maven.base.Dockerfile"
+  tags       = ["datadog/system-tests:java-lambda-maven.base"]
 }

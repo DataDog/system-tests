@@ -15,8 +15,11 @@ COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 
-RUN if go doc github.com/DataDog/dd-trace-go/v2/openfeature.NewExposureHook >/dev/null 2>&1; then \
-      go install -tags=dd_exposure_hook; \
-    else go install; fi
+RUN tags=""; \
+    if go doc github.com/DataDog/dd-trace-go/v2/openfeature.NewExposureHook >/dev/null 2>&1; then \
+      tags="$tags,dd_exposure_hook"; fi; \
+    if go doc github.com/DataDog/dd-trace-go/v2/openfeature.FlagSelection >/dev/null 2>&1; then \
+      tags="$tags,dd_flag_selection"; fi; \
+    go install -tags="${tags#,}"
 
 CMD ["sh", "-c", "main; status=$?; sleep 2; exit $status"]
