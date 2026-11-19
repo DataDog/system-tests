@@ -8,11 +8,9 @@ This module provides reusable components for testing OTel receiver metrics:
 """
 
 import json
-import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from utils import interfaces, logger
 
 if TYPE_CHECKING:
     from utils._context._scenarios.otel_collector import OtelCollectorScenario
@@ -158,69 +156,6 @@ class OtelMetricsValidator:
             metrics_dont_match_spec.add(
                 f"{metric_name}: Description mismatch - Expected: '{expected_description}', Got: '{description}'"
             )
-
-    def query_backend_for_metrics(
-        self,
-        metric_names: list[str],
-        query_tags: dict[str, str],
-        lookback_seconds: int = 300,
-        retries: int = 3,
-        initial_delay_s: float = 15.0,
-        semantic_mode: str = "combined",
-    ) -> tuple[list[str], list[str]]:
-        """Query the Datadog backend to validate metrics were received.
-        Returns (validated_metrics, failed_metrics)
-        """
-        end_time = int(time.time())
-        start_time = end_time - lookback_seconds
-
-        validated_metrics = []
-        failed_metrics = []
-
-        # Build tag string for query
-        tag_string = ",".join(f"{k}:{v}" for k, v in query_tags.items())
-
-        for metric_name in metric_names:
-            logger.info(f"Looking at metric: {metric_name}")
-            try:
-                start_time_ms = start_time * 1000
-                end_time_ms = end_time * 1000
-
-                query_str = f"avg:{metric_name}{{{tag_string}}}"
-                logger.info(f"Query: {query_str}, time range: {start_time_ms} to {end_time_ms} ({lookback_seconds}s)")
-
-                metric_data = interfaces.backend.query_ui_timeseries(
-                    query=query_str,
-                    start=start_time_ms,
-                    end=end_time_ms,
-                    semantic_mode=semantic_mode,
-                    retries=retries,
-                    initial_delay_s=initial_delay_s,
-                )
-
-                if metric_data and metric_data.get("data") and len(metric_data["data"]) > 0:
-                    data_item = metric_data["data"][0]
-                    attributes = data_item.get("attributes", {})
-
-                    meta_responses = metric_data.get("meta", {}).get("responses", [])
-                    results_warning = meta_responses[0].get("results_warnings") if meta_responses else None
-                    if results_warning:
-                        logger.warning(f"Results warning: {results_warning}")
-
-                    times = attributes.get("times", [])
-                    values = attributes.get("values", [])
-
-                    if times and values and len(values) > 0 and len(values[0]) > 0:
-                        validated_metrics.append(metric_name)
-                    else:
-                        failed_metrics.append(f"{metric_name}: No data points found")
-                else:
-                    failed_metrics.append(f"{metric_name}: No series data returned")
-
-            except Exception as e:
-                failed_metrics.append(f"❌  {metric_name}: Failed to query semantic mode {semantic_mode} - {e!s}")
-
-        return validated_metrics, failed_metrics
 
 
 def get_collector_metrics_from_scenario(scenario: "OtelCollectorScenario") -> list[dict[str, Any]]:

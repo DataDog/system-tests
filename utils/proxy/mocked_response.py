@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
-MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
 
 
 def _get_proxy_domain() -> str:
@@ -437,7 +436,7 @@ class SetObfuscationVersion(_InternalMockedTracerResponse):
 
 
 class MockedBackendResponse(MockedResponse):
-    """Base class for mocking responses from backend to agent.
+    """Responses served by the mocked backend (utils/mocked_backend), to the agent or to an agentless library.
 
     These mocks create new responses without forwarding the request to any
     upstream server. The flow.response does not exist when execute() is called.
@@ -486,15 +485,6 @@ class MockedBackendResponse(MockedResponse):
         return cls(**source)
 
     def send(self) -> None:
-        """Send instruction to the proxy at /mocked_backend_responses endpoint."""
-        self._send_to_endpoint(MOCKED_BACKEND_RESPONSES_PATH)
-
-
-class _InternalMockedBackendResponse(MockedBackendResponse):
-    """Backend mocked responses that will be applied on the entire test session.
-
-    These cannot be sent via the API and must be configured at proxy startup.
-    """
-
-    def send(self) -> None:
-        raise ValueError("This mocked response cannot be sent directly")
+        raise ValueError(
+            "The proxy doesn't serve backend responses: use mocked_backend_container.client.set_mocked_responses()"
+        )

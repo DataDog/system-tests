@@ -35,6 +35,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
+from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
+from utils._context.containers import dockerfile_image_list  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
@@ -95,11 +97,30 @@ def _is_mirrorable(image: str) -> bool:
     return not image.startswith("registry.ddbuild.io/")
 
 
+def _parametric_images() -> set[str]:
+    """Images the parametric test clients build FROM.
+
+    Parametric is not a DockerScenario and has no get_image_list: its
+    test client is built from utils/build/docker/<library>/parametric/Dockerfile,
+    outside the weblog layout enumerated by _library_weblog_pairs. Like weblogs,
+    the test client is built with the mirror-configured buildx builder (see
+    TestClientFactory.build), so every FROM image is pulled through the mirror.
+    """
+    images: set[str] = set()
+    for path in Path("utils/build/docker").glob("*/parametric/Dockerfile"):
+        images.update(dockerfile_image_list(path))
+    return images
+
+
 def collect_images(excluded: set[str]) -> list[str]:
     pairs = _library_weblog_pairs()
     images: set[str] = set()
     for scenario in get_all_scenarios():
-        if not isinstance(scenario, DockerScenario) or scenario.name in excluded:
+        if scenario.name in excluded:
+            continue
+        if isinstance(scenario, ParametricScenario):
+            images.update(_parametric_images())
+        if not isinstance(scenario, DockerScenario):
             continue
         for library, weblog in pairs:
             images.update(scenario.get_image_list(library, weblog))

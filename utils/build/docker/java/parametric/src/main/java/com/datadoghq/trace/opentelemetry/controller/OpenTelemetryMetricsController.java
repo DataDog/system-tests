@@ -10,6 +10,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.*;
+import java.io.Closeable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -225,6 +226,21 @@ public class OpenTelemetryMetricsController {
       return new FlushResult(true);
     } catch (Exception e) {
       LOGGER.warn("Failed to flush OTel metrics", e);
+      return new FlushResult(false);
+    }
+  }
+
+  @PostMapping("shutdown")
+  public FlushResult shutdown(@RequestBody FlushArgs args) {
+    LOGGER.info("Shutting down OTel metrics: {}", args);
+    try {
+      if (!(meterProvider instanceof Closeable)) {
+        return new FlushResult(false);
+      }
+      ((Closeable) meterProvider).close();
+      return new FlushResult(true);
+    } catch (Exception e) {
+      LOGGER.warn("Failed to shut down OTel metrics", e);
       return new FlushResult(false);
     }
   }

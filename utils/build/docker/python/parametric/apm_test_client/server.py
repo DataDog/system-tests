@@ -219,6 +219,11 @@ def trace_config() -> TraceConfigReturn:
                     getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
                 )
             ),
+            **blrp_config(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -265,6 +270,20 @@ def otlp_exporter_timeout(processors: Any) -> Optional[str]:
         if isinstance(timeout, (int, float)):
             timeouts.append(str(int(timeout * 1000)))
     return timeouts[0] if len(timeouts) == 1 else None
+
+
+def blrp_config(processors: Any) -> Dict[str, str]:
+    batch_processors = [processor for processor in processors if type(processor).__name__ == "BatchLogRecordProcessor"]
+    if len(batch_processors) != 1:
+        return {}
+    # Newer SDKs keep the batch settings in a shared BatchProcessor.
+    batch_processor = getattr(batch_processors[0], "_batch_processor", batch_processors[0])
+    return {
+        "otel_blrp_schedule_delay_ms": str(int(batch_processor._schedule_delay_millis)),
+        "otel_blrp_export_timeout_ms": str(int(batch_processor._export_timeout_millis)),
+        "otel_blrp_max_queue_size": str(batch_processor._max_queue_size),
+        "otel_blrp_max_export_batch_size": str(batch_processor._max_export_batch_size),
+    }
 
 
 @app.post("/trace/span/finish")
@@ -1362,6 +1381,27 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     return OtelMetricsForceFlushReturn(success=True)
 
 
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
+
+
 class LogCreateLoggerArgs(BaseModel):
     name: str
     level: str
@@ -1483,14 +1523,25 @@ async def ffe(request: Request) -> JSONResponse:
 
 
 @app.post("/ffe/start", response_class=JSONResponse)
-async def ffe_start() -> JSONResponse:
+async def ffe_start(request: Request) -> JSONResponse:
     """Initialize OpenFeature provider."""
     global openfeature_client
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
 
-        api.set_provider(DataDogProvider())
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        provider_kwargs = {}
+        if isinstance(body, dict) and "flag_selection" in body:
+            selection = body["flag_selection"]
+            if isinstance(selection, dict):
+                selection = {("key_patterns" if k == "keyPatterns" else k): v for k, v in selection.items()}
+            provider_kwargs["flag_selection"] = selection
+
+        api.set_provider(DataDogProvider(**provider_kwargs))
         openfeature_client = api.get_client()
         return JSONResponse({}, status_code=200)
     except Exception as e:
@@ -1544,7 +1595,15 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
+        return JSONResponse(
+            {
+                "value": value,
+                "reason": reason,
+                "errorCode": error_code,
+                "providerStatus": openfeature_client.get_provider_status().value,
+            },
+            status_code=200,
+        )
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

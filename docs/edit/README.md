@@ -38,8 +38,7 @@ You'll commonly need to run unmerged changes to your library against system test
 These documents cover the APIs you use in test assertions:
 
 - [library-interface-validation-methods.md](./library-interface-validation-methods.md): Validating tracer-to-agent traces
-- [agent-interface-validation-methods.md](./agent-interface-validation-methods.md): Validating agent-to-backend data
-- [backend-interface-validation-methods.md](./backend-interface-validation-methods.md): Validating backend API responses
+- [mocked-backend-interface-validation-methods.md](./mocked-backend-interface-validation-methods.md): Validating what is sent to the backend
 
 ## Using `logger`
 

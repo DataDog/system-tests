@@ -711,6 +711,14 @@ class OtelMetricsForceFlushArgs
   end
 end
 
+class OtelMetricsShutdownArgs
+  attr_reader :seconds
+
+  def initialize(params)
+    @seconds = params.fetch('seconds', 10)
+  end
+end
+
 class OtelMetricsForceFlushReturn
   attr_accessor :success
 
@@ -835,8 +843,18 @@ def extract_http_headers(headers)
   end
 end
 
-def handle_ffe_start(_req, res)
-  provider = Datadog::OpenFeature::Provider.new
+def handle_ffe_start(req, res)
+  raw = req.body&.read.to_s
+  body = raw.empty? ? {} : JSON.parse(raw)
+  provider = if body.is_a?(Hash) && body.key?('flag_selection')
+    selection = body['flag_selection']
+    if selection.is_a?(Hash)
+      selection = selection.to_h { |k, v| [(k == 'keyPatterns') ? 'key_patterns' : k, v] }
+    end
+    Datadog::OpenFeature::Provider.new(flag_selection: selection)
+  else
+    Datadog::OpenFeature::Provider.new
+  end
   feature_flagging_configured = %w[
     DD_FEATURE_FLAGS_ENABLED
     DD_FEATURE_FLAGS_CONFIGURATION_SOURCE
@@ -869,21 +887,44 @@ def handle_ffe_evaluation(req, res)
     options = {
       flag_key: args.flag, default_value: args.default_value, evaluation_context: context
     }
+    options[:default_value] = args.default_value.to_f if args.variation_type == 'NUMERIC'
 
-    value =
+    details =
       case args.variation_type
-      when 'BOOLEAN'then client.fetch_boolean_value(**options)
-      when 'STRING' then client.fetch_string_value(**options)
-      when 'INTEGER' then client.fetch_integer_value(**options)
-      when 'NUMERIC' then client.fetch_float_value(**options)
-      when 'JSON' then client.fetch_object_value(**options)
-      else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      when 'BOOLEAN'then client.fetch_boolean_details(**options)
+      when 'STRING' then client.fetch_string_details(**options)
+      when 'INTEGER' then client.fetch_integer_details(**options)
+      when 'NUMERIC' then client.fetch_float_details(**options)
+      when 'JSON' then client.fetch_object_details(**options)
+      else raise ArgumentError, "Unexpected variation type: #{args.variation_type}"
       end
 
-    res.write({value: value, reason: 'DEFAULT'}.to_json)
+    res.write({
+      value: details.value,
+      reason: details.reason,
+      errorCode: details.error_code,
+      flagMetadata: details.flag_metadata,
+      providerStatus: ffe_provider_status(client)
+    }.to_json)
   rescue => e
-    res.write({value: args.default_value, reason: 'ERROR'}.to_json)
+    res.write({
+      value: args.default_value,
+      reason: 'ERROR',
+      errorCode: 'GENERAL',
+      errorMessage: e.message,
+      providerStatus: ffe_provider_status(client)
+    }.to_json)
   end
+end
+
+# The provider status the SDK reports. openfeature-sdk 0.6+ (Ruby 3.4+) has Client#provider_status;
+# this image's Ruby resolves 0.5.1, which keeps it in the private Configuration#provider_state
+# (read for the default provider, which build_client uses).
+def ffe_provider_status(client)
+  return client.provider_status if client.respond_to?(:provider_status)
+
+  configuration = OpenFeature::SDK.configuration
+  configuration.__send__(:provider_state, OpenFeature::SDK.provider) if configuration.respond_to?(:provider_state, true)
 end
 
 # OTel system tests provide times in microseconds, but Ruby OTel
@@ -1028,6 +1069,8 @@ class MyApp
       handle_metrics_otel_create_asynchronous_gauge(req, res)
     when '/metrics/otel/force_flush'
       handle_metrics_otel_force_flush(req, res)
+    when '/metrics/otel/shutdown'
+      handle_metrics_otel_shutdown(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
     when '/otel/logger/create'
@@ -1096,6 +1139,7 @@ class MyApp
     config["otel_exporter_otlp_traces_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.tracer_provider.instance_variable_get(:@span_processors))
     config["otel_exporter_otlp_metrics_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.meter_provider.instance_variable_get(:@metric_readers))
     config["otel_exporter_otlp_logs_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.logger_provider.instance_variable_get(:@log_record_processors))
+    config.merge!(blrp_config(OpenTelemetry.logger_provider.instance_variable_get(:@log_record_processors)))
     config["dd_env"] = Datadog.configuration.env || ""
     config["dd_version"] = Datadog.configuration.version || ""
     config["dd_tags"] = Datadog.configuration.tags.nil? ? "" : Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(",")
@@ -1118,6 +1162,19 @@ class MyApp
       (timeout * 1000).to_i.to_s if timeout.is_a?(Numeric)
     end
     timeouts.first if timeouts.length == 1
+  end
+
+  def blrp_config(processors)
+    batch_processors = Array(processors).grep(OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor)
+    return {} unless batch_processors.length == 1
+
+    processor = batch_processors.first
+    {
+      "otel_blrp_schedule_delay_ms" => (processor.instance_variable_get(:@delay_seconds) * 1000).to_i.to_s,
+      "otel_blrp_export_timeout_ms" => (processor.instance_variable_get(:@exporter_timeout_seconds) * 1000).to_i.to_s,
+      "otel_blrp_max_queue_size" => processor.instance_variable_get(:@max_queue_size).to_s,
+      "otel_blrp_max_export_batch_size" => processor.instance_variable_get(:@batch_size).to_s,
+    }
   end
 
   def handle_trace_span_set_metric(req, res)
@@ -1607,6 +1664,17 @@ class MyApp
     end
 
     res.write(OtelMetricsForceFlushReturn.new(true).to_json)
+  end
+
+  def handle_metrics_otel_shutdown(req, res)
+    args = OtelMetricsShutdownArgs.new(JSON.parse(req.body.read))
+    meter_provider = OpenTelemetry.meter_provider
+    success = meter_provider.respond_to?(:shutdown)
+    result = meter_provider.shutdown(timeout: args.seconds) if success
+    success &&= result == OpenTelemetry::SDK::Metrics::Export::SUCCESS
+    res.write(OtelMetricsForceFlushReturn.new(success).to_json)
+  rescue
+    res.write(OtelMetricsForceFlushReturn.new(false).to_json)
   end
 
   def handle_otel_logger_create(req, res)

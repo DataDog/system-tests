@@ -55,6 +55,10 @@ public class TraceController {
       config.put("otel_exporter_otlp_traces_timeout_ms", helper.getOptionalConfigValue("getOtlpTracesTimeout"));
       config.put("otel_exporter_otlp_metrics_timeout_ms", helper.getOptionalConfigValue("getOtlpMetricsTimeout"));
       config.put("otel_exporter_otlp_logs_timeout_ms", helper.getOptionalConfigValue("getOtlpLogsTimeout"));
+      config.put("otel_blrp_schedule_delay_ms", helper.getOptionalConfigValue("getLogsOtelInterval"));
+      config.put("otel_blrp_export_timeout_ms", helper.getOptionalConfigValue("getLogsOtelTimeout"));
+      config.put("otel_blrp_max_queue_size", helper.getOptionalConfigValue("getLogsOtelQueueSize"));
+      config.put("otel_blrp_max_export_batch_size", helper.getOptionalConfigValue("getLogsOtelBatchSize"));
       config.put("dd_trace_effective_log_level", helper.getEffectiveLogLevel());
 
       config.values().removeIf(Objects::isNull);

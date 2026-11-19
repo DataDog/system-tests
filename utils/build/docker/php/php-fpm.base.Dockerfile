@@ -3,10 +3,10 @@ FROM ubuntu:24.04
 ARG PHP_VERSION
 ENV PHP_VERSION=${PHP_VERSION}
 
-# build.sh only reads from these four subdirectories (see php-fpm/build.sh); keep this
+# build.sh only reads from these directories (see php-fpm/build.sh, it installs the plain weblog); keep this
 # list in sync with it, since it drives the base-image content hash.
 COPY apt-sources.d /tmp/php/apt-sources.d
-COPY weblogs /tmp/php/weblogs
+COPY weblogs/plain /tmp/php/weblogs/plain
 COPY php-fpm /tmp/php/php-fpm
 COPY common /tmp/php/common
 

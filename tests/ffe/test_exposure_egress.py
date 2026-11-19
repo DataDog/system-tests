@@ -14,7 +14,7 @@ from tests.ffe.utils.exposures import (
     exposure_events_from_data,
 )
 from tests.ffe.utils.fixtures import make_ufc_fixture
-from utils import context, features, remote_config as rc, scenario_crash, scenarios, weblog
+from utils import context, features, remote_config as rc, scenario_crash, scenarios, weblog, interfaces
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
 RC_PATH = "datadog/2/FFE_FLAGS"
@@ -51,7 +51,6 @@ class ExposureEgressContract:
     def test_exposure_egress(self) -> None:
         egress = feature_flagging_evp_egress()
         matching_requests = assert_exposure_side_effects_contract(
-            egress.interface,
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
@@ -74,11 +73,9 @@ class ExposureEgressContract:
                 library_version=context.library.raw_version,
             )
 
-        for excluded_interface in egress.excluded_interfaces:
-            assert not any(
-                exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-                for data in excluded_interface.get_data()
-            )
+        assert not any(
+            exposure_events_from_data(data, {self.flag_key}, self.targeting_key) for data in egress.excluded_data()
+        )
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -129,7 +126,7 @@ class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
 
         matching_requests = [
             data
-            for data in egress.interface.get_data()
+            for data in interfaces.mocked_backend.get_data()
             if exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
         ]
         assert len(matching_requests) == 1
@@ -156,11 +153,9 @@ class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
             library_name=context.library.name,
             library_version=context.library.raw_version,
         )
-        for excluded_interface in egress.excluded_interfaces:
-            assert not any(
-                exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-                for data in excluded_interface.get_data()
-            )
+        assert not any(
+            exposure_events_from_data(data, {self.flag_key}, self.targeting_key) for data in egress.excluded_data()
+        )
 
 
 @scenario_crash

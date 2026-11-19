@@ -27,12 +27,13 @@ elif [ -f /etc/alpine-release ]; then
     OS="Alpine"
 fi
 
+# Node.js 25+ official Linux binaries need libatomic.so.1, which base images do not ship.
 if [ "$OS" = "Debian" ]; then
     apt-get update
     ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git curl
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git curl libatomic1
 elif [ "$OS" = "RedHat" ]; then
-    yum install -y git curl
+    yum install -y git curl libatomic
 else
     echo "Unknown OS"
     exit 1

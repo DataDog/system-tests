@@ -24,7 +24,7 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[dict]:
     """Find captured exposure events for a specific flag key and optionally a specific subject."""
     events = []
-    for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+    for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
         events.extend(exposure_events_from_data(data, {flag_key}, subject_id))
     return events
 
@@ -35,7 +35,7 @@ def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) 
     # weblogs that don't support this route (or don't buffer exposures) just no-op here, and the
     # wait_for below still covers them.
     weblog.get("/flush")
-    assert interfaces.agent.wait_for(
+    assert interfaces.mocked_backend.wait_for(
         lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
     ), f"Timed out waiting for exposure event for flags {sorted(flag_keys)} and subject {subject_id!r}"
@@ -47,7 +47,7 @@ def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | 
 
     if count < expected:
         weblog.get("/flush")
-        assert interfaces.agent.wait_for(
+        assert interfaces.mocked_backend.wait_for(
             lambda _: count_exposure_events(flag_key, subject_id) >= expected,
             timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
         ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
@@ -119,7 +119,7 @@ class Test_FFE_Exposure_Events:
         matching_event = None
         context_validated = False
 
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
             # validate data sent to /api/v2/exposures
 
             exposure_data = data["request"]["content"]
@@ -264,7 +264,7 @@ class Test_FFE_Exposure_Events:
         # Collect all exposure events for our specific flags
         flags_found = set()
 
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             assert exposure_data is not None, "No exposure events were sent to agent"
 
@@ -330,7 +330,7 @@ class Test_FFE_Exposure_Events_Empty:
 
         # When no remote config is set, FFE should still work but return default value
         # The exposure events should still be generated based on library configuration
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             if exposure_data is not None:
                 # Validate that context is still present
@@ -431,7 +431,7 @@ class Test_FFE_Exposure_Events_Errors:
         # and the flag configuration remained valid despite the malformed update
         events_found = []
 
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             assert exposure_data is not None, "No exposure events were sent to agent"
 
@@ -1183,7 +1183,7 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
         # Search for exposure event with empty subject.id
         matching_event = None
         all_events_for_flag = []  # Collect all events for debugging
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for data in interfaces.mocked_backend.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             if exposure_data is None:
                 continue

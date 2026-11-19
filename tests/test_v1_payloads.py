@@ -7,13 +7,23 @@ from utils.dd_types import AgentTraceFormat, LibraryTraceFormat
 class Test_V1PayloadByDefault:
     """Tracers use by default v1 trace format"""
 
+    def setup_main(self):
+        self.r = weblog.get("/")
+
     def test_main(self):
-        traces = list(interfaces.library.get_traces())
+        traces = list(interfaces.library.get_traces(self.r))
         assert traces, "Expected at least one trace"
 
         for data, trace in traces:
             assert data["path"] == "/v1.0/traces"
             assert trace.format == LibraryTraceFormat.v10
+
+        # Traces sent before the tracer learns from the agent's /info that /v1.0/traces is supported
+        # (e.g. the weblog startup healthcheck) may use v0.4, but once it sends V1 it must never fall back
+        requests = list(interfaces.library.get_data(path_filters=interfaces.library.trace_paths))
+        first_v1 = next(i for i, data in enumerate(requests) if data["path"] == "/v1.0/traces")
+        downgraded = [data["log_filename"] for data in requests[first_v1:] if data["path"] != "/v1.0/traces"]
+        assert not downgraded, f"Legacy trace payloads sent after the first V1 payload: {downgraded}"
 
 
 @scenarios.apm_tracing_efficient_payload
@@ -24,7 +34,7 @@ class Test_V1Payloads:
 
     def test_field_changes(self):
         library_traces = list(interfaces.library.get_traces(self.r))
-        agent_traces = list(interfaces.agent.get_traces(self.r))
+        agent_traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(library_traces) == 1
         _, trace = library_traces[0]
         assert isinstance(trace.raw_trace, dict)
@@ -44,7 +54,13 @@ class Test_V1Payloads:
         assert len(agent_traces) == 1
         _, agent_trace = agent_traces[0]
         assert agent_trace.format == AgentTraceFormat.efficient_trace_payload_format
-        assert any(s.get_span_resource() == "GET /status" for s in agent_trace.spans)
+        # Framework integrations name the resource after their route (e.g. Laravel's "Closure status"):
+        # check that the agent carries the library's resource for the span serving this request
+        assert any(
+            s.get_span_resource() == span.raw_span["resource"]
+            for s in agent_trace.spans
+            if s.get_rid() == self.r.get_rid()
+        )
         assert agent_trace.trace_id == trace.raw_trace["trace_id"]
 
 

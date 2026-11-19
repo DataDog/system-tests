@@ -11,6 +11,7 @@ group "default" {
     "php-fpm-8_1",
     "php-fpm-8_2",
     "php-fpm-8_5",
+    "php-fpm-8_6",
 
     "apache-mod-7_0",
     "apache-mod-7_1",
@@ -29,6 +30,11 @@ group "default" {
     "apache-mod-8_0-zts",
     "apache-mod-8_1-zts",
     "apache-mod-8_2-zts",
+
+    "laravel11x",
+    "symfony7x",
+
+    "parametric",
   ]
 }
 
@@ -209,4 +215,31 @@ target "php-fpm-8_5" {
   dockerfile = "php-fpm.base.Dockerfile"
   args       = { PHP_VERSION = "8.5" }
   tags       = ["datadog/system-tests:php-fpm-8.5.base"]
+}
+
+target "php-fpm-8_6" {
+  inherits   = ["_common"]
+  dockerfile = "php-fpm.base.Dockerfile"
+  args       = { PHP_VERSION = "8.6" }
+  tags       = ["datadog/system-tests:php-fpm-8.6.base"]
+}
+
+target "parametric" {
+  inherits   = ["_common"]
+  dockerfile = "parametric.base.Dockerfile"
+  tags       = ["datadog/system-tests:php-parametric.base"]
+}
+
+target "laravel11x" {
+  inherits   = ["_common"]
+  dockerfile = "laravel11x.base.Dockerfile"
+  args       = { PHP_VERSION = "8.2", VARIANT = "release" }
+  tags       = ["datadog/system-tests:laravel11x.base"]
+}
+
+target "symfony7x" {
+  inherits   = ["_common"]
+  dockerfile = "symfony7x.base.Dockerfile"
+  args       = { PHP_VERSION = "8.2", VARIANT = "release" }
+  tags       = ["datadog/system-tests:symfony7x.base"]
 }

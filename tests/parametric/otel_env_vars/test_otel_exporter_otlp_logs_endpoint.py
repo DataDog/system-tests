@@ -92,3 +92,24 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:
         test_agent.wait_for_num_log_payloads(num=1)
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
+
+    @pytest.mark.parametrize("otlp_signal", ["logs"])
+    @pytest.mark.parametrize(
+        "base_path", ["/mycollector", "/mycollector/"], ids=["no_trailing_slash", "trailing_slash"]
+    )
+    @pytest.mark.parametrize("endpoint_value", [pytest.param("unset", id="unset")])
+    def test_generic_endpoint_with_base_path(
+        self,
+        base_path: str,  # noqa: ARG002
+        otlp_base_path_library_env: dict[str, str | None],  # noqa: ARG002
+        endpoint_value: str,  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        """The base path of OTEL_EXPORTER_OTLP_ENDPOINT is kept: logs go to <base path>/v1/logs."""
+        with test_library as library:
+            library.create_logger(LOGGER_NAME, LogLevel.INFO)
+            library.write_log(LOGGER_NAME, LogLevel.INFO, LOG_MESSAGE)
+
+        # The proxy only forwards requests received on <base path>/v1/logs, so any log payload here proves it.
+        test_agent.wait_for_num_log_payloads(num=1)

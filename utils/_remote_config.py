@@ -284,9 +284,11 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
-        # Build protobuf on test runner side, send bytes to proxy
-        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
-        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+        # Build protobuf on test runner side, send bytes to the backend the agent polls
+        rc_response = MockedBackendResponse(
+            path="/api/v0.1/configurations", content=build_rc_configurations_protobuf(raw_payload)
+        )
+        context.scenario.mocked_backend_container.client.set_mocked_responses([rc_response])  # type: ignore[attr-defined]
     elif target == "tracer":
         assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
@@ -432,7 +434,12 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     extra_timeout = 10  # give more room for startup
     timeout = len(commands) * rc_poll_interval + extra_timeout
     logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
-    library.wait_for(all_payload_sent, timeout=timeout)
+    wait_started = time.monotonic()
+    completed = library.wait_for(all_payload_sent, timeout=timeout)
+    elapsed = time.monotonic() - wait_started
+    logger.info(
+        f"RC sequence wait {'completed' if completed else 'timed out'} after {elapsed:.3f}s (timeout={timeout}s)"
+    )
 
 
 def _create_base_rcm():
@@ -914,11 +921,13 @@ def send_combined_apm_tracing_and_debugger_command(
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
     version: int = 1,
+    wait_for_acknowledged_status: bool = True,
 ) -> RemoteConfigStateResults:
     """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
     Note: This function updates prev_payloads in place with the new config, replacing
     all previous entries. This allows callers to track state across sequential calls.
+    wait_for_acknowledged_status is passed to send_state.
     """
     raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command(
         version,
@@ -940,7 +949,7 @@ def send_combined_apm_tracing_and_debugger_command(
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def _json_to_base64(json_object: dict) -> str:

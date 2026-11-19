@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import socket
 import subprocess
 import tempfile
 import json
@@ -89,6 +90,12 @@ class K8sClusterProvider:
         self._cluster_info.internal_agent_port = 8126
         self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = "localhost"
+
+    def expose_mocked_backend(self, port: int) -> str:
+        """Make the mocked backend, listening on port in the pytest process, reachable from the pods. Returns the host
+        (name or IP) they reach it through. To call once the cluster exists
+        """
+        raise NotImplementedError(f"{type(self).__name__} doesn't support the mocked backend")
 
     def configure_cluster_api_connection(self) -> None:
         """Configure the k8s cluster api connection"""
@@ -233,6 +240,11 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
         # Method to create a kubernetes secret to access to the internal registry
         if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
+
+    def expose_mocked_backend(self, port: int) -> str:  # noqa: ARG002
+        # minikube resolves it to the docker host, in the node and in CoreDNS. It only redirects the DNS port of the
+        # docker host to the docker DNS, unlike kind
+        return "host.minikube.internal"
 
     def destroy_cluster(self) -> None:
         logger.info("Destroying MiniKube cluster")
@@ -389,6 +401,38 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
+
+    def expose_mocked_backend(self, port: int) -> str:
+        cluster_info = self.get_cluster_info()
+        if cluster_info.docker_in_docker:
+            # In GitLab, the kind node is a sibling of the build container on the default bridge network (see
+            # _setup_kind_in_gitlab), where network aliases don't work: use the IP of the build container on the
+            # route to the node. No packet is sent, connecting an UDP socket only selects the source address
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                sock.connect((cluster_info.cluster_host_name, 6443))
+                host = sock.getsockname()[0]
+            logger.info(f"Pods reach the mocked backend through {host}")
+            return host
+
+        # Locally, the docker host is host.docker.internal (Docker Desktop, colima), else the gateway of the node
+        # (Linux). The kind node picks it the same way to serve the docker DNS to the pods: it redirects all the TCP and
+        # UDP traffic sent to it to the docker DNS. Exclude the port of the mocked backend from this redirection
+        node = f"{cluster_info.cluster_name}-control-plane"
+        candidates = execute_command(
+            f"docker exec {node} sh -c "
+            '\'getent ahostsv4 host.docker.internal | head -n1 | cut -d" " -f1; '
+            'ip -4 route show default | cut -d" " -f3\''
+        )
+        if not candidates or not candidates.split():
+            raise K8sLibInjectionError(f"Unable to find the docker host from the kind node {node}")
+        host = candidates.split()[0]
+        execute_command(
+            f"docker exec {node} sh -c "
+            f"'iptables -t nat -n -L DOCKER_OUTPUT > /dev/null 2>&1 || exit 0; "
+            f"iptables -t nat -I DOCKER_OUTPUT -d {host} -p tcp --dport {port} -j RETURN'"
+        )
+        logger.info(f"Pods reach the mocked backend through {host}")
+        return host
 
     def destroy_cluster(self) -> None:
         logger.info("Destroying kind cluster")

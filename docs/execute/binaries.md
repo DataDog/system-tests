@@ -107,14 +107,23 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 
 2. Build Java Tracer artifacts
 ```
-./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
+./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar :dd-openfeature:jar
 ```
 
-3. Copy both artifacts into the `system-tests/binaries/` folder:
+3. Copy the artifacts into the `system-tests/binaries/` folder:
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
-  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
+  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` (optional)
+  * The OpenFeature provider `dd-openfeature-*.jar` from `dd-openfeature/build/libs/`
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+Do not copy sources or Javadoc JARs. Some older SDK revisions build the provider with
+`:products:feature-flagging:feature-flagging-api:jar`, in
+`products/feature-flagging/feature-flagging-api/build/libs/`.
+
+The OpenFeature provider must have the same version as the agent. For the weblogs and the parametric application
+that use it (`spring-boot` and its variants, `parametric`), either `dd-java-agent` and `dd-openfeature` are both in
+`binaries/`, or none of them: then, the latest agent release and the `dd-openfeature` release of the same version
+are used. If only one of them is present, the build fails. The development artifact loader downloads both
+`dd-java-agent.jar` and `dd-openfeature.jar` from the same SDK branch.
 
 4. Build your selected weblog:
 

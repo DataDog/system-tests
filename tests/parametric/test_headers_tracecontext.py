@@ -393,6 +393,67 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
+    @parametrize("trace_flags", ["00", "01", "02", "03"])
+    def test_traceparent_trace_flags_sampling_with_randomness_bit(
+        self, test_library: APMLibrary, trace_flags: str
+    ) -> None:
+        """Interpret the sampled bit independently of the random trace ID flag.
+        See https://www.w3.org/TR/trace-context-2/#trace-flags.
+        """
+        trace_id = "12345678901234567890123456789012"
+        parent_id = "1234567890123456"
+        with test_library:
+            traceparent, _ = make_single_request_and_get_tracecontext(
+                test_library, [("traceparent", f"00-{trace_id}-{parent_id}-{trace_flags}")]
+            )
+
+        assert traceparent.trace_id == trace_id
+        assert traceparent.parent_id != parent_id
+        assert int(traceparent.trace_flags, 16) & 1 == int(trace_flags, 16) & 1
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
+                "DD_TRACE_SAMPLE_RATE": sample_rate,
+            }
+            for sample_rate in ("0", "1")
+        ],
+    )
+    def test_traceparent_trace_flags_randomness_bit_new_trace(
+        self, test_library: APMLibrary, library_env: dict[str, str]
+    ) -> None:
+        """New Datadog trace IDs should advertise randomness, regardless of sampling.
+        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag.
+        """
+        with test_library, test_library.dd_start_span(name="new_span") as span:
+            headers = test_library.dd_inject_headers(span.span_id)
+
+        traceparent, _ = get_tracecontext(dict(headers))
+        assert int(traceparent.trace_flags, 16) & 1 == int(library_env["DD_TRACE_SAMPLE_RATE"])
+        assert int(traceparent.trace_flags, 16) & 2 == 2
+
+    @temporary_enable_optin_tracecontext()
+    @parametrize("trace_flags", ["00", "01", "02", "03"])
+    def test_traceparent_trace_flags_randomness_bit_propagation(
+        self, test_library: APMLibrary, trace_flags: str
+    ) -> None:
+        """Preserve the random flag when continuing the same trace ID.
+        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag.
+        """
+        trace_id = "12345678901234567890123456789012"
+        parent_id = "1234567890123456"
+        with test_library:
+            traceparent, _ = make_single_request_and_get_tracecontext(
+                test_library, [("traceparent", f"00-{trace_id}-{parent_id}-{trace_flags}")]
+            )
+
+        assert traceparent.trace_id == trace_id
+        assert traceparent.parent_id != parent_id
+        assert int(traceparent.trace_flags, 16) & 2 == int(trace_flags, 16) & 2
+
+    @temporary_enable_optin_tracecontext()
     def test_traceparent_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends an valid traceparent with heading and trailing OWS
         expects a valid traceparent from the output header

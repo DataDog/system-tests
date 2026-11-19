@@ -413,37 +413,34 @@ public class MyResource {
         }
 
         // Call downstream so that tests can assert on the sampling decision that gets propagated
-        String result = new ObjectMapper().writeValueAsString(make_distant_call("http://localhost:7777/"));
+        String result = new ObjectMapper().writeValueAsString(make_distant_call("http://localhost:7777/", "GET"));
 
         return Response.ok(result).type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("/make_distant_call")
-    public DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
-        URL urlObject = new URL(url);
-
-        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-        con.setRequestMethod("GET");
+    public DistantCallResponse make_distant_call(
+            @QueryParam("url") String url,
+            @DefaultValue("GET") @QueryParam("method") String method) throws Exception {
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(url))
+                .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+                .build();
+        java.net.http.HttpResponse<Void> response = java.net.http.HttpClient.newHttpClient().send(
+                request,
+                java.net.http.HttpResponse.BodyHandlers.discarding());
 
         // Save request headers
         HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
+        for (Map.Entry<String, List<String>> header: request.headers().map().entrySet()) {
             request_headers.put(header.getKey(), header.getValue().get(0));
         }
 
         // Save response headers and status code
-        int status_code = con.getResponseCode();
+        int status_code = response.statusCode();
         HashMap<String, String> response_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
+        for (Map.Entry<String, List<String>> header: response.headers().map().entrySet()) {
             response_headers.put(header.getKey(), header.getValue().get(0));
         }
 

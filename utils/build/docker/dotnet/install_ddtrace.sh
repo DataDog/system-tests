@@ -13,10 +13,12 @@ fi
 
 get_latest_release() {
     local releases
-    if ! releases=$(curl --fail --retry 3 "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"); then
+    # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+    if ! curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output /tmp/releases.json "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"; then
         echo "Failed to get latest release"
         exit 1
     fi
+    releases=$(cat /tmp/releases.json)
     echo $releases | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
 }
 
@@ -42,7 +44,7 @@ else
         fi
 
         echo "Using artifact ${artifact}"
-        curl -L --fail "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
+        curl -L --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
     fi
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog

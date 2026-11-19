@@ -27,7 +27,7 @@ FROM golang:1.26-alpine
 RUN apk add --no-cache curl bash gcc musl-dev
 
 COPY --from=build /app/weblog /app/weblog
-COPY --from=build /app/fiber-v2-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/fiber-v2-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /app/SYSTEM_TESTS_ORCHESTRION_VERSION /app/SYSTEM_TESTS_ORCHESTRION_VERSION
 
 WORKDIR /app

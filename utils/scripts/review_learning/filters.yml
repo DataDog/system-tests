@@ -1,0 +1,72 @@
+---
+# Configuration of the review-learning pipeline.
+# Patterns match the whole value and ignore case. Only * is a wildcard.
+
+defaults:
+  window: 30d
+  batch_days: 7  # read by the model steps, which do not exist yet
+  max_chars_per_pr: 12000
+  max_chars_per_comment: 1500
+  max_chars_per_body: 2000
+  max_changes: 5  # rule changes per run, after decide.py ranks them
+  extract_model: sonnet  # step 3: one subagent per batch
+  map_model: opus  # step 5: one subagent per lens
+
+# Pull requests that are never mined.
+exclude_prs:
+  author_types: [Bot]  # GraphQL __typename. GitHub Apps such as dd-octo-sts are bots.
+  authors:
+    - dd-octo-sts
+    - dependabot
+    - github-actions
+    - renovate
+    - "*[bot]"
+  title_patterns:
+    - "Update Agent to *"
+    - "Update injector to *"
+    - "Auto-activate * easy wins for *"
+    - "Auto-update *"
+    - "Update mirror images*"
+  labels: [do-not-merge]
+  numbers:
+    - 8278  # creates the review rules
+    - 8294  # rule demonstration
+    - 8318  # rule demonstration
+    - 8319  # rule demonstration
+    - 8320  # rule demonstration
+
+# Comments that never count as human review. A thread opened by an ignored author is dropped whole.
+ignore_comments:
+  author_types: [Bot]
+  authors:
+    - chatgpt-codex-connector
+    - github-actions
+    - copilot-pull-request-reviewer
+    - "datadog-*"
+    - "*[bot]"
+  # Whole-comment matches only: "Thanks, fixed in abc1234" and "Nice idea, but ..." are kept.
+  body_patterns:
+    - "lgtm"
+    - "lgtm!"
+    - "lgtm."
+    - "thanks"
+    - "thanks!"
+    - "thank you"
+    - "thank you!"
+    - "nice"
+    - "nice!"
+    - "+1"
+    - "👍"
+    - "🚀"
+    - "approved"
+
+# Files that szz.py never blames: generated or pinned content.
+skip_blame_paths:
+  - "*.lock"
+  - "*.lock.yaml"
+  - "*.lock.yml"
+  - "*lock.json"
+  - "uv.lock"
+  - "*.png"
+  - "*.jpg"
+  - "*.svg"

@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, irrelevant, bug, missing_feature, logger
+from utils import scenarios, features, context, irrelevant, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base
@@ -20,7 +20,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
         if context.library.name in ["ruby", "python", "dotnet"]:
-            weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
+            weblog_start_command = virtual_machine.get_provision().weblog_installation.remote_command
 
         # Ok the installation is done, now we can do some chaos
         self._test_install(virtual_machine)
@@ -58,7 +58,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 
         # Env for installation command
         prefix_env = f"DD_LANG={context.library.name}"
-        for key, value in virtual_machine._vm_provision.env.items():
+        for key, value in virtual_machine.get_provision().env.items():
             prefix_env += f" DD_{key}={value}"
 
         logger.info("Restoring installation using the command:: ")
@@ -86,10 +86,6 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @irrelevant(
         context.vm_name
         in [
@@ -115,10 +111,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
         context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]

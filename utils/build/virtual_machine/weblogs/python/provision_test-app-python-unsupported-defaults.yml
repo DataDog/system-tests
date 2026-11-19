@@ -8,7 +8,8 @@ lang_variant:
         os_distro: rpm
         os_branch: centos_7_amd64
         remote-command: |
-          sudo  yum install -y python3
+          sudo  yum install -y python3 || sudo  yum install -y python3
+          sudo yum install -y python3-pip || sudo yum install -y python3-pip || true
           #Remove the symlink to python2
           sudo unlink /usr/bin/python
           sudo ln -s /usr/bin/python3 /usr/bin/python
@@ -20,21 +21,24 @@ lang_variant:
         os_distro: rpm
         os_branch: centos_8_amd64
         remote-command: |
-          sudo dnf install -y python3
+          sudo dnf install -y python3 || sudo dnf install -y python3
+          sudo dnf install -y python3-pip || sudo dnf install -y python3-pip || true
           sudo ln -s /usr/bin/python3 /usr/bin/python
 
       - os_type: linux
         os_distro: rpm
         os_branch: redhat
         remote-command: |
-          sudo dnf install -y python3
+          sudo dnf install -y python3 || sudo dnf install -y python3
+          sudo dnf install -y python3-pip || sudo dnf install -y python3-pip || true
           sudo ln -s /usr/bin/python3 /usr/bin/python || true
 
       - os_type: linux
         os_distro: rpm
         os_branch: rhel_7_amd64
         remote-command: |
-          sudo  yum install -y python3
+          sudo  yum install -y python3 || sudo  yum install -y python3
+          sudo yum install -y python3-pip || sudo yum install -y python3-pip || true
           #Remove the symlink to python2
           sudo unlink /usr/bin/python
           sudo ln -s /usr/bin/python3 /usr/bin/python
@@ -61,5 +65,8 @@ weblog:
 
           - name: copy-python-app
             local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+
+          - name: copy-pip-conf
+            local_path: utils/build/virtual_machine/weblogs/python/pip.conf
 
         remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh

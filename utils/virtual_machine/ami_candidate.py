@@ -4,6 +4,8 @@ from typing import Protocol
 
 _CANDIDATE_BUILD_WINDOW = timedelta(hours=6)
 _REJECTED_AMI_STATE = "rejected"
+_VALIDATING_TEST_OUTCOMES = {"passed", "failed", "error", "xpassed", "xfailed", "skipped"}
+_FAILED_TEST_OUTCOMES = {"failed", "error"}
 
 
 class _SelectableAmi(Protocol):
@@ -13,10 +15,16 @@ class _SelectableAmi(Protocol):
 
 
 def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outcomes: Sequence[str]) -> str | None:
-    """Promote only after a real pass. Reject only after a real test failure."""
-    if provision_failed or not any(outcome in {"pass", "fail"} for outcome in test_outcomes):
+    """Return the next ami-state, or None to leave the candidate unchanged.
+
+    A provision failure leaves the candidate unchanged.
+    A failed test rejects it.
+    Exit code 0 marks it active when no test failed. Skipped tests count.
+    A run with no tests leaves the candidate unchanged.
+    """
+    if provision_failed or not any(outcome in _VALIDATING_TEST_OUTCOMES for outcome in test_outcomes):
         return None
-    if "fail" in test_outcomes:
+    if any(outcome in _FAILED_TEST_OUTCOMES for outcome in test_outcomes):
         return "rejected"
     if exitstatus == 0:
         return "active"

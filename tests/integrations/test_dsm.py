@@ -621,7 +621,7 @@ class DsmHelper:
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
-        for data in interfaces.agent.get_dsm_data():
+        for data in interfaces.mocked_backend.get_dsm_data():
             # some tracers may send separate payloads with stats
             # or backlogs so "Stats" may be empty
             for stats_bucket in data["request"]["content"].get("Stats", {}):

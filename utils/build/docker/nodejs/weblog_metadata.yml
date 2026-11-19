@@ -51,6 +51,7 @@ fastify:
     - APPSEC_STANDALONE_RASP
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
+    - SECURITY_SMOKE
     - THREAD_CONTEXT_SHARING
 nextjs:
   build_mode: local
@@ -79,6 +80,7 @@ nextjs:
     - APPSEC_STANDALONE_RASP
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
+    - SECURITY_SMOKE
 uds-express4:
   build_mode: local
   supported_scenarios:

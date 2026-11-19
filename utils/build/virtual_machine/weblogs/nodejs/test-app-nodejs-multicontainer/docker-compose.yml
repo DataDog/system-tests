@@ -1,93 +1,147 @@
+---
 version: '2'
 
 services:
-    reverseproxy:
-        image: reverseproxy:latest
-        ports:
-            - 5985:8080
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.reverseproxy
-        healthcheck:
-            test: "curl -f http://localhost:8080"
+  reverseproxy:
+    image: reverseproxy:latest
+    ports:
+      - 5985:8080
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.reverseproxy
+    depends_on:
+      node_18:
+        condition: service_healthy
+      node_20:
+        condition: service_healthy
+      node_22:
+        condition: service_healthy
+      node:
+        condition: service_healthy
+      node_18_alpine:
+        condition: service_healthy
+      node_20_alpine:
+        condition: service_healthy
+      node_22_alpine:
+        condition: service_healthy
+      node_alpine:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:8080/ >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
-    node_18:
-        env_file: "scenario_app.env"
-        image: system-tests/node_18:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node18
-        healthcheck:
-            test: "node health"
+  node_18:
+    env_file: "scenario_app.env"
+    image: system-tests/node_18:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node18
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_20:
-        env_file: "scenario_app.env"
-        image: system-tests/node_20:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node20
-        healthcheck:
-            test: "node health"
+  node_20:
+    env_file: "scenario_app.env"
+    image: system-tests/node_20:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node20
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_22:
-        env_file: "scenario_app.env"
-        image: system-tests/node_22:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node22
-        healthcheck:
-            test: "node health"
+  node_22:
+    env_file: "scenario_app.env"
+    image: system-tests/node_22:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node22
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node:
-        env_file: "scenario_app.env"
-        image: system-tests/node:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node
-        healthcheck:
-            test: "node health"
+  node:
+    env_file: "scenario_app.env"
+    image: system-tests/node:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_18_alpine:
-        env_file: "scenario_app.env"
-        image: system-tests/node_18_alpine:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node18-alpine
-        healthcheck:
-            test: "node health"
+  node_18_alpine:
+    env_file: "scenario_app.env"
+    image: system-tests/node_18_alpine:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node18-alpine
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_20_alpine:
-        env_file: "scenario_app.env"
-        image: system-tests/node_20_alpine:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node20-alpine
-        healthcheck:
-            test: "node health"
+  node_20_alpine:
+    env_file: "scenario_app.env"
+    image: system-tests/node_20_alpine:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node20-alpine
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_22_alpine:
-        env_file: "scenario_app.env"
-        image: system-tests/node_22_alpine:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node22-alpine
-        healthcheck:
-            test: "node health"
+  node_22_alpine:
+    env_file: "scenario_app.env"
+    image: system-tests/node_22_alpine:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node22-alpine
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    node_alpine:
-        env_file: "scenario_app.env"
-        image: system-tests/node_alpine:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node-alpine
-        healthcheck:
-            test: "node health"
+  node_alpine:
+    env_file: "scenario_app.env"
+    image: system-tests/node_alpine:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.node-alpine
+    healthcheck:
+      test: "node health"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s

@@ -1,12 +1,5 @@
-# ubuntu:24.04 ships with cmake 3.28 (minimum version required by dd-trace-cpp)
-FROM ubuntu:24.04 AS build
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ca-certificates cmake g++ make libcurl4-openssl-dev git jq curl unzip && \
-    rm -rf /var/lib/apt/lists/*
+# The base image is ubuntu:24.04 with the build toolchain installed (see kong-build.base.Dockerfile)
+FROM system_tests_base_cpp_kong_kong_build AS build
 
 RUN mkdir /builds /binaries
 
@@ -17,14 +10,8 @@ RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
 # ==============================================================================
 
-FROM kong/kong-gateway:3.4
-
-USER root
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# The base image is kong/kong-gateway:3.4 with curl installed, running as root (see kong-runtime.base.Dockerfile)
+FROM system_tests_base_cpp_kong_kong_runtime
 
 RUN mkdir -p /builds
 
@@ -38,7 +25,7 @@ COPY --from=build /binaries/kong-plugin-ddtrace/kong/plugins/ddtrace/ \
 
 # Copy version metadata
 COPY --from=build /builds/healthcheck.json /builds/healthcheck.json
-COPY --from=build /builds/SYSTEM_TESTS_LIBRARY_VERSION /builds/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 # Static response files for weblog endpoints
 RUN printf 'Hello world!\n' > /builds/hello.txt

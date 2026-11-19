@@ -61,6 +61,22 @@ sudo find "$dest" -maxdepth 1 -type f \
 sudo chmod a+r "$diagnostics" "$dest/journalctl_test-app.log" "$dest/coredumpctl-list.txt" 2>/dev/null || true
 '"""
 
+# HotSpot writes hs_err_pid<pid>.log in the process working directory. For the
+# Java host weblog that directory is /home/datadog (see test-app.service), which
+# is not one of the folders downloaded before the VM is destroyed. Only a Java
+# fatal error produces these files, so the copy is a no-op for every other weblog.
+_COLLECT_HS_ERR_CMD = r"""bash -lc '
+set +e
+dest=/var/log/datadog_weblog
+sudo mkdir -p "$dest"
+sudo find /home /root /tmp -maxdepth 3 -type f -name "hs_err_pid*.log" 2>/dev/null |
+  while IFS= read -r src; do
+    base=${src##*/}
+    sudo cp -f "$src" "$dest/$base" || true
+    sudo chmod a+r "$dest/$base" || true
+  done
+'"""
+
 # Remote commands that collect host/docker/agent logs into /var/log/datadog_weblog before download.
 # Mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml.
 _LOG_COLLECTION_COMMANDS = [
@@ -68,6 +84,7 @@ _LOG_COLLECTION_COMMANDS = [
     "sudo chmod 777 /var/log/datadog_weblog || true",
     "sudo chmod -R a+rX /var/log/datadog || true",
     _COLLECT_CORE_DUMPS_CMD,
+    _COLLECT_HS_ERR_CMD,
     _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
     "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
     "bash -lc 'cd ~ && sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true'",
