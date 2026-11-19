@@ -20,7 +20,7 @@ def find_eval_metrics(flag_key: str | None = None):
     Returns a list of metric points matching the metric name, optionally filtered by flag key tag.
     """
     results = []
-    for _, point in interfaces.agent.get_metrics():
+    for _, point in interfaces.mocked_backend.get_metrics():
         if point.get("metric") != "feature_flag.evaluations":
             continue
 

@@ -22,7 +22,7 @@ RUN apt-get update \
 
 RUN mkdir -p /opt/nginx-src \
     && cd /opt/nginx-src \
-    && curl -fsSL https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx.tar.gz \
+    && curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx.tar.gz \
     && tar -xzf nginx.tar.gz \
     && rm nginx.tar.gz
 

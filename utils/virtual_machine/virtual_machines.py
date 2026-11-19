@@ -4,11 +4,14 @@ import json
 import hashlib
 
 import paramiko
+from retry import retry
 
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
 
 # The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).
 _MAX_CACHE_NAME_LENGTH = 120
+# Paramiko stops an SSH login after 30 seconds by default. A busy VM can take longer.
+_SSH_TIMEOUT_SECONDS = 60
 
 
 class AWSInfraConfig:
@@ -78,15 +81,27 @@ class _SSHConfig:
     def set_pkey(self, pkey: str):
         self.pkey = pkey
 
-    def get_ssh_connection(self):
+    @retry(delay=5, tries=5)
+    def get_ssh_connection(self) -> paramiko.SSHClient:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
+        connect_kwargs = {
+            "timeout": _SSH_TIMEOUT_SECONDS,
+            "banner_timeout": _SSH_TIMEOUT_SECONDS,
+            "auth_timeout": _SSH_TIMEOUT_SECONDS,
+        }
         if self.pkey_path is not None:
             if self.pkey is None:
                 self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
-            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
+            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey, **connect_kwargs)
         else:
-            ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
+            ssh.connect(
+                self.hostname,
+                port=self.port,
+                username=self.username,
+                key_filename=self.key_filename,
+                **connect_kwargs,
+            )
         return ssh
 
 
@@ -118,6 +133,8 @@ class _VirtualMachine:
         self.tested_components = {}
         self.deffault_open_port: int = 5985
         self.agent_env: dict[str, str] | None = None
+        # When set, the provision points the agent to this URL instead of the real Datadog backend
+        self.agent_backend_url: str | None = None
         self.app_env: dict[str, str] | None = None
         self.default_vm: bool = default_vm
         self._deployed_weblog: _DeployedWeblog | None = None
@@ -169,6 +186,9 @@ class _VirtualMachine:
 
     def add_agent_env(self, agent_env: dict[str, str]):
         self.agent_env = agent_env
+
+    def set_agent_backend_url(self, url: str):
+        self.agent_backend_url = url
 
     def add_app_env(self, app_env: dict[str, str]):
         self.app_env = app_env
@@ -232,9 +252,15 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
+        # host, container, alpine, or multicontainer. The installer uses this to
+        # choose host injection or host+docker injection.
+        deployed_app_type = self.get_deployed_weblog().app_type
+        if deployed_app_type is not None:
+            command_env["DD_APP_TYPE"] = deployed_app_type
         # Scenario custom environment: agent and app env variables
         command_env["DD_AGENT_ENV"] = ""
         command_env["DD_APP_ENV"] = ""
+        command_env["DD_AGENT_BACKEND_URL"] = self.agent_backend_url or ""
         if self.agent_env:
             agent_env_values = ""
             for key, value in self.agent_env.items():

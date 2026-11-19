@@ -1,0 +1,7 @@
+issuer: https://gitlab.ddbuild.io
+
+subject_pattern: "project_path:DataDog/system-tests:ref_type:branch:ref:.*"
+
+permissions:
+  contents: read
+  pull_requests: read

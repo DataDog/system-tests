@@ -10,6 +10,7 @@ command_exists() {
 }
 
 ask_load_injector_dev_binary(){
+    wizard_usage_step injector_binary
     spacer
     echo -e "${YELLOW}📌 Step: Check Injector Dev Binary${NC}"
 
@@ -62,7 +63,7 @@ ask_load_injector_dev_binary(){
 
             echo "Downloading injector-dev binary from $BINARY_URL..."
             if command_exists curl; then
-                curl -L -o "binaries/injector-dev" "$BINARY_URL"
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fL -o "binaries/injector-dev" "$BINARY_URL"
             elif command_exists wget; then
                 wget -O "binaries/injector-dev" "$BINARY_URL"
             else
@@ -87,6 +88,7 @@ ask_load_injector_dev_binary(){
 }
 
 ask_load_k8s_injector_dev_requirements(){
+    wizard_usage_step tools
     spacer
     echo -e "${YELLOW}📌 Step: Install K8s Injector Dev Requirements${NC}"
     echo "The following tools are required for K8s injector dev scenarios:"
@@ -116,7 +118,7 @@ ask_load_k8s_injector_dev_requirements(){
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO https://github.com/abiosoft/colima/releases/latest/download/colima-linux-x86_64
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/abiosoft/colima/releases/latest/download/colima-linux-x86_64
                 chmod +x colima-linux-x86_64
                 sudo mv colima-linux-x86_64 /usr/local/bin/colima
             fi
@@ -135,17 +137,17 @@ ask_load_k8s_injector_dev_requirements(){
                 # macOS
                 ARCH=$(uname -m)
                 if [[ "$ARCH" == "arm64" ]]; then
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-arm64
                     sudo install minikube-darwin-arm64 /usr/local/bin/minikube
                     rm minikube-darwin-arm64
                 else
-                    curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-amd64
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-darwin-amd64
                     sudo install minikube-darwin-amd64 /usr/local/bin/minikube
                     rm minikube-darwin-amd64
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
                 sudo install minikube-linux-amd64 /usr/local/bin/minikube
                 rm minikube-linux-amd64
             fi
@@ -165,11 +167,11 @@ ask_load_k8s_injector_dev_requirements(){
                 if command_exists brew; then
                     brew install helm
                 else
-                    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh && rm get_helm.sh
             fi
             echo -e "${GREEN}✅ Helm installed successfully.${NC}"
         fi
@@ -189,16 +191,16 @@ ask_load_k8s_injector_dev_requirements(){
                 else
                     ARCH=$(uname -m)
                     if [[ "$ARCH" == "arm64" ]]; then
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
+                        curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
                     else
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
+                        curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
                     fi
                     chmod +x kubectl
                     sudo mv kubectl /usr/local/bin/
                 fi
             elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # Linux
-                curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLO "https://dl.k8s.io/release/$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLs https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                 chmod +x kubectl
                 sudo mv kubectl /usr/local/bin/
             fi
@@ -212,6 +214,7 @@ ask_load_k8s_injector_dev_requirements(){
 }
 
 configure_private_registry() {
+    wizard_usage_step registry
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
     echo "You need to use a private registry to execute these tests."
@@ -247,6 +250,7 @@ configure_private_registry() {
 }
 
 select_weblog_img(){
+    wizard_usage_step weblog_image
     spacer
     echo -e "${YELLOW}📌 Step: Select weblog img registry${NC}"
     WEBLOG_IMAGE="$PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG:latest"
@@ -285,6 +289,7 @@ select_weblog_img(){
 }
 
 migrate_images_to_private_registry() {
+    wizard_usage_step migrate_images
     if [[ "$PRIVATE_DOCKER_REGISTRY" == "235494822917.dkr.ecr.us-east-1.amazonaws.com" ]]; then
         return
     fi
@@ -368,6 +373,7 @@ migrate_images_to_private_registry() {
 }
 
 confirm_root_registry(){
+    wizard_usage_step root_registry
     spacer
     echo -e "${YELLOW}📌 Step: Confirm Root Registry for Injection Images${NC}"
     echo "All injection images (cluster agent, apm-injector and lib-init) must be in the same registry path."
@@ -388,6 +394,7 @@ confirm_root_registry(){
 }
 
 select_cluster_agent(){
+    wizard_usage_step cluster_agent
     spacer
     echo -e "${YELLOW}📌 Step: Select Cluster Agent Image${NC}"
     echo "You only need to specify the image name and tag."
@@ -406,6 +413,7 @@ select_cluster_agent(){
 }
 
 select_lib_init_and_injector(){
+    wizard_usage_step lib_init
     spacer
     echo -e "${YELLOW}📌 Step: Select Lib Init and Injector Images${NC}"
     echo "You only need to specify the image names and tags."
@@ -456,6 +464,7 @@ select_lib_init_and_injector(){
 }
 
 run_the_tests(){
+    wizard_usage_step confirm
     spacer
     # 📌 Step: Confirm and execute
     echo ""
@@ -478,16 +487,37 @@ run_the_tests(){
     CMD=("./run.sh" "$SCENARIO" "--k8s-library" "$TEST_LIBRARY" "--k8s-weblog" "$WEBLOG" "--k8s-weblog-img" "$WEBLOG_IMAGE" "--k8s-cluster-img" "$CLUSTER_AGENT_IMAGE" "--k8s-lib-init-img" "$LIB_INIT_IMAGE" "--k8s-injector-img" "$INJECTOR_IMAGE" "--k8s-ssi-registry-base" "$K8S_SSI_REGISTRY_BASE")
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
+
+    wizard_usage wizard.configured \
+        "library=${TEST_LIBRARY}" \
+        "scenario=${SCENARIO}" \
+        "weblog=${WEBLOG}"
+
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing...${NC}"
+        wizard_usage_step run
+        wizard_usage wizard.executed "library=${TEST_LIBRARY}"
+        local run_start rc
+        run_start=$(date +%s)
         "${CMD[@]}"
+        rc=$?
+        wizard_usage_finish wizard.finished \
+            "library=${TEST_LIBRARY}" \
+            "scenario=${SCENARIO}" \
+            "weblog=${WEBLOG}" \
+            "outcome=$([[ ${rc} -eq 0 ]] && echo success || echo failed)" \
+            "exit_code=${rc}" \
+            "run_seconds=$(( $(date +%s) - run_start ))"
+        return "${rc}"
     else
+        wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
 }
 
 # Main execution flow
+wizard_usage_begin k8s-injector-dev
 welcome "K8s injector dev Tests"
 ask_load_requirements
 ask_load_injector_dev_binary

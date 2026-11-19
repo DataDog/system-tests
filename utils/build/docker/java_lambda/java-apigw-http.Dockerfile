@@ -1,23 +1,24 @@
-# Multi-stage build
-FROM maven:3.9-eclipse-temurin-17 AS builder
-WORKDIR /build
+# The base image holds a maven repository filled from java_lambda/pom.xml: maven runs offline here
+FROM system_tests_base_java_lambda_java_lambda_maven AS builder
+
 COPY utils/build/docker/java_lambda/pom.xml .
 COPY utils/build/docker/java_lambda/src ./src
-RUN mvn clean package -DskipTests
+COPY utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh "-o -Dmaven.repo.local=/maven"
+RUN mvn -o -Dmaven.repo.local=/maven -B package -DskipTests
 
 # Runtime image
 FROM system_tests_base_java_lambda_java_lambda_runtime
 
-# Install dd-trace-java
-COPY utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+COPY --from=builder /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 # Copy built JAR and extract to Lambda task root
-COPY --from=builder /build/target/java-lambda-weblog-*.jar /tmp/app.jar
+COPY --from=builder /app/target/java-lambda-weblog-*.jar /tmp/app.jar
 RUN cd ${LAMBDA_TASK_ROOT} && jar xf /tmp/app.jar && rm /tmp/app.jar
+COPY --from=builder /app/target/sca-libs/*.jar ${LAMBDA_TASK_ROOT}/lib/
 
 # Copy Datadog agent and entrypoint
-RUN cp /dd-tracer/dd-java-agent.jar ${LAMBDA_TASK_ROOT}/dd-java-agent.jar
+COPY --from=builder /dd-tracer/dd-java-agent.jar ${LAMBDA_TASK_ROOT}/dd-java-agent.jar
 COPY utils/build/docker/java_lambda/app.sh ${LAMBDA_TASK_ROOT}/app.sh
 RUN chmod +x ${LAMBDA_TASK_ROOT}/app.sh
 

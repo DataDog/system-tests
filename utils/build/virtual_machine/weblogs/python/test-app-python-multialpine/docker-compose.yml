@@ -1,53 +1,83 @@
+---
 version: '2'
 
 services:
-    reverseproxy:
-        image: reverseproxy:latest
-        ports:
-            - 5985:8080
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.reverseproxy
-        healthcheck:
-            test: "curl -f http://localhost:8080"  
+  reverseproxy:
+    image: reverseproxy:latest
+    ports:
+      - 5985:8080
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.reverseproxy
+    depends_on:
+      python_3_12:
+        condition: service_healthy
+      python_3_11:
+        condition: service_healthy
+      python_3_10:
+        condition: service_healthy
+      python_3_9:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:8080/ >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
-    python_3_12:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_12:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_12-alpine
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  python_3_12:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_12:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_12-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    python_3_11:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_11:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_11-alpine
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  python_3_11:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_11:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_11-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    python_3_10:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_10:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_10-alpine
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  python_3_10:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_10:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_10-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
-    python_3_9:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_9:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_9-alpine
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  python_3_9:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_9:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_9-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s

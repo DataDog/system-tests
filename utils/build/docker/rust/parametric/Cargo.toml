@@ -8,13 +8,20 @@ readme        = "README.md"
 publish       = false
 
 resolver      = "3"
-rust-version  = "1.87" # should match Dockerfile rustc version
+rust-version  = "1.91.1" # should match Dockerfile rustc version
 
 [[bin]]
 name = "ddtrace-rs-client"
 path = "src/main.rs"
 doc = false
 bench = false
+
+[features]
+# `manual-sampling` is enabled by install_ddtrace.sh when the installed
+# datadog-opentelemetry ships datadog-telemetry-api (the sampling-decision
+# API); it stays off so plain local builds work against older versions.
+default = []
+manual-sampling = []
 
 [dependencies]
 anyhow                  = { version = "1.0", features = [ "backtrace" ] }

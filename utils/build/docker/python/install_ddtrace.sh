@@ -20,7 +20,7 @@ elif [ $(ls python-load-from-s3 | wc -l) = 1 ]; then
     echo "Install ddtrace from S3, git ref: ${GIT_REF}"
     # Try to fetch `metadata.txt` and save it so test output can display it, but don't fail if we cannot
     # This includes commit sha, pipeline id, etc that was used to build the artifact
-    curl -sf https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt > metadata.txt || true
+    curl -sf --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -o metadata.txt https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt || true
     if [ -s metadata.txt ]; then
         cat metadata.txt
     fi
@@ -44,3 +44,6 @@ else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
 fi
+
+# read by build.sh, to label the image with it, like the healthcheck reports it. A tracer mounted at runtime overrides it
+python -c "import ddtrace; open('/binaries/SYSTEM_TESTS_LIBRARY_VERSION', 'w').write(ddtrace.__version__)"

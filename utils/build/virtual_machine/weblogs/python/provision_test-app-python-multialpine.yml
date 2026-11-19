@@ -24,4 +24,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
+          - name: copy-pip-conf
+            local_path: utils/build/virtual_machine/weblogs/python/pip.conf
         remote-command: sh create_and_run_app_multicontainer.sh

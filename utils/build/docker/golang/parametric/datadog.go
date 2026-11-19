@@ -288,6 +288,11 @@ type TracerConfig struct {
 	RateLimit              string            `json:"sample_rate_limit"`
 	DogstatsdAddr          string            `json:"dogstatsd_address"`
 	DataStreamsEnabled     bool              `json:"data_streams_enabled"`
+	// Effective logs batch processor settings, reported once the tracer validates them.
+	BLRPScheduleDelay      json.Number `json:"otel_blrp_schedule_delay"`
+	BLRPExportTimeout      json.Number `json:"otel_blrp_export_timeout"`
+	BLRPMaxQueueSize       json.Number `json:"otel_blrp_max_queue_size"`
+	BLRPMaxExportBatchSize json.Number `json:"otel_blrp_max_export_batch_size"`
 }
 
 type ProfilerConfig struct {
@@ -373,6 +378,17 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string, logLevel string) m
 		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = "", ""
 	}
 	config["dd_data_streams_enabled"] = l.tracerConfig["DataStreamsEnabled"]
+	for key, field := range map[string]string{
+		"otel_blrp_schedule_delay_ms":     "BLRPScheduleDelay",
+		"otel_blrp_export_timeout_ms":     "BLRPExportTimeout",
+		"otel_blrp_max_queue_size":        "BLRPMaxQueueSize",
+		"otel_blrp_max_export_batch_size": "BLRPMaxExportBatchSize",
+	} {
+		// Tracers before v2.13.0 do not report these settings.
+		if value := l.tracerConfig[field]; value != "" {
+			config[key] = value
+		}
+	}
 	// Add profiling enabled configuration
 	if profilingEnabled, exists := l.profilerConfig["ProfilingEnabled"]; exists {
 		config["dd_profiling_enabled"] = profilingEnabled

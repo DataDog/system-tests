@@ -300,9 +300,29 @@ def test_deserialize_v1_trace_bytes_attributes_match_convert_bytes_values():
 @scenarios.test_the_test
 def test_deserialize_v1_trace_key_value_list_attribute():
     """Test that span attributes with key_value_list type (V1AnyValueKeys.key_value_list=7)
-    are deserialized to a nested dict.
-    # TODO(v1-kvlist-e2e): add an E2E system test once a tracer emits keyValueList in a V1 payload.
+    are deserialized to a nested dict. A key_value_list is a flat [key, type, value, ...] array.
     """
+    kvl = int(V1AnyValueKeys.key_value_list)
+    # _dd.stack has the shape the PHP tracer sends: arrays of key_value_lists, with string refs.
+    # Streamed strings: 11 is "id" (first seen in the exploit), reused as a ref in the frame.
+    stack = [
+        "exploit",
+        int(V1AnyValueKeys.array),
+        [
+            kvl,
+            [
+                "language",
+                int(V1AnyValueKeys.string),
+                "php",
+                "id",
+                int(V1AnyValueKeys.string),
+                "stack-id",
+                "frames",
+                int(V1AnyValueKeys.array),
+                [kvl, ["line", int(V1AnyValueKeys.int_value), 21, 11, int(V1AnyValueKeys.int_value), 0]],
+            ],
+        ],
+    ]
     content = msgpack.packb(
         {
             2: "cid",
@@ -315,8 +335,11 @@ def test_deserialize_v1_trace_key_value_list_attribute():
                             2: "op",
                             9: [
                                 "my-map",
-                                int(V1AnyValueKeys.key_value_list),
-                                {"nested-key": [int(V1AnyValueKeys.string), "nested-val"]},
+                                kvl,
+                                ["nested-key", int(V1AnyValueKeys.string), "nested-val"],
+                                "_dd.stack",
+                                kvl,
+                                stack,
                             ],
                         }
                     ],
@@ -332,6 +355,9 @@ def test_deserialize_v1_trace_key_value_list_attribute():
     attrs = result["chunks"][0]["spans"][0]["attributes"]
     assert "my-map" in attrs
     assert attrs["my-map"] == {"nested-key": "nested-val"}
+    assert attrs["_dd.stack"] == {
+        "exploit": [{"language": "php", "id": "stack-id", "frames": [{"line": 21, "id": 0}]}],
+    }
 
 
 @scenarios.test_the_test
@@ -350,3 +376,98 @@ def test_decode_appsec_s_value_accepts_bytes():
     # Invalid UTF-8 bytes raise ValueError
     with pytest.raises(ValueError, match="Invalid UTF-8"):
         decode_appsec_s_value(b"\xff\xfe")
+
+
+@scenarios.test_the_test
+def test_uncompress_agent_v1_trace_with_span_events():
+    """Test that span events names and attributes are resolved from the strings table in idxTracerPayloads."""
+    data = {
+        "idxTracerPayloads": [
+            {
+                "strings": [
+                    "",
+                    "exception",
+                    "exception.type",
+                    "ValueError",
+                    "exception.escaped",
+                    "attempt",
+                    "tags",
+                    "a",
+                ],
+                "chunks": [
+                    {
+                        "traceID": base64.b64encode(bytes(16)).decode("utf-8"),
+                        "spans": [
+                            {
+                                "events": [
+                                    {
+                                        "time": "1794607861156080339",
+                                        "nameRef": 1,
+                                        "attributes": {
+                                            "2": {"stringValueRef": 3},
+                                            "4": {"boolValue": False},
+                                            "5": {"intValue": "2"},
+                                            "6": {"arrayValue": {"values": [{"stringValueRef": 7}, {"intValue": "0"}]}},
+                                        },
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+
+    result = _uncompress_agent_v1_trace(data, "agent")
+
+    event = result["idxTracerPayloads"][0]["chunks"][0]["spans"][0]["events"][0]
+    assert event == {
+        "time_unix_nano": "1794607861156080339",
+        "name": "exception",
+        "attributes": {"exception.type": "ValueError", "exception.escaped": False, "attempt": 2, "tags": ["a", 0]},
+    }
+
+
+@scenarios.test_the_test
+def test_uncompress_agent_v1_trace_int_and_key_value_list_attributes():
+    """Agent v1 protobuf attributes convert int64 strings to ints and recursively uncompress keyValueList/arrayValue."""
+    from google.protobuf.json_format import MessageToDict  # noqa: PLC0415
+    from typing import Any  # noqa: PLC0415
+    from utils.proxy._decoders.protobuf_schemas import TracePayload  # noqa: PLC0415
+
+    msg: Any = TracePayload()
+    tp = msg.idxTracerPayloads.add()
+    tp.strings.extend(
+        ["exploit", "_dd.appsec.enabled", "_dd.stack", "language", "php", "id", "stack-id", "frames", "line"]
+    )
+    chunk = tp.chunks.add()
+    chunk.traceID = bytes([0] * 15 + [1])
+    span = chunk.spans.add()
+    span.attributes[1].intValue = 1
+
+    kv_exp = span.attributes[2].keyValueList.keyValues.add()
+    kv_exp.key = 0  # default 0 omitted by MessageToDict -> "exploit"
+    elem = kv_exp.value.arrayValue.values.add()
+    kv_lang = elem.keyValueList.keyValues.add()
+    kv_lang.key = 3
+    kv_lang.value.stringValueRef = 4
+    kv_id = elem.keyValueList.keyValues.add()
+    kv_id.key = 5
+    kv_id.value.stringValueRef = 6
+    kv_frames = elem.keyValueList.keyValues.add()
+    kv_frames.key = 7
+    frame = kv_frames.value.arrayValue.values.add()
+    kv_line = frame.keyValueList.keyValues.add()
+    kv_line.key = 8
+    kv_line.value.intValue = 21
+
+    result = MessageToDict(TracePayload.FromString(msg.SerializeToString()))
+    _uncompress_agent_v1_trace(result, "agent")
+
+    attrs = result["idxTracerPayloads"][0]["chunks"][0]["spans"][0]["attributes"]
+    assert attrs["_dd.appsec.enabled"] == 1
+    assert isinstance(attrs["_dd.appsec.enabled"], int)
+    assert attrs["_dd.stack"] == {
+        "exploit": [{"language": "php", "id": "stack-id", "frames": [{"line": 21}]}],
+    }

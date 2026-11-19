@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
-RUN apk add --no-cache build-base yaml-dev
+RUN apk add --no-cache bash build-base curl yaml-dev
 
 # Upgrade RubyGems and Bundler
 RUN gem update --system 3.4.22

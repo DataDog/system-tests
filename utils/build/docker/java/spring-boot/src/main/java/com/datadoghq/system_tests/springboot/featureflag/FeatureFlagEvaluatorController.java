@@ -123,8 +123,9 @@ public class FeatureFlagEvaluatorController {
                 context.add(key, (Boolean) value);
             } else if (value instanceof Integer) {
                 context.add(key, (Integer) value);
-            } else if (value instanceof Double) {
-                context.add(key, (Double) value);
+            } else if (value instanceof Number) {
+                // Jackson uses Long for JSON integers outside the Integer range.
+                context.add(key, ((Number) value).doubleValue());
             } else if (value instanceof String) {
                 context.add(key, (String) value);
             } else if (value instanceof Map) {

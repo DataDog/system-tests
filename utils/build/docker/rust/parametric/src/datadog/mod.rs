@@ -272,12 +272,42 @@ async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetri
     }
 }
 
+/// Manual sampling decision to apply to a trace
+enum ManualSamplingDecision {
+    Keep,
+    Drop,
+}
+
+/// Applies a manual sampling decision to the trace the span context belongs
+/// to, through the Datadog sampling-decision API when the installed
+/// datadog-opentelemetry provides it (`manual-sampling` feature, enabled by
+/// install_ddtrace.sh); logs it away otherwise, so the same sources build
+/// against both old and new datadog-opentelemetry.
+fn apply_manual_sampling_decision(
+    span_context: &::opentelemetry::trace::SpanContext,
+    decision: ManualSamplingDecision,
+) {
+    #[cfg(feature = "manual-sampling")]
+    {
+        let decision = match decision {
+            ManualSamplingDecision::Keep => datadog_telemetry_api::SamplingDecision::Keep,
+            ManualSamplingDecision::Drop => datadog_telemetry_api::SamplingDecision::Drop,
+        };
+        datadog_telemetry_api::set_sampling_decision(span_context, decision);
+    }
+    #[cfg(not(feature = "manual-sampling"))]
+    {
+        debug!("manual sampling decision API not available in this datadog-opentelemetry build");
+        let _ = (span_context, decision);
+    }
+}
+
 async fn manual_keep(State(state): State<AppState>, Json(args): Json<ManualSamplingArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("manual_keep: span {} found", args.span_id);
-        debug!("manual_keep: not implemented");
+        apply_manual_sampling_decision(span.span_context(), ManualSamplingDecision::Keep);
     } else {
         debug!("manual_keep: span {} NOT found", args.span_id);
     }
@@ -288,7 +318,7 @@ async fn manual_drop(State(state): State<AppState>, Json(args): Json<ManualSampl
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("manual_drop: span {} found", args.span_id);
-        debug!("manual_drop: not implemented");
+        apply_manual_sampling_decision(span.span_context(), ManualSamplingDecision::Drop);
     } else {
         debug!("manual_drop: span {} NOT found", args.span_id);
     }

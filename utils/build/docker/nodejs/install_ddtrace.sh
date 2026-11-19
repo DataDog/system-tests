@@ -20,6 +20,7 @@ install_custom_target () {
 
 if [ -e /binaries/nodejs-load-from-local ]; then
     echo "using local version that will be mounted at runtime"
+    echo "0.0.0" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 else
     if [ -e /binaries/nodejs-load-from-npm ]; then
         target=$(xargs < /binaries/nodejs-load-from-npm)
@@ -37,4 +38,7 @@ else
         echo "install from NPM"
         install_custom_target dd-trace
     fi
+
+    # read by build.sh, to label the image with it, like the healthcheck reports it. A tracer mounted at runtime overrides it
+    node -p "require('dd-trace/package.json').version" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 fi

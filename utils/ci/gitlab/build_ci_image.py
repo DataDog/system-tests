@@ -1,8 +1,8 @@
 """Build (and sign) the CI images used to run system-tests jobs.
 
 Called by the ``build_ci_image`` job in .gitlab-ci.yml. Computes the expected
-tags from the content of the Dockerfiles (and requirements.txt for the
-ci-runner), checks that $CI_IMAGE (utils/ci/gitlab/main.yml) matches the
+tags from the content of the Dockerfiles (and requirements.txt and
+validate_param_env.py for the ci-runner), checks that $CI_IMAGE (utils/ci/gitlab/main.yml) matches the
 computed ci-runner tag, then builds and pushes via ``docker buildx bake``
 whichever of image-builder/ci-runner is missing from the registry, signing
 each newly built image with ddsign.
@@ -46,7 +46,10 @@ def _check_ci_image(expected_image: str, ci_image: str) -> None:
     if expected_image != ci_image:
         print(f"❌ CI_IMAGE mismatch: hardcoded '{ci_image}' does not match computed '{expected_image}'")  # noqa: T201
         print("   Update CI_IMAGE in utils/ci/gitlab/main.yml:")  # noqa: T201
-        print("     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12")  # noqa: T201
+        print(  # noqa: T201
+            "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt"
+            " utils/ci/gitlab/validate_param_env.py | sha256sum | cut -c1-12"
+        )
         sys.exit(1)
 
 
@@ -100,7 +103,11 @@ def main() -> None:
     ci_image = os.environ.get("CI_IMAGE", "")
 
     image_builder_tag = _sha256_tag(DOCKER_DIR / "image-builder.Dockerfile")
-    ci_runner_tag = _sha256_tag(DOCKER_DIR / "system-tests.Dockerfile", REPO_ROOT / "requirements.txt")
+    ci_runner_tag = _sha256_tag(
+        DOCKER_DIR / "system-tests.Dockerfile",
+        REPO_ROOT / "requirements.txt",
+        REPO_ROOT / "utils" / "ci" / "gitlab" / "validate_param_env.py",
+    )
 
     expected_image = f"{REGISTRY}/ci-runner:{ci_runner_tag}"
 

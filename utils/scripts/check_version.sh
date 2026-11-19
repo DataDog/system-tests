@@ -96,7 +96,7 @@ for v in "${versions[@]}"; do
         build="$build_prefix-$v.$build_suffix"
         if [ ! -f "$build" ]; then
             echo "Downloading $build"
-            curl -sSLO "https://github.com/DataDog/dd-trace-$library/releases/download/v$v/$build"
+            curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --fail -sSLO "https://github.com/DataDog/dd-trace-$library/releases/download/v$v/$build"
         fi
         rm binaries/$build_prefix*.$build_suffix || true
         cp "$build" binaries/

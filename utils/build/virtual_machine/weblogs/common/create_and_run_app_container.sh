@@ -14,6 +14,8 @@ set -e
 readonly DIAGNOSTICS_LOG="${HOME}/dd-agent-diagnostics.log"
 readonly SCRIPT_MARKER="create_and_run_app_container.sh diagnostics-v3"
 readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
+# Created by the provision when the agent must send its payloads to the mocked backend
+readonly AGENT_COMPOSE_MOCKED_BACKEND="docker-compose-agent-mocked-backend.yml"
 readonly AGENT_LOCK="agent.lock"
 readonly WEBLOG_LOG_DIR="/var/log/datadog_weblog"
 readonly DOCKER_BUILD_MAX_RETRIES=3
@@ -135,7 +137,12 @@ start_agent() {
         exit 1
     fi
 
-    if ! sudo -E docker-compose -f "${AGENT_COMPOSE}" up -d --remove-orphans datadog --wait --wait-timeout 120; then
+    local compose_files=(-f "${AGENT_COMPOSE}")
+    if [ -f "${AGENT_COMPOSE_MOCKED_BACKEND}" ]; then
+        compose_files+=(-f "${AGENT_COMPOSE_MOCKED_BACKEND}")
+    fi
+
+    if ! sudo -E docker-compose "${compose_files[@]}" up -d --remove-orphans datadog --wait --wait-timeout 120; then
         echo "..:: COMPOSE_WAIT_FAILED (dd-agent unhealthy or timeout) ::.." | tee -a "${DIAGNOSTICS_LOG}" >&2
         dump_dd_agent_diagnostics
         echo "..:: Diagnostics written to ${DIAGNOSTICS_LOG} ::.." >&2

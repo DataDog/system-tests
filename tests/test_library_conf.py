@@ -405,7 +405,7 @@ class Test_HeaderTags_Wildcard_Request_Headers:
 
     def test_trace_header_tags(self):
         tags = {TAG_SHORT: HEADER_VAL_BASIC}
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1
 
         span = spans[0]
@@ -423,7 +423,7 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 
     def test_trace_header_tags(self):
         response_headers = self.r.headers
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1
 
         span = spans[0]
@@ -453,9 +453,9 @@ class Test_ExtractBehavior_Default:
 
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = [trace for _, trace in interfaces.agent.get_traces(self.r)]
+        traces = [trace for _, trace in interfaces.mocked_backend.get_traces(self.r)]
         trace_id = traces[0].trace_id_as_int
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
@@ -490,8 +490,8 @@ class Test_ExtractBehavior_Default:
 
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = [trace for _, trace in interfaces.agent.get_traces(self.r)]
-        spans = interfaces.agent.get_spans_list(self.r)
+        traces = [trace for _, trace in interfaces.mocked_backend.get_traces(self.r)]
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         assert len(traces) > 0, "Agent received the incorrect amount of traces"
 
@@ -542,7 +542,7 @@ class Test_ExtractBehavior_Restart:
 
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
@@ -588,7 +588,7 @@ class Test_ExtractBehavior_Restart:
 
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
@@ -639,7 +639,7 @@ class Test_ExtractBehavior_Restart:
 
     def test_multiple_tracecontexts_with_overrides(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
@@ -711,7 +711,7 @@ class Test_ExtractBehavior_Restart_Otel:
 
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
 
         span = self._get_otel_span(spans)
         assert span.get("traceID") != "1"
@@ -749,7 +749,7 @@ class Test_ExtractBehavior_Restart_Otel:
 
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
 
         span = self._get_otel_span(spans)
         assert span.get("traceID") != "1"
@@ -788,7 +788,7 @@ class Test_ExtractBehavior_Restart_Otel:
 
     def test_multiple_tracecontexts_with_overrides(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
 
         span = self._get_otel_span(spans)
         assert span.get("traceID") != "1"
@@ -831,7 +831,7 @@ class Test_ExtractBehavior_Ignore:
 
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
@@ -866,7 +866,7 @@ class Test_ExtractBehavior_Ignore:
 
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
@@ -911,7 +911,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
 
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
@@ -957,7 +957,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
 
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context

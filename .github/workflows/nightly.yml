@@ -19,6 +19,7 @@ jobs:
           - dotnet
           - golang
           - java
+          - java_lambda
           - nodejs
           - php
           - python

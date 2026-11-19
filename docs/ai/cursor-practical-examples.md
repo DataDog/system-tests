@@ -68,7 +68,7 @@ This guide provides real-world, practical examples of using Cursor AI effectivel
 ### Example 9: Basic Specialized Java Development
 ```markdown
 # User Query:
-@java-endpoint-prompt.mdc
+@.agents/rules/java-endpoint-prompt.md
 
 Analyze this test file and create the missing endpoints for Spring Boot:
 
@@ -78,7 +78,7 @@ Test file: tests/appsec/iast/test_sqli.py
 ### Example 10: Multi-Framework Java Development
 ```markdown
 # User Query:
-@java-endpoint-prompt.mdc
+@.agents/rules/java-endpoint-prompt.md
 
 Create the same SQLI endpoint for Vert.x 4 and Jersey
 ```

@@ -1,5 +1,8 @@
+import io
 import os
 import subprocess
+import sys
+import traceback
 import urllib.error
 from pathlib import Path
 
@@ -9,6 +12,8 @@ from utils import scenarios
 from utils.scripts.update_agent_version import (
     AGENT_VERSION_LOCK,
     AUTOMATION_BRANCH,
+    PUSH_ATTEMPTS,
+    PUSH_RETRY_DELAY_SECONDS,
     GitHubApi,
     automate_update,
     enable_auto_merge,
@@ -17,6 +22,7 @@ from utils.scripts.update_agent_version import (
     push_signed_commit,
     revoke_token,
     run_automation,
+    run_command,
     update_agent_version,
 )
 
@@ -191,12 +197,12 @@ def test_publish_update_creates_only_missing_pr(
         _root: Path,
         args: list[str],
         *,
-        capture_output: bool = False,
+        capture_stdout: bool = False,
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         assert env == {"GH_TOKEN": "token"}
         commands.append(args)
-        if not capture_output:
+        if not capture_stdout:
             return subprocess.CompletedProcess(args, 0, stdout=None)
         if args == ["git", "rev-parse", "HEAD"]:
             return subprocess.CompletedProcess(args, 0, stdout="main-sha\n")
@@ -252,7 +258,7 @@ def test_push_signed_commit_creates_branch_when_missing(tmp_path: Path, monkeypa
         _root: Path,
         args: list[str],
         *,
-        capture_output: bool = False,  # noqa: ARG001
+        capture_stdout: bool = False,  # noqa: ARG001
         env: dict[str, str] | None = None,  # noqa: ARG001
     ) -> subprocess.CompletedProcess[str]:
         commands.append(args)
@@ -274,6 +280,106 @@ def test_push_signed_commit_creates_branch_when_missing(tmp_path: Path, monkeypa
         "main-sha",
         "--create-branch",
     ] in commands
+
+
+@scenarios.test_the_test
+def test_push_signed_commit_retries_failed_push(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+    delays: list[float] = []
+    branch_exists = False
+
+    class FakeGitHubApi(GitHubApi):
+        def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:  # noqa: ARG002
+            if not branch_exists:
+                raise urllib.error.HTTPError(path, 404, "Not Found", {}, None)  # type: ignore[arg-type]
+            return {}
+
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_stdout: bool = False,  # noqa: ARG001
+        env: dict[str, str] | None = None,  # noqa: ARG001
+    ) -> subprocess.CompletedProcess[str]:
+        nonlocal branch_exists
+        commands.append(args)
+        if len(commands) == 1:
+            # The first attempt fails after creating the branch, so the retry must force-update it.
+            branch_exists = True
+            raise subprocess.CalledProcessError(1, args)
+        return subprocess.CompletedProcess(args, 0, stdout="signed-sha\n")
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+    monkeypatch.setattr("utils.scripts.update_agent_version.time.sleep", delays.append)
+
+    signed_sha = push_signed_commit(tmp_path, "main-sha", FakeGitHubApi("token"), {"GH_TOKEN": "token"})
+
+    assert signed_sha == "signed-sha"
+    assert [command[-1] for command in commands] == ["--create-branch", "--force"]
+    assert delays == [PUSH_RETRY_DELAY_SECONDS]
+
+
+@scenarios.test_the_test
+def test_push_signed_commit_gives_up_after_last_attempt(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+    delays: list[float] = []
+
+    def fail_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_stdout: bool = False,  # noqa: ARG001
+        env: dict[str, str] | None = None,  # noqa: ARG001
+    ) -> subprocess.CompletedProcess[str]:
+        commands.append(args)
+        raise subprocess.CalledProcessError(1, args)
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fail_run)
+    monkeypatch.setattr("utils.scripts.update_agent_version.time.sleep", delays.append)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        push_signed_commit(tmp_path, "main-sha", fake_github({}), {"GH_TOKEN": "token"})
+
+    assert len(commands) == PUSH_ATTEMPTS
+    assert delays == [PUSH_RETRY_DELAY_SECONDS] * (PUSH_ATTEMPTS - 1)
+
+
+@scenarios.test_the_test
+def test_run_command_leaves_stderr_in_job_log(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    script = "import sys; print('signed-sha'); print('why it failed', file=sys.stderr); sys.exit(1)"
+
+    with pytest.raises(subprocess.CalledProcessError) as error:
+        run_command(tmp_path, [sys.executable, "-c", script], capture_stdout=True)
+
+    assert error.value.stdout == "signed-sha\n"
+    assert capfd.readouterr().err == "why it failed\n"
+
+
+@scenarios.test_the_test
+def test_run_command_quiet_hides_all_output(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    script = "import sys; print('secret-token'); print('secret-token', file=sys.stderr)"
+
+    run_command(tmp_path, [sys.executable, "-c", script], quiet=True)
+
+    captured = capfd.readouterr()
+    assert captured.out == ""
+    assert captured.err == ""
+
+
+@scenarios.test_the_test
+def test_github_api_error_includes_response_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_urlopen(request: urllib.request.Request) -> None:
+        body = io.BytesIO(b'{"message": "Reference already exists"}')
+        raise urllib.error.HTTPError(request.full_url, 422, "Unprocessable Entity", {}, body)  # type: ignore[arg-type]
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.urllib.request.urlopen", fail_urlopen)
+
+    with pytest.raises(urllib.error.HTTPError) as error:
+        GitHubApi("token").request("POST", "/repos/DataDog/system-tests/git/refs", {})
+
+    assert error.value.__notes__ == [
+        'POST /repos/DataDog/system-tests/git/refs: {"message": "Reference already exists"}'
+    ]
 
 
 def fake_github(result: object) -> GitHubApi:
@@ -317,12 +423,13 @@ def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch:
         _root: Path,
         args: list[str],
         *,
-        capture_output: bool = False,
+        capture_stdout: bool = False,
+        quiet: bool = False,  # noqa: ARG001
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         assert env is None
         commands.append(args)
-        stdout = "secret-token" if capture_output else ""
+        stdout = "secret-token" if capture_stdout else ""
         return subprocess.CompletedProcess(args, 0, stdout=stdout)
 
     def fail_update(_root: Path, _github: GitHubApi, env: dict[str, str], _version: str | None) -> bool:
@@ -348,10 +455,10 @@ def test_revoke_token_hides_token_and_command_output(
         _root: Path,
         args: list[str],
         *,
-        capture_output: bool = False,
+        quiet: bool = False,
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        assert capture_output
+        assert quiet
         assert env is None
         raise subprocess.CalledProcessError(
             1,
@@ -366,9 +473,37 @@ def test_revoke_token_hides_token_and_command_output(
         revoke_token(tmp_path, token)
 
     captured = capsys.readouterr()
-    assert token not in str(error.value)
+    assert token not in "".join(traceback.format_exception(error.value))
     assert captured.out == ""
     assert captured.err == ""
+
+
+@scenarios.test_the_test
+def test_run_automation_keeps_failure_when_revocation_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_stdout: bool = False,
+        quiet: bool = False,
+        env: dict[str, str] | None = None,  # noqa: ARG001
+    ) -> subprocess.CompletedProcess[str]:
+        if quiet:
+            raise subprocess.CalledProcessError(1, args)
+        return subprocess.CompletedProcess(args, 0, stdout="secret-token" if capture_stdout else "")
+
+    def fail_update(_root: Path, _github: GitHubApi, _env: dict[str, str], _version: str | None) -> bool:
+        raise RuntimeError("publish failed")
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+    monkeypatch.setattr("utils.scripts.update_agent_version.automate_update", fail_update)
+
+    with pytest.raises(RuntimeError, match="token revocation failed with exit code 1") as error:
+        run_automation(tmp_path)
+
+    report = "".join(traceback.format_exception(error.value))
+    assert "publish failed" in report
+    assert "secret-token" not in report
 
 
 @scenarios.test_the_test
@@ -379,12 +514,12 @@ def test_run_automation_rejects_empty_token(tmp_path: Path, monkeypatch: pytest.
         _root: Path,
         args: list[str],
         *,
-        capture_output: bool = False,
+        capture_stdout: bool = False,
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         assert env is None
         commands.append(args)
-        return subprocess.CompletedProcess(args, 0, stdout="" if capture_output else None)
+        return subprocess.CompletedProcess(args, 0, stdout="" if capture_stdout else None)
 
     monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
 

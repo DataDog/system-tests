@@ -58,4 +58,4 @@ class Test_NoIpIsReported:
         def validator(data: dict):
             assert_no_ip(data["request"]["content"], "request")
 
-        interfaces.agent.validate_all(validator, allow_no_data=True)
+        interfaces.mocked_backend.validate_all(validator, allow_no_data=True)

@@ -21,14 +21,18 @@ This module tests:
 
 import json
 from utils import pytest
-from pathlib import Path
 from typing import Any
 
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.utils import decode_delta_varint, encode_delta_varint, hash_targeting_key
+from tests.parametric.test_ffe.utils import (
+    decode_delta_varint,
+    encode_delta_varint,
+    hash_targeting_key,
+    load_ufc_fixture_for_cases,
+)
 
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -37,18 +41,7 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 parametrize = pytest.mark.parametrize
 
 
-def _load_span_enrichment_fixture() -> dict[str, Any]:
-    """Load the UFC fixture file for span enrichment tests."""
-    fixture_path = Path(__file__).parent / "span-enrichment-flags.json"
-
-    if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
-
-    with fixture_path.open() as f:
-        return json.load(f)
-
-
-UFC_SPAN_ENRICHMENT_DATA = _load_span_enrichment_fixture()
+UFC_SPAN_ENRICHMENT_DATA = load_ufc_fixture_for_cases("test-case-span-enrichment-inputs.json")
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",

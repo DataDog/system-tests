@@ -30,6 +30,10 @@ The following text must be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /add_event
+
+Add a span event to the request root span, with any name and attribute values.
+
 ### GET /headers
 
 This endpoint must set the following headers:
@@ -841,6 +845,16 @@ The parameters in the body are:
 - `exists`: String with "true" or "false" value
 - `metadata`: Objet with the metadata
 
+### POST /custom_event_v2
+
+This endpoint calls the v2 AppSec event tracking SDK function used for custom events with
+data from the JSON request body.
+
+The parameters in the body are:
+
+- `event_name`: Event name, defaulting to `system_tests_event`.
+- `metadata`: Optional object containing event metadata.
+
 ### GET /inferred-proxy/span-creation
 
 This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
@@ -886,6 +900,8 @@ metadata with caller information in the telemetry `app-dependencies-loaded` payl
 Alternate call site for the same vulnerable function targeted by `/sca/vulnerable-call`. Used to
 test first-hit-wins deduplication: when the same CVE is triggered from two different call sites, only the
 first occurrence is reported in the `reached` array.
+
+The Java Lambda weblogs also implement both SCA endpoints, using Junrar 7.5.5 kept as a separate JAR. The vulnerable class is preloaded during handler initialization.
 
 ### GET /log/library
 
@@ -971,6 +987,16 @@ These endpoints are used for the `Dynamic Instrumentation` tests.
 
 Executes the same probe line `loops` times during one request. It is used to verify per-probe and global
 Dynamic Instrumentation rate limits.
+
+#### GET /debugger/correlation
+
+Calls `Correlation`, `CorrelationMiddle`, and `CorrelationLeaf` in one request, pausing between the probed method exits. Used to check that snapshot sampling emits a whole probe chain together.
+
+#### GET /debugger/correlation/loop/<count>
+
+Runs a loop `count` times in one request, sleeping one second per iteration. The loop body and the line right
+after the loop are probed. Used to check that a probe emits at most one snapshot per trace, without starving a
+sibling probe in the same trace.
 
 #### GET /debugger/snapshot/capture-timeout
 
@@ -1142,6 +1168,13 @@ accept a JSON body with these fields:
 - `defaultValue`: the value to return when evaluation cannot resolve the flag.
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
+
+For the high-cardinality FFE workload, the endpoint also accepts a non-empty
+`targetingKeys` array. Evaluate the same flag once per key through the public SDK
+API, using the same attributes and default value. The response includes `count`
+(the number of targeting keys in the request) and the final evaluation's `value`.
+Do not replace the loop with a direct telemetry submission or change SDK flush
+timing. When the array is absent or empty, evaluate the single `targetingKey`.
 
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.

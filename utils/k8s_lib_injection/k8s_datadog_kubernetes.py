@@ -37,6 +37,7 @@ class K8sDatadog:
         helm_chart_version: str | None = None,
         helm_chart_operator_version: str | None = None,
     ) -> None:
+        """api_key and app_key: credentials of the agents deployed by the operator"""
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature or {}
         self.dd_cluster_uds = dd_cluster_uds
@@ -45,6 +46,9 @@ class K8sDatadog:
         self.app_key = app_key
         self.helm_chart_version = helm_chart_version
         self.helm_chart_operator_version = helm_chart_operator_version
+        # URL of the mocked backend, as seen from the pods: the agents deployed by the operator send their payloads
+        # to it. Set once the mocked backend runs
+        self.backend_url: str | None = None
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def _ensure_namespace_exists(self, namespace: str) -> None:
@@ -213,6 +217,7 @@ class K8sDatadog:
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
+        self._wait_for_daemonset_ready("datadog-csi-driver-node-server", namespace)
 
     def deploy_datadog_operator(self, host_log_folder: str, namespace: str = "datadog") -> None:
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog
@@ -247,34 +252,39 @@ class K8sDatadog:
             f"--namespace={namespace}"
         )
         # Configure cluster agent image on the operator file
-        operator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
+        assert self.backend_url, "The mocked backend URL is not set: the agents would send to the real backend"
+        operator_config_file = add_cluster_agent_img_operator_yaml(
+            self.dd_cluster_img, self.output_folder, backend_url=self.backend_url
+        )
 
+        # helm doesn't wait for the CRD that the operator chart installs: it may not be served yet
+        execute_command("kubectl wait --for condition=established --timeout=60s crd/datadogagents.datadoghq.com")
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {operator_config_file}")
         execute_command(f"kubectl apply -f {operator_config_file} --namespace={namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
+        self._wait_for_daemonset_ready("datadog-csi-driver-node-server", namespace)
+
+    def _wait_for_daemonset_ready(self, name: str, namespace: str) -> None:
+        daemonset_status = None
+        for _ in range(20):
+            daemonsets = self.k8s_cluster_info.apps_api().list_namespaced_daemon_set(
+                namespace=namespace, field_selector=f"metadata.name={name}"
+            )
+            daemonset_status = next(iter(daemonsets.items), None)
+            if (
+                daemonset_status is not None
+                and daemonset_status.status.number_ready == daemonset_status.status.desired_number_scheduled > 0
+            ):
+                logger.info(f"DaemonSet {name} is ready")
+                return
+            time.sleep(5)
+
+        raise K8sLibInjectionError(f"DaemonSet {name} not ready. Last status: {daemonset_status}")
 
     def wait_for_test_agent(self, namespace: str) -> None:
         """Waits for the test agent to be ready."""
-        daemonset_created = False
-        daemonset_status = None
-        # Wait for the daemonset to be created
-        for _ in range(20):
-            daemonset_status = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set_status(
-                name="datadog", namespace=namespace
-            )
-            if daemonset_status is not None and daemonset_status.status.number_ready > 0:
-                logger.info("[Test agent] daemonset status datadog running!")
-                daemonset_created = True
-                break
-            if daemonset_status is None:
-                logger.info("[Test agent] daemonset status datadog not found")
-            time.sleep(5)
-
-        if not daemonset_created:
-            logger.info(f"[Test agent] Daemonset not created. Last status: {daemonset_status}")
-            raise K8sLibInjectionError("Daemonset not created")
-
+        self._wait_for_daemonset_ready("datadog", namespace)
         w = watch.Watch()
         for event in w.stream(
             func=self.list_namespaced_pod,
@@ -293,50 +303,37 @@ class K8sDatadog:
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
     def _wait_for_cluster_agent_ready(self, namespace: str, label_selector: str = "app=datadog-cluster-agent") -> None:
-        cluster_agent_ready = False
         cluster_agent_status = None
         datadog_cluster_name = None
 
         for _ in range(20):
             try:
-                if datadog_cluster_name is None:
-                    pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(
-                        namespace, label_selector=label_selector
-                    )
-                    datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
-                    logger.info(f"[status cluster agent] Cluster agent name: {datadog_cluster_name}")
-                cluster_agent_status = (
-                    self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(
+                pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, label_selector=label_selector)
+                datadog_cluster_name = pods.items[0].metadata.name if pods.items else None
+                cluster_agent_status = None
+                if datadog_cluster_name:
+                    cluster_agent_status = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(
                         name=datadog_cluster_name, namespace=namespace
                     )
-                    if datadog_cluster_name
-                    else None
-                )
                 if (
                     cluster_agent_status
                     and cluster_agent_status.status.phase == "Running"
                     and cluster_agent_status.status.container_statuses[0].ready is True
                 ):
-                    logger.info("[sattus cluster agent] Cluster agent datadog running!")
-                    cluster_agent_ready = True
-                    break
+                    logger.info("[status cluster agent] Cluster agent datadog running!")
+                    time.sleep(5)
+                    return
             except Exception as e:
                 logger.info(f"Error waiting for cluster agent: {e}")
-                datadog_cluster_name = None
             time.sleep(5)
 
-        if not cluster_agent_ready:
-            logger.error(f"Cluster agent not created. Last status: {cluster_agent_status}")
-            if datadog_cluster_name:
-                cluster_agent_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
-                    name=datadog_cluster_name, namespace=namespace
-                )
-                logger.error(f"Cluster agent logs: {cluster_agent_logs}")
-            raise K8sLibInjectionError("Cluster agent not created")
-        # At this point the cluster_agent should be ready, we are going to wait a little bit more
-        # to make sure the cluster_agent is ready (some times the cluster_agent is ready but the
-        # cluster agent is not ready yet)
-        time.sleep(5)
+        logger.error(f"Cluster agent not created. Last status: {cluster_agent_status}")
+        if datadog_cluster_name:
+            cluster_agent_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
+                name=datadog_cluster_name, namespace=namespace
+            )
+            logger.error(f"Cluster agent logs: {cluster_agent_logs}")
+        raise K8sLibInjectionError("Cluster agent not created")
 
     def export_debug_info(self, namespace: str) -> None:
         """Exports debug information for the test agent and the cluster_agent.
@@ -408,7 +405,8 @@ def split_docker_image(image_reference: str) -> tuple[str, str]:
     return reference, tag
 
 
-def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str) -> str:
+def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str, backend_url: str) -> str:
+    """backend_url: URL of the mocked backend the agents send their payloads to"""
     operator_template = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
     # Read the input YAML file
     with open(operator_template) as file:
@@ -422,6 +420,17 @@ def add_cluster_agent_img_operator_yaml(image_tag: str, output_directory: str) -
         cluster_agent_image_spec["pullSecrets"] = [{"name": "private-registry-secret"}]
 
     yaml_data["spec"]["override"]["clusterAgent"]["image"] = cluster_agent_image_spec
+
+    # The operator sets DD_DD_URL on every agent from global.endpoint.url, but the trace agent doesn't derive its
+    # intake from it. Same variables as the AWS SSI provisions use for the mocked backend
+    yaml_data["spec"]["global"]["endpoint"] = {"url": backend_url}
+    yaml_data["spec"]["override"]["nodeAgent"] = {
+        "env": [
+            {"name": "DD_APM_DD_URL", "value": backend_url},
+            {"name": "DD_APM_PROFILING_DD_URL", "value": f"{backend_url}/api/v2/profile"},
+        ]
+    }
+
     # Construct the output file path (the folder should already exist)
     output_file = os.path.join(output_directory, Path(operator_template).name)
 

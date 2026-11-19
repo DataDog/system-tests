@@ -50,10 +50,7 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, validator=lambda span: span["meta"]["http.method"] == "GET")
 
         # Validate data at agent-to-backend level
-        interfaces.agent.assert_trace_exists(self.r)
-
-        # Validate data reaches the backend and is searchable
-        interfaces.backend.assert_library_traces_exist(self.r)
+        interfaces.mocked_backend.assert_trace_exists(self.r)
 ```
 
 ### Available Interface Validators
@@ -63,16 +60,11 @@ class Test_Feature():
    - Perfect for validating span content, AppSec events, telemetry, and remote configuration
    - See detailed methods: [Library Interface Validation Methods](./library-interface-validation-methods.md)
 
-2. **Agent Interface (`interfaces.agent`)** - Validates messages between the Datadog Agent and Datadog Backend
-   - Intercepts data after agent processing (sampling, aggregation, transformation)
+2. **Mocked Backend Interface (`interfaces.mocked_backend`)** - Validates what is sent to the Datadog Backend, by the agent or by an agentless library
+   - Receives data after agent processing (sampling, aggregation, transformation)
    - Ideal for validating metrics, stats, processed traces, and agent forwarding behavior
-   - See detailed methods: [Agent Interface Validation Methods](./agent-interface-validation-methods.md)
+   - See detailed methods: [Mocked Backend Interface Validation Methods](./mocked-backend-interface-validation-methods.md)
 
-3. **Backend Interface (`interfaces.backend`)** - Validates data by querying Datadog's production APIs
-   - Makes actual API calls to verify end-to-end data ingestion
-   - Essential for validating search functionality and customer-visible data
-   - Requires `DD_API_KEY` and `DD_APP_KEY` environment variables
-   - See detailed methods: [Backend Interface Validation Methods](./backend-interface-validation-methods.md)
 
 ### Common Validation Patterns
 
@@ -86,9 +78,6 @@ def test_basic_tracing(self):
 
     # Validate specific span tags
     interfaces.library.add_span_tag_validation(r, tags={"http.method": "GET"})
-
-    # Verify trace reaches backend
-    interfaces.backend.assert_library_traces_exist(r)
 ```
 
 #### AppSec Event Validation

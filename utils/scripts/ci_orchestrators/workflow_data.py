@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 from utils._context._scenarios import Scenario
+from utils._context._scenarios.docker_ssi import _DockerSSIScenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
 from utils._context.constants import WeblogBuildMode as BuildMode
 from utils._logger import logger
@@ -153,6 +154,15 @@ def get_docker_ssi_matrix(
 
         for scenario in scenarios:
             if scenario.name in applicable_scenarios:
+                expected_ssi_result = (
+                    scenario.expected_ssi_result if isinstance(scenario, _DockerSSIScenario) else "instrumented"
+                )
+                # A runtime runs only in the scenarios that expect its SSI result (default: instrumented)
+                scenario_runtimes = [
+                    runtime
+                    for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
+                    if runtime.get("expected_ssi_result", "instrumented") == expected_ssi_result
+                ]
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
@@ -164,22 +174,25 @@ def get_docker_ssi_matrix(
                                 allowed_versions = supported_image.get("allowed_runtime_versions", [])
 
                                 if not allowed_versions:
-                                    allowed_runtimes.append("")
+                                    # The weblog uses its preinstalled runtime, which is expected to be instrumented
+                                    if expected_ssi_result == "instrumented":
+                                        allowed_runtimes.append("")
                                 elif "*" in allowed_versions:
-                                    allowed_runtimes.extend(
-                                        runtime["version"]
-                                        for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
-                                    )
+                                    allowed_runtimes.extend(runtime["version"] for runtime in scenario_runtimes)
                                 else:
                                     runtime_map = {
                                         rt["version_id"]: rt["version"]
                                         for rt in runtimes["docker_ssi_runtimes"].get(language, [])
                                     }
+                                    scenario_runtime_ids = {rt["version_id"] for rt in scenario_runtimes}
                                     for runtime_id in allowed_versions:
-                                        if runtime_id in runtime_map:
-                                            allowed_runtimes.append(runtime_map[runtime_id])
-                                        else:
+                                        if runtime_id not in runtime_map:
                                             raise ValueError(f"Runtime {runtime_id} not found in the runtimes file")
+                                        if runtime_id in scenario_runtime_ids:
+                                            allowed_runtimes.append(runtime_map[runtime_id])
+
+                                if not allowed_runtimes:
+                                    continue
 
                                 image_reference, image_arch_reference = next(
                                     (
@@ -228,8 +241,8 @@ class Job:
         # split mechanism
         self.build_time = build_time
 
-    def serialize(self) -> dict:
-        return {
+    def serialize(self, *, include_scenarios_times: bool = False) -> dict:
+        result = {
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
@@ -239,6 +252,10 @@ class Job:
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
         }
+        if include_scenarios_times:
+            # used by the GitLab pipeline to balance scenarios between a given number of jobs
+            result["scenarios_times"] = dict(sorted(self._scenarios_times.items()))
+        return result
 
     @property
     def scenarios(self) -> tuple[str, ...]:
@@ -299,9 +316,12 @@ def _get_endtoend_weblogs(
             else binaries_artifact
         )
 
-    # skipping dd-trace-go span pool weblog while it's not released
+    # skipping weblogs whose tracer support is not released yet (net-http-span-pool)
     if ci_environment == "prod":
         weblogs = [w for w in weblogs if w.name != "net-http-span-pool"]
+
+    # TODO: re-enable php-fpm-8.6: ondrej PPA ships only 8.6.0RC3 (API 20260924), dd-trace-php dev needs 20261112
+    weblogs = [w for w in weblogs if w.name != "php-fpm-8.6"]
 
     return sorted(weblogs, key=lambda w: w.name)
 
@@ -315,6 +335,8 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
+    *,
+    include_scenarios_times: bool = False,
 ) -> dict:
     scenarios: list[Scenario] = scenario_map.get("endtoend", [])
 
@@ -372,7 +394,7 @@ def get_endtoend_definitions(
             "parallel_weblogs": [
                 _get_weblog_build_job(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
             ],
-            "parallel_jobs": [job.serialize() for job in jobs],
+            "parallel_jobs": [job.serialize(include_scenarios_times=include_scenarios_times) for job in jobs],
         }
     }
 
