@@ -12,12 +12,11 @@ from utils import pytest
 
 from utils import scenarios
 from utils.base_images import build_base_images
-from utils._context import _image_mirror
+from utils._context.containers import dockerfile_image_list
 from utils.base_images.base_image import (
     BaseImageLockError,
     base_image_contexts,
     base_image_ref,
-    is_base_image,
     load_base_image_lock,
     mirror_base_image,
 )
@@ -1165,27 +1164,18 @@ class Test_MirrorBaseImage:
 
         assert mirror_base_image(self.tag) == f"{docker_io_mirror.group(1)}/{self.tag}"
 
-    @pytest.mark.parametrize(
-        ("image", "expected"),
-        [
-            (tag, True),
-            ("datadog/system-tests:proxy-v1", False),
-            ("datadog/system-tests:test.base", False),
-            ("redis:7", False),
-        ],
-    )
-    def test_is_base_image(self, image: str, *, expected: bool):
-        assert is_base_image(image) is expected
+    def test_dockerfile_image_list_skips_base_image_aliases(self, tmp_path: Path):
+        """They are named build contexts, not pulled by the Dockerfile: the mirror list never sees them."""
+        dockerfile = _write_dockerfile(
+            tmp_path,
+            """\
+            FROM system_tests_base_nodejs_express4 AS base
+            ARG VERSION=22
+            FROM node:$VERSION
+            """,
+        )
 
-    def test_image_mirror_rewrites_base_images(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setenv("USE_IMAGE_MIRROR", "1")
-
-        assert _image_mirror.mirror_image(self.tag) == f"{MIRROR}/{self.tag}"
-
-    def test_image_mirror_leaves_base_images_alone_when_disabled(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.delenv("USE_IMAGE_MIRROR", raising=False)
-
-        assert _image_mirror.mirror_image(self.tag) == self.tag
+        assert dockerfile_image_list(dockerfile) == ["node:22"]
 
     def test_mirror_lock_has_no_base_image(self):
         """build_base_images.py pushes them to the mirror, mirror_images must not copy them again."""

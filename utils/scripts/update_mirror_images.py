@@ -37,7 +37,6 @@ sys.path.insert(0, str(REPO_ROOT))
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
 from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
 from utils._context.containers import dockerfile_image_list  # noqa: E402
-from utils.base_images.base_image import is_base_image  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
@@ -94,8 +93,6 @@ def _is_mirrorable(image: str) -> bool:
         return False  # built locally, never pulled from a registry
     if "$" in image:
         return False  # unresolved Dockerfile/template placeholder (e.g. ${NORMALIZED_BRANCH})
-    if is_base_image(image):
-        return False  # build_base_images.py pushes weblog base images to the mirror itself
     # already on the destination registry => nothing to mirror
     return not image.startswith("registry.ddbuild.io/")
 

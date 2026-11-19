@@ -34,11 +34,6 @@ class BaseImageLockError(ValueError):
     """The base-image lock or a symbolic Dockerfile reference is invalid."""
 
 
-def is_base_image(image: str) -> bool:
-    """Return whether ``image`` is a content-addressed weblog base image (``datadog/system-tests:*.base-<hash>``)."""
-    return _LOCKED_IMAGE.fullmatch(image) is not None
-
-
 def mirror_base_image(image: str) -> str:
     """Return the reference of a base image's copy in the system-tests mirror."""
     return f"{MIRROR_REGISTRY}/{image}"
