@@ -32,9 +32,3 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
-
-### LIFE-005: Do not tie exact counts to flush timing.
-- Severity: P0
-- Flag: The SDK flushes data on its own timer and buckets it by wall-clock time. If the count of requests, buckets, or points depends on that timing, do not assert it exactly. Merge the data across requests and buckets, and assert the aggregated values. Read only the data of this test, not a scenario-wide total. If the test asserts an exact count, keep waiting after it appears, so a late extra item fails. Do not assert that a rate limiter drops data when the request pace decides the result.
-- Detect: A test asserts exactly one stats request or one bucket, or reads only bucket `[0]`. It asserts an exact scenario-wide telemetry count. A wait returns at the expected count before an `== N` assertion. It asserts `dropped >= 1` against a time-based limiter.
-- Not when: The SDK contract fixes the count independently of flush timing.
