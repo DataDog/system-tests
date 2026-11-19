@@ -2499,7 +2499,7 @@ manifest:
   : - component_version: <5.88.0
       declaration: missing_feature
     - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2475)
+      declaration: bug (APMAPI-2707)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_default_headers
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
@@ -2542,7 +2542,7 @@ manifest:
   : - component_version: <5.83.0
       declaration: missing_feature
     - component_version: '>=5.83.0'
-      declaration: bug (APMAPI-2475)
+      declaration: bug (APMAPI-2707)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
