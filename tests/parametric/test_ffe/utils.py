@@ -300,13 +300,21 @@ def ffe_event_matches(event: dict[str, Any], matcher: dict[str, Any]) -> bool:
 
 
 def events_match(actual: list[dict[str, Any]], expected: list[dict[str, Any]], *, exact: bool) -> bool:
-    """Consume each expected matcher from a distinct emitted event."""
-    unmatched = actual.copy()
-    for matcher in expected:
-        matching_index = next(
-            (index for index, event in enumerate(unmatched) if ffe_event_matches(event, matcher)), None
-        )
-        if matching_index is None:
-            return False
-        unmatched.pop(matching_index)
-    return not exact or not unmatched
+    """Find a complete one-to-one assignment from matchers to emitted events."""
+    if len(actual) < len(expected) or (exact and len(actual) != len(expected)):
+        return False
+
+    event_assignments: list[Optional[int]] = [None] * len(actual)
+
+    def assign(matcher_index: int, visited_events: set[int]) -> bool:
+        for event_index, event in enumerate(actual):
+            if event_index in visited_events or not ffe_event_matches(event, expected[matcher_index]):
+                continue
+            visited_events.add(event_index)
+            assigned_matcher = event_assignments[event_index]
+            if assigned_matcher is None or assign(assigned_matcher, visited_events):
+                event_assignments[event_index] = matcher_index
+                return True
+        return False
+
+    return all(assign(matcher_index, set()) for matcher_index in range(len(expected)))

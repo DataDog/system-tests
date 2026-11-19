@@ -84,6 +84,26 @@ def test_unclaimed_ffe_events_reject_missing_or_unknown_identifiers() -> None:
     }
 
 
+@pytest.mark.parametrize("variants", [("on", "off"), ("off", "on")])
+@scenarios.test_the_test
+def test_ffe_events_match_finds_complete_assignment_for_overlapping_matchers(variants: tuple[str, str]) -> None:
+    events = [{"flag": {"key": "flag"}, "variant": {"key": variant}} for variant in variants]
+    matchers = [{"flag": "flag"}, {"flag": "flag", "variant": "on"}]
+
+    assert ffe_parametric_utils.events_match(events, matchers, exact=True)
+
+
+@scenarios.test_the_test
+def test_ffe_events_match_rejects_when_no_complete_assignment_exists() -> None:
+    events = [
+        {"flag": {"key": "flag"}, "variant": {"key": "off"}},
+        {"flag": {"key": "flag"}, "variant": {"key": "off"}},
+    ]
+    matchers = [{"flag": "flag"}, {"flag": "flag", "variant": "on"}]
+
+    assert not ffe_parametric_utils.events_match(events, matchers, exact=True)
+
+
 @pytest.mark.parametrize("has_capture", [True, False])
 @scenarios.test_the_test
 def test_flagevaluation_egress_validates_captured_data_without_waiting(
