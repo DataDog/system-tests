@@ -1,6 +1,7 @@
 FROM ubuntu:24.04
 
 ARG PHP_VERSION
+ARG PHP_MIN_PACKAGE_VERSION
 ENV PHP_VERSION=${PHP_VERSION}
 
 # build.sh only reads from these directories (see php-fpm/build.sh, it installs the plain weblog); keep this
@@ -11,7 +12,7 @@ COPY php-fpm /tmp/php/php-fpm
 COPY common /tmp/php/common
 
 RUN chmod +x /tmp/php/php-fpm/build.sh
-RUN /tmp/php/php-fpm/build.sh $PHP_VERSION
+RUN /tmp/php/php-fpm/build.sh $PHP_VERSION $PHP_MIN_PACKAGE_VERSION
 RUN rm -rf /tmp/php/
 
 ENV DD_TRACE_ENABLED=1
