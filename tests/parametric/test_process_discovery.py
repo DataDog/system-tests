@@ -11,8 +11,7 @@ from .conftest import APMLibrary
 
 def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
     rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info-*'")
-    if not rc:
-        return []
+    assert rc, f"find /proc/{pid}/fd failed: {out}"
     paths = out.split()
     for path in paths:
         rc, out = test_library.container_exec_run(f"readlink {path}")
@@ -21,6 +20,13 @@ def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
         match = re.search(pattern, out)
         assert match, f"invalid file format: {out}"
     return paths
+
+
+def child_pids(test_library: APMLibrary, parent: int) -> list[int]:
+    # pgrep exits 1 when the process has no children. Other exit codes are errors.
+    rc, out = test_library.container_exec_run(f'sh -c "pgrep -P {parent}; [ $? -le 1 ]"')
+    assert rc, f"pgrep -P {parent} failed: {out}"
+    return [int(p) for p in out.split()]
 
 
 def validate_schema(payload: str) -> bool:
@@ -81,10 +87,10 @@ asserters = {1: assert_v1, 2: assert_v2}
 
 
 def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str]):
-    # NOTE(@dmehala): the server is started on container is always pid 1.
-    # That's a strong assumption :hehe:
-    # Maybe we should use `pidof pidof parametric-http-server` instead.
+    # NOTE(@dmehala): the server process is not always pid 1: Java/Node resolve it
+    # with `pidof`, and Go's PID 1 is a shell wrapping the server (see below).
     pid = 1
+    holder_paths: dict[int, list[str]] = {}
 
     if context.library.name == "java":
         rc, out = test_library.container_exec_run("pidof java")
@@ -96,20 +102,22 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
         pid = int(out)
     elif context.library.name == "golang":
         # The Go parametric container wraps the server in a shell (PID 1). With
-        # crashtracking, the server process also has a child: a crash monitor in
-        # older releases, or the application when the server process is the
-        # crash supervisor. The tracer runs in exactly one of these processes.
-        rc, out = test_library.container_exec_run("pgrep -P 1")
-        assert rc
-        candidates = [int(p) for p in out.split()]
+        # crashtracking, the tracer (the datadog-tracer-info memfd holder) runs in
+        # exactly one of: the server process itself (older releases, where the
+        # crash monitor is only a watcher child), the server's crash-monitor
+        # child, or the server's application child (when the server process is
+        # the crash supervisor). Walk exactly two levels below PID 1.
+        candidates = child_pids(test_library, 1)
+        assert candidates, "PID 1 has no child processes"
         for parent in list(candidates):
-            rc, out = test_library.container_exec_run(f"pgrep -P {parent}")
-            if rc:
-                candidates.extend(int(p) for p in out.split())
-        holders = [p for p in candidates if find_dd_memfds(test_library, p)]
-        assert len(holders) == 1, f"expected one process with the tracer memfd, found {holders}"
+            candidates.extend(child_pids(test_library, parent))
+        holder_paths = {p: find_dd_memfds(test_library, p) for p in candidates}
+        holders = [p for p, paths in holder_paths.items() if paths]
+        assert len(holders) == 1, (
+            f"expected one process with the tracer memfd, found {holders}, candidates: {candidates}"
+        )
         pid = holders[0]
-    memfds = find_dd_memfds(test_library, pid)
+    memfds = holder_paths[pid] if pid in holder_paths else find_dd_memfds(test_library, pid)
     assert len(memfds) == 1
     rc, tracer_metadata = read_memfd(test_library, memfds[0])
     assert rc
