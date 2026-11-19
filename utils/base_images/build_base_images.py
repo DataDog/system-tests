@@ -424,11 +424,22 @@ def create_manifest_list(tags: list[str], sources: list[str]) -> None:
     _run_streaming(["docker", "buildx", "imagetools", "create", *tag_args, *sources])
 
 
-def sign_image(tag: str) -> None:
-    """Sign a pushed image with ddsign (needs the image-integrity DDSIGN_ID_TOKEN), like mirror_images --sign."""
-    digest = _run(["docker", "buildx", "imagetools", "inspect", tag, "--format", "{{json .Manifest}}"])
+def ensure_signed(tag: str) -> None:
+    """Sign a pushed image with ddsign (needs the image-integrity DDSIGN_ID_TOKEN), unless already signed.
+
+    Checked on every run, so a mirror copy left unsigned by a failed run (ddsign failure, or a push
+    failing after the mirror tag was pushed) gets signed by the next one.
+    """
+    manifest = _run(["docker", "buildx", "imagetools", "inspect", tag, "--format", "{{json .Manifest}}"])
     repository = tag.rpartition(":")[0]
-    reference = f"{repository}@{json.loads(digest.stdout)['digest']}"
+    reference = f"{repository}@{json.loads(manifest.stdout)['digest']}"
+
+    # `ddsign resolve` prints where the signature of a digest is stored (whether it exists or not)
+    signature = _run(["ddsign", "resolve", reference]).stdout.strip()
+    if image_exists(signature):
+        logger.info("%s is already signed (%s)", reference, signature)
+        return
+
     logger.info("Signing %s", reference)
     _run_streaming(["ddsign", "sign", reference])
 
@@ -469,10 +480,15 @@ def merge_platforms(
     """Publish ``tag`` on Docker Hub and in the mirror, as a manifest list of its single-platform images."""
     destinations = published_tags(tag)
     missing_destinations = [destination for destination in destinations if not image_exists(destination)]
-    if not missing_destinations:
-        logger.info("%s already exists, skipping", ", ".join(destinations))
-        return
+    if missing_destinations:
+        _push_missing(tag, destinations, missing_destinations)
+    else:
+        logger.info("%s already exists, skipping the push", ", ".join(destinations))
 
+    ensure_signed(mirror_base_image(tag))
+
+
+def _push_missing(tag: str, destinations: list[str], missing_destinations: list[str]) -> None:
     present = [destination for destination in destinations if destination not in missing_destinations]
     if present:
         # copy the existing multi-arch image as is, so both registries serve the same digest
@@ -487,10 +503,6 @@ def merge_platforms(
             )
 
     create_manifest_list(missing_destinations, sources)
-
-    mirror_tag = mirror_base_image(tag)
-    if mirror_tag in missing_destinations:
-        sign_image(mirror_tag)
 
 
 def _run_for_targets(action: Callable[..., None], targets: list[tuple], **kwargs: str) -> list[str]:

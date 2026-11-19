@@ -1014,7 +1014,7 @@ class Test_MultiArch:
         signed: list[str] = []
         monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag in existing)
         monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *args: merges.append(args))
-        monkeypatch.setattr(build_base_images, "sign_image", signed.append)
+        monkeypatch.setattr(build_base_images, "ensure_signed", signed.append)
         return merges, signed
 
     def test_merge_pushes_the_manifest_list_to_both_registries(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -1039,15 +1039,17 @@ class Test_MultiArch:
         merge_platforms(*self._target(tmp_path))
 
         assert merges == [([self.tag], [self.mirror_tag])]
-        assert signed == []
+        assert signed == [self.mirror_tag]  # the mirror copy may have been left unsigned by the failed run
 
-    def test_merge_skips_published_image(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_merge_skips_the_push_of_published_image_but_checks_its_signature(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
         merges, signed = self._mock_merge(monkeypatch, {self.tag, self.mirror_tag})
 
         merge_platforms(*self._target(tmp_path))
 
         assert merges == []
-        assert signed == []
+        assert signed == [self.mirror_tag]
 
     def test_merge_fails_when_a_platform_is_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         merges, signed = self._mock_merge(monkeypatch, {f"{self.tag}-amd64"})
@@ -1057,6 +1059,57 @@ class Test_MultiArch:
 
         assert merges == []
         assert signed == []
+
+    digest = "sha256:" + "a" * 64
+    signature = f"{MIRROR}/datadog/system-tests:sha256-{'a' * 64}.sig"
+
+    def _fake_registry(self, monkeypatch: pytest.MonkeyPatch, existing: set[str]) -> list[list[str]]:
+        """Fake docker/ddsign: ``existing`` holds the published references, mutating commands are recorded."""
+        mutations: list[list[str]] = []
+
+        def fake_run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+            if cmd[:3] == ["docker", "manifest", "inspect"]:
+                if cmd[3] in existing:
+                    return subprocess.CompletedProcess(cmd, 0, stdout="{}", stderr="")
+                return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="manifest unknown")
+            if cmd[:4] == ["docker", "buildx", "imagetools", "inspect"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps({"digest": self.digest}), stderr="")
+            if cmd[:2] == ["ddsign", "resolve"]:
+                assert cmd[2] == f"{MIRROR}/datadog/system-tests@{self.digest}"
+                return subprocess.CompletedProcess(cmd, 0, stdout=f"{self.signature}\n", stderr="")
+            if cmd[:2] == ["ddsign", "sign"] or cmd[:4] == ["docker", "buildx", "imagetools", "create"]:
+                mutations.append(cmd)
+                return subprocess.CompletedProcess(cmd, 0)
+            raise AssertionError(f"unexpected command {cmd}")
+
+        monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
+        return mutations
+
+    def test_rerun_after_a_sign_failure_signs_the_mirror_copy(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mutations = self._fake_registry(monkeypatch, {self.tag, self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == [["ddsign", "sign", f"{MIRROR}/datadog/system-tests@{self.digest}"]]
+
+    def test_rerun_after_a_partial_push_completes_it_and_signs_the_mirror_copy(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        mutations = self._fake_registry(monkeypatch, {self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == [
+            ["docker", "buildx", "imagetools", "create", "--tag", self.tag, self.mirror_tag],
+            ["ddsign", "sign", f"{MIRROR}/datadog/system-tests@{self.digest}"],
+        ]
+
+    def test_already_signed_mirror_copy_is_not_signed_again(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mutations = self._fake_registry(monkeypatch, {self.tag, self.mirror_tag, self.signature})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == []
 
     def test_create_manifest_list_command(self, monkeypatch: pytest.MonkeyPatch):
         calls: list[list[str]] = []
@@ -1082,24 +1135,6 @@ class Test_MultiArch:
                 f"{self.tag}-amd64",
                 f"{self.tag}-arm64",
             ]
-        ]
-
-    def test_sign_image_signs_the_pushed_digest(self, monkeypatch: pytest.MonkeyPatch):
-        calls: list[list[str]] = []
-        digest = "sha256:" + "a" * 64
-
-        def fake_run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
-            calls.append(cmd)
-            stdout = json.dumps({"mediaType": "application/vnd.oci.image.index.v1+json", "digest": digest})
-            return subprocess.CompletedProcess(cmd, 0, stdout=stdout, stderr="")
-
-        monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
-
-        build_base_images.sign_image(self.mirror_tag)
-
-        assert calls == [
-            ["docker", "buildx", "imagetools", "inspect", self.mirror_tag, "--format", "{{json .Manifest}}"],
-            ["ddsign", "sign", f"{MIRROR}/datadog/system-tests@{digest}"],
         ]
 
     def test_report_target_tolerates_an_unreachable_registry(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
