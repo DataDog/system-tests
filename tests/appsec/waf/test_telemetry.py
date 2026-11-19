@@ -179,7 +179,8 @@ class Test_TelemetryMetrics:
             for point in series["points"]:
                 total_requests_metric += point[1]
 
-        if context.library == "dotnet":
+        # dotnet counted waf.requests per WAF run instead of per request before 3.59.0
+        if context.library < "dotnet@3.59.0":
             assert total_requests_metric >= request_count, (
                 "Number of requests in traces do nois higher than waf.requests metric total"
             )
