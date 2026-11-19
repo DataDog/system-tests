@@ -14,7 +14,9 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 
-RUN python -m pip install fastapi==0.100.0 anyio==4.14.2 uvicorn==0.20.0 h11==0.16.0 idna==3.19 py-spy==0.4.2
+# The app uses pydantic and starlette directly, so they are pinned too.
+RUN python -m pip install fastapi==0.100.0 starlette==0.27.0 pydantic==2.14.3 anyio==4.14.2 uvicorn==0.20.0 h11==0.16.0 \
+    idna==3.19 py-spy==0.4.2
 # A pinned litellm version also gets a pinned openai version, because litellm does not set an upper bound on it.
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         python -m pip install --retries 10 --timeout 120 litellm; \
