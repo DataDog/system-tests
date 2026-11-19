@@ -830,7 +830,12 @@ manifest:
         *flask : v3.11.0.dev
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
-  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
+  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema:
+    - declaration: missing_feature
+      component_version: '<3.8.0-dev'
+    - declaration: bug (APPSEC-71849)
+      component_version: '>=3.15.0 <4.18.0-rc1'
+      excluded_weblog: [aiohttp, tornado]
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         '*': '>=4.5.0-rc1'
