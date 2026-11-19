@@ -661,10 +661,10 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: missing_feature
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: missing_feature
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
+        aiohttp: v4.18.0-rc1 (IAST sources are tainted for aiohttp from this version)
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature

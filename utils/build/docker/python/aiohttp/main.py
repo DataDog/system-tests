@@ -22,6 +22,7 @@ import ddtrace
 import psycopg2
 import stripe
 import xmltodict
+import yaml
 from aiohttp import web
 from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
@@ -1122,6 +1123,18 @@ async def iast_code_injection_secure(request: web.Request) -> web.Response:
         raise ValueError(msg)
     a, op, b = code
     _ = ops[op](float(a), float(b))
+    return web.Response(text="OK")
+
+
+@routes.get("/iast/untrusted_deserialization/test_insecure")
+async def iast_untrusted_deserialization_insecure(request: web.Request) -> web.Response:
+    _ = yaml.unsafe_load(request.query.get("name"))
+    return web.Response(text="OK")
+
+
+@routes.get("/iast/untrusted_deserialization/test_secure")
+async def iast_untrusted_deserialization_secure(request: web.Request) -> web.Response:
+    _ = yaml.unsafe_load("name: example")
     return web.Response(text="OK")
 
 
