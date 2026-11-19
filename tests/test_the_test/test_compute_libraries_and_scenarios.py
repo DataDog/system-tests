@@ -937,6 +937,7 @@ class Test_ComputeLibrariesAndScenarios:
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):
+        # every end-to-end scenario runs the mocked backend behind the agent: all scenarios run
         inputs = build_inputs(modified_files=[file])
         assert_github_processor(
             inputs,
@@ -944,8 +945,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
-            "agentless",
+            "DEFAULT",
+            "all",
         )
 
     def test_end_to_end_scenario_framework_file(self):
