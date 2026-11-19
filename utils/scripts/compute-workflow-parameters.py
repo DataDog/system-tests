@@ -44,6 +44,7 @@ class CiData:
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
+        include_scenarios_times: bool = False,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -88,6 +89,7 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
+            include_scenarios_times=include_scenarios_times,
         )
 
         self.data["parametric"] = {
@@ -269,7 +271,11 @@ if __name__ == "__main__":
         help="Expected execution time of the workflow",
         default=-1,
     )
-    # how long the workflow is expected to run
+    parser.add_argument(
+        "--include-scenarios-times",
+        action="store_true",
+        help="Add the expected execution time of each scenario to end-to-end jobs",
+    )
     parser.add_argument(
         "--output",
         "-o",
@@ -312,4 +318,5 @@ if __name__ == "__main__":
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
+        include_scenarios_times=args.include_scenarios_times,
     ).export(export_format=args.format, output=args.output)

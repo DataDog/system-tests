@@ -181,31 +181,33 @@ def _process_trace_attributes(trace_payload: dict, strings: list[str]) -> dict:
     return trace_payload
 
 
+def _uncompress_proto_any_value(v: dict[str, Any], strings: list[str]) -> Any:  # noqa: ANN401
+    if "stringValueRef" in v:
+        return strings[v["stringValueRef"]]
+    if "boolValue" in v:
+        return v["boolValue"]
+    if "doubleValue" in v:
+        return v["doubleValue"]
+    if "intValue" in v:
+        return int(v["intValue"])
+    if "bytesValue" in v:
+        raw_b = v["bytesValue"]
+        if isinstance(raw_b, str):
+            # MessageToDict encodes bytes as base64 strings
+            raw_b = base64.b64decode(raw_b)
+        return decode_v1_bytes_value_attribute(raw_b) if isinstance(raw_b, bytes) else raw_b
+    if "arrayValue" in v:
+        return [_uncompress_proto_any_value(item, strings) for item in v["arrayValue"].get("values", [])]
+    if "keyValueList" in v:
+        return {
+            strings[int(kv.get("key", 0))]: _uncompress_proto_any_value(kv.get("value", {}), strings)
+            for kv in v["keyValueList"].get("keyValues", [])
+        }
+    raise ValueError(f"Unknown attribute value: {v}")
+
+
 def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
-    attrs_dict = {}
-    for k, v in attrs.items():
-        k_str = strings[int(k)]
-        if "stringValueRef" in v:
-            v_str = strings[v["stringValueRef"]]
-            attrs_dict[k_str] = v_str
-        elif "boolValue" in v:
-            attrs_dict[k_str] = v["boolValue"]
-        elif "doubleValue" in v:
-            attrs_dict[k_str] = v["doubleValue"]
-        elif "intValue" in v:
-            attrs_dict[k_str] = v["intValue"]
-        elif "bytesValue" in v:
-            raw_b = v["bytesValue"]
-            if isinstance(raw_b, str):
-                # MessageToDict encodes bytes as base64 strings
-                raw_b = base64.b64decode(raw_b)
-            attrs_dict[k_str] = decode_v1_bytes_value_attribute(raw_b) if isinstance(raw_b, bytes) else raw_b
-        elif "arrayValue" in v:
-            attrs_dict[k_str] = v["arrayValue"]
-        elif "keyValueList" in v:
-            attrs_dict[k_str] = v["keyValueList"]
-        else:
-            raise ValueError(f"Unknown attribute value: {v}")
+    attrs_dict = {strings[int(k)]: _uncompress_proto_any_value(v, strings) for k, v in attrs.items()}
     _postprocess_attribute_values(attrs_dict)
     return attrs_dict
 
@@ -633,6 +635,10 @@ def _uncompress_span_event(event: dict, strings: list[str]) -> None:
                 event["name"] = strings[name_value]
             else:
                 event["name"] = name_value
+        # Agent payload (idx.SpanEvent protobuf): the name is a reference into the strings table
+        if "nameRef" in event:
+            name_ref = event.pop("nameRef")
+            event["name"] = strings[name_ref] if isinstance(name_ref, int) else name_ref
         # Handle time -> time_unix_nano mapping
         if "time" in event and "time_unix_nano" not in event:
             event["time_unix_nano"] = event.pop("time")
@@ -664,8 +670,8 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
                 # Uncompress span links
                 for link in span.get("links", []):
                     _uncompress_span_link(link, strings)
-                # Uncompress span events (handle both camelCase and snake_case field names)
-                span_events = span.get("spanEvents") or span.get("span_events")
+                # Uncompress span events (idx.Span names the field `events`; also handle legacy-style names)
+                span_events = span.get("events") or span.get("spanEvents") or span.get("span_events")
                 if span_events:
                     for event in span_events:
                         _uncompress_span_event(event, strings)

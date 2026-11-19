@@ -172,6 +172,9 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run SECURITY_SMOKE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SECURITY_SMOKE"')
+      run: ./run.sh SECURITY_SMOKE
     - name: Run APPSEC_APM_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
       run: ./run.sh APPSEC_APM_STANDALONE

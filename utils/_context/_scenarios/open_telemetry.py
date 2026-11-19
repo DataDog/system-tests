@@ -103,7 +103,8 @@ class _OpenTelemetryScenario(DockerScenario):
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
 
-        self.warmups.append(self._set_components)
+        # agent and library versions are read from their images, they are known before the containers start
+        self._set_components()
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
