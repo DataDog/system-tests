@@ -2,7 +2,7 @@
 - Old_id: codex-09
 - Severity: P1
 - Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input.
-- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`.
+- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`. A test compares serialized JSON as a string instead of parsed values. A test requires one stats request, one bucket, or an exact metric count, but the tracer flushes on a timer.
 - Not when: The whole field is under test.
 - ✅ For the sampled bit, accept `01` and `03` when the extra bit is allowed. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp containing `1234` must not count as leaked input.
 - ❌ `assert len(tracestate) == 1`.
@@ -59,3 +59,18 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Check the type when the contract fixes a boolean type.
+- Severity: P0
+- Flag: Python treats `1`, `1.0`, and `True` as equal. If the contract fixes a boolean or numeric type, check the type of both values.
+- Detect: An assertion compares a typed attribute with `==` alone. An `isinstance` check covers only one side of the comparison.
+- Not when: The contract accepts `True`, `1`, and `"true"` as the same value. Then use `is_same_boolean()` as TEST-004 says.
+- ✅ `assert isinstance(actual, bool) == isinstance(expected, bool) and actual == expected`.
+- ❌ `assert actual == expected` when `expected` is `True` and the SDK sends `1.0`.
+
+### TEST-009: Let the weblog report a failure of the action under test.
+- Severity: P0
+- Flag: A weblog endpoint must not catch every exception and return success. If an import or action fails, the endpoint must fail clearly. Then a status check proves that the action ran.
+- Detect: An endpoint catches all exceptions and returns 200 or `OK`. The app catches `ImportError` broadly and returns another status. A test uses that status as proof.
+- ✅ Let the exception reach the framework, so the test sees a server error.
+- ❌ Catch every exception in the reachability endpoint and always return `OK`.
