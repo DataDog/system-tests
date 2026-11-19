@@ -5,7 +5,7 @@
 
 ### INFRA-002: Use Existing Utilities
 - Severity: P1
-- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`.
+- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`. If a PR adds a shared scenario option, subclasses and callers must use it, not a parallel lifecycle or a hardcoded constant. Implement a backend response in `utils/mocked_backend/`, not as an override inside one test.
 - Ref: [Datadog constants](../../../utils/dd_constants.py), [Features](../../../utils/_features.py), [Using logger](../../../docs/edit/README.md#using-logger)
 
 ### INFRA-003: Unique Weblog Names
@@ -77,8 +77,13 @@
 ### INFRA-011: Do not hide shell errors that select what is tested.
 - Severity: P0
 - Flag: A shell command whose result decides what is built or tested must not hide its errors. If it fails, the script must stop with a message. It must not fall back to a default, such as the latest release instead of the jar in `binaries/`. A build image can lack a tool that another image has: the GraalVM image has no `find`. The error was hidden, the jar count was 0, and the dev job tested the release.
-- Detect: The script discards stderr (`2>/dev/null`, `&>/dev/null`) or ignores a failure (`|| true`) on a command whose output is counted, parsed, or tested, and an error then looks like an empty result. A pipeline drops the failure of its first command because `pipefail` is off, as in `cmd 2>/dev/null | wc -l` or `cmd | jq`. A failed check goes silently to a fallback branch. A command runs under `if !` with its stderr discarded, so the failure message loses the cause.
+- Detect: A command whose output is counted, parsed, or tested discards stderr or uses `|| true`, so an error looks empty. A pipeline without `pipefail` drops a failure, as in `cmd 2>/dev/null | wc -l` or `cmd | jq`. A failed check goes silently to a fallback branch, or runs under `if !` with its stderr discarded. A provision step continues after a failed command, such as `Restart-Service`, so the agent runs with wrong settings. A step exits 0 without checking its key result, such as `docker info` after a Docker install. A build gates an install on a file path inside a package, or the app catches `ImportError` broadly.
 - Not when: The check tests only whether a tool or option exists (`command -v`, `curl --retry-all-errors --version`), and the code after it fails loudly if needed. The step is best-effort cleanup or log collection that cannot change what is tested.
 - ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
 - ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
 - Ref: [Code format standards](../code-format-standards.md)
+
+### INFRA-013: Require scenario inputs only when the scenario uses them.
+- Severity: P1
+- Flag: A scenario must require a credential or an env var only in the mode that uses it. If the scenario can detect its environment, it must not ask the user for an opt-in env var.
+- Detect: The environment check of a scenario requires real-backend credentials while the scenario uses the mocked backend. A scenario adds an opt-in env var for a condition it can detect, such as the `/vm-host` path.
