@@ -3952,7 +3952,10 @@ manifest:
   tests/test_otlp_runtime_metrics.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are sent through DogStatsD, OTEL-3447)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:
+    - weblog_declaration:
+        '*': missing_feature (OTLP runtime metrics start only when the application imports opentelemetry)
+        *flask : v4.18.0-dev
   tests/test_profiling.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
