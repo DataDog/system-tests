@@ -272,6 +272,42 @@ class _VirtualMachineScenario(Scenario):
     def configuration(self):
         return self._os_configurations
 
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        """Machine identity goes in the JUnit report. Component versions use a nested ``version`` key.
+
+        ``fingerprint_parameters`` drops that key from ``test.parameters`` and the suite context tags keep it.
+        """
+        result = super().get_junit_properties()
+        vm = self.virtual_machine
+        if not vm.name:
+            return result
+
+        result["os"] = vm.name.removesuffix("_amd64").removesuffix("_arm64")
+        result["arch"] = vm.os_cpu
+        result["weblog_variant"] = self.weblog_variant
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+
+        weblog = vm.get_deployed_weblog() if vm.provision_install_error is None else None
+        runtime = ""
+        if weblog is not None and weblog.app_type:
+            result["app_type"] = weblog.app_type
+            if weblog.app_type == "host":
+                runtime = str(vm.tested_components.get("runtime_version", "")).lstrip(" ").replace(",", "")
+            elif weblog.runtime_version:
+                runtime = str(weblog.runtime_version)
+        if runtime:
+            result["installed_language_runtime"] = runtime
+
+        agent = self.components.get("agent")
+        if agent is not None:
+            result["agent"] = str(agent)
+        if self.components.get("datadog-apm-inject") is not None:
+            result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
+        installer = self.components.get("datadog-installer")
+        if installer is not None:
+            result["datadog-installer"] = {"version": str(installer)}
+        return result
+
 
 class _InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
