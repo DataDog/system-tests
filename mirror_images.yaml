@@ -54,7 +54,7 @@
 - "datadog/system-tests:kong-runtime.base-09b8b7120e77"
 - "datadog/system-tests:lambda-proxy-v1"
 - "datadog/system-tests:laravel11x.base-8b5d6ccbc893"
-- "datadog/system-tests:nextjs.base-7af1ceda261c"
+- "datadog/system-tests:nextjs.base-6e3e0898036b"
 - "datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9"
 - "datadog/system-tests:nodejs_buddy-v1"
 - "datadog/system-tests:openai-py.base-31091e40843e"

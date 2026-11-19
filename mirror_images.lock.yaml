@@ -186,10 +186,10 @@ images:
     digest: sha256:df9835fc7355190b8200c9a4307db299ca0a8b63e1ba73d854be27c265be2a6c
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:laravel11x.base-8b5d6ccbc893
     tag: laravel11x.base-8b5d6ccbc893
-  datadog/system-tests:nextjs.base-7af1ceda261c:
-    digest: sha256:69a302340e9e80122b85692c2f5fcbc9da4ec20956f04b1b1af68b07df7539c1
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-7af1ceda261c
-    tag: nextjs.base-7af1ceda261c
+  datadog/system-tests:nextjs.base-6e3e0898036b:
+    digest: sha256:91b20407d90c11ab81d34fe9d8551975c4e60ea6e55b2335397071b6e4597917
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-6e3e0898036b
+    tag: nextjs.base-6e3e0898036b
   datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9:
     digest: sha256:1f0911d1c060b4fd062f4a521edd8faa5cb677b2cb51ee465de482b8dff7ced9
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9
