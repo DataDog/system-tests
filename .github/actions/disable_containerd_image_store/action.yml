@@ -35,7 +35,11 @@ runs:
 
         config=/etc/docker/daemon.json
         sudo mkdir -p /etc/docker
-        current=$(sudo cat "$config" 2>/dev/null || echo '{}')
+        if sudo test -f "$config"; then
+          current=$(sudo cat "$config")
+        else
+          current='{}'
+        fi
         echo "$current" | jq '.features = ((.features // {}) + {"containerd-snapshotter": false})' | sudo tee "$config" >/dev/null
         echo "$config:"
         sudo cat "$config"
