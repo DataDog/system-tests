@@ -124,6 +124,8 @@ jobs:
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
+    - name: Disable the containerd image store
+      uses: ./.github/actions/disable_containerd_image_store
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact

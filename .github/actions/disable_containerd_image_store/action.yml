@@ -1,0 +1,49 @@
+---
+name: Disable the containerd image store
+description: >
+  Switch the docker daemon to the classic image store (overlay2 graph driver). Must run before the job pulls, builds or
+  loads any image: images stored in the containerd image store are not visible from the classic one.
+
+  With the containerd image store (the default from Docker 29, e.g. on ubuntu-26.04 GitHub runners), the first
+  container creation of a runner mounts and unmounts its snapshot to write the init layer. The unmount syncs the whole
+  filesystem, so this creation waits until every pending write of the runner is on disk: usually a few seconds, but
+  sometimes over the 60s timeout of the docker client ("Container proxy can't be started").
+
+runs:
+  using: composite
+  steps:
+    - name: Disable the containerd image store
+      shell: bash
+      run: |
+        driver_type() {
+          docker info --format '{{range .DriverStatus}}{{if eq (index . 0) "driver-type"}}{{index . 1}}{{end}}{{end}}'
+        }
+
+        if [[ "$(driver_type)" != "io.containerd.snapshotter.v1" ]]; then
+          echo "The docker daemon does not use the containerd image store, nothing to do"
+          exit 0
+        fi
+
+        if [[ "$RUNNER_OS" != "Linux" ]] || ! command -v systemctl >/dev/null || ! sudo -n true 2>/dev/null; then
+          echo "::warning::The docker daemon uses the containerd image store, and it can't be reconfigured here"
+          exit 0
+        fi
+
+        if [[ -n "$(docker images --quiet)" ]]; then
+          echo "::warning::Images already in the containerd image store won't be visible after the switch: run this action before any pull, build or load"
+        fi
+
+        config=/etc/docker/daemon.json
+        sudo mkdir -p /etc/docker
+        current=$(sudo cat "$config" 2>/dev/null || echo '{}')
+        echo "$current" | jq '.features = ((.features // {}) + {"containerd-snapshotter": false})' | sudo tee "$config" >/dev/null
+        echo "$config:"
+        sudo cat "$config"
+
+        sudo systemctl restart docker
+
+        if [[ "$(driver_type)" == "io.containerd.snapshotter.v1" ]]; then
+          echo "::error::The docker daemon still uses the containerd image store"
+          exit 1
+        fi
+        docker info --format 'Storage driver: {{.Driver}}'
