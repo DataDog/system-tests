@@ -22,6 +22,7 @@ class Test_Json_Report:
 
         logger.info(output)
 
+        # TODO claude : read this from junit.xml
         with open("logs_mock_the_test/feature_parity.json", encoding="utf-8") as f:
             cls.report = json.load(f)
 

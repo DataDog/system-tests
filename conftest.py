@@ -649,48 +649,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
             junit_report.write(session.config.option.xmlpath)
 
-        try:
-            data = session.config._json_report.report  # noqa: SLF001
-            export_feature_parity_dashboard(session, data)
-        except Exception:
-            logger.exception("Fail to export reports", exc_info=True)
-
-
-def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
-    tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
-
-    result = {
-        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
-        "runDate": data["created"],
-        "environment": session.config.option.report_environment or "local",
-        "testSource": "systemtests",
-        "language": context.library.name,
-        "variant": context.weblog_variant,
-        "testedDependencies": [
-            {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
-        ],
-        "configuration": context.configuration,
-        "scenario": context.scenario.name,
-        "tests": [test for test in tests if test is not None],
-    }
-    context.scenario.customize_feature_parity_dashboard(result)
-    with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2)
-
-
-def convert_test_to_feature_parity_model(test: dict) -> dict | None:
-    result = {
-        "path": test["nodeid"],
-        "lineNumber": test["lineno"],
-        "outcome": test["outcome"],
-        "testDeclaration": test["metadata"]["testDeclaration"],
-        "details": test["metadata"]["details"],
-        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
-    }
-
-    # exclude test without a feature (they may have been flagged as not reported)
-    return result if len(result["features"]) != 0 else None
-
 
 ## Fixtures corners
 @pytest.fixture(scope="session", name="session")

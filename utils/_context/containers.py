@@ -9,7 +9,7 @@ from typing import cast, Literal
 from http import HTTPStatus
 from pathlib import Path
 import time
-from threading import RLock, Thread
+from threading import RLock, Thread, Timer
 
 import docker
 from docker.errors import APIError
@@ -62,7 +62,7 @@ def create_network() -> Network:
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
 
-# Creating and starting a container usually takes a few seconds. Above that, log the host state.
+# Creating and starting a container usually takes a few seconds. Above that, log the host state while it's still slow.
 _SLOW_CONTAINER_START_SECONDS = 20
 # How long to try to replace a leftover container that holds the name of a container to start
 _CONFLICT_RECOVERY_SECONDS = 60
@@ -248,6 +248,15 @@ class TestedContainer:
         logger.info(f"Start container {self.container_name}")
 
         started_at = time.monotonic()
+        # Fires while the docker call is still pending, to see what the host and the daemon are doing at that time
+        slow_start_watchdog = Timer(
+            _SLOW_CONTAINER_START_SECONDS,
+            log_host_diagnostics,
+            args=(f"{self.container_name} is not started after {_SLOW_CONTAINER_START_SECONDS}s",),
+            kwargs={"daemon_stacks_folder": self.log_folder_path},
+        )
+        slow_start_watchdog.daemon = True
+        slow_start_watchdog.start()
         try:
             try:
                 self._container = self._run_container(network)
@@ -261,9 +270,11 @@ class TestedContainer:
                 # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
                 log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
             raise
+        finally:
+            slow_start_watchdog.cancel()
 
         if (duration := time.monotonic() - started_at) > _SLOW_CONTAINER_START_SECONDS:
-            log_host_diagnostics(f"{self.container_name} took {duration:.0f}s to start")
+            logger.warning(f"{self.container_name} took {duration:.0f}s to start")
 
         self.healthy = self.wait_for_health()
         if self.healthy:

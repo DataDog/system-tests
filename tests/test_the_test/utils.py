@@ -36,6 +36,7 @@ def run_system_tests(
     )
 
     scenario = scenario or "DEFAULT"
+    # TODO claude : read this from junit.xml
     with open(f"logs_{scenario.lower()}/feature_parity.json", encoding="utf-8") as f:
         report = json.load(f)
 

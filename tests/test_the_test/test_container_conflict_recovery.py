@@ -1,6 +1,8 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 from http import HTTPStatus
+from threading import Event
+import time
 from unittest.mock import MagicMock, patch
 
 from docker.errors import APIError
@@ -18,6 +20,7 @@ def _api_error(status: HTTPStatus) -> APIError:
 
 @contextmanager
 def _started(container: _TestedContainer, client: MagicMock) -> Iterator[MagicMock]:
+    container.host_log_folder = "logs_unused"
     with (
         patch("utils._context.containers.get_docker_client", return_value=client),
         patch("utils._context.containers.log_host_diagnostics") as log_host_diagnostics,
@@ -106,4 +109,44 @@ def test_host_diagnostics_are_logged_on_timeouts_only() -> None:
     client.containers.run.side_effect = _api_error(HTTPStatus.INTERNAL_SERVER_ERROR)
     with _started(container, client) as log_host_diagnostics, pytest.raises(APIError):
         container.start(MagicMock())
+    log_host_diagnostics.assert_not_called()
+
+
+@scenarios.test_the_test
+def test_host_diagnostics_are_logged_while_the_start_is_slow() -> None:
+    container = _TestedContainer(name="slow-test", image_name="unused")
+    client = MagicMock()
+    diagnostics_logged = Event()
+
+    def slow_run(**_kwargs: object) -> MagicMock:
+        # returns only once the watchdog has logged the diagnostics
+        assert diagnostics_logged.wait(timeout=5)
+        return MagicMock()
+
+    client.containers.run.side_effect = slow_run
+
+    with (
+        _started(container, client) as log_host_diagnostics,
+        patch("utils._context.containers._SLOW_CONTAINER_START_SECONDS", 0.01),
+    ):
+        log_host_diagnostics.side_effect = lambda *_args, **_kwargs: diagnostics_logged.set()
+        container.start(MagicMock())
+
+    log_host_diagnostics.assert_called_once()
+    assert log_host_diagnostics.call_args.kwargs == {"daemon_stacks_folder": container.log_folder_path}
+
+
+@scenarios.test_the_test
+def test_host_diagnostics_are_not_logged_after_a_fast_start() -> None:
+    container = _TestedContainer(name="fast-test", image_name="unused")
+    client = MagicMock()
+
+    with (
+        _started(container, client) as log_host_diagnostics,
+        patch("utils._context.containers._SLOW_CONTAINER_START_SECONDS", 0.05),
+    ):
+        container.start(MagicMock())
+        # the watchdog would have fired by now if it wasn't cancelled
+        time.sleep(0.2)
+
     log_host_diagnostics.assert_not_called()
