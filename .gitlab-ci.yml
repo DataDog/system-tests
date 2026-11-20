@@ -51,7 +51,7 @@ resolve_ssi_pr_title:
       dotenv: pr-title.env
 
 compute_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:152564854@sha256:d956ef129392f49f8dfcbe4a8581be59bef77bc5ceaa7c47599d915194ab1293
   tags: ["arch:amd64"]
   stage: configure
   needs:
@@ -388,7 +388,7 @@ update_injector_version:
     - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
 
 generate_system_tests_lambda_proxy_image:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  image: registry.ddbuild.io/ci/libdatadog-build/packaging:152564854@sha256:c983eb194a6d0cd5c14e299291e80581e9813f83d9abbb8d1f50815260229031
   tags: ["docker-in-docker:amd64"]
   needs: []
   stage: system-tests-utils
@@ -422,7 +422,7 @@ generate_system_tests_lib_injection_images:
     - when: manual
 
 .delayed_base_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+    image: registry.ddbuild.io/ci/libdatadog-build/packaging:152564854@sha256:c983eb194a6d0cd5c14e299291e80581e9813f83d9abbb8d1f50815260229031
     tags: ["arch:amd64"]
     script:
         - echo "⏳ Waiting before triggering the child pipeline..."
