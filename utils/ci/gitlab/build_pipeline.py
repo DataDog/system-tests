@@ -231,6 +231,10 @@ DEV_MODE_UNSUPPORTED_TARGET_BRANCHES: dict[str, str] = dict.fromkeys(
 )
 # Branch names are written in the generated YAML, and read by load-binary.sh: no character GitLab would expand ($)
 TARGET_BRANCH_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/+-]*")
+# The "agent" entry is not a branch: load-binary.sh uses it as the tag of datadog/agent-dev (master-py3 by default).
+# Agent-dev tags are the slug of the branch with a flavor suffix (e.g. my-name-my-branch-py3, for my.name/my-branch):
+# a Docker tag, which can't contain "/"
+AGENT_TAG_PATTERN = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}")
 
 
 def _dev_binaries_job_name(library: str) -> str:
@@ -272,6 +276,11 @@ def parse_target_branch_map(value: str) -> dict[str, str]:
             raise InputError(f"target_branch_map: unknown library {key!r}, expected one of {', '.join(sorted(known))}")
         if not isinstance(branch, str) or not TARGET_BRANCH_PATTERN.fullmatch(branch):
             raise InputError(f"target_branch_map: invalid branch for {key}: {branch!r}")
+        if key == "agent" and not AGENT_TAG_PATTERN.fullmatch(branch):
+            raise InputError(
+                f"target_branch_map: agent: {branch!r} is not a datadog/agent-dev image tag. It is the tag, not the "
+                "branch: e.g. master-py3, or my-name-my-branch-py3 for the branch my.name/my-branch"
+            )
         if key in DEV_MODE_UNSUPPORTED_TARGET_BRANCHES:
             raise InputError(
                 f"target_branch_map: {key} can't have a target branch: {DEV_MODE_UNSUPPORTED_TARGET_BRANCHES[key]}"

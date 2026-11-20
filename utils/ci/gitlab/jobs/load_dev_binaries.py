@@ -9,9 +9,9 @@ Environment:
     LIBRARY_TARGET_BRANCH, AGENT_TARGET_BRANCH: optional, read by load-binary.sh (main/master if not set)
     SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN: "true" to get a GitHub token for load-binary.sh (see get_github_token)
 
-Every network call is bounded: each load-binary.sh call is killed after LOAD_TIMEOUT_SECONDS and retried, and the
+Every network call is bounded: each load-binary.sh call is killed after LOAD_TIMEOUT_SECONDS and retried, the
 curl calls it makes get a connection and transfer timeout (CURLRC), so that a stalled transfer is retried by curl
-itself instead of hanging until the job timeout.
+itself instead of hanging until the job timeout, and its git clones are aborted if they stall (GIT_STALL_ENV).
 """
 
 from __future__ import annotations
@@ -33,8 +33,18 @@ LOAD_ATTEMPTS = 3
 LOAD_TIMEOUT_SECONDS = 600
 RETRY_DELAY_SECONDS = 15
 
-# read by curl through CURL_HOME. Per transfer: curl --retry retries a transfer that timed out
-CURLRC = "connect-timeout = 30\nmax-time = 300\n"
+# read by curl through CURL_HOME. Per transfer: curl --retry retries a transfer that timed out. load-binary.sh retries
+# 3 times (4 transfers, 5s apart): 4 x 120s + 15s fits in LOAD_TIMEOUT_SECONDS, so curl gets to retry before the kill
+CURLRC = "connect-timeout = 30\nmax-time = 120\n"
+CURL_ATTEMPTS = 4
+CURL_RETRY_DELAY_SECONDS = 5
+CURL_MAX_TIME_SECONDS = 120
+
+# git clone (cpp_kong, ruby_lambda): aborted if slower than 1 KB/s for 60s
+GIT_STALL_ENV = {"GIT_HTTP_LOW_SPEED_LIMIT": "1000", "GIT_HTTP_LOW_SPEED_TIME": "60"}
+
+# credentials of the job, that load-binary.sh does not need
+SECRET_VARIABLES = ("DDOCTOSTS_ID_TOKEN", "DD_STS_OIDC_TOKEN", "DD_API_KEY", "CI_JOB_TOKEN", "GITHUB_TOKEN")
 
 # Existing policy (.github/chainguard/gitlab.github-access.read.sts.yaml): read-only, for any branch of
 # DataDog/system-tests. The token is scoped to DataDog/system-tests, like the GITHUB_TOKEN of the GitHub workflow,
@@ -141,9 +151,10 @@ def main() -> None:
     curl_home = Path("dev-binaries-curl-home")
     curl_home.mkdir(exist_ok=True)
     (curl_home / ".curlrc").write_text(CURLRC, encoding="utf-8")
-    env = {**os.environ, "CURL_HOME": str(curl_home.resolve())}
-    # never inherited: only set when this job asks for one
-    env.pop("GITHUB_TOKEN", None)
+    env = {**os.environ, "CURL_HOME": str(curl_home.resolve()), **GIT_STALL_ENV}
+    # GITHUB_TOKEN is never inherited: only set below, when this job asks for one
+    for name in SECRET_VARIABLES:
+        env.pop(name, None)
 
     token = ""
     if os.environ.get("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "").lower() == "true":

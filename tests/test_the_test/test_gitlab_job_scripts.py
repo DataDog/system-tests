@@ -1,5 +1,6 @@
 """Tests for the scripts run by the jobs of the generated GitLab child pipeline (utils/ci/gitlab/jobs/)."""
 
+import shutil
 import subprocess
 import sys
 import time
@@ -21,6 +22,10 @@ def _trace(name: str, tags: list[str], *command: str) -> list[str]:
     tag_args = [arg for tag in tags for arg in ("--tags", tag)]
     return ["datadog-ci", "trace", "--name", name, *tag_args, "--", *command]
 
+
+# before any monkeypatching
+REAL_RUN_WITH_TIMEOUT = load_dev_binaries.run_with_timeout
+REAL_POPEN = subprocess.Popen
 
 TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_type:run"]
 
@@ -488,6 +493,115 @@ class Test_GitlabLoadDevBinaries:
         assert len(token_calls) == load_dev_binaries.GITHUB_TOKEN_ATTEMPTS
         assert all("GITHUB_TOKEN" not in env for _, env in loads)
         assert len(loads) == 2
+
+    def test_github_token_is_revoked_when_loading_fails(
+        self,
+        dev_binaries: tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        _, octo_sts = dev_binaries
+        monkeypatch.setattr(load_dev_binaries, "run_with_timeout", lambda *_, **__: 1)
+        monkeypatch.setenv("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "true")
+
+        with pytest.raises(SystemExit):
+            load_dev_binaries.main()
+
+        assert octo_sts[-1] == ["dd-octo-sts", "revoke", "-t", "ghs_token"]
+
+    @pytest.mark.parametrize("load_returncode", [0, 1])
+    @pytest.mark.usefixtures("dev_binaries")
+    def test_github_token_is_never_logged(
+        self,
+        commands: list[list[str]],
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
+        load_returncode: int,
+    ) -> None:
+        """Through the real run_with_timeout (it logs the commands), with a fake load-binary.sh."""
+        monkeypatch.setattr(load_dev_binaries, "run_with_timeout", REAL_RUN_WITH_TIMEOUT)
+        # load-binary.sh replaced by a command checking that it gets the token
+        script = f'[ "$GITHUB_TOKEN" = ghs_token ] || exit 99; exit {load_returncode}'
+        monkeypatch.setattr(
+            load_dev_binaries.subprocess, "Popen", lambda _, **kwargs: REAL_POPEN(["sh", "-c", script], **kwargs)
+        )
+        monkeypatch.setenv("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "true")
+
+        if load_returncode:
+            with pytest.raises(SystemExit) as exc:
+                load_dev_binaries.main()
+            assert exc.value.code == load_returncode
+        else:
+            load_dev_binaries.main()
+        output = capsys.readouterr()
+
+        assert "load-binary.sh" in output.out
+        assert "ghs_token" not in output.out + output.err
+        assert not [command for command in commands if "ghs_token" in " ".join(command)]
+
+    def test_job_credentials_do_not_reach_load_binary(
+        self,
+        dev_binaries: tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        loads, _ = dev_binaries
+        for name in load_dev_binaries.SECRET_VARIABLES:
+            monkeypatch.setenv(name, "secret")
+
+        load_dev_binaries.main()
+
+        for _, env in loads:
+            assert not [name for name in load_dev_binaries.SECRET_VARIABLES if name in env]
+            assert "secret" not in env.values()
+            # git clones (cpp_kong, ruby_lambda) are aborted if they stall
+            assert env["GIT_HTTP_LOW_SPEED_LIMIT"] == "1000"
+            assert env["GIT_HTTP_LOW_SPEED_TIME"] == "60"
+
+    def test_curl_retries_fit_in_the_load_timeout(self) -> None:
+        """Curl gets to retry a stalled transfer before load-binary.sh is killed."""
+        assert f"max-time = {load_dev_binaries.CURL_MAX_TIME_SECONDS}\n" in load_dev_binaries.CURLRC
+        curl_time = (
+            load_dev_binaries.CURL_ATTEMPTS * load_dev_binaries.CURL_MAX_TIME_SECONDS
+            + (load_dev_binaries.CURL_ATTEMPTS - 1) * load_dev_binaries.CURL_RETRY_DELAY_SECONDS
+        )
+        assert curl_time < load_dev_binaries.LOAD_TIMEOUT_SECONDS
+        # what load-binary.sh passes to curl
+        script = Path("utils/scripts/load-binary.sh").read_text()
+        assert f"--retry {load_dev_binaries.CURL_ATTEMPTS - 1} " in script
+        assert f"--retry-delay {load_dev_binaries.CURL_RETRY_DELAY_SECONDS} " in script
+
+    @pytest.mark.parametrize(
+        ("target", "expected"),
+        [
+            ("agent", {"agent-image": "datadog/agent-dev:master-py3\n"}),
+            ("python", {"python-load-from-s3": "main\n"}),
+        ],
+    )
+    def test_real_load_binary_offline(
+        self, commands: list[list[str]], tmp_path: Path, target: str, expected: dict[str, str]
+    ) -> None:
+        """The real load-binary.sh, run like the job does: from the clone, with a relative BINARIES_DIR.
+
+        curl, docker and git fail: the agent and python dev binaries need no network.
+        """
+        assert commands == []
+        scripts = Path("utils/scripts")  # in the fake clone, the cwd (see the commands fixture)
+        scripts.mkdir(parents=True)
+        repo_scripts = Path(load_dev_binaries.__file__).parents[4] / "utils" / "scripts"
+        for name in ("load-binary.sh", "docker_base_image.sh"):
+            shutil.copy2(repo_scripts / name, scripts / name)
+        stubs = tmp_path / "stubs"
+        stubs.mkdir()
+        for tool in ("curl", "docker", "git"):
+            (stubs / tool).write_text(f"#!/bin/sh\necho 'unexpected {tool} call' >&2\nexit 97\n")
+            (stubs / tool).chmod(0o755)
+        env = {"PATH": f"{stubs}:/usr/bin:/bin", "HOME": str(tmp_path)}
+
+        output = load_dev_binaries.load_binary(target, env)
+
+        assert not output.is_absolute()
+        assert {path.name: path.read_text() for path in output.iterdir()} == expected
+        # load-binary.sh calls ../utils/scripts from BINARIES_DIR (e.g. docker_base_image.sh for dotnet and php)
+        assert (output / ".." / "utils" / "scripts" / "docker_base_image.sh").is_file()
 
     def test_run_with_timeout_kills_the_process_tree(self) -> None:
         """A hanging command is killed with its children, instead of running until the job timeout."""

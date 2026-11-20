@@ -122,6 +122,15 @@ class Test_GitlabDevMode:
             {"job": "system_tests_dev_binaries_python", "artifacts": True}
         ]
 
+    @pytest.mark.parametrize("tag", ["master-py3", "my-name-my-branch-py3", "7.70.x", "nightly-main-92824ec3-py3"])
+    def test_agent_tags(self, tmp_path: Path, tag: str) -> None:
+        environ = {
+            "SYSTEM_TESTS_E2E_DEV_MODE": "true",
+            "SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP": json.dumps({"agent": tag}),
+        }
+        assert _main_with_params(tmp_path, environ) == 0
+        assert _chunk(tmp_path)["system_tests_dev_binaries_python"]["variables"]["AGENT_TARGET_BRANCH"] == tag
+
     def test_target_branch_map(self, tmp_path: Path) -> None:
         environ = {
             "SYSTEM_TESTS_E2E_DEV_MODE": "true",
@@ -156,6 +165,11 @@ class Test_GitlabDevMode:
             ({"SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP": '{"python": 1}'}, "invalid branch"),
             ({"SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP": '{"c": "x"}'}, "c can't have a target branch"),
             ({"SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP": '{"auto_inject": "x"}'}, "auto_inject can't have"),
+            # the agent entry is a datadog/agent-dev tag: agent-dev:a/b would be an invalid image reference
+            (
+                {"SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP": '{"agent": "my.name/my-branch"}'},
+                "not a datadog/agent-dev image tag",
+            ),
         ],
     )
     def test_rejected(
@@ -228,10 +242,17 @@ class Test_GitlabDevMode:
         assert job["artifacts"]["paths"] == [f"{DEV_BINARIES_PATH}/"]
         assert load_dev_binaries.ARTIFACT_PATH == DEV_BINARIES_PATH
         assert job["id_tokens"]["DDOCTOSTS_ID_TOKEN"] == {"aud": "dd-octo-sts"}
-        # the job can't hang longer than all its attempts
-        assert int(job["timeout"].split()[0]) * 60 > load_dev_binaries.LOAD_ATTEMPTS * (
+        # the job timeout leaves time for all the attempts: getting the token, then loading the library (loading the
+        # agent only writes its image name)
+        token_time = load_dev_binaries.GITHUB_TOKEN_ATTEMPTS * (load_dev_binaries.GITHUB_TOKEN_TIMEOUT_SECONDS + 5)
+        load_time = load_dev_binaries.LOAD_ATTEMPTS * (
             load_dev_binaries.LOAD_TIMEOUT_SECONDS + load_dev_binaries.RETRY_DELAY_SECONDS * 2
         )
+        assert int(job["timeout"].split()[0]) * 60 > token_time + load_time
+        # its own retry, not the default one: a timeout is not retried, it would last the job timeout again
+        assert job["retry"]["max"] == 2
+        assert "stuck_or_timeout_failure" not in job["retry"]["when"]
+        assert "stuck_or_timeout_failure" in child_pipeline["default"]["retry"]["when"]
 
 
 BRANCHES = ["main", "user/my-branch", "7.70.x", "v1.2+build", "$CI_JOB_TOKEN", "-x", "a b", "", "a;b"]
