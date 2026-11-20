@@ -18,6 +18,7 @@ spring-boot:
   categories: [dd_trace]
 spring-boot-3-native:
   categories: [dd_trace]
+  excluded_scenarios: [SECURITY_SMOKE_OTLP]  # Tracing-only native image, no AAP endpoints.
 spring-boot-jetty:
   categories: [dd_trace]
 spring-boot-openliberty:

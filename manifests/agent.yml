@@ -7,6 +7,15 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
+  # RASP requires a structured _dd.stack at intake (no JSON-tag fallback).
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: "missing_feature (Bundled DDOT does not restore OTLP report bytes to MetaStruct; datadog-agent#60077)"
+  # These checks also require DDOT conversion on Python; other SDKs can use _dd.appsec.json.
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig:
+    - declaration: "missing_feature (Bundled DDOT does not restore OTLP report bytes to MetaStruct; datadog-agent#60077)"
+      weblog: [aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc]
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Threats::test_attack_detection_smoke:
+    - declaration: "missing_feature (Bundled DDOT does not restore OTLP report bytes to MetaStruct; datadog-agent#60077)"
+      weblog: [aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc]
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualOriginDetection::test_origin_detection:
     - declaration: flaky (APMSP-3059)
       weblog: [test-app-java-alpine, test-app-java-container]

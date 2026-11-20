@@ -2,8 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
-import base64
-import binascii
 import re
 from typing import Any
 
@@ -16,7 +14,7 @@ from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
-from utils.interfaces._open_telemetry import is_otel_span_for_request
+from utils.interfaces._open_telemetry import is_otel_span_for_request, otlp_trace_id_to_hex
 
 
 type OtelSpanRecord = tuple[Any, Any, Any]
@@ -24,26 +22,6 @@ type OtelSpanRecord = tuple[Any, Any, Any]
 # Must match DD_GIT_REPOSITORY_URL / DD_GIT_COMMIT_SHA in the APM_TRACING_OTLP scenario
 GIT_REPOSITORY_URL = "https://github.com/DataDog/system-tests"
 GIT_COMMIT_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-
-
-def _trace_id_to_hex(tid: str | None) -> str:
-    """Normalize an OTLP traceId field to a 32-char lowercase hex string.
-
-    JSON Protobuf encoding emits the field as a hex string. Binary Protobuf encoding emits
-    16 raw bytes, which the proxy renders as a standard-base64 string. Returns "" if the
-    input is empty or doesn't decode to a 16-byte ID.
-    """
-    if not tid:
-        return ""
-    if re.fullmatch(r"[0-9a-fA-F]{32}", tid):
-        return tid.lower()
-    try:
-        decoded = base64.b64decode(tid, validate=True)
-    except (ValueError, binascii.Error):
-        return ""
-    if len(decoded) != 16:
-        return ""
-    return decoded.hex()
 
 
 def _server_span_by_request_id(data: list[OtelSpanRecord], request_id: str) -> OtelSpanRecord:
@@ -103,7 +81,7 @@ class Test_Otel_Tracing_OTLP:
         """
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
         _, _, server_span = _server_span_by_request_id(data, self.req.get_rid())
-        trace_id = _trace_id_to_hex(server_span.get("traceId"))
+        trace_id = otlp_trace_id_to_hex(server_span.get("traceId"))
         assert trace_id, f"invalid traceId on server span: {server_span.get('traceId')}"
 
         chunk_count = 0
@@ -114,7 +92,7 @@ class Test_Otel_Tracing_OTLP:
                     span
                     for scope_span in resource_span.get("scopeSpans") or []
                     for span in scope_span.get("spans") or []
-                    if _trace_id_to_hex(span.get("traceId")) == trace_id
+                    if otlp_trace_id_to_hex(span.get("traceId")) == trace_id
                 ]
                 if not trace_spans:
                     continue
@@ -227,7 +205,7 @@ class Test_Otel_Tracing_OTLP:
         _, _, server_span = _server_span_by_request_id(data, self.req.get_rid())
 
         root_span_tid = server_span.get("traceId")
-        root_span_hex_id = _trace_id_to_hex(root_span_tid)
+        root_span_hex_id = otlp_trace_id_to_hex(root_span_tid)
         assert root_span_hex_id, (
             f"server span has unrecognized traceId encoding (expected hex or base64-bytes): {root_span_tid!r}"
         )
@@ -246,7 +224,7 @@ class Test_Otel_Tracing_OTLP:
         anchor_lower_hex = root_span_hex_id[16:]
         single_trace_spans = []
         for _, _, span in data:
-            hex_tid = _trace_id_to_hex(span.get("traceId"))
+            hex_tid = otlp_trace_id_to_hex(span.get("traceId"))
             if hex_tid and hex_tid[16:] == anchor_lower_hex:
                 single_trace_spans.append((span, hex_tid))
 

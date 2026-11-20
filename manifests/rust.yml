@@ -9,6 +9,7 @@ manifest:
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (process tags not implemented)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (single-span sampling is not implemented)
   tests/appsec/: irrelevant (AppSec/IAST/RASP is not implemented in dd-trace-rs)
+  tests/appsec/smoke_tests/test_security_otlp.py: missing_feature (OTLP trace export is not supported)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
