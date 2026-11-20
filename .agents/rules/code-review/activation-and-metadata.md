@@ -41,7 +41,7 @@
 - Old_id: claude-07
 - Severity: P1
 - Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
-- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
+- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe. A declaration has no reason. A file-level declaration also deactivates tests that pass. A `flaky` declaration hides a wrong test expectation. A PR adds the endpoint that an `incomplete_test_app` declaration names, and the declaration stays.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
 - ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`, causing the library to exit at startup while the run reports an expected failure.
 - Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
@@ -74,3 +74,10 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Match each manifest version range to the versions that have the behavior.
+- Severity: P1
+- Flag: A manifest version must start at the first release that has the behavior. This holds for every weblog that the entry covers. If a later version replaces the tested behavior, the entry must also stop before that version.
+- Detect: An entry starts before the first version that has the feature. A minimum version is lowered for all weblogs after only one weblog passed. A class for legacy behavior stays active for versions that use the new behavior.
+- ❌ `tests/parametric/test_ffe/test_serial_id_metadata.py: v2.10.1` activates the legacy `dd.serialId` class for every later Go version.
+- ✅ Gate the class at `v2.11.0-dev` when `v2.10.1` does not emit the telemetry.
