@@ -26,7 +26,14 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from ._decoders.protobuf_schemas import (
+    MetricPayload,
+    TracePayload,
+    SketchPayload,
+    BackendResponsePayload,
+    LatestConfigsRequest,
+    LatestConfigsResponse,
+)
 from ._decoders.metrics_v3 import decode_metrics_v3, decode_sketches_v3
 from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
@@ -196,6 +203,9 @@ def deserialize_http_message(
 
     if content_type == "application/x-protobuf":
         assert isinstance(content, bytes)
+        if path == "/api/v0.1/configurations":
+            schema = LatestConfigsRequest if "status_code" not in message else LatestConfigsResponse
+            return MessageToDict(schema.FromString(content), preserving_proto_field_name=True)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
             return deserialize_otlp_v1_trace(

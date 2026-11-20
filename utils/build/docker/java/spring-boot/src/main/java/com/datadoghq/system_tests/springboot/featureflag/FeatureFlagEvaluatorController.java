@@ -2,7 +2,6 @@ package com.datadoghq.system_tests.springboot.featureflag;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
@@ -33,6 +32,25 @@ public class FeatureFlagEvaluatorController {
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
 
+        private static FeatureProvider datadogProvider() {
+            // The standalone provider moved packages; retain support for older SDK binaries.
+            Class<?> providerClass;
+            try {
+                providerClass = Class.forName("com.datadog.openfeature.Provider");
+            } catch (ClassNotFoundException absent) {
+                try {
+                    providerClass = Class.forName("datadog.trace.api.openfeature.Provider");
+                } catch (ClassNotFoundException missing) {
+                    throw new IllegalStateException("Datadog OpenFeature provider is missing", missing);
+                }
+            }
+            try {
+                return (FeatureProvider) providerClass.getDeclaredConstructor().newInstance();
+            } catch (ReflectiveOperationException failure) {
+                throw new IllegalStateException("Cannot initialize Datadog OpenFeature provider", failure);
+            }
+        }
+
         @Lazy
         @Bean
         public Client client() {
@@ -44,7 +62,7 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider();
+                provider = datadogProvider();
             } else {
                 provider = new NoOpProvider() {
                     @Override
