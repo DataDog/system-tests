@@ -1001,10 +1001,14 @@ Called by `ParametricTestClientApi.ffe_core_provider()`. Node.js-only fresh-proc
 portable-provider probe; it resolves the built `@datadog/openfeature-node-server/rules-based`
 package shipped inside `dd-trace`, without importing or initializing the tracer.
 
-The request contains `operation` (`bootstrap`, `overlap`, `refresh`, or `tracking`),
+The request contains `operation` (`bootstrap`, `overlap`, `refresh`, `tracking`, `roundtrip`, or `invalid-codec`),
 portable `wire`, and an array of evaluation `contexts`. `refresh` additionally takes
 `replacementWire` and server-channel `fetchOptions`. The custom Fetch transport
 uses `SYSTEM_TESTS_FFE_RULES_BASE_URL`, as for the standalone rules helper.
+`roundtrip` accepts `format` (`rules`, `precomputed`, or `encoded`) and an optional
+`clientFingerprint`; it returns the serialized/restored snapshots and evaluations.
+`invalid-codec` accepts `invalidWires` and returns codec diagnostic categories,
+replacement errors, and evaluations from the retained configuration.
 
 The response reports actual OpenFeature startup/final status, operation results,
 configuration-change notifications or explicit sink records, package/runtime

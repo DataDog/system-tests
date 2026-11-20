@@ -5,7 +5,7 @@ const { writeFileSync } = require('node:fs')
 const { createRequire } = require('node:module')
 
 async function main () {
-  const { operation, wire, replacementWire, contexts, fetchOptions } = JSON.parse(process.argv[2])
+  const { operation, wire, replacementWire, contexts, fetchOptions, format, clientFingerprint, invalidWires } = JSON.parse(process.argv[2])
   let httpRequests = 0
   let exposureEvents = 0
   let outcome
@@ -26,7 +26,8 @@ async function main () {
     configurationToString,
     createExposureTracking,
     DatadogCoreProvider,
-    fetchRulesConfiguration
+    fetchRulesConfiguration,
+    precomputeConfiguration
   } = requireLibrary('@datadog/openfeature-node-server/rules-based')
   const { OpenFeature, ProviderEvents } = require('@openfeature/server-sdk')
   OpenFeature.setLogger({ error () {}, warn () {}, info () {}, debug () {} })
@@ -37,7 +38,14 @@ async function main () {
   const sink = channel('ffe:exposure:submit')
   const captureExposure = event => exposures.push(event)
   sink.subscribe(captureExposure)
-  const provider = new DatadogCoreProvider(configurationFromString(wire), { ...tracking?.providerOptions })
+  let configuration = configurationFromString(wire)
+  let serialized
+  if (operation === 'roundtrip') {
+    if (format !== 'rules') configuration = precomputeConfiguration(configuration, contexts[0], { clientFingerprint })
+    serialized = configurationToString(configuration)
+    configuration = configurationFromString(serialized)
+  }
+  const provider = new DatadogCoreProvider(configuration, { ...tracking?.providerOptions })
   if (operation === 'overlap') provider.hooks.push(tracking.createHook(sink))
   let readyEvents = 0
   OpenFeature.addHandler(ProviderEvents.Ready, () => { readyEvents++ })
@@ -47,7 +55,35 @@ async function main () {
   const evaluate = (context, options) => client.getBooleanDetails('test-flag', false, context, options)
 
   try {
-    if (operation === 'bootstrap') {
+    if (operation === 'roundtrip') {
+      outcome = {
+        startup,
+        serialized,
+        restored: configurationToString(provider.getConfiguration()),
+        results: await Promise.all(contexts.map(context => evaluate(context)))
+      }
+    } else if (operation === 'invalid-codec') {
+      const snapshot = configurationToString(provider.getConfiguration())
+      const rejected = []
+      for (const input of invalidWires) {
+        const invalid = configurationFromString(input)
+        let errorName
+        try {
+          provider.setConfiguration(invalid)
+        } catch (error) {
+          if (!(error instanceof TypeError)) throw error
+          errorName = error.name
+        }
+        rejected.push({
+          errorName,
+          diagnostics: Object.fromEntries(['configurationError', 'rulesError', 'precomputedError']
+            .map(key => [key, typeof invalid[key] === 'string'])),
+          unchanged: configurationToString(provider.getConfiguration()) === snapshot,
+          result: await evaluate(contexts[0])
+        })
+      }
+      outcome = { startup, rejected }
+    } else if (operation === 'bootstrap') {
       outcome = { startup, results: await Promise.all(contexts.map(context => evaluate(context))) }
     } else if (operation === 'overlap') {
       const observations = []

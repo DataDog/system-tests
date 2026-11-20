@@ -70,8 +70,10 @@ These tests report to [Offline initialization and portable configuration helpers
 synchronous READY registration, zero-request local evaluation, overlapping contexts
 with different root/dependency values, explicit server-channel refresh, rejected
 replacement retention, configuration-change events, and opt-in exposure sinks with
-deduplication and late-hook rollback. These are package-level integration checks,
-not tracer evaluation-upload or intake-delivery tests. The adapter resolves the
+deduplication and late-hook rollback.
+It also covers semantic codec round-trips for rules and plaintext/hashed precomputed
+snapshots, metadata and context binding, and malformed/versioned input rejection.
+These are package-level integration checks, not tracer evaluation-upload or intake-delivery tests. The adapter resolves the
 Node package from the tracer's dependencies without importing the tracer; no
 `dd-trace` wrapper exports are required. The Node manifest remains `missing_feature`
 until a containing dependency update is available; other libraries are gated too.

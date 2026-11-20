@@ -1,6 +1,7 @@
 """Offline provider lifecycle through the real OpenFeature SDK, isolated from the tracer."""
 
 import json
+import hashlib
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
@@ -16,6 +17,13 @@ CONTEXTS = [
     {"targetingKey": "subject-us", "country": "US", "dd_assignment_token": "private-token-us"},
     {"targetingKey": "subject-fr", "country": "FR", "dd_assignment_token": "private-token-fr"},
 ]
+ENCODING_FINGERPRINT = json.dumps(
+    {
+        "version": 1,
+        "sdk": {"name": "browser", "version": "system-test"},
+        "capabilities": ["assignment-encoding-flag-key-256-v1"],
+    }
+)
 
 
 @pytest.fixture
@@ -44,6 +52,94 @@ def assert_offline(result: dict[str, Any], mocked_backend: MockedBackendServer, 
 @features.feature_flags_portable_configuration
 @slow
 class Test_FFE_Core_Provider:
+    def test_configuration_codec_roundtrips(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        with test_library:
+            for format_ in ("rules", "precomputed", "encoded"):
+                result = test_library.ffe_core_provider(
+                    {
+                        "operation": "roundtrip",
+                        "wire": WIRE,
+                        "contexts": CONTEXTS,
+                        "format": format_,
+                        **({"clientFingerprint": ENCODING_FINGERPRINT} if format_ == "encoded" else {}),
+                    }
+                )
+                assert_offline(result, mocked_backend)
+                assert result["startup"]["hooks"] == 0
+                serialized = json.loads(result["serialized"])
+                assert json.loads(result["restored"]) == serialized
+                assert_evaluation(result["results"][0], value=True, variant="on", reason="TARGETING_MATCH")
+                metadata = result["results"][0]["flagMetadata"]
+                assert metadata["__dd_allocation_key"] == "allocation"
+                assert metadata["__dd_split_serial_id"] == 7
+                assert metadata["__dd_do_log"] is True
+                assert metadata["__dd_observe_full_evaluation_data"] is False
+                if format_ == "rules":
+                    assert set(serialized) == {"version", "rules"}
+                    assert serialized["version"] == 1
+                    assert serialized["rules"]["etag"] == "rules-etag"
+                    assert_evaluation(result["results"][1], value=False, variant="off", reason="SPLIT")
+                else:
+                    assert set(serialized) == {"version", "precomputed"}
+                    assert serialized["version"] == (2 if format_ == "encoded" else 1)
+                    snapshot = serialized["precomputed"]
+                    assert snapshot["context"] == {"targetingKey": "subject-us", "country": "US"}
+                    assert snapshot["fetchedAt"] > 0
+                    attributes = json.loads(snapshot["response"])["data"]["attributes"]
+                    assert attributes["format"] == "PRECOMPUTED"
+                    assert attributes["observeFullEvaluationData"] is False
+                    assert attributes["obfuscated"] is (format_ == "encoded")
+                    flags = attributes["flags"]
+                    if format_ == "encoded":
+                        encoding = attributes["obfuscation"]
+                        assert encoding["scheme"] == "flag-key-sha256-v1"
+                        salt = bytes.fromhex(encoding["salt"])
+                        assert len(salt) == 16
+                        assert set(flags) == {
+                            hashlib.sha256(b"datadog.feature-flags.flag-key.v1\0" + salt + key.encode()).hexdigest()
+                            for key in ("test-flag", "prerequisite")
+                        }
+                    else:
+                        assert set(flags) == {"test-flag", "prerequisite"}
+                    mismatch = result["results"][1]
+                    assert mismatch["value"] is False
+                    assert mismatch["reason"] == "ERROR"
+                    assert mismatch["errorCode"] == "INVALID_CONTEXT"
+                assert "private-token" not in json.dumps(result)
+
+    def test_malformed_configuration_codecs(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        cases = [
+            ("private-invalid-json", "configurationError"),
+            (json.dumps({"version": 999}), "configurationError"),
+            (json.dumps({"version": 1}), None),
+            (json.dumps({"version": 1, "rules": {"response": "!private-invalid-protobuf!"}}), "rulesError"),
+            (json.dumps({"version": 1, "precomputed": {"response": "private-invalid-json"}}), "precomputedError"),
+            (json.dumps({"version": 2, "precomputed": {"response": "{}"}}), "precomputedError"),
+        ]
+        with test_library:
+            result = test_library.ffe_core_provider(
+                {
+                    "operation": "invalid-codec",
+                    "wire": WIRE,
+                    "contexts": CONTEXTS,
+                    "invalidWires": [wire for wire, _ in cases],
+                }
+            )
+        assert_offline(result, mocked_backend)
+        assert len(result["rejected"]) == len(cases)
+        for rejected, (_, diagnostic) in zip(result["rejected"], cases, strict=True):
+            assert rejected["errorName"] == "TypeError"
+            assert rejected["unchanged"] is True
+            assert rejected["diagnostics"] == {
+                key: key == diagnostic for key in ("configurationError", "rulesError", "precomputedError")
+            }
+            assert_evaluation(rejected["result"], value=True, variant="on", reason="TARGETING_MATCH")
+        assert "private-invalid" not in json.dumps(result)
+
     def test_synchronous_bootstrap(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
         with test_library:
             result = test_library.ffe_core_provider({"operation": "bootstrap", "wire": WIRE, "contexts": CONTEXTS})
