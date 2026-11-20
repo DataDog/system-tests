@@ -219,26 +219,14 @@ def observe_polls(test_agent: TestAgentAPI, *, supported: bool, minimum: int = 3
 def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any], version: int) -> None:
     path = f"datadog/2/{RC_PRODUCT}/{config_id}/config"
     previous_requests = test_agent.rc_requests()
-    previous_target = next(
-        (
-            target
-            for request in reversed(previous_requests)
-            for target in (request["body"].get("cached_target_files") or [])
-            if target["path"] == path
-        ),
-        None,
-    )
     test_agent.set_remote_config(path=path, payload=payload, version=version)
     deadline = time.monotonic() + 10
     while time.monotonic() < deadline:
         # A stale ACK for the same ID must not acknowledge new content. Keep all
-        # requests for capability checks, but require a new target and its versioned ACK together.
+        # requests for capability checks, but require the delivered version's ACK.
+        # Target caching is optional and is not evidence of application.
         for request in test_agent.rc_requests()[len(previous_requests) :]:
             body = request["body"]
-            changed = any(
-                target["path"] == path and target != previous_target
-                for target in (body.get("cached_target_files") or [])
-            )
             acknowledged = any(
                 state["product"] == RC_PRODUCT
                 and state["id"] == config_id
@@ -246,7 +234,7 @@ def deliver(test_agent: TestAgentAPI, *, config_id: str, payload: dict[str, Any]
                 and state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
                 for state in (body["client"]["state"].get("config_states") or [])
             )
-            if changed and acknowledged:
+            if acknowledged:
                 return
         time.sleep(0.05)
     raise AssertionError(f"The SDK did not acknowledge new configuration content for {config_id}")

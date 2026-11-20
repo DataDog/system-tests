@@ -167,7 +167,7 @@ class Test_FFE_RC_Delivery:
         agent.rc_requests.side_effect = lambda *, post_only=False: ([post] if post_only else [get, unrelated, post])
         assert ffe_requests(agent) == [get, post]
 
-    def test_update_requires_new_content_and_ack_in_same_poll(self) -> None:
+    def test_update_requires_delivered_version_ack(self) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         old = _poll(content="old", acknowledged=True)
         new_without_ack = _poll(content="new", version=2)
@@ -188,7 +188,7 @@ class Test_FFE_RC_Delivery:
         assert agent.rc_requests.call_count == 6
         agent.clear.assert_not_called()
 
-    def test_null_rc_state_waits_for_new_content_and_ack(self) -> None:
+    def test_null_rc_state_waits_for_ack(self) -> None:
         agent = MagicMock(spec=TestAgentAPI)
         empty = _poll()
         empty["body"]["cached_target_files"] = None
@@ -205,6 +205,33 @@ class Test_FFE_RC_Delivery:
         with patch("tests.parametric.test_ffe.utils.time.sleep"):
             deliver(agent, config_id="flags", payload={"flags": {}}, version=1)
         assert agent.rc_requests.call_count == 4
+        agent.clear.assert_not_called()
+
+    @pytest.mark.parametrize("cache_state", ["omitted", "null", "empty", "unchanged"])
+    def test_versioned_ack_does_not_require_target_caching(self, cache_state: str) -> None:
+        agent = MagicMock(spec=TestAgentAPI)
+        old = _poll(content="old", acknowledged=True)
+        unacknowledged = _poll(content="old", version=2)
+        acknowledged = _poll(content="old", acknowledged=True, version=2)
+        for request in (old, unacknowledged, acknowledged):
+            if cache_state == "omitted":
+                del request["body"]["cached_target_files"]
+            elif cache_state == "null":
+                request["body"]["cached_target_files"] = None
+            elif cache_state == "empty":
+                request["body"]["cached_target_files"] = []
+        agent.rc_requests.side_effect = [
+            [old],
+            [old, unacknowledged],
+            [old, unacknowledged, acknowledged],
+        ]
+        with (
+            patch("tests.parametric.test_ffe.utils.time.monotonic", side_effect=[0, 0, 0, 11]),
+            patch("tests.parametric.test_ffe.utils.time.sleep"),
+        ):
+            deliver(agent, config_id="flags", payload={"flags": {}}, version=2)
+        agent.set_remote_config.assert_called_once_with(path=RC_PATH, payload={"flags": {}}, version=2)
+        assert agent.rc_requests.call_count == 3
         agent.clear.assert_not_called()
 
     @pytest.mark.parametrize("content", ["old", "new"])
