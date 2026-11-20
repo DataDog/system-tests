@@ -33,7 +33,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
-.report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
 !utils/build/docker/ruby/rails52/bin
