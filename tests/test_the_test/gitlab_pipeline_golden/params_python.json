@@ -1,0 +1,50 @@
+{
+  "endtoend_defs": {
+    "parallel_weblogs": [
+      {
+        "name": "flask-poc"
+      }
+    ],
+    "parallel_jobs": [
+      {
+        "weblog": "flask-poc",
+        "scenarios": [
+          "APPSEC_BLOCKING",
+          "DEFAULT",
+          "SAMPLING"
+        ],
+        "weblog_build_required": true,
+        "expected_job_time": 900,
+        "scenarios_times": {
+          "APPSEC_BLOCKING": 300,
+          "DEFAULT": 400,
+          "SAMPLING": 200
+        }
+      },
+      {
+        "weblog": "uwsgi-poc",
+        "scenarios": [
+          "DEFAULT"
+        ],
+        "weblog_build_required": true,
+        "expected_job_time": 300,
+        "scenarios_times": {
+          "DEFAULT": 300
+        }
+      }
+    ]
+  },
+  "miscs": {
+    "binaries_artifact": "",
+    "ci_environment": "prod"
+  },
+  "parametric": {
+    "enable": true,
+    "job_count": 2,
+    "job_matrix": [
+      1,
+      2
+    ],
+    "workers": 4
+  }
+}

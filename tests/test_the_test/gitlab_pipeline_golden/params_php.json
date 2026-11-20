@@ -1,0 +1,32 @@
+{
+  "endtoend_defs": {
+    "parallel_weblogs": [],
+    "parallel_jobs": [
+      {
+        "weblog": "apache-mod-8.0",
+        "scenarios": [
+          "DEFAULT",
+          "THREAD_CONTEXT_SHARING"
+        ],
+        "weblog_build_required": false,
+        "expected_job_time": 700,
+        "scenarios_times": {
+          "DEFAULT": 300,
+          "THREAD_CONTEXT_SHARING": 400
+        }
+      }
+    ]
+  },
+  "miscs": {
+    "binaries_artifact": "",
+    "ci_environment": "prod"
+  },
+  "parametric": {
+    "enable": false,
+    "job_count": 1,
+    "job_matrix": [
+      1
+    ],
+    "workers": 4
+  }
+}

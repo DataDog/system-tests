@@ -1,0 +1,101 @@
+workflow:
+  name: System-tests end to end
+
+include:
+- project: DataDog/system-tests
+  ref: abc
+  file: utils/ci/gitlab/templates.yml
+  inputs:
+    stage: e2e
+    ref: abc
+- project: DataDog/system-tests
+  ref: abc
+  file: utils/ci/gitlab/child-pipeline.yml
+
+stages:
+- e2e
+
+variables:
+  CI_IMAGE: img
+  UPSTREAM_PIPELINE_ID: '42'
+  SYSTEM_TESTS_FORCE_EXECUTE: ''
+  SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: 'false'
+  SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME: ''
+
+system_tests_build_python_flask-poc:
+  extends: .system_tests_build
+  variables:
+    TEST_LIBRARY: python
+    SYSTEM_TESTS_WEBLOG: flask-poc
+    SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: out/bin
+  needs:
+  - job: build_a
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+  - job: build b
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+
+system_tests_run_python_flask-poc_1:
+  extends:
+  - .system_tests_run
+  variables:
+    TEST_LIBRARY: python
+    SYSTEM_TESTS_WEBLOG: flask-poc
+    SYSTEM_TESTS_SCENARIOS: APPSEC_BLOCKING,DEFAULT,SAMPLING
+    SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED: 'true'
+  needs:
+  - job: system_tests_build_python_flask-poc
+    artifacts: true
+  timeout: 35 minutes
+
+system_tests_run_python_DEFAULT_uwsgi-poc:
+  extends:
+  - .system_tests_run
+  variables:
+    TEST_LIBRARY: python
+    SYSTEM_TESTS_WEBLOG: uwsgi-poc
+    SYSTEM_TESTS_SCENARIOS: DEFAULT
+    SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED: 'true'
+    SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: out/bin
+  needs:
+  - job: build_a
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+  - job: build b
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+
+system_tests_run_python_PARAMETRIC_1:
+  extends:
+  - .system_tests_parametric
+  variables:
+    TEST_LIBRARY: python
+    SYSTEM_TESTS_PARAMETRIC_GROUP: '1'
+    SYSTEM_TESTS_PARAMETRIC_JOB_COUNT: '2'
+    SYSTEM_TESTS_PARAMETRIC_WORKERS: '4'
+    SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: out/bin
+  needs:
+  - job: build_a
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+  - job: build b
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+
+system_tests_run_python_PARAMETRIC_2:
+  extends:
+  - .system_tests_parametric
+  variables:
+    TEST_LIBRARY: python
+    SYSTEM_TESTS_PARAMETRIC_GROUP: '2'
+    SYSTEM_TESTS_PARAMETRIC_JOB_COUNT: '2'
+    SYSTEM_TESTS_PARAMETRIC_WORKERS: '4'
+    SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: out/bin
+  needs:
+  - job: build_a
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
+  - job: build b
+    artifacts: true
+    pipeline: $UPSTREAM_PIPELINE_ID
