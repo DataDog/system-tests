@@ -73,51 +73,6 @@ class FeatureFlaggingEvaluationTelemetryOptOutDisabled(_ProvisionalFeatureFlaggi
         )
 
 
-class _FeatureFlaggingSwitchesScenario(_ProvisionalFeatureFlaggingScenario):
-    """Turn off evaluation telemetry, exposures, or both, for every provider in the process."""
-
-    def __init__(self, name: str, *, evaluation_telemetry: bool, exposures: bool) -> None:
-        weblog_env: dict[str, str | None] = {
-            **_FFE_WEBLOG_ENV,
-            # Enrichment is evaluation telemetry: on here, it must still stop when telemetry is off.
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
-        }
-        if not evaluation_telemetry:
-            weblog_env["DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_ENABLED"] = "false"
-        if not exposures:
-            weblog_env["DD_FEATURE_FLAGS_EXPOSURES_ENABLED"] = "false"
-        super().__init__(
-            name,
-            rc_api_enabled=True,
-            agent_interface_timeout=15,
-            weblog_env=weblog_env,
-            scenario_groups=[scenario_groups.ffe],
-        )
-
-
-class FeatureFlaggingEvaluationTelemetryDisabled(_FeatureFlaggingSwitchesScenario):
-    """DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_ENABLED=false: exposures and flag values remain."""
-
-    def __init__(self) -> None:
-        super().__init__("FEATURE_FLAGGING_EVALUATION_TELEMETRY_DISABLED", evaluation_telemetry=False, exposures=True)
-
-
-class FeatureFlaggingExposuresDisabled(_FeatureFlaggingSwitchesScenario):
-    """DD_FEATURE_FLAGS_EXPOSURES_ENABLED=false: evaluation telemetry and flag values remain."""
-
-    def __init__(self) -> None:
-        super().__init__("FEATURE_FLAGGING_EXPOSURES_DISABLED", evaluation_telemetry=True, exposures=False)
-
-
-class FeatureFlaggingEvaluationTelemetryAndExposuresDisabled(_FeatureFlaggingSwitchesScenario):
-    """Both switches off: flag values remain, with no evaluation telemetry or exposures."""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "FEATURE_FLAGGING_EVALUATION_TELEMETRY_AND_EXPOSURES_DISABLED", evaluation_telemetry=False, exposures=False
-        )
-
-
 class FeatureFlaggingEvpStress(DdTraceEndToEndScenario):
     """Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops."""
 

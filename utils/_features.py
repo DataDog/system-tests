@@ -2763,7 +2763,7 @@ class _Features:
 
     @staticmethod
     def feature_flags_evaluation_telemetry_and_exposures_switches(test_object):
-        """Feature Flags evaluation telemetry and exposures switches (per process and per provider)"""
+        """Feature Flags provider options that turn off evaluation telemetry and exposures"""
         return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
 
     @staticmethod

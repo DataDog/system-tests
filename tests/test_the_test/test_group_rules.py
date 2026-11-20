@@ -20,9 +20,6 @@ def test_tracer_release():
     provisional_opt_out_scenarios = [
         scenarios.feature_flagging_evaluation_telemetry_opt_out,
         scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled,
-        scenarios.feature_flagging_evaluation_telemetry_disabled,
-        scenarios.feature_flagging_exposures_disabled,
-        scenarios.feature_flagging_evaluation_telemetry_and_exposures_disabled,
     ]
     for opt_out_scenario in provisional_opt_out_scenarios:
         assert opt_out_scenario.github_workflow == "endtoend"
