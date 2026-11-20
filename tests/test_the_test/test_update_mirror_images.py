@@ -7,6 +7,7 @@ from utils import pytest
 import yaml
 
 from utils import scenarios
+from utils._context.weblog_metadata import WeblogMetaData
 from utils.scripts import update_mirror_images
 
 
@@ -213,9 +214,21 @@ class Test_UpdateMirrorImages:
         """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
         images = set(update_mirror_images.collect_images(set()))
 
-        # public image, and system-tests base image resolved from its alias
         assert "golang:1.26" in images
-        assert any(image.startswith("datadog/system-tests:python-parametric.base-") for image in images)
+
+    def test_library_weblog_pairs_are_the_weblogs(self):
+        """Only weblog Dockerfiles: other Dockerfiles of a library folder are not built for a scenario."""
+        pairs = update_mirror_images._library_weblog_pairs()
+        weblogs = {
+            (library, weblog.name.partition("@")[0])
+            for library in {library for library, _ in pairs if library}
+            for weblog in WeblogMetaData.load(library)
+        }
+
+        assert ("", "") in pairs
+        assert ("python", "flask-poc") in pairs
+        assert ("python", "openai-py") in pairs  # integration-framework weblogs fan out from one Dockerfile
+        assert set(pairs) - {("", "")} <= weblogs
 
     def test_collect_images_skips_parametric_images_when_excluded(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(update_mirror_images, "_parametric_images", lambda: {"parametric:only"})

@@ -16,7 +16,7 @@ class _TestTheTestScenario(Scenario):
 
     @property
     def parametrized_tests_metadata(self):
-        return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
+        return {"tests/test_the_test/test_junit_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
 
     @property
     def weblog_variant(self):
