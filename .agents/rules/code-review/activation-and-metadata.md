@@ -40,10 +40,10 @@
 ### META-006: Match each manifest marker to its cause.
 - Old_id: claude-07
 - Severity: P1
-- Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason. Each reason must state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail. Also, `conftest.py` records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
-- Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A file-level declaration covers tests that pass or that fail for different causes. A marked test fails in setup from invalid configuration or a missing secret, and the marker does not say so.
+- Flag: Follow the marker semantics. Use `irrelevant` when the test can never run, because the feature is impossible or the RFC excludes it. Use `missing_feature` when the library does not implement the feature. Use `incomplete_test_app` when the weblog lacks an endpoint. Use `flaky` when the test outcome is not stable, whatever the cause. Use `bug` when the library implements the feature but the test fails deterministically.
+- Detect: Comments, weblog code, tracer code, or an RFC contradict the marker in use.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
-- ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`. The library then exits at startup, and the run reports an expected failure.
+- ❌ Use `missing_feature` for an endpoint that the weblog does not implement.
 - Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
 
 ### META-007: Do not let a minimum dev version match an older release candidate.
