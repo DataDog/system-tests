@@ -12,6 +12,10 @@ google_genai-py:
   build_mode: none
   framework_versions: ["1.55.0"]
   categories: [dd_trace_frameworks]
+litellm-py:
+  build_mode: none
+  framework_versions: ["1.78.5"]
+  categories: [dd_trace_frameworks]
 tornado:
   categories: [dd_trace]
 aiohttp:
