@@ -128,6 +128,9 @@ from .feature_flagging import (
     FeatureFlaggingEvpStress,
     FeatureFlaggingEvaluationTelemetryOptOut,
     FeatureFlaggingEvaluationTelemetryOptOutDisabled,
+    FeatureFlaggingEvaluationTelemetryDisabled,
+    FeatureFlaggingExposuresDisabled,
+    FeatureFlaggingEvaluationTelemetryAndExposuresDisabled,
 )
 from .graphql import (
     GraphqlAppsec,
@@ -322,6 +325,11 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
+    feature_flagging_evaluation_telemetry_disabled = FeatureFlaggingEvaluationTelemetryDisabled()
+    feature_flagging_exposures_disabled = FeatureFlaggingExposuresDisabled()
+    feature_flagging_evaluation_telemetry_and_exposures_disabled = (
+        FeatureFlaggingEvaluationTelemetryAndExposuresDisabled()
+    )
     feature_flagging_evp_stress = FeatureFlaggingEvpStress()
     remote_config_mocked_backend_asm_features_nocache = RemoteConfigMockedBackendAsmFeaturesNocache()
     # APM tracing end-to-end scenarios

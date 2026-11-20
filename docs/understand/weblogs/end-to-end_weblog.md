@@ -1305,6 +1305,15 @@ timing. When the array is absent or empty, evaluate the single `targetingKey`.
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
 
+### POST /ffe/inspect
+
+This endpoint accepts the same body as `POST /ffe` and returns the same response.
+It evaluates through the client of a second OpenFeature domain, `inspect`, whose
+Datadog provider turns off evaluation telemetry and exposures through provider
+options in code, not through environment variables. Create that provider once, on
+the first request, and keep the default `/ffe` client unchanged. If the SDK has no
+such options, respond with status 501.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :

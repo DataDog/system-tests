@@ -1897,6 +1897,10 @@ manifest:
       weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
     - declaration: bug (FFL-2182)
       excluded_weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py: missing_feature (Evaluation telemetry and exposures switches are not released yet)
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Switches_Inspect_Then_Default_EVP: incomplete_test_app (The weblog does not provide POST /ffe/inspect)
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Switches_Inspect_Then_Default_Exposures: incomplete_test_app (The weblog does not provide POST /ffe/inspect)
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Switches_Inspect_Then_Default_Metrics: incomplete_test_app (The weblog does not provide POST /ffe/inspect)
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: v2.12.0-dev

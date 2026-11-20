@@ -23,9 +23,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class FeatureFlagEvaluatorController {
@@ -60,12 +62,59 @@ public class FeatureFlagEvaluatorController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFlagEvaluatorController.class);
 
+    private static final String INSPECT_DOMAIN = "inspect";
+
     @Autowired
     @Lazy
     private Client client;
 
+    private volatile Client inspectClient;
+
     @PostMapping(value = "/ffe", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
+        return ResponseEntity.ok(evaluate(client, request));
+    }
+
+    /**
+     * Evaluates like /ffe, through the client of a second OpenFeature domain whose provider has evaluation
+     * telemetry and exposures turned off in code. The provider options are looked up by reflection so the
+     * weblog still builds against SDK versions without them; those versions answer 501.
+     */
+    @PostMapping(value = "/ffe/inspect", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> inspect(@RequestBody final EvaluateRequest request) {
+        final Client inspect;
+        try {
+            inspect = inspectClient();
+        } catch (final NoSuchMethodException e) {
+            final Map<String, Object> result = new HashMap<>();
+            result.put("errorCode", "UNSUPPORTED");
+            result.put("errorMessage", "Provider.Options does not support " + e.getMessage());
+            return ResponseEntity.status(501).body(result);
+        } catch (final Exception e) {
+            LOGGER.error("Error creating the inspection provider", e);
+            final Map<String, Object> result = new HashMap<>();
+            result.put("errorCode", "GENERAL");
+            result.put("errorMessage", String.valueOf(e));
+            return ResponseEntity.status(500).body(result);
+        }
+        return ResponseEntity.ok(evaluate(inspect, request));
+    }
+
+    private synchronized Client inspectClient() throws Exception {
+        if (inspectClient == null) {
+            final Provider.Options options = new Provider.Options().initTimeout(30, TimeUnit.SECONDS);
+            for (final String option : List.of("evaluationTelemetryEnabled", "exposuresEnabled")) {
+                final Method method = options.getClass().getMethod(option, boolean.class);
+                method.invoke(options, false);
+            }
+            final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
+            api.setProviderAndWait(INSPECT_DOMAIN, new Provider(options));
+            inspectClient = api.getClient(INSPECT_DOMAIN);
+        }
+        return inspectClient;
+    }
+
+    private static Map<String, Object> evaluate(final Client client, final EvaluateRequest request) {
         Object value;
         String reason;
         final List<String> targetingKeys = request.getTargetingKeys() == null || request.getTargetingKeys().isEmpty()
@@ -112,7 +161,7 @@ public class FeatureFlagEvaluatorController {
         result.put("reason", reason);
         result.put("value", value);
         result.put("count", targetingKeys.size());
-        return ResponseEntity.ok(result);
+        return result;
     }
 
     private static EvaluationContext context(final EvaluateRequest request, final String targetingKey) {

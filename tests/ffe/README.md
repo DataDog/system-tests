@@ -12,6 +12,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 | `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
+| `test_evaluation_telemetry_and_exposures_switches.py` | Process-wide and per-provider switches for evaluation telemetry and exposures |
 
 ## Canonical parametric fixtures
 
@@ -181,6 +182,53 @@ Brackets require that exact version. A plain version is a minimum; NuGet can sel
 Use unique candidate versions that are not published on nuget.org, so only `binaries/` can supply them.
 Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
 The `uds` weblog does not support these build arguments or the local package source.
+
+## Evaluation telemetry and exposures switches
+
+`DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_ENABLED=false` stops flag evaluation EVP events, the
+`feature_flag.evaluations` metric, and span enrichment. `DD_FEATURE_FLAGS_EXPOSURES_ENABLED=false`
+stops exposures. Both default to true, and neither changes flag values. A provider option sets
+the same switches for one provider and overrides the environment variable. The Java reference is
+`Provider.Options#evaluationTelemetryEnabled(boolean)` and `#exposuresEnabled(boolean)` in
+[dd-trace-java#12387](https://github.com/DataDog/dd-trace-java/pull/12387).
+
+The environment-variable classes run in three scenarios, one per combination of switches off:
+
+| Scenario | Evaluation telemetry | Exposures |
+| --- | --- | --- |
+| `FEATURE_FLAGGING_EVALUATION_TELEMETRY_DISABLED` | Off | On |
+| `FEATURE_FLAGGING_EXPOSURES_DISABLED` | On | Off |
+| `FEATURE_FLAGGING_EVALUATION_TELEMETRY_AND_EXPOSURES_DISABLED` | Off | Off |
+
+Each scenario enables span enrichment, so the trace annotation class can check that turning
+evaluation telemetry off also stops enrichment. In the first two scenarios, the switch left on
+is the positive control for the one turned off. Flag values must be unchanged in all three.
+Like the opt-out scenarios, these are excluded from the default `all`, `end_to_end`, and
+`tracer_release` groups until SDK releases are activated; select them by name or through `ffe`.
+
+The `Inspect_Then_Default` classes run in `FEATURE_FLAGGING_AND_EXPERIMENTATION`, with both
+switches on by default. `POST /ffe/inspect` evaluates through a second OpenFeature domain whose
+provider turns both switches off in code. A subject evaluated through it, then through the default
+client, must get exactly one exposure with the same variant, and one EVP evaluation. A second flag
+and subject evaluated only through the inspection client must get no exposure, EVP evaluation, or
+metric. Together these show that the inspection neither sends an exposure nor records the subject
+in the shared exposure deduplication cache.
+
+Only the Java `spring-boot` weblog implements `POST /ffe/inspect`. It sets the options by reflection
+and answers 501 on SDK versions without them. Go and Ruby manifests mark the inspection classes
+`incomplete_test_app` until their weblogs implement the endpoint. These tests do not cover an option
+that turns a switch on while its environment variable turns it off.
+
+Every library is marked `missing_feature` until a release contains the switches. To validate a
+local build, put its artifacts in `binaries/` and force the tests:
+
+```bash
+for scenario in FEATURE_FLAGGING_EVALUATION_TELEMETRY_DISABLED FEATURE_FLAGGING_EXPOSURES_DISABLED \
+    FEATURE_FLAGGING_EVALUATION_TELEMETRY_AND_EXPOSURES_DISABLED FEATURE_FLAGGING_AND_EXPERIMENTATION; do
+  ./run.sh "$scenario" tests/ffe/test_evaluation_telemetry_and_exposures_switches.py \
+    -F tests/ffe/test_evaluation_telemetry_and_exposures_switches.py
+done
+```
 
 ## Test-contract self-tests
 
