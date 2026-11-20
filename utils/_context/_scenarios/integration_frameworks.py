@@ -143,6 +143,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     def library(self):
         return self._library
 
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        result = super().get_junit_properties()
+
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
+
+        return result
+
     def _check_and_set_api_keys(self, framework: str, *, generate_cassettes: bool = False) -> None:
         required_api_keys = self._required_cassette_generation_api_keys.get(framework, [])
 

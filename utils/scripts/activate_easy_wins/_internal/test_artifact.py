@@ -9,6 +9,10 @@ import shutil
 
 from .types import Context
 import json
+import xml.etree.ElementTree as ET
+
+JUNIT_REPORT_FILENAME = "reportJunit.xml"
+_SUITE_CONTEXT_PREFIX = "dd_tags[systest.suite.context."
 
 
 def pull_artifact(url: str, token: str, data_dir: Path) -> None:
@@ -103,15 +107,14 @@ def parse_artifact_data(
 
         for scenario_dir in directory.iterdir():
             try:
-                with scenario_dir.joinpath("report.json").open(encoding="utf-8") as file:
-                    scenario_data = json.load(file)
+                scenario_data = read_junit_report(scenario_dir / JUNIT_REPORT_FILENAME)
             except FileNotFoundError:
                 continue
 
             context = Context.create(
-                scenario_data["context"].get("library_name"),
-                scenario_data["context"].get("library"),
-                scenario_data["context"].get("weblog_variant"),
+                scenario_data.context.get("library.name", ""),
+                scenario_data.context.get("library.version", ""),
+                scenario_data.context.get("weblog_variant", ""),
             )
 
             if not context or context.library not in libraries:
@@ -120,27 +123,23 @@ def parse_artifact_data(
             if context not in test_data:
                 test_data[context] = TestData()
 
-            library_name = scenario_data["context"]["library_name"]
-            if library_name not in weblogs:
-                weblogs[library_name] = set()
-            weblogs[library_name].add(scenario_data["context"]["weblog_variant"])
+            if context.library not in weblogs:
+                weblogs[context.library] = set()
+            weblogs[context.library].add(context.variant)
 
             excluded_owners_set = excluded_owners or set()
-            for test in scenario_data["tests"]:
-                # Get code owners from test metadata
-                test_owners = set()
-                if "metadata" in test and "owners" in test["metadata"]:
-                    test_owners = set(test["metadata"]["owners"])
+            for test in scenario_data.tests:
+                test_owners = test.owners
 
                 # Store owners
                 owners |= test_owners
 
                 # If test is xpassed and has excluded owners, treat it as xfailed instead
-                outcome = test["outcome"]
+                outcome = test.outcome
                 if outcome == "xpassed" and excluded_owners_set and test_owners & excluded_owners_set:
                     outcome = "xfailed"
 
-                nodeid = test["nodeid"].split("[")[0]
+                nodeid = test.nodeid
 
                 # Store nodeid to owners mapping
                 test_data[context].nodeid_to_owners[nodeid] = test_owners
@@ -182,3 +181,63 @@ def parse_artifact_data(
                             test_data[context].trie[nodeid_slice] = ActivationStatus.PASS
 
     return test_data, weblogs, owners
+
+
+@dataclass
+class JunitTestCase:
+    nodeid: str
+    """ pytest nodeid, without parameters """
+    outcome: str
+    owners: set[str]
+
+
+@dataclass
+class JunitReport:
+    context: dict[str, str]
+    """ suite context (library.name, library.version, weblog_variant...) """
+    tests: list[JunitTestCase]
+
+
+def read_junit_report(path: Path) -> JunitReport:
+    """Read the junit report produced by system-tests (see pytest_sessionfinish in conftest.py)"""
+
+    root = ET.parse(path).getroot()  # noqa: S314 (report produced by system-tests itself)
+
+    context: dict[str, str] = {}
+    for prop in root.findall("testsuite/properties/property"):
+        name = prop.attrib["name"]
+        if name.startswith(_SUITE_CONTEXT_PREFIX):
+            context[name.removeprefix(_SUITE_CONTEXT_PREFIX).removesuffix("]")] = prop.attrib["value"]
+
+    tests: list[JunitTestCase] = []
+    for testcase in root.iter("testcase"):
+        nodeid = junit_name_to_nodeid(testcase.attrib["name"])
+        if nodeid is None:
+            continue
+
+        properties = {prop.attrib["name"]: prop.attrib["value"] for prop in testcase.iter("property")}
+        outcome = properties.get("dd_tags[systest.case.outcome]")
+        if outcome is None:
+            continue
+
+        owners = set(json.loads(properties.get("test.codeowners", "[]")))
+        tests.append(JunitTestCase(nodeid=nodeid, outcome=outcome, owners=owners))
+
+    return JunitReport(context=context, tests=tests)
+
+
+def junit_name_to_nodeid(name: str) -> str | None:
+    """Convert a junit name (tests.dir.test_file.Test_Class.test_method[params, weblog]) into a pytest nodeid
+    without parameters (tests/dir/test_file.py::Test_Class::test_method).
+
+    pytest only collects classes starting with `Test`, and no folder or file name starts with `Test`:
+    the first part starting with `Test` is the class. Without class, the last part is a module-level function.
+    Returns None for names that are not a test of the tests/ folder (e.g. pytest.internal)
+    """
+
+    parts = name.partition("[")[0].split(".")
+    if len(parts) < 3 or parts[0] != "tests":  # noqa: PLR2004
+        return None
+
+    class_index = next((i for i, part in enumerate(parts) if part.startswith("Test")), len(parts) - 1)
+    return "::".join(["/".join(parts[:class_index]) + ".py", *parts[class_index:]])
