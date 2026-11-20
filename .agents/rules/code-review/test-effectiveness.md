@@ -1,7 +1,7 @@
 ### TEST-001: Do not reject valid output because of unrelated data.
 - Old_id: codex-09
 - Severity: P1
-- Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input.
+- Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input. Do not require exact request, bucket, or metric counts that flush timing can split, and merge them before checking totals. Do not require a timing-dependent outcome, such as a rate-limited drop, and compare JSON as parsed values.
 - Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`.
 - Not when: The whole field is under test.
 - ✅ For the sampled bit, accept `01` and `03` when the extra bit is allowed. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp containing `1234` must not count as leaked input.
@@ -47,7 +47,7 @@
 - Old_id: codex-11
 - Severity: P1
 - Flag: Do not write the expected tag, code, or exporter result in the test app. The SDK must produce it. The assertion may name the value it expects. It must read that value from SDK output..
-- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects.
+- Detect: The app adds `runtime-id` or another tag the SDK must produce. It copies SDK result codes into its own map. It forces an exporter that the configuration already selects. It catches every exception and returns `OK`, so a status assertion cannot detect a failure. It discards a decode error and passes an empty value to the SDK.
 - ✅ The tracer sets `runtime-id`, and the test asserts it on the captured span.
 - ❌ The app sets `runtime-id` on the span, and the test asserts that tag.
 
@@ -55,7 +55,15 @@
 - Old_id: codex-21
 - Severity: P1
 - Flag: When the test uses a fake Agent or backend, its request and response must match the real service. Check that shape in the spec, the real code, or a real capture. Do not copy the expected JSON from the fake. A deliberately broken response belongs only in the test of that error.
-- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for.
+- Detect: The self-test imports every expected value from the fake. The fake returns a bare body where the real service uses an envelope. The fake sends config for a product the client did not ask for. The fake compares the whole query and rejects an extra parameter that the real service accepts. Every SDK declares the test as xfail, and no test-the-test check compares the fake with the shared case files.
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Do not let a loose check accept invalid output.
+- Severity: P0
+- Flag: A check must still reject output that the contract forbids. If a relaxation applies to one payload format, apply it only to that format. Do not sum expected counts across subjects when the test checks their separation. In Python, `1 == True`, so also compare the type when the type is under test. If the test asserts an exact count, wait for the full flush window, not only until that count arrives. Do not narrow a run-wide guarantee to the requests of one test.
+- Detect: A comment says a check is relaxed for v1, and the relaxed check runs for every format. Expected counts of two subjects are added into one total per flag. An equality check compares a number with a boolean. A wait helper returns as soon as N spans arrive, and then the test asserts exactly N.
+- Not when: The contract defines both forms as the same value.
+- ✅ `assert type(actual) is type(expected) and actual == expected`.
+- ❌ `counts[case["flag"]] = counts.get(case["flag"], 0) + case["expected_count"]`.
