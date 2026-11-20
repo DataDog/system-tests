@@ -186,6 +186,10 @@ images:
     digest: sha256:8ad5cd630f4d06f97c06e31afa81e6a9ca9047c857792f0decba8a2cd072ff71
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:laravel11x.base-f1225ab2c1fb
     tag: laravel11x.base-f1225ab2c1fb
+  datadog/system-tests:litellm-py.base-ec97c98b684e:
+    digest: sha256:bba986770835c51a0909197fd8be64237b753aa2d80f18cd2e31585343bd8933
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:litellm-py.base-ec97c98b684e
+    tag: litellm-py.base-ec97c98b684e
   datadog/system-tests:nextjs.base-7af1ceda261c:
     digest: sha256:69a302340e9e80122b85692c2f5fcbc9da4ec20956f04b1b1af68b07df7539c1
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-7af1ceda261c
