@@ -5,7 +5,7 @@
 
 ### INFRA-002: Use Existing Utilities
 - Severity: P1
-- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`.
+- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`. If a test needs new mocked backend behavior, add it to the shared backend in `utils/mocked_backend/`, such as `_backend_ffe.py`. Do not add a separate mock server, and do not override a backend handler inside a test.
 - Ref: [Datadog constants](../../../utils/dd_constants.py), [Features](../../../utils/_features.py), [Using logger](../../../docs/edit/README.md#using-logger)
 
 ### INFRA-003: Unique Weblog Names
