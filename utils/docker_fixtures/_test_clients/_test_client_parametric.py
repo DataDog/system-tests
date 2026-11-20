@@ -898,7 +898,7 @@ class ParametricTestClientApi(TestClientApi):
         if fail_after_hook:
             payload["failAfterHook"] = True
 
-        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload, timeout=self.timeout)
         return resp.json()
 
     def otel_get_meter(

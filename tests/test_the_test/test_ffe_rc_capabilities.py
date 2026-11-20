@@ -11,6 +11,8 @@ from threading import Event, Thread
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+from requests.exceptions import ReadTimeout
+
 from tests.parametric.test_ffe.utils import assert_dependent_flag_capability, deliver, ffe_requests, start_and_deliver
 from utils import features, pytest, scenarios
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
@@ -35,7 +37,7 @@ SILENT_RESPONSE_TIMEOUT_SECONDS = 2 * HELPER_COMPLETION_TIMEOUT_SECONDS
 
 
 @contextmanager
-def _startup_http_client(
+def _ffe_http_client(
     *, response_delay_seconds: float = SILENT_RESPONSE_TIMEOUT_SECONDS
 ) -> Generator[tuple[ParametricTestClientApi, Event, Event], None, None]:
     requested = Event()
@@ -347,7 +349,7 @@ class Test_FFE_RC_Delivery:
     @pytest.mark.parametrize("termination_fails", [False, True])
     def test_startup_http_request_finishes_when_cleanup_fails(self, *, termination_fails: bool) -> None:
         failure = AssertionError("Missing dependent flag capability")
-        with _startup_http_client() as (library, requested, release), ThreadPoolExecutor(max_workers=1) as executor:
+        with _ffe_http_client() as (library, requested, release), ThreadPoolExecutor(max_workers=1) as executor:
 
             def observe(*_args: object, **_kwargs: object) -> None:
                 assert requested.wait(timeout=HELPER_COMPLETION_TIMEOUT_SECONDS)
@@ -381,6 +383,24 @@ class Test_FFE_RC_Delivery:
                     release.set()
 
     def test_startup_http_request_accepts_delayed_response(self) -> None:
-        with _startup_http_client(response_delay_seconds=0.2) as (library, requested, _release):
+        with _ffe_http_client(response_delay_seconds=0.2) as (library, requested, _release):
             assert library.ffe_start()
             assert requested.is_set()
+
+    def test_evaluation_http_request_times_out_on_silent_response(self) -> None:
+        with _ffe_http_client() as (library, requested, release), ThreadPoolExecutor(max_workers=1) as executor:
+            pending = executor.submit(
+                library.ffe_evaluate,
+                flag="child",
+                variation_type="STRING",
+                default_value="caller-default",
+                targeting_key="subject",
+            )
+            try:
+                assert requested.wait(timeout=HELPER_COMPLETION_TIMEOUT_SECONDS)
+                with pytest.raises(ReadTimeout):
+                    pending.result(timeout=HELPER_COMPLETION_TIMEOUT_SECONDS)
+                assert not release.is_set(), "Server was released before the HTTP timeout"
+            finally:
+                # Release the server even if a regression leaves the HTTP request blocked.
+                release.set()

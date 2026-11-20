@@ -976,6 +976,7 @@ _not declared by the reference server_
 #### `POST /ffe/evaluate`
 
 Called by `ParametricTestClientApi.ffe_evaluate()`. Evaluate a feature flag.
+The client applies its configured connection/read timeout (60 seconds in the normal parametric fixture), including when an evaluation retry loop is in use.
 
 Request body (not declared by the reference server, which reads the raw request; fields sent by the client):
 
