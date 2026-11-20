@@ -134,7 +134,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (Laravel and Symfony route parsers reject non-word chars in parameter names)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature

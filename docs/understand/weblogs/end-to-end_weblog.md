@@ -253,6 +253,41 @@ The response status code must be `200` and the response body must contain:
 ok
 ```
 
+### GET /api_security/encoded/café
+
+This endpoint tests static text with a non-ASCII character in a URL segment (RFC-1125 test 9). The route must be declared as the literal path `/api_security/encoded/café` (`é` is U+00E9). The matching request URL is `/api_security/encoded/caf%C3%A9`. The tracer must percent-encode the non-ASCII byte as UTF-8 with uppercase hex: `_dd.appsec.normalized_route` must be `/api_security/encoded/caf%C3%A9`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/param-names/{user-id}/{user_id}
+
+This endpoint tests parameter-name normalization and collision resolution (RFC-1125 tests 30 and 32). The route must declare two path parameters in order: the first with a name containing a character outside `A-Z a-z 0-9 _` (e.g. the dash in `user-id`), and the second named exactly `user_id`. The tracer must substitute the out-of-range character with `_`, which collides with the declared `user_id`; the first parameter then gets the smallest free `_N` suffix. For `/api_security/param-names/1/2`, `_dd.appsec.normalized_route` must be `/api_security/param-names/{user_id_2}/{user_id}`.
+
+Frameworks whose routers reject non-word characters in parameter names (e.g. Laravel 11, Symfony 7) cannot implement this endpoint; declare the manifest entry as `incomplete_test_app` instead of `missing_feature`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/drafts and /api_security/drafts/preview
+
+These routes test an optional part made only of static text (RFC-1125 tests 26-27). The route must declare `/preview` as an optional segment with no parameter (e.g. Rails `/drafts(/preview)`); frameworks without optional-static-segment support must declare two routes with the same handler.
+
+- `/api_security/drafts` — `_dd.appsec.normalized_route` must be `/api_security/drafts`.
+- `/api_security/drafts/preview` — `_dd.appsec.normalized_route` must be `/api_security/drafts/preview`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
 ### GET /endpoint_fallback
 
 This endpoint tests RFC-1076: API Security sampling fallback behavior when
