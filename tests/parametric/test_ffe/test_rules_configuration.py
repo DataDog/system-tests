@@ -427,6 +427,9 @@ class Test_FFE_Rules_Configuration_Precompute:
                     "options": {"experimentationOptOutMode": "immediate"},
                 }
             )
+            default_policy = test_library.ffe_precompute_configuration(
+                {"wire": PRECOMPUTE_WIRE, "contexts": [opted_out_context]}
+            )
 
         assert "error" not in result, result
         assert result["httpRequests"] == 0, result
@@ -446,8 +449,10 @@ class Test_FFE_Rules_Configuration_Precompute:
             assert attributes["obfuscated"] is False
             assert attributes["environment"] == {"name": "test"}
             assert attributes["observeFullEvaluationData"] is True
+            assert "evaluation_options" not in attributes
             assert datetime.fromisoformat(attributes["createdAt"]).timestamp() * 1000 == snapshot["fetchedAt"]
             flags = attributes["flags"]
+            # No default assignment is invented for the unassigned or unsupported flags.
             assert set(flags) == {"checkout", "nullable"}, flags
             is_us = context["country"] == "US"
             assert flags["checkout"] == {
@@ -469,8 +474,18 @@ class Test_FFE_Rules_Configuration_Precompute:
             assert flags["nullable"]["variationType"] == "object"
             assert flags["nullable"]["variationValue"] is None
             assert output["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
-            # No default assignment is invented for the unassigned or unsupported flags.
             assert "private-source-etag" not in output["wire"]
+
+        assert "error" not in default_policy, default_policy
+        assert default_policy["httpRequests"] == 0, default_policy
+        assert default_policy["exposureEvents"] == 0, default_policy
+        assert len(default_policy["results"]) == 1, default_policy
+        default_snapshot = json.loads(default_policy["results"][0]["wire"])["precomputed"]
+        assert default_snapshot["context"] == opted_out_context
+        default_attributes = json.loads(default_snapshot["response"])["data"]["attributes"]
+        assert "evaluation_options" not in default_attributes
+        assert default_attributes["flags"]["checkout"]["allocationKey"] == "us-allocation"
+        assert default_attributes["flags"]["checkout"]["variationValue"] is True
 
         assert "error" not in opted_out, opted_out
         assert opted_out["httpRequests"] == 0, opted_out
@@ -509,12 +524,37 @@ class Test_FFE_Rules_Configuration_Precompute:
             assert snapshot["context"] == context
             assert "etag" not in snapshot
             flag = json.loads(snapshot["response"])["data"]["attributes"]["flags"]["test-flag"]
+            is_us = context["country"] == "US"
             assert flag["variationValue"] is True
             assert flag["variationKey"] == "on"
-            assert flag["reason"] == ("TARGETING_MATCH" if context["country"] == "US" else "SPLIT")
+            assert flag["reason"] == ("TARGETING_MATCH" if is_us else "SPLIT")
+            assert flag["allocationKey"] == ("allocation" if is_us else "fallback")
+            assert flag["doLog"] is is_us
             assert flag["serialId"] == 7
             assert output["errors"] == []
             assert CLIENT_TOKEN not in output["wire"]
+            assert WIRE_FIXTURE["rules"]["etag"] not in output["wire"]
+
+    def test_fetch_failure_before_precompute(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        mocked_backend.client.ffe_set_response("forbidden", response_format="protobuf")
+        with test_library:
+            result = test_library.ffe_precompute_configuration(
+                {"fetchOptions": CLIENT_OPTIONS, "contexts": [{"targetingKey": "subject", "country": "US"}]}
+            )
+
+        assert "results" not in result, result
+        assert result["error"]["name"] == "ConfigurationFetchError", result
+        assert result["error"]["code"] == "http", result
+        assert result["error"]["status"] == 403, result
+        assert result["httpRequests"] == 1, result
+        assert result["exposureEvents"] == 0, result
+        assert CLIENT_TOKEN not in json.dumps(result)
+        assert RESPONSE_SECRET not in json.dumps(result)
+        requests = mocked_backend.ffe_get_requests()
+        assert len(requests) == 1, requests
+        assert urlsplit(requests[0]["path"]).path == f"{RULES_CONFIG_PATH}/client"
 
     def test_invalid_precompute_inputs(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
         cases: list[tuple[str, dict[str, Any], str]] = [
@@ -527,6 +567,16 @@ class Test_FFE_Rules_Configuration_Precompute:
                 "invalid_context",
             ),
             ("invalid-policy", {"options": {"experimentationOptOutMode": "private-policy"}}, "invalid_options"),
+            (
+                "invalid-opt-out-timestamp",
+                {
+                    "contexts": [
+                        {"targetingKey": "subject", "dd_experimentation_opt_out_at": "private-not-a-timestamp"}
+                    ],
+                    "options": {"experimentationOptOutMode": "immediate"},
+                },
+                "invalid_context",
+            ),
         ]
         with test_library:
             for case, overrides, code in cases:

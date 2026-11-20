@@ -46,8 +46,10 @@ async function main () {
       })
       outcome = { results }
     } catch (error) {
-      if (!(error instanceof ConfigurationPrecomputeError) && !(error instanceof ConfigurationFetchError)) throw error
-      outcome = { error: { name: error.name, code: error.code, message: error.message } }
+      const expected = [ConfigurationPrecomputeError, ConfigurationFetchError]
+        .some(type => typeof type === 'function' && error instanceof type)
+      if (!expected) throw error
+      outcome = { error: { name: error.name, code: error.code, message: error.message, status: error.status } }
     }
   } finally {
     // Include deferred activity until the child exits; persistent work hits the parent timeout.
