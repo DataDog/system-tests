@@ -10,8 +10,12 @@ variable "CI_RUNNER_TAG" {
   default = "latest"
 }
 
+variable "REVIEW_LEARNING_TAG" {
+  default = "latest"
+}
+
 group "default" {
-  targets = ["image-builder", "ci-runner"]
+  targets = ["image-builder", "ci-runner", "review-learning"]
 }
 
 target "_common" {
@@ -30,4 +34,10 @@ target "ci-runner" {
   inherits   = ["_common"]
   dockerfile = "utils/ci/gitlab/docker/system-tests.Dockerfile"
   tags       = ["registry.ddbuild.io/system-tests/ci-runner:${CI_RUNNER_TAG}"]
+}
+
+target "review-learning" {
+  inherits   = ["_common"]
+  dockerfile = "utils/ci/gitlab/docker/review-learning.Dockerfile"
+  tags       = ["registry.ddbuild.io/system-tests/review-learning:${REVIEW_LEARNING_TAG}"]
 }
