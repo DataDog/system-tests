@@ -1,4 +1,4 @@
-"""Rebuild and push weblog base images when their content-hash tag is missing from Docker Hub.
+"""Rebuild and push weblog base images when their content-hash tag is missing from Docker Hub or the mirror.
 
 For each library with a `utils/build/docker/<library>/docker-bake.hcl` and each target in its
 "default" group, this script:
@@ -8,10 +8,13 @@ For each library with a `utils/build/docker/<library>/docker-bake.hcl` and each 
   3. Hardlinks those files + the Dockerfile into an isolated build context.
   4. Hashes normalized build arguments, the target platforms + that context.
   5. Appends "-<hash12>" to the base tag (e.g. `datadog/system-tests:express4.base-<hash12>`).
-  6. Skips if that tag already exists on Docker Hub; otherwise publishes it as a multi-arch image:
-     each platform in ``PLATFORMS`` is built natively and pushed as ``<tag>-<arch>``
+  6. Skips if that tag already exists on both Docker Hub and the system-tests mirror
+     (``MIRROR_REGISTRY``, where CI pulls it from); otherwise publishes it as a multi-arch image:
+     each platform in ``PLATFORMS`` is built natively and pushed to Docker Hub as ``<tag>-<arch>``
      (``--platform``, one CI job per architecture), then ``--merge`` combines those into a
-     manifest list under ``<tag>``. Without either flag, both steps run in sequence.
+     manifest list under ``<tag>`` on Docker Hub and in the mirror, and signs the mirror copy with
+     ddsign. Each registry missing the tag gets it, copied from the other one if it has it already.
+     Without either flag, both steps run in sequence.
 
 Idempotent: never overwrites an existing tag. The prospective aliases and tags are compared with
 ``utils/build/docker/base-images.lock.json`` on every run. Use ``--update-lock`` to atomically
@@ -47,9 +50,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Import the sibling stdlib-only helper without requiring the package form when
 # this file is executed directly.
 try:
-    from .base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
+    from .base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock, mirror_base_image
 except ImportError:  # pragma: no cover - direct script execution
-    from base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
+    from base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock, mirror_base_image
 
 BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_images_build"
 _LOGGER = logging.getLogger("build_base_images")
@@ -78,6 +81,11 @@ PLATFORMS = ("linux/amd64", "linux/arm64")
 def platform_tag(tag: str, platform: str) -> str:
     """Return the intermediate single-platform tag merged into the multi-arch ``tag``."""
     return f"{tag}-{platform.rsplit('/', 1)[-1]}"
+
+
+def published_tags(tag: str) -> list[str]:
+    """Return every reference ``tag`` is published under: Docker Hub, then the system-tests mirror."""
+    return [tag, mirror_base_image(tag)]
 
 
 def _bake_file(library: str) -> Path:
@@ -409,23 +417,54 @@ def build_and_push(
     )
 
 
-def create_manifest_list(tag: str, sources: list[str]) -> None:
-    logger.info("Creating multi-arch %s from %s", tag, ", ".join(sources))
-    _run_streaming(["docker", "buildx", "imagetools", "create", "--tag", tag, *sources])
+def create_manifest_list(tags: list[str], sources: list[str]) -> None:
+    """Push one manifest list, made of ``sources``, under every tag of ``tags`` (blobs are copied as needed)."""
+    logger.info("Creating multi-arch %s from %s", ", ".join(tags), ", ".join(sources))
+    tag_args = [arg for tag in tags for arg in ("--tag", tag)]
+    _run_streaming(["docker", "buildx", "imagetools", "create", *tag_args, *sources])
+
+
+def ensure_signed(tag: str) -> None:
+    """Sign a pushed image with ddsign (needs the image-integrity DDSIGN_ID_TOKEN), unless already signed.
+
+    Checked on every run, so a mirror copy left unsigned by a failed run (ddsign failure, or a push
+    failing after the mirror tag was pushed) gets signed by the next one.
+    """
+    manifest = _run(["docker", "buildx", "imagetools", "inspect", tag, "--format", "{{json .Manifest}}"])
+    repository = tag.rpartition(":")[0]
+    reference = f"{repository}@{json.loads(manifest.stdout)['digest']}"
+
+    # `ddsign resolve` prints where the signature of a digest is stored (whether it exists or not)
+    signature = _run(["ddsign", "resolve", reference]).stdout.strip()
+    if image_exists(signature):
+        logger.info("%s is already signed (%s)", reference, signature)
+        return
+
+    logger.info("Signing %s", reference)
+    _run_streaming(["ddsign", "sign", reference])
+
+
+def _image_state(tag: str) -> str:
+    try:
+        return "exists" if image_exists(tag) else "missing"
+    except RuntimeError:
+        return "unknown"  # e.g. no credentials for the mirror on a developer machine
 
 
 def report_target(library: str, _bake_file: Path, target: str, tag: str, _build_dir: Path, _dockerfile: str) -> None:
-    state = "exists" if image_exists(tag) else "missing"
-    logger.info("%s/%s: %s (%s)", library, target, tag, state)
+    states = ", ".join(f"{reference}: {_image_state(reference)}" for reference in published_tags(tag))
+    logger.info("%s/%s: %s (%s)", library, target, tag, states)
 
 
 def build_platform(
     _library: str, bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile: str, *, platform: str
 ) -> None:
     """Build and push the single-platform image that --merge later folds into ``tag``."""
-    if image_exists(tag):
-        logger.info("%s already exists, skipping", tag)
-        return
+    # --merge copies the multi-arch image to the other registry when one of them already has it
+    for published in published_tags(tag):
+        if image_exists(published):
+            logger.info("%s already exists, skipping", published)
+            return
 
     single_platform_tag = platform_tag(tag, platform)
     if image_exists(single_platform_tag):
@@ -438,20 +477,32 @@ def build_platform(
 def merge_platforms(
     _library: str, _bake_file: Path, _target: str, tag: str, _build_dir: Path, _dockerfile: str
 ) -> None:
-    """Publish ``tag`` as a manifest list of its single-platform images."""
-    if image_exists(tag):
-        logger.info("%s already exists, skipping", tag)
-        return
+    """Publish ``tag`` on Docker Hub and in the mirror, as a manifest list of its single-platform images."""
+    destinations = published_tags(tag)
+    missing_destinations = [destination for destination in destinations if not image_exists(destination)]
+    if missing_destinations:
+        _push_missing(tag, destinations, missing_destinations)
+    else:
+        logger.info("%s already exists, skipping the push", ", ".join(destinations))
 
-    sources = [platform_tag(tag, platform) for platform in PLATFORMS]
-    missing = [source for source in sources if not image_exists(source)]
-    if missing:
-        raise RuntimeError(
-            f"Cannot create {tag}, single-platform image(s) not published: {', '.join(missing)} "
-            "(did every build_base_images_<arch> job succeed?)"
-        )
+    ensure_signed(mirror_base_image(tag))
 
-    create_manifest_list(tag, sources)
+
+def _push_missing(tag: str, destinations: list[str], missing_destinations: list[str]) -> None:
+    present = [destination for destination in destinations if destination not in missing_destinations]
+    if present:
+        # copy the existing multi-arch image as is, so both registries serve the same digest
+        sources = present[:1]
+    else:
+        sources = [platform_tag(tag, platform) for platform in PLATFORMS]
+        missing = [source for source in sources if not image_exists(source)]
+        if missing:
+            raise RuntimeError(
+                f"Cannot create {tag}, single-platform image(s) not published: {', '.join(missing)} "
+                "(did every build_base_images_<arch> job succeed?)"
+            )
+
+    create_manifest_list(missing_destinations, sources)
 
 
 def _run_for_targets(action: Callable[..., None], targets: list[tuple], **kwargs: str) -> list[str]:
@@ -542,7 +593,7 @@ def main() -> None:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Only print the computed tag and whether it exists on Docker Hub; never build or push",
+        help="Only print the computed tag and whether it exists on Docker Hub and the mirror; never build or push",
     )
     parser.add_argument(
         "--update-lock",
@@ -558,7 +609,8 @@ def main() -> None:
     mode.add_argument(
         "--merge",
         action="store_true",
-        help="Only combine the already pushed single-platform images into the multi-arch <tag>",
+        help="Only combine the already pushed single-platform images into the multi-arch <tag>, "
+        "on Docker Hub and in the mirror",
     )
     args = parser.parse_args()
 
