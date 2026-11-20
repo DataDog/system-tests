@@ -91,6 +91,7 @@ def library_jobs(
     push_to_test_optimization: bool,
     binaries_artifact_path: str,
     binaries_artifacts: str,
+    target_branches: Mapping[str, str] | None = None,
 ) -> dict[str, dict]:
     """Jobs of one library. They only carry what differs between jobs, the rest comes from child-pipeline.yml.
 
@@ -98,18 +99,25 @@ def library_jobs(
 
     Each end-to-end job of the params (see EndToEndScheduler and split_scenarios_into_jobs) gets a run job, that runs
     all its scenarios.
+
+    In dev mode (target_branches is not None, see check_dev_mode), the binaries come from a dev binaries job of the
+    library, in this pipeline, instead of upstream jobs.
     """
     endtoend_defs = params.get("endtoend_defs", {})
     parametric = params["parametric"]
 
-    upstream_jobs = _upstream_artifact_jobs(binaries_artifacts, params["miscs"]["binaries_artifact"])
-    upstream_needs = [{"job": job, "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"} for job in upstream_jobs]
-    # copy upstream binaries into binaries/, only on jobs that download them
-    copy_binaries = (
-        {"SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": binaries_artifact_path}
-        if upstream_jobs and binaries_artifact_path
-        else {}
-    )
+    if target_branches is not None:
+        upstream_needs = [{"job": _dev_binaries_job_name(library), "artifacts": True}]
+        copy_binaries = {"SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": DEV_BINARIES_PATH}
+    else:
+        upstream_jobs = _upstream_artifact_jobs(binaries_artifacts, params["miscs"]["binaries_artifact"])
+        upstream_needs = [{"job": job, "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"} for job in upstream_jobs]
+        # copy upstream binaries into binaries/, only on jobs that download them
+        copy_binaries = (
+            {"SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": binaries_artifact_path}
+            if upstream_jobs and binaries_artifact_path
+            else {}
+        )
     test_mixins = [".push_to_test_optimization"] if push_to_test_optimization else []
 
     jobs: dict[str, dict] = {}
@@ -169,7 +177,122 @@ def library_jobs(
                 needs=upstream_needs,
             )
 
+    if target_branches is not None and jobs:
+        # first, so that it is listed first
+        jobs = {
+            _dev_binaries_job_name(library): _job(
+                ".system_tests_dev_binaries", variables=dev_binaries_variables(library, target_branches), needs=[]
+            )
+        } | jobs
+
     return jobs
+
+
+# Dev mode: like _system_tests_dev_mode of the GitHub workflows, the agent and the libraries are tested on their dev
+# version (last commit of their main branch, or of a target branch), fetched by utils/scripts/load-binary.sh in a
+# dev binaries job per library (utils/ci/gitlab/jobs/load_dev_binaries.py).
+DEV_BINARIES_PATH = "dev-binaries"  # artifacts of .system_tests_dev_binaries, relative to $CI_PROJECT_DIR
+
+# Libraries whose dev binaries load-binary.sh fetches without any GitHub credentials, or with a token scoped to
+# DataDog/system-tests only (the value: True to get one, see jobs/load_dev_binaries.py).
+DEV_MODE_LIBRARIES: dict[str, bool] = {
+    "c": False,  # only without target branch: see DEV_MODE_UNSUPPORTED_TARGET_BRANCHES
+    "cpp": False,
+    "cpp_kong": False,
+    "dotnet": False,
+    # GitHub API, on the public DataDog/dd-trace-go: works unauthenticated too, with a lower rate limit
+    "golang": True,
+    "java": False,
+    "java_lambda": False,
+    "nodejs": False,
+    "php": False,
+    "python": False,
+    "ruby": False,
+    "ruby_lambda": False,
+    "rust": False,
+}
+# Why the other libraries can't run in dev mode yet
+DEV_MODE_UNSUPPORTED_LIBRARIES: dict[str, str] = {
+    **dict.fromkeys(
+        ("java_otel", "nodejs_otel", "python_otel", "otel_collector"),
+        "no dev version (not run in dev mode by the GitHub workflows either)",
+    ),
+    **dict.fromkeys(
+        ("cpp_httpd", "cpp_nginx", "python_lambda", "nodejs_lambda"),
+        "load-binary.sh downloads GitHub Actions artifacts of another repository, which needs a GitHub token "
+        "allowed to read them: no dd-octo-sts policy provides one to GitLab jobs yet",
+    ),
+}
+# Target branch map keys that can't be used yet
+DEV_MODE_UNSUPPORTED_TARGET_BRANCHES: dict[str, str] = dict.fromkeys(
+    ("c", "auto_inject"),
+    "load-binary.sh resolves it in an internal repository (DataDog/dd-trace-c, DataDog/auto_inject), which needs "
+    "a GitHub token allowed to read it: no dd-octo-sts policy provides one to GitLab jobs yet",
+)
+# Branch names are written in the generated YAML, and read by load-binary.sh: no character GitLab would expand ($)
+TARGET_BRANCH_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/+-]*")
+
+
+def _dev_binaries_job_name(library: str) -> str:
+    return f"system_tests_dev_binaries_{library}"
+
+
+def dev_binaries_variables(library: str, target_branches: Mapping[str, str]) -> dict[str, str]:
+    """Variables of the dev binaries job of a library: like the GitHub workflow, the target branches of the map
+    read by load-binary.sh are the one of the library, and the one of the agent.
+    """
+    variables = {"TEST_LIBRARY": library}
+    if branch := target_branches.get(library):
+        variables["LIBRARY_TARGET_BRANCH"] = branch
+    if branch := target_branches.get("agent"):
+        variables["AGENT_TARGET_BRANCH"] = branch
+    if DEV_MODE_LIBRARIES[library]:
+        variables["SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN"] = "true"  # noqa: S105 (not a secret)
+    return variables
+
+
+def parse_target_branch_map(value: str) -> dict[str, str]:
+    """Parse the target branch map of the dev mode: JSON object {library or "agent": branch}, like
+    _system_tests_library_target_branch_map of the GitHub workflows (e.g. {"python": "my-branch"}).
+    """
+    if not value.strip():
+        return {}
+    try:
+        mapping = json.loads(value)
+    except json.JSONDecodeError as error:
+        raise InputError(
+            f'target_branch_map: invalid JSON ({error}), expected e.g. {{"python": "my-branch"}}'
+        ) from None
+    if not isinstance(mapping, dict):
+        raise InputError(f'target_branch_map: expected a JSON object, e.g. {{"python": "my-branch"}}, got {value!r}')
+
+    known = {*DEV_MODE_LIBRARIES, *DEV_MODE_UNSUPPORTED_LIBRARIES, "agent", "auto_inject"}
+    for key, branch in mapping.items():
+        if key not in known:
+            raise InputError(f"target_branch_map: unknown library {key!r}, expected one of {', '.join(sorted(known))}")
+        if not isinstance(branch, str) or not TARGET_BRANCH_PATTERN.fullmatch(branch):
+            raise InputError(f"target_branch_map: invalid branch for {key}: {branch!r}")
+        if key in DEV_MODE_UNSUPPORTED_TARGET_BRANCHES:
+            raise InputError(
+                f"target_branch_map: {key} can't have a target branch: {DEV_MODE_UNSUPPORTED_TARGET_BRANCHES[key]}"
+            )
+    return mapping
+
+
+def check_dev_mode(inputs: argparse.Namespace) -> dict[str, str]:
+    """Check that the dev mode can be used with the other inputs, and return the target branch map."""
+    if inputs.binaries_artifacts or inputs.binaries_artifact_path:
+        # both give the binaries to test: rather than one silently winning, ask for one of them
+        raise InputError(
+            "dev_mode can't be used with binaries_artifacts or binaries_artifact_path: the dev mode tests the dev "
+            "binaries it fetches, binaries_artifacts the binaries of upstream jobs"
+        )
+    if unsupported := [library for library in inputs.libraries if library not in DEV_MODE_LIBRARIES]:
+        reasons = (
+            f"{library}: {DEV_MODE_UNSUPPORTED_LIBRARIES.get(library, 'unknown library')}" for library in unsupported
+        )
+        raise InputError(f"dev_mode is not supported for: {'; '.join(reasons)}")
+    return parse_target_branch_map(inputs.target_branch_map)
 
 
 def _runner_tags(scenarios: list[str]) -> list[str] | None:
@@ -245,12 +368,15 @@ def build(
     pipeline_variables: Mapping[str, str] | None = None,
     endtoend_job_count: int = 0,
     desired_execution_time: int = -1,
+    target_branches: Mapping[str, str] | None = None,
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk.
 
     End-to-end scenarios of all libraries are split into run jobs by EndToEndScheduler, until there are
     endtoend_job_count jobs, or else until they all fit in desired_execution_time (main() checks that only one of
     them is set). Otherwise, each scenario gets its own run job.
+
+    target_branches: only in dev mode (None otherwise), the target branch map (see library_jobs).
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -298,6 +424,7 @@ def build(
                 push_to_test_optimization=push_to_test_optimization,
                 binaries_artifact_path=binaries_artifact_path,
                 binaries_artifacts=binaries_artifacts,
+                target_branches=target_branches,
             )
 
         chunk_file.write_text(to_yaml(pipeline))
@@ -460,6 +587,10 @@ OVERRIDE_VARIABLES = {
     "split_pipeline": "SYSTEM_TESTS_SPLIT_PIPELINE",
     "pipeline_start_time": "SYSTEM_TESTS_PIPELINE_START_TIME",
     "library_weblog_scenarios": "LIBRARY_WEBLOG_SCENARIOS",
+    # not SYSTEM_TESTS_DEV_MODE, read by conftest.py: as a pipeline variable, it would reach all the jobs of the
+    # parent pipeline running pytest. The generated jobs get SYSTEM_TESTS_DEV_MODE (see child_pipeline_variables)
+    "dev_mode": "SYSTEM_TESTS_E2E_DEV_MODE",
+    "target_branch_map": "SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP",
 }
 
 COMPUTE_PARAMETERS_SCRIPT = "utils/scripts/compute-workflow-parameters.py"
@@ -497,7 +628,7 @@ def resolve_inputs(args: argparse.Namespace, environ: Mapping[str, str]) -> argp
             setattr(resolved, name, int(value))
         except ValueError:
             raise InputError(f"{name}: expected an integer, got {value!r}") from None
-    for name in ("push_to_test_optimization", "skip_empty_scenario", "split_pipeline"):
+    for name in ("push_to_test_optimization", "skip_empty_scenario", "split_pipeline", "dev_mode"):
         setattr(resolved, name, str(getattr(resolved, name)).lower() == "true")
 
     return resolved
@@ -546,6 +677,8 @@ def _compute_workflow_parameters(
         str(inputs.parametric_job_count),
         "--parametric-workers",
         str(inputs.parametric_workers),
+        # ci_environment dev: binaries_artifact and weblogs of the dev mode, like the GitHub workflows
+        *(("--system-tests-dev-mode", "true") if inputs.dev_mode else ()),
         # one end-to-end job per weblog (no --desired-execution-time), with the time of each scenario, split into run
         # jobs by build()
         "--include-scenarios-times",
@@ -731,6 +864,18 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         help='JSON object {library: {weblog: [scenario or group, ...]}}, e.g. {"python": {"flask-poc": ["DEFAULT"]}}. '
         "Can be combined with --libraries/--scenarios/--scenario-groups/--weblogs, for other libraries",
     )
+    parser.add_argument(
+        "--dev-mode",
+        default="false",
+        help="Test the dev version of the agent and of the libraries, fetched by load-binary.sh (like the GitHub "
+        "workflows dev mode). Can't be used with --binaries-artifacts/--binaries-artifact-path",
+    )
+    parser.add_argument(
+        "--target-branch-map",
+        default="",
+        help='Dev mode only: JSON object {library or "agent": branch} of the branches to fetch the dev binaries '
+        'from, instead of main/master, e.g. {"python": "my-branch"}',
+    )
     return parser.parse_args(argv)
 
 
@@ -744,6 +889,8 @@ def child_pipeline_variables(inputs: argparse.Namespace, environ: Mapping[str, s
         "SYSTEM_TESTS_SKIP_EMPTY_SCENARIO": _bool(inputs.skip_empty_scenario),
         # read by the job scripts to report the total duration
         "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": inputs.pipeline_start_time,
+        # read by conftest.py, like in the GitHub workflows: only in dev mode, to keep the pipeline unchanged otherwise
+        **({"SYSTEM_TESTS_DEV_MODE": "true", "SYSTEM_TESTS_REPORT_ENVIRONMENT": "dev"} if inputs.dev_mode else {}),
     }
 
 
@@ -775,6 +922,17 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
             )
             return 1
         inputs.libraries = [*inputs.libraries, *mapping]
+
+    target_branches: dict[str, str] | None = None
+    if inputs.dev_mode:
+        try:
+            target_branches = check_dev_mode(inputs)
+        except InputError as error:
+            print(f"❌ {error}", file=sys.stderr)  # noqa: T201
+            return 1
+    elif inputs.target_branch_map:
+        print("❌ target_branch_map can only be used in dev mode", file=sys.stderr)  # noqa: T201
+        return 1
 
     if inputs.desired_execution_time > 0 and inputs.endtoend_job_count > 0:
         print(  # noqa: T201
@@ -814,6 +972,7 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
         pipeline_variables=child_pipeline_variables(inputs, environ),
         endtoend_job_count=inputs.endtoend_job_count,
         desired_execution_time=inputs.desired_execution_time,
+        target_branches=target_branches,
     )
     return 0
 

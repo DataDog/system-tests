@@ -2,11 +2,19 @@
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from utils import pytest
 from utils import scenarios
-from utils.ci.gitlab.jobs import _common, build_weblog, push_to_test_optimization, run_parametric, run_scenario
+from utils.ci.gitlab.jobs import (
+    _common,
+    build_weblog,
+    load_dev_binaries,
+    push_to_test_optimization,
+    run_parametric,
+    run_scenario,
+)
 
 
 def _trace(name: str, tags: list[str], *command: str) -> list[str]:
@@ -312,3 +320,181 @@ class Test_GitlabJobScripts:
         )
         assert result.returncode != 0
         assert "usage: run_job.py" in result.stderr
+
+
+@pytest.fixture
+def dev_binaries(
+    commands: list[list[str]],  # noqa: ARG001 (fake clone and recorded commands)
+    monkeypatch: pytest.MonkeyPatch,
+) -> tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]]:
+    """Fake load-binary.sh (each call writes <target>-binary in BINARIES_DIR) and dd-octo-sts calls.
+
+    Return the load-binary.sh calls, with their environment, and the dd-octo-sts calls.
+    """
+    loads: list[tuple[list[str], dict[str, str]]] = []
+    octo_sts: list[list[str]] = []
+
+    def fake_load(command: list[str], *, timeout: float, env: dict[str, str]) -> int:
+        assert timeout == load_dev_binaries.LOAD_TIMEOUT_SECONDS
+        loads.append((command, env))
+        # each attempt starts from an empty folder, a direct child of the clone (load-binary.sh calls ../utils)
+        output = Path(env["BINARIES_DIR"])
+        assert output.parent == Path()
+        assert not list(output.iterdir())
+        (output / f"{command[-1]}-binary").write_text(command[-1])
+        return 0
+
+    class _Result:
+        def __init__(self, returncode: int, stdout: str = "") -> None:
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = ""
+
+    def fake_octo_sts(command: list[str], **kwargs: object) -> _Result:
+        assert command[0] == "dd-octo-sts"
+        assert kwargs["timeout"] == load_dev_binaries.GITHUB_TOKEN_TIMEOUT_SECONDS
+        octo_sts.append(command)
+        return _Result(0, "ghs_token\n")
+
+    monkeypatch.setattr(load_dev_binaries, "run_with_timeout", fake_load)
+    monkeypatch.setattr(load_dev_binaries.subprocess, "run", fake_octo_sts)
+    monkeypatch.setattr(load_dev_binaries.time, "sleep", lambda _: None)
+    monkeypatch.setenv("TEST_LIBRARY", "python")
+    monkeypatch.setenv("GITHUB_TOKEN", "inherited")
+    for name in ("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "LIBRARY_TARGET_BRANCH", "AGENT_TARGET_BRANCH"):
+        monkeypatch.delenv(name, raising=False)
+    return loads, octo_sts
+
+
+@scenarios.test_the_test
+class Test_GitlabLoadDevBinaries:
+    def test_loads_agent_then_library(
+        self,
+        commands: list[list[str]],
+        dev_binaries: tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]],
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        loads, octo_sts = dev_binaries
+        monkeypatch.setenv("LIBRARY_TARGET_BRANCH", "my-branch")
+
+        load_dev_binaries.main()
+
+        assert [command for command, _ in loads] == [
+            ["./utils/scripts/load-binary.sh", "agent"],
+            ["./utils/scripts/load-binary.sh", "python"],
+        ]
+        for _, env in loads:
+            # target branches reach load-binary.sh through the environment
+            assert env["LIBRARY_TARGET_BRANCH"] == "my-branch"
+            # curl calls get timeouts
+            assert "max-time" in (Path(env["CURL_HOME"]) / ".curlrc").read_text()
+            # no token unless asked for
+            assert "GITHUB_TOKEN" not in env
+        assert octo_sts == []
+        # both are collected in the artifact, in $CI_PROJECT_DIR
+        artifact = tmp_path / load_dev_binaries.ARTIFACT_PATH
+        assert sorted(path.name for path in artifact.iterdir()) == ["agent-binary", "python-binary"]
+        assert commands == [
+            ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_type:dev_binaries"],
+            ["ls", "-la", str(artifact)],
+        ]
+
+    @pytest.mark.usefixtures("dev_binaries")
+    def test_retries_failed_loads(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        fake_load = load_dev_binaries.run_with_timeout
+        attempts: list[str] = []
+
+        def flaky_load(command: list[str], *, timeout: float, env: dict[str, str]) -> int:
+            fake_load(command, timeout=timeout, env=env)
+            attempts.append(command[-1])
+            # a timeout (124) on the first attempt for the library, after having written a partial result
+            return 124 if attempts.count("python") == 1 and command[-1] == "python" else 0
+
+        monkeypatch.setattr(load_dev_binaries, "run_with_timeout", flaky_load)
+
+        load_dev_binaries.main()
+
+        assert attempts == ["agent", "python", "python"]
+        assert sorted(path.name for path in (tmp_path / load_dev_binaries.ARTIFACT_PATH).iterdir()) == [
+            "agent-binary",
+            "python-binary",
+        ]
+
+    @pytest.mark.usefixtures("dev_binaries")
+    def test_fails_after_all_attempts(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        attempts: list[list[str]] = []
+
+        def failing_load(command: list[str], **_: object) -> int:
+            attempts.append(command)
+            return 3
+
+        monkeypatch.setattr(load_dev_binaries, "run_with_timeout", failing_load)
+
+        with pytest.raises(SystemExit) as exc:
+            load_dev_binaries.main()
+
+        assert exc.value.code == 3
+        # the library is not loaded once the agent failed
+        assert attempts == [["./utils/scripts/load-binary.sh", "agent"]] * load_dev_binaries.LOAD_ATTEMPTS
+        assert not (tmp_path / load_dev_binaries.ARTIFACT_PATH).exists()
+
+    def test_github_token(
+        self,
+        dev_binaries: tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        loads, octo_sts = dev_binaries
+        monkeypatch.setenv("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "true")
+
+        load_dev_binaries.main()
+
+        assert [env["GITHUB_TOKEN"] for _, env in loads] == ["ghs_token", "ghs_token"]
+        assert octo_sts == [
+            ["dd-octo-sts", "token", "--scope", "DataDog/system-tests", "--policy", "gitlab.github-access.read"],
+            ["dd-octo-sts", "revoke", "-t", "ghs_token"],
+        ]
+
+    @pytest.mark.parametrize("failure", ["exit_code", "timeout"])
+    def test_github_token_is_best_effort(
+        self,
+        dev_binaries: tuple[list[tuple[list[str], dict[str, str]]], list[list[str]]],
+        monkeypatch: pytest.MonkeyPatch,
+        failure: str,
+    ) -> None:
+        """Without a token (e.g. pipelines of another project), load-binary.sh calls GitHub unauthenticated."""
+        loads, _ = dev_binaries
+        token_calls: list[list[str]] = []
+
+        def failing_octo_sts(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            token_calls.append(command)
+            if failure == "timeout":
+                raise subprocess.TimeoutExpired(command, 60)
+            return subprocess.CompletedProcess(command, 1, "", "no policy matched")
+
+        monkeypatch.setattr(load_dev_binaries.subprocess, "run", failing_octo_sts)
+        monkeypatch.setenv("SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN", "true")
+
+        load_dev_binaries.main()
+
+        assert len(token_calls) == load_dev_binaries.GITHUB_TOKEN_ATTEMPTS
+        assert all("GITHUB_TOKEN" not in env for _, env in loads)
+        assert len(loads) == 2
+
+    def test_run_with_timeout_kills_the_process_tree(self) -> None:
+        """A hanging command is killed with its children, instead of running until the job timeout."""
+        start = time.monotonic()
+        returncode = load_dev_binaries.run_with_timeout(["sh", "-c", "sleep 30 & sleep 30; wait"], timeout=1, env=None)
+        assert returncode == 124
+        assert time.monotonic() - start < 10
+
+    def test_run_with_timeout_returns_the_return_code(self) -> None:
+        assert load_dev_binaries.run_with_timeout(["sh", "-c", "exit 3"], timeout=10) == 3

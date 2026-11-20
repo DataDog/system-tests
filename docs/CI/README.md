@@ -12,7 +12,7 @@ You'll need a CI that with `docker` and `python 3.12` installed, among with very
 You will find different template or example:
 
 * [github actions](./github-actions.md)
-* GitLab CI: WIP -- see below
+* GitLab CI: WIP -- see below, and the [GitLab end-to-end pipeline](./system-tests-ci.md#ci-workflow-gitlab-end-to-end-pipeline) of system-tests
 * [Azure](https://github.com/DataDog/dd-trace-dotnet/blob/master/.azure-pipelines/ultimate-pipeline.yml) (look for `stage: system_tests`)
 
 For the system-tests own CI, see also:

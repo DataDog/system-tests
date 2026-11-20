@@ -33,3 +33,28 @@ When a modification is made in system tests, the CI tries to detect which scenar
 1. based on modified files in `tests/`, by extracting scenarios targeted by those files
 2. based on any modification in a `tests/**/utils.py`, and applying the logic 1. on any sub file in `tests/**`
 
+
+## CI Workflow: GitLab end-to-end pipeline
+
+The GitLab end-to-end pipeline (the `system_tests_param` job of `.gitlab-ci.yml`, then the [`utils/ci/gitlab/main.yml`](../../utils/ci/gitlab/main.yml) component) generates its child pipelines with `utils/ci/gitlab/build_pipeline.py`. By default, it tests the `prod` version of all components, or the binaries of upstream jobs given by `binaries_artifacts` (`custom`).
+
+### Dev mode
+
+Like the `dev` version of the GitHub workflow, the dev mode tests the last commit of the main branch of the agent and of the libraries. It is opt-in only: nothing runs it automatically. To use it, set these pipeline variables, e.g. when running a pipeline from the GitLab UI:
+
+| Variable                             | Value                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `SYSTEM_TESTS_E2E_DEV_MODE`          | `true`                                                                                      |
+| `SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP` | Optional. JSON object `{library or "agent": branch}`, e.g. `{"python": "my-branch", "agent": "7.70.x"}`, to use these branches instead of main/master (see [target branch selection](#target-branch-selection) for the libraries supporting it). Branches of libraries that are not run are ignored |
+
+The variable is not `SYSTEM_TESTS_DEV_MODE`: as a pipeline variable, it would also reach the jobs of the parent pipeline that run pytest. The generated jobs get `SYSTEM_TESTS_DEV_MODE=true` (manifest check of `conftest.py`) and `SYSTEM_TESTS_REPORT_ENVIRONMENT=dev`.
+
+In dev mode, each library gets a `system_tests_dev_binaries_<library>` job, which runs `utils/scripts/load-binary.sh` for the agent and for the library (`utils/ci/gitlab/jobs/load_dev_binaries.py`). The build, run and parametric jobs of the library download its artifacts, like they download the binaries of upstream jobs. Each `load-binary.sh` call is killed after 10 minutes and retried, and its curl calls have a connection and transfer timeout.
+
+The dev mode is rejected (the pipeline generation fails):
+
+* with `binaries_artifacts` or `binaries_artifact_path`: both give the binaries to test
+* for libraries that need GitHub credentials the GitLab jobs don't have yet: `cpp_httpd`, `cpp_nginx`, `python_lambda` and `nodejs_lambda` (artifacts of GitHub workflows of other repositories), and the `c` and `auto_inject` target branches (internal repositories)
+* for libraries without a dev version: `java_otel`, `nodejs_otel`, `python_otel` and `otel_collector`
+
+For `golang`, `load-binary.sh` calls the GitHub API: the job gets a read-only GitHub token from `dd-octo-sts` (`gitlab.github-access.read` policy, only available to pipelines of DataDog/system-tests), and calls it unauthenticated if it can't get one.

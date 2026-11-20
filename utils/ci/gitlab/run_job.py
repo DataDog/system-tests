@@ -8,7 +8,7 @@ standard library, so they work whatever the state of the rest of the clone, and 
 import importlib
 import sys
 
-JOBS = ("build_weblog", "run_scenario", "run_parametric", "push_to_test_optimization")
+JOBS = ("load_dev_binaries", "build_weblog", "run_scenario", "run_parametric", "push_to_test_optimization")
 
 
 def main(argv: list[str]) -> None:
