@@ -1,5 +1,3 @@
-import copy
-import json
 import os
 import warnings
 from pathlib import Path
@@ -274,45 +272,41 @@ class _VirtualMachineScenario(Scenario):
     def configuration(self):
         return self._os_configurations
 
-    def customize_feature_parity_dashboard(self, result: dict):
-        # Customize the general report
-        for test in result["tests"]:
-            last_index = test["path"].rfind("::") + 2
-            test["description"] = test["path"][last_index:]
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        """Machine identity goes in the JUnit report. Component versions use a nested ``version`` key.
 
-        # We are going to split the FPD report in multiple reports, one per VM-runtime
-        vms, vm_ids = self.virtual_machine.get_tested_apps_vms()
-        for i in range(len(vms)):
-            vm = vms[i]
-            vm_id = vm_ids[i]
-            vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
-            new_result = copy.copy(result)
-            new_tested_deps = result["testedDependencies"].copy()
-            new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
-            new_result["configuration"]["app_type"] = vm.get_deployed_weblog().app_type
-            if (
-                self.virtual_machine.get_deployed_weblog().app_type == "host"
-                and "runtime_version" in self.virtual_machine.tested_components
-            ):
-                new_result["configuration"]["runtime_version"] = (
-                    self.virtual_machine.tested_components["runtime_version"].lstrip(" ").replace(",", "")
-                )
-            else:
-                new_result["configuration"]["runtime_version"] = vm.get_deployed_weblog().runtime_version
+        ``fingerprint_parameters`` drops that key from ``test.parameters`` and the suite context tags keep it.
+        """
+        result = super().get_junit_properties()
+        vm = self.virtual_machine
+        if not vm.name:
+            return result
 
-            if "glibc" in vm.tested_components:
-                new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
-                new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})
-                new_result["testedDependencies"] = new_tested_deps
+        result["os"] = vm.name.removesuffix("_amd64").removesuffix("_arm64")
+        result["arch"] = vm.os_cpu
+        result["weblog_variant"] = self.weblog_variant
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
 
-            new_result["tests"] = []
-            for test in result["tests"]:
-                new_test = test.copy()
-                new_test["description"] = new_test["description"]
-                new_test["path"] = new_test["path"]
-                new_result["tests"].append(new_test)
-            with open(f"{self.host_log_folder}/{vm_id}_feature_parity.json", "w", encoding="utf-8") as f:
-                json.dump(new_result, f, indent=2)
+        weblog = vm.get_deployed_weblog() if vm.provision_install_error is None else None
+        runtime = ""
+        if weblog is not None and weblog.app_type:
+            result["app_type"] = weblog.app_type
+            if weblog.app_type == "host":
+                runtime = str(vm.tested_components.get("runtime_version", "")).lstrip(" ").replace(",", "")
+            elif weblog.runtime_version:
+                runtime = str(weblog.runtime_version)
+        if runtime:
+            result["installed_language_runtime"] = runtime
+
+        agent = self.components.get("agent")
+        if agent is not None:
+            result["agent"] = str(agent)
+        if self.components.get("datadog-apm-inject") is not None:
+            result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
+        installer = self.components.get("datadog-installer")
+        if installer is not None:
+            result["datadog-installer"] = {"version": str(installer)}
+        return result
 
 
 class _InstallerAutoInjectionScenario(_VirtualMachineScenario):

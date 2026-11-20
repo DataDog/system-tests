@@ -24,12 +24,14 @@ class Test_ForceOption:
 
         assert nodeid in tests
         assert tests[nodeid]["outcome"] == "passed"
+        assert tests[nodeid]["declaration"] is None, "A forced test is reported without its declaration"
 
     def test_force_irrelevant(self):
         nodeid = f"{FILENAME}::Test_Direct::test_irrelevant"
         tests = execute_process(forced_test=nodeid)
 
         assert tests[nodeid]["outcome"] == "passed"
+        assert tests[nodeid]["declaration"] is None, "A forced test is reported without its declaration"
 
     def test_force_bug_nested(self):
         nodeid = f"{FILENAME}::Test_Bug::test_forced"
@@ -42,7 +44,8 @@ class Test_ForceOption:
         nodeid = f"{FILENAME}::Test_Irrelevant::test_forced"
         tests = execute_process(forced_test=nodeid)
 
-        assert tests[f"{FILENAME}::Test_Irrelevant::test_not_executed"]["outcome"] == "skipped"
+        # irrelevant tests are removed from the junit report
+        assert f"{FILENAME}::Test_Irrelevant::test_not_executed" not in tests
         assert tests[nodeid]["outcome"] == "passed", "The test should be forced, so not xpassed"
 
     def test_force_in_another_scenario(self):
