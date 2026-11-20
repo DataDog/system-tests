@@ -17,12 +17,6 @@ Hand edit: the real backend allows the benign request of test_ai_guard_anthropic
 so the response of its response evaluation cassette (the one whose request has mcp_servers) was edited
 to action DENY, is_blocking_enabled true and a reason. Its request was left as recorded.
 
-Copied cassettes: test_ai_guard_anthropic_mcp_reconnect_same_server_id sends the request of
-test_ai_guard_anthropic_mcp_tool_use twice, and test_ai_guard_anthropic_mcp_command_path sends it
-once with the echo server started from an absolute path. Their cassettes are copies of that test's
-ones, renamed to their own test name. The file names hash the request body only, so the copies match
-unchanged.
-
 A direct tool.call() with no preceding response evaluation is not covered: the tracer gives it a
 random tool call ID, so its evaluate body cannot match a body-hashed cassette.
 """

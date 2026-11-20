@@ -4,7 +4,7 @@
     "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
     "headers": {
       "Content-Type": "application/json",
-      "dd-ai-guard-version": "4.17.0rc1",
+      "dd-ai-guard-version": "4.17.1",
       "dd-ai-guard-source": "SDK",
       "dd-ai-guard-language": "python",
       "Content-Length": "188"
@@ -21,15 +21,15 @@
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
       "content-length": "308",
-      "date": "Wed, 11 Nov 2026 09:50:08 GMT",
+      "date": "Fri, 20 Nov 2026 09:16:59 GMT",
       "x-ratelimit-limit": "700",
       "x-ratelimit-period": "60",
       "x-ratelimit-remaining": "699",
-      "x-ratelimit-reset": "52",
+      "x-ratelimit-reset": "1",
       "x-ratelimit-name": "ai_guard_evaluate_per_org",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },
-    "body": "{\"data\":{\"id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"00000000-0000-4000-8000-000000000001\"}],\"global_prob\":0.1259765625,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+    "body": "{\"data\":{\"id\":\"00000000-0000-4000-8000-000000000002\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"00000000-0000-4000-8000-000000000002\"}],\"global_prob\":0.1259765625,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
   }
 }
