@@ -19,6 +19,7 @@ from pluggy._result import _Result as Result
 from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
+from utils._context.junit_parameters import fingerprint_parameters
 from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
@@ -256,13 +257,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         for key, value in flatten(properties, {}).items():
             xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
 
-        # test.parameters is part of the Test Optimization fingerprint: exclude agent and library
-        # versions, so that the test identity is stable across dev builds
-        parameters = {key: value for key, value in properties.items() if key != "agent"}
-        if isinstance(library := parameters.get("library"), dict):
-            parameters["library"] = {key: value for key, value in library.items() if key != "version"}
-
-        xml.add_global_property("dd_tags[test.parameters]", json.dumps(parameters))
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(fingerprint_parameters(properties)))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -347,7 +342,9 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     all_declarations = {}
 
     def iter_markers(self: pytest.Item, name: str | None = None):
-        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
+        # declarations are also excluded: a forced test is executed, it must be reported as a normal test
+        excluded = ("skip", "skipif", "xfail", "declaration")
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in excluded)
 
     must_pass_item_count = 0
     for item in items:
@@ -648,48 +645,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                         testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
 
             junit_report.write(session.config.option.xmlpath)
-
-        try:
-            data = session.config._json_report.report  # noqa: SLF001
-            export_feature_parity_dashboard(session, data)
-        except Exception:
-            logger.exception("Fail to export reports", exc_info=True)
-
-
-def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
-    tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
-
-    result = {
-        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
-        "runDate": data["created"],
-        "environment": session.config.option.report_environment or "local",
-        "testSource": "systemtests",
-        "language": context.library.name,
-        "variant": context.weblog_variant,
-        "testedDependencies": [
-            {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
-        ],
-        "configuration": context.configuration,
-        "scenario": context.scenario.name,
-        "tests": [test for test in tests if test is not None],
-    }
-    context.scenario.customize_feature_parity_dashboard(result)
-    with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2)
-
-
-def convert_test_to_feature_parity_model(test: dict) -> dict | None:
-    result = {
-        "path": test["nodeid"],
-        "lineNumber": test["lineno"],
-        "outcome": test["outcome"],
-        "testDeclaration": test["metadata"]["testDeclaration"],
-        "details": test["metadata"]["details"],
-        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
-    }
-
-    # exclude test without a feature (they may have been flagged as not reported)
-    return result if len(result["features"]) != 0 else None
 
 
 ## Fixtures corners

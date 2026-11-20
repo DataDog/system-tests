@@ -1,5 +1,7 @@
+import ast
 import json
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -35,11 +37,53 @@ def run_system_tests(
         expected_return_code=expected_return_code,
     )
 
-    scenario = scenario or "DEFAULT"
-    with open(f"logs_{scenario.lower()}/feature_parity.json", encoding="utf-8") as f:
-        report = json.load(f)
+    return read_junit_report(scenario or "DEFAULT")
 
-    return {test["path"]: test for test in report["tests"]}
+
+def read_junit_suite_properties(scenario: str) -> dict[str, str]:
+    root = ET.parse(f"logs_{scenario.lower()}/reportJunit.xml").getroot()  # noqa: S314
+    return {prop.attrib["name"]: prop.attrib["value"] for prop in root.findall("testsuite/properties/property")}
+
+
+def read_junit_report(scenario: str, weblog_variant: str = "spring") -> dict[str, dict]:
+    """Read the junit report of ``scenario``, and return its test cases by pytest nodeid.
+
+    Tests declared as irrelevant are not in the junit report.
+    """
+    root = ET.parse(f"logs_{scenario.lower()}/reportJunit.xml").getroot()  # noqa: S314
+
+    result: dict[str, dict] = {}
+    for testcase in root.iter("testcase"):
+        properties = {prop.attrib["name"]: prop.attrib["value"] for prop in testcase.iter("property")}
+        nodeid = _junit_name_to_nodeid(testcase.attrib["name"], weblog_variant)
+        result[nodeid] = {
+            "outcome": properties.get("dd_tags[systest.case.outcome]"),
+            "declaration": properties.get("dd_tags[systest.case.declaration]"),
+            "declaration_details": properties.get("dd_tags[systest.case.declarationDetails]"),
+            "features": ast.literal_eval(properties.get("dd_tags[systest.case.feature_ids]") or "[]"),
+            "properties": properties,
+        }
+
+    return result
+
+
+def _junit_name_to_nodeid(name: str, weblog_variant: str) -> str:
+    """Convert a junit name (tests.dir.test_file.Class.test_method[params, weblog]) into a pytest nodeid"""
+    name, _, params = name.partition("[")
+    params_list = params.removesuffix("]").split(", ")
+    assert params_list[-1] == weblog_variant, f"Unexpected weblog suffix in junit name {name}[{params}"
+    params_list.pop()
+
+    parts = name.split(".")
+    for i in range(1, len(parts)):
+        path = "/".join(parts[:i]) + ".py"
+        if Path(path).is_file():
+            nodeid = "::".join([path, *parts[i:]])
+            break
+    else:
+        raise ValueError(f"Can't find the test file of junit name {name}")
+
+    return f"{nodeid}[{', '.join(params_list)}]" if params_list else nodeid
 
 
 def _execute_system_tests(
