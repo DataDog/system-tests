@@ -45,11 +45,15 @@ Like the `dev` version of the GitHub workflow, the dev mode tests the last commi
 | Variable                             | Value                                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------------------- |
 | `SYSTEM_TESTS_E2E_DEV_MODE`          | `true`                                                                                      |
-| `SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP` | Optional. JSON object `{library or "agent": branch}`, e.g. `{"python": "my-branch", "agent": "7.70.x"}`, to use these branches instead of main/master (see [target branch selection](#target-branch-selection) for the libraries supporting it). Branches of libraries that are not run are ignored |
+| `SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP` | Optional. JSON object `{library or "agent": branch}`, e.g. `{"python": "my-branch", "agent": "my-name-my-branch-py3"}`, to use these branches instead of main/master (see [target branch selection](#target-branch-selection) for the libraries supporting it). Branches of libraries that are not run are ignored. The `agent` value is not a branch but a tag of the `datadog/agent-dev` image (`master-py3` by default): the slug of the branch with a flavor suffix, e.g. `my-name-my-branch-py3` for the branch `my.name/my-branch` |
+
+On a pipeline of another branch than main run from the GitLab UI (or the API), no library is selected by default: also set `LIBRARIES` (e.g. `python`), and `SCENARIOS` or `SCENARIO_GROUPS` to choose the scenarios (as pipeline variables, they take precedence over the ones computed from the changes of the branch).
 
 The variable is not `SYSTEM_TESTS_DEV_MODE`: as a pipeline variable, it would also reach the jobs of the parent pipeline that run pytest. The generated jobs get `SYSTEM_TESTS_DEV_MODE=true` (manifest check of `conftest.py`) and `SYSTEM_TESTS_REPORT_ENVIRONMENT=dev`.
 
-In dev mode, each library gets a `system_tests_dev_binaries_<library>` job, which runs `utils/scripts/load-binary.sh` for the agent and for the library (`utils/ci/gitlab/jobs/load_dev_binaries.py`). The build, run and parametric jobs of the library download its artifacts, like they download the binaries of upstream jobs. Each `load-binary.sh` call is killed after 10 minutes and retried, and its curl calls have a connection and transfer timeout.
+In dev mode, each library gets a `system_tests_dev_binaries_<library>` job, which runs `utils/scripts/load-binary.sh` for the agent and for the library (`utils/ci/gitlab/jobs/load_dev_binaries.py`). The build, run and parametric jobs of the library download its artifacts, like they download the binaries of upstream jobs. Each `load-binary.sh` call is killed after 10 minutes and retried, its curl calls have a connection and transfer timeout, and its git clones are aborted if they stall.
+
+The dev agent image (`datadog/agent-dev`) is not in the image mirror: the run jobs pull it from Docker Hub. The mirror can't mirror it yet, as it pins each image to the digest it had when it was added to `mirror_images.lock.yaml`, while `datadog/agent-dev:master-py3` changes with every commit of the agent.
 
 The dev mode is rejected (the pipeline generation fails):
 
