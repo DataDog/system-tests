@@ -5,7 +5,7 @@ const { writeFileSync } = require('node:fs')
 const { createRequire } = require('node:module')
 
 async function main () {
-  const { options, entryPoint = 'root', abort = false, abortAfterMs, mutateContext = false, evaluate = true, contexts } = JSON.parse(process.argv[2])
+  const { options, entryPoint = 'root', abort = false, abortAfterMs, mutateContext = false, evaluate = true, contexts, trackExposures = false } = JSON.parse(process.argv[2])
   let httpRequests = 0
   let exposureEvents = 0
   let outcome
@@ -40,9 +40,12 @@ async function main () {
       })
       const wire = sdk.configurationToString(configuration)
       const restored = sdk.configurationFromString(wire)
-      outcome = { wire, restored: sdk.configurationToString(restored), diagnostics, sameFetch: root.fetchPrecomputedConfiguration === rules.fetchPrecomputedConfiguration }
+      outcome = { wire, restored: sdk.configurationToString(restored), diagnostics, sameFetch: root.fetchPrecomputedConfiguration === rules.fetchPrecomputedConfiguration, exposuresBeforeTracking: exposureEvents }
       if (evaluate) {
-        const provider = new rules.DatadogCoreProvider(restored, { experimentationOptOutMode: options.experimentationOptOutMode })
+        const provider = new rules.DatadogCoreProvider(restored, {
+          experimentationOptOutMode: options.experimentationOptOutMode,
+          ...(trackExposures && { exposureChannel: channel('ffe:exposure:submit') })
+        })
         OpenFeature.setProvider('precomputed-fetch', provider)
         const client = OpenFeature.getClient('precomputed-fetch')
         outcome.providerStatus = client.providerStatus

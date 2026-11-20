@@ -36,13 +36,14 @@ def library_env(mocked_backend: MockedBackendServer) -> dict[str, str]:
     return {"SYSTEM_TESTS_FFE_RULES_BASE_URL": mocked_backend.ffe_library_base_url}
 
 
-def snapshot(result: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def snapshot(result: dict[str, Any], *, exposure_events: int = 0) -> tuple[dict[str, Any], dict[str, Any]]:
     assert "error" not in result, result
     wire = json.loads(result["wire"])
     assert json.loads(result["restored"]) == wire
     assert set(wire) == {"version", "precomputed"}
     assert result["httpRequests"] == 1
-    assert result["exposureEvents"] == 0
+    assert result["exposureEvents"] == exposure_events
+    assert result["exposuresBeforeTracking"] == 0
     portable = wire["precomputed"]
     assert portable["etag"] == '"precomputed-v1"'
     assert portable["fetchedAt"] > 0
@@ -139,6 +140,15 @@ class Test_FFE_Precomputed_Configuration:
                         "empty": "null",
                     },
                 }
+
+            # Same observer and fetched input, now with an explicitly enabled SDK sink.
+            control = test_library.ffe_fetch_precomputed_configuration({"options": OPTIONS, "trackExposures": True})
+            snapshot(control, exposure_events=2)
+            assert control["providerStatus"] == "READY"
+            assert control["results"][0]["value"] is True
+            assert control["results"][0].get("errorCode") is None
+            assert control["nullable"]["value"] is None
+            assert control["nullable"].get("errorCode") is None
 
     def test_fingerprint_response_validation(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer

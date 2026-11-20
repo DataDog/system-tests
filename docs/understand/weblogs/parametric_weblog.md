@@ -1027,7 +1027,7 @@ Called by `ParametricTestClientApi.ffe_fetch_precomputed_configuration()`. Node.
 fresh-process probe of `fetchPrecomputedConfiguration()` from the packaged Node
 dependency. The request has `options` using the SDK's public fields, optional
 `entryPoint` (`root` or `rules-based`), `abort`, `abortAfterMs`, `mutateContext`,
-`evaluate` (defaults to true), and optional evaluation `contexts`.
+`evaluate` (defaults to true), `trackExposures` (defaults to false), and optional evaluation `contexts`.
 
 The custom Fetch transport routes to `SYSTEM_TESTS_FFE_RULES_BASE_URL` without
 changing the generated path, query, headers, body, or request options. The response
@@ -1035,6 +1035,9 @@ contains a portable `wire`, codec `restored` wire, diagnostics, and optional act
 OpenFeature status/results; a typed fetch failure instead returns `error` with
 `name`, `code`, `message`, and optional HTTP `status`. HTTP and exposure-channel
 counts are observed through process exit. Unexpected errors/timeouts are HTTP 500.
+`exposuresBeforeTracking` records the count after fetching/serialization and before
+provider registration. The explicit tracking control proves this adapter's capture
+path using the same channel; it does not create an uploader.
 No tracer or uploader is initialized. Future-only opt-out is checked with
 `evaluate: false` because the Node provider does not implement that policy.
 
