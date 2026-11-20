@@ -118,20 +118,30 @@ EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
         "jvm.file_descriptor.count": {"all": []},
         "jvm.file_descriptor.limit": {"all": []},
     },
+    # Each process reports its runtime metrics under its own datadog.runtime_id.
     "python": {
-        "cpython.gc.collected_objects": {"all": ["cpython.gc.generation"]},
+        "cpython.gc.collected_objects": {"all": ["cpython.gc.generation", "datadog.runtime_id"]},
         "cpython.gc.collections": {
-            "all": ["cpython.gc.generation"],
+            "all": ["cpython.gc.generation", "datadog.runtime_id"],
             "present_values": {"cpython.gc.generation": ["0", "1", "2"]},
         },
-        "cpython.gc.uncollectable_objects": {"all": ["cpython.gc.generation"]},
+        "cpython.gc.uncollectable_objects": {"all": ["cpython.gc.generation", "datadog.runtime_id"]},
         "process.context_switches": {
-            "all": ["process.context_switch.type"],
+            "all": ["process.context_switch.type", "datadog.runtime_id"],
             "present_values": {"process.context_switch.type": ["involuntary", "voluntary"]},
         },
-        "process.cpu.time": {"all": ["cpu.mode"], "present_values": {"cpu.mode": ["system", "user"]}},
-        "process.memory.usage": {"all": []},
-        "process.thread.count": {"all": []},
+        "process.cpu.time": {
+            "all": ["cpu.mode", "datadog.runtime_id"],
+            "present_values": {"cpu.mode": ["system", "user"]},
+        },
+        "process.cpu.utilization": {"all": ["datadog.runtime_id"]},
+        "process.memory.usage": {"all": ["datadog.runtime_id"]},
+        # The name and attribute of the OpenTelemetry system metrics instrumentation.
+        "process.runtime.cpython.gc_count": {
+            "all": ["count", "datadog.runtime_id"],
+            "present_values": {"count": ["0", "1", "2"]},
+        },
+        "process.thread.count": {"all": ["datadog.runtime_id"]},
     },
 }
 
@@ -249,6 +259,8 @@ EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
         # The CPU modes of process.cpu.time in the OpenTelemetry semantic conventions.
         "cpu.mode": frozenset({"system", "user", "wait"}),
         "process.context_switch.type": frozenset({"involuntary", "voluntary"}),
+        # The generation of gc.get_count().
+        "count": frozenset({"0", "1", "2"}),
     },
 }
 
