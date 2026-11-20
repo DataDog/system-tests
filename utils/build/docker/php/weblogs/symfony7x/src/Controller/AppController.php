@@ -1019,4 +1019,27 @@ END;
     {
         return new Response('ok', 200, ['Content-Type' => 'text/plain']);
     }
+
+    // UTF-8 static text in a segment: 'é' (U+00E9) is a single declaration;
+    // the matching request URL is '/api_security/encoded/caf%C3%A9'.
+    #[Route('/api_security/encoded/café', name: 'api_security_encoded', methods: ['GET'])]
+    public function apiSecurityEncoded(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // Optional static text ('/preview') as a segment of its own. Symfony has no
+    // optional-segment syntax, so declare the two shapes as two routes; the
+    // tracer reports each request's matched template.
+    #[Route('/api_security/drafts', name: 'api_security_drafts', methods: ['GET'])]
+    public function apiSecurityDrafts(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/drafts/preview', name: 'api_security_drafts_preview', methods: ['GET'])]
+    public function apiSecurityDraftsPreview(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
 }

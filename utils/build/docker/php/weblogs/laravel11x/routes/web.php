@@ -840,3 +840,19 @@ Route::get('/api_security/search.{format?}', function () {
 Route::get('/api_security/optional-chain/{x?}/{y?}', function () {
     return response('ok', 200, ['Content-Type' => 'text/plain']);
 });
+
+// UTF-8 static text in a segment: 'é' (U+00E9) is a single declaration;
+// the matching request URL is '/api_security/encoded/caf%C3%A9'.
+Route::get('/api_security/encoded/café', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+// Optional static text ('/preview') as a segment of its own. Laravel has no
+// optional-segment syntax, so declare the two shapes as two routes; the tracer
+// reports each request's matched template.
+Route::get('/api_security/drafts', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+Route::get('/api_security/drafts/preview', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
