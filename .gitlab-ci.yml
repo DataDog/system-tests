@@ -508,6 +508,9 @@ build_ci_image:
 #   * signs every image copied during that run with ddsign (`--sign`), so
 #     already-mirrored images are not needlessly re-signed on every push.
 #
+# Weblog base images are not part of it: the build_base_images job pushes (and
+# signs) them in the mirror itself, see below.
+#
 # It regenerates the mirror files in the CI worktree to detect drift, but never
 # commits them. mirror_images.lock.yaml remains a committed contract.
 #
@@ -529,9 +532,6 @@ mirror_images:
     - job: build_ci_image
       artifacts: false
       optional: true
-    # The mirror lock can only resolve tags after this job has published them.
-    - job: build_base_images
-      artifacts: false
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
@@ -549,7 +549,7 @@ mirror_images:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - python -m pip install --quiet uv
-    # Fail if any committed mirror artifact is stale vs the scenarios and base-image lock.
+    # Fail if any committed mirror artifact is stale vs the scenarios.
     - python utils/scripts/update_mirror_images.py --skip-lock
     - |
       if ! git diff --exit-code -- mirror_images.yaml; then
@@ -573,7 +573,9 @@ mirror_images:
 # Rebuild weblog base images whose content changed.
 #
 # For every changed library with a docker-bake.hcl, computes a deterministic content-hash
-# tag per target and pushes it if missing (see utils/base_images/build_base_images.py).
+# tag per target and pushes it if missing from Docker Hub or from the mirror, where CI pulls
+# it from (see utils/base_images/build_base_images.py). Downstream jobs needing the
+# base images in the mirror must wait for build_base_images, not mirror_images.
 # Runs on every push, on every branch: it is idempotent (only pushes new tags, never
 # overwrites existing ones), so it is safe to build ahead of merge. Since new tags never
 # replace old ones. A stale committed base-images.lock.json makes the job fail after
@@ -582,9 +584,11 @@ mirror_images:
 # Images are multi-arch (linux/amd64 + linux/arm64, see PLATFORMS in build_base_images.py)
 # so they also run natively on Apple Silicon. docker-in-docker runners cannot build
 # multi-platform images, so each architecture is built natively on its own runner and
-# pushed as <tag>-<arch>; build_base_images then merges them into the multi-arch <tag>.
+# pushed to Docker Hub as <tag>-<arch>; build_base_images then merges them into the multi-arch
+# <tag>, on Docker Hub and in the mirror, and signs the mirror copy with ddsign (like mirror_images
+# does). The image's docker credential helper authenticates registry.ddbuild.io pushes.
 # build_base_images.py is stdlib-only, so these jobs use the multi-arch docker image from
-# DataDog/images (docker/29.4.0-noble-py3: docker, buildx, python3, git) instead of the
+# DataDog/images (docker/29.4.0-noble-py3: docker, buildx, python3, git, ddsign) instead of the
 # amd64-only $CI_IMAGE, and need no venv. That image has no AWS CLI, so it is installed first.
 # ──────────────────────────────────────────────
 
@@ -619,6 +623,9 @@ build_base_images:
   extends: .build_base_images_base
   tags:
     - docker-in-docker:amd64
+  id_tokens:
+    DDSIGN_ID_TOKEN:
+      aud: image-integrity
   needs:
     - job: build_base_images_amd64
       artifacts: false

@@ -4052,11 +4052,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v1.62.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 1.69.0
-    - component_version: <1.62.0
-      declaration: missing_feature
-    - component_version: '>=1.62.0'
-      declaration: bug (APMAPI-2471)
+  : v1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
   :  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2471)
@@ -5543,8 +5539,8 @@ manifest:
         spring-boot: '>=1.60.3'
         vertx4: '>=1.60.3'
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
-  tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
-  tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
+  tests/test_the_test/test_junit_report.py::Test_Mock: v0.2.1
+  tests/test_the_test/test_junit_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature

@@ -22,7 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client, log_host_diagnostics
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
-from utils.base_images.base_image import base_image_contexts
+from utils.base_images.base_image import base_image_aliases
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
@@ -1105,10 +1105,11 @@ class BuddyContainer(TestedContainer):
 
 
 def dockerfile_image_list(dockerfile: Path) -> list[str]:
-    """Return the images referenced in the FROM lines of a Dockerfile.
+    """Return the images pulled by the FROM lines of a Dockerfile.
 
-    system-tests base-image aliases are resolved to their locked reference, and
-    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    ARG defaults are substituted, unresolved placeholders are kept as-is. system-tests
+    base-image aliases are skipped: they are not pulled by the Dockerfile, build.sh supplies
+    them as named build contexts (see utils/base_images/base_image.py).
     """
     result: list[str] = []
     args: dict[str, str] = {}
@@ -1116,14 +1117,15 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
     pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
     arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
     dockerfile_text = dockerfile.read_text()
-    base_contexts = base_image_contexts(dockerfile_text)
+    base_aliases = base_image_aliases(dockerfile_text)
     for line in dockerfile_text.splitlines():
         if match := arg_pattern.match(line):
             args[match.group("arg_name")] = match.group("arg_value")
 
         if match := pattern.match(line):
             image_name = match.group("image_name")
-            image_name = base_contexts.get(image_name, image_name)
+            if image_name in base_aliases:
+                continue
 
             for name, value in args.items():
                 image_name = image_name.replace(f"${name}", value)

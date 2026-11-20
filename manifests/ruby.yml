@@ -3439,21 +3439,7 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: v2.42.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: v2.42.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: v2.42.0-dev
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        rails52: '>=2.40.0'
-        rails42: '>=2.40.0'
-        sinatra14: '>=2.40.0'
-        uds-rails: '>=2.40.0'
-        rails72: '>=2.40.0'
-        sinatra32: '>=2.40.0'
-        sinatra22: '>=2.40.0'
-        rails61: '>=2.40.0'
-        sinatra41: '>=2.40.0'
-        rack: '>=2.40.0'
-        uds-sinatra: '>=2.40.0'
-        rails80: '>=2.40.0'
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are sent through DogStatsD)
   tests/test_profiling.py::Test_Profile:  # Modified by easy win activation script
     - declaration: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
       component_version: <2.24.0
