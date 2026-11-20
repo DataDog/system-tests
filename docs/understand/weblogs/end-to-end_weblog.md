@@ -1524,7 +1524,6 @@ There are several rules shared between all the existing end-to-end weblogs.
 * Structure: Each weblog needs:
 
   utils/build/docker/\<language>/
-  ├── \<weblog-name>.base.Dockerfile     # Fixed package installs. CI builds this once
   ├── \<weblog-name>.Dockerfile          # Main Docker configuration
   ├── \<weblog-name>/                     # Application source code directory
   │   ├── app.sh                         # Startup script
@@ -1535,7 +1534,7 @@ There are several rules shared between all the existing end-to-end weblogs.
 ### Dockerfile requirements
 
 * **Multi-stage builds**: Use when possible for optimization (build → runtime).
-* **Base images**: Put OS packages and fixed app dependencies in `<weblog>.base.Dockerfile`. Add a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. CI builds that image once, so the main build does not call those registries on every run. The tested library version and `install_ddtrace.sh` stay in the weblog Dockerfile. Update the lock file after the GitLab publish job finishes. See [Update Docker images](../../edit/update-docker-images.md).
+* **Base images**: A new weblog must put OS packages and fixed app dependencies in `<weblog>.base.Dockerfile`. Add a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. CI builds that image once, so the main build does not call those registries on every run. The tested library version and `install_ddtrace.sh` stay in the weblog Dockerfile. Update the lock file after the GitLab publish job finishes. See [Update Docker images](../../edit/update-docker-images.md).
 * **Port**: Must expose port 7777 for consistency
 * **Tracer installation**: Always call the install_ddtrace.sh script.
 * Environment variables**: Set essential DD environment variables:
