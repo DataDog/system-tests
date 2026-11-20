@@ -842,7 +842,7 @@ class ParametricTestClientApi(TestClientApi):
         if flag_selection is not None:
             payload["flag_selection"] = flag_selection
 
-        resp = self._session.post(self._url("/ffe/start"), json=payload)
+        resp = self._session.post(self._url("/ffe/start"), json=payload, timeout=self.timeout)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -898,7 +898,7 @@ class ParametricTestClientApi(TestClientApi):
         if fail_after_hook:
             payload["failAfterHook"] = True
 
-        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload, timeout=self.timeout)
         return resp.json()
 
     def otel_get_meter(
