@@ -18,7 +18,7 @@ async function main () {
   ]
   for (const [name, listener] of subscriptions) channel(name).subscribe(listener)
 
-  // Resolve the tracer's packaged dependency without loading or initializing the tracer.
+  // Load the bundle shipped by the tracer, without importing or initializing the tracer.
   const requireLibrary = createRequire(require.resolve('dd-trace/package.json'))
   const {
     ConfigurationFetchError,
@@ -28,7 +28,7 @@ async function main () {
     DatadogCoreProvider,
     fetchRulesConfiguration,
     precomputeConfiguration
-  } = requireLibrary('@datadog/openfeature-node-server/rules-based')
+  } = requireLibrary('./vendor/dist/@datadog/openfeature-node-server/rules-based')
   const { OpenFeature, ProviderEvents } = require('@openfeature/server-sdk')
   OpenFeature.setLogger({ error () {}, warn () {}, info () {}, debug () {} })
   const tracking = ['tracking', 'overlap'].includes(operation)
@@ -90,10 +90,13 @@ async function main () {
       let arrivals = 0
       let release
       const barrier = new Promise(resolve => { release = resolve })
+      const arrive = async () => {
+        if (++arrivals === contexts.length) release()
+        await barrier
+      }
       client.addHooks({
         after: async (hookContext, details) => {
-          if (++arrivals === contexts.length) release()
-          await barrier
+          await arrive()
           const sidecar = tracking.providerOptions.dependencyTelemetrySidecar
           const dependencies = sidecar.takeDependencyEvaluations(undefined, undefined, hookContext.context)
           observations.push({
@@ -102,7 +105,8 @@ async function main () {
             dependencies: dependencies.map(item => ({ flag: item.flagKey, value: item.details.value })),
             consumed: sidecar.takeDependencyEvaluations(details.flagMetadata, undefined, hookContext.context)
           })
-        }
+        },
+        error: arrive
       })
       outcome = { startup, results: await Promise.all(contexts.map(context => evaluate(context))), observations, exposures }
     } else if (operation === 'refresh') {
@@ -175,16 +179,24 @@ async function main () {
       client = OpenFeature.getClient('offline-provider')
       await evaluate(contexts[0])
       const afterClose = exposures.length
+      restarted.setConfiguration(restarted.getConfiguration())
+      await evaluate(contexts[0])
+      const afterSameGeneration = exposures.length
+      const nextGeneration = restarted.getConfiguration()
+      nextGeneration.rules.response.createdAt.seconds += 1n
+      restarted.setConfiguration(nextGeneration)
+      await evaluate(contexts[0])
+      const afterNewGeneration = exposures.length
       tracking.clear()
       await evaluate(contexts[0])
-      outcome = { startup, beforeHook, deduplicated, failed, afterFailure, afterRetry, afterClose, exposures }
+      outcome = { startup, beforeHook, deduplicated, failed, afterFailure, afterRetry, afterClose, afterSameGeneration, afterNewGeneration, exposures }
     } else {
       throw new Error(`Unknown provider operation: ${operation}`)
     }
     outcome.status = client.providerStatus
     outcome.versions = {
       node: process.version,
-      provider: requireLibrary('@datadog/openfeature-node-server/package.json').version
+      tracer: requireLibrary('./package.json').version
     }
   } finally {
     await OpenFeature.clearProviders()
@@ -198,7 +210,17 @@ async function main () {
   }
 }
 
+let settled = false
+process.once('beforeExit', () => {
+  if (!settled) {
+    console.error('Standalone FFE provider operation did not settle')
+    process.exitCode = 1
+  }
+})
+
 main().catch(error => {
   console.error(error)
   process.exitCode = 1
+}).finally(() => {
+  settled = true
 })

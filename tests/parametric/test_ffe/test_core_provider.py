@@ -33,8 +33,8 @@ def library_env(mocked_backend: MockedBackendServer) -> dict[str, str]:
 
 def assert_evaluation(result: dict[str, Any], *, value: bool, variant: str, reason: str) -> None:
     assert result["value"] is value, result
-    assert result["variant"] == variant, result
     assert result["reason"] == reason, result
+    assert result.get("variant") == variant, result
     assert result.get("errorCode") is None, result
 
 
@@ -118,7 +118,28 @@ class Test_FFE_Core_Provider:
             (json.dumps({"version": 1}), None),
             (json.dumps({"version": 1, "rules": {"response": "!private-invalid-protobuf!"}}), "rulesError"),
             (json.dumps({"version": 1, "precomputed": {"response": "private-invalid-json"}}), "precomputedError"),
-            (json.dumps({"version": 2, "precomputed": {"response": "{}"}}), "precomputedError"),
+            (
+                json.dumps(
+                    {
+                        "version": 2,
+                        "precomputed": {
+                            "response": json.dumps(
+                                {
+                                    "data": {
+                                        "attributes": {
+                                            "createdAt": "2026-11-19T00:00:00Z",
+                                            "format": "PRECOMPUTED",
+                                            "flags": {},
+                                            "obfuscated": True,
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                    }
+                ),
+                "precomputedError",
+            ),
         ]
         with test_library:
             result = test_library.ffe_core_provider(
@@ -236,7 +257,7 @@ class Test_FFE_Core_Provider:
         with test_library:
             result = test_library.ffe_core_provider({"operation": "tracking", "wire": WIRE, "contexts": CONTEXTS})
 
-        assert_offline(result, mocked_backend, exposure_events=6)
+        assert_offline(result, mocked_backend, exposure_events=8)
         assert result["startup"]["hooks"] == 0
         assert result["beforeHook"] == 0
         assert result["deduplicated"] == 2
@@ -245,8 +266,10 @@ class Test_FFE_Core_Provider:
         assert result["afterFailure"] == 2
         assert result["afterRetry"] == 4
         assert result["afterClose"] == 4  # The tracking helper owns this cache, not the provider.
+        assert result["afterSameGeneration"] == 4
+        assert result["afterNewGeneration"] == 6
         exposures = result["exposures"]
-        assert len(exposures) == 6
+        assert len(exposures) == 8
         assert {(item["subject"]["id"], item["flag"]["key"], item["variant"]["key"]) for item in exposures[:4]} == {
             (context["targetingKey"], flag, "on" if context["country"] == "US" else "off")
             for context in CONTEXTS
