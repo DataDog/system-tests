@@ -40,7 +40,7 @@
 ### META-006: Match each manifest marker to its cause.
 - Old_id: claude-07
 - Severity: P1
-- Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
+- Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure. Give every new declaration a reason in parentheses, and declare only the failing classes of a file. If a PR adds the endpoint or feature that a declaration cites, it must update that declaration.
 - Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
 - ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`, causing the library to exit at startup while the run reports an expected failure.
@@ -74,3 +74,10 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Bound each manifest version gate to what was validated.
+- Severity: P1
+- Flag: A version gate must activate a test only for the releases and weblogs where the behavior holds. If the SDK changed the behavior in a later release, the declaration must exclude those releases. If a PR validated a floor on one weblog variant, it must lower the floor only for that variant.
+- Detect: A manifest lowers a floor for every weblog after a check on one variant. A gate enables a test on releases that lack the behavior. A gate keeps a legacy test active on releases that replaced it.
+- ✅ Gate `Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting` at `v2.11.0-dev` for Go, because v2.10.x emits no drop telemetry.
+- ❌ Declare `tests/parametric/test_ffe/test_serial_id_metadata.py: v2.10.1` when later Go releases changed the `dd.serialId` key.
