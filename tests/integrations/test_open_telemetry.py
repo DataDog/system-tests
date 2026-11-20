@@ -1,8 +1,6 @@
 from utils import context, features, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
-import json
-
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """Verify basic DB operations over different databases.
@@ -104,8 +102,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """New version of test_error_type_and_stack() starting agent@7.75.0"""
 
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
-        span_meta = span.meta
-        events = json.loads(span_meta["events"])
+        events = span.get_span_events()
         exception_events = [event for event in events if event["name"] == "exception"]
         assert len(exception_events) > 0
         for event in exception_events:
