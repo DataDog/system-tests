@@ -337,7 +337,8 @@ manifest:
         tornado: v4.12.0-rc1
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Python weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment: incomplete_test_app (/api_security/three-params not implemented in Python weblogs)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
+  : incomplete_test_app (/api_security/three-params not implemented in Python weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Python weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Python weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature (RFC-1125 not implemented yet)
