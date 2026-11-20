@@ -17,7 +17,8 @@
 # (check_single_opentelemetry_version). Every crate involved is published on
 # crates.io, so there is no git-only dependency to select a rev for by hand.
 
-set -eu
+# pipefail: a failing `cargo metadata` must not look like an empty `jq` result
+set -euo pipefail
 
 cd /usr/app
 
@@ -43,7 +44,7 @@ if [ -e /binaries/dd-trace-rs ]; then
     cd /binaries/dd-trace-rs
 
     # get the version from the cargo.lock
-    if ! current_version=$(cargo metadata --no-deps --format-version 1 2>/dev/null \
+    if ! current_version=$(cargo metadata --no-deps --format-version 1 \
         | jq -r '.packages[] | select(.name == "datadog-opentelemetry") | .version'); then
         fail "could not inspect datadog-opentelemetry in /binaries/dd-trace-rs."
     fi
@@ -102,7 +103,7 @@ align_opentelemetry() {
     done
 
     # Read the OpenTelemetry version that datadog-opentelemetry actually resolved to (looking at the first opentelemetry package in the graph is ambiguous if a conflicting version is present).
-    if ! metadata=$(cargo metadata --format-version 1 2>/dev/null); then
+    if ! metadata=$(cargo metadata --format-version 1); then
         fail "could not resolve dependencies after installing datadog-opentelemetry. Use a tracer revision compatible with Axum's OpenTelemetry dependencies."
     fi
 
@@ -174,10 +175,13 @@ install_datadog_telemetry_api() {
         # resolved version: the API installs a process-global that must be the
         # exact same crate instance as the tracer's, or set_sampling_decision is
         # a silent no-op.
-        local api_version
-        if api_version=$(cargo metadata --format-version 1 2>/dev/null \
-            | jq -r '[.packages[] | select(.name == "datadog-telemetry-api") | .version] | unique | if length == 1 then .[0] else empty end') \
-            && [ -n "${api_version}" ]; then
+        local metadata api_version
+        # a failing `cargo metadata` must stop the build, not look like a tracer without the API
+        if ! metadata=$(cargo metadata --format-version 1); then
+            fail "could not inspect the dependency graph to look for datadog-telemetry-api."
+        fi
+        api_version=$(jq -r '[.packages[] | select(.name == "datadog-telemetry-api") | .version] | unique | if length == 1 then .[0] else empty end' <<<"$metadata")
+        if [ -n "${api_version}" ]; then
             echo "install datadog-telemetry-api@${api_version} from crates.io"
             if cargo add "datadog-telemetry-api@=${api_version}" >/dev/null 2>&1; then
                 api_installed=1
@@ -206,7 +210,7 @@ install_datadog_telemetry_api
 # separate `global::*` state, silently producing no-op tracers/propagators.
 check_single_opentelemetry_version() {
     local versions
-    if ! versions=$(cargo metadata --format-version 1 2>/dev/null \
+    if ! versions=$(cargo metadata --format-version 1 \
         | jq -r '[.packages[] | select(.name == "opentelemetry") | .version] | unique | .[]'); then
         fail "could not inspect the resolved OpenTelemetry dependency graph."
     fi

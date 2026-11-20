@@ -1,6 +1,5 @@
 import os
 import pytest
-from pathlib import Path
 
 from utils import interfaces
 from utils._context.component_version import Version
@@ -69,20 +68,6 @@ class OtelCollectorScenario(DockerScenario):
 
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
-
-    def customize_feature_parity_dashboard(self, result: dict) -> None:
-        result["configuration"]["collector_version"] = str(self.otel_collector_version)
-        result["configuration"]["collector_image"] = self.collector_container.image.name
-
-        # Extract image commit/revision if available from labels
-        if self.collector_container.image.labels:
-            image_labels = self.collector_container.image.labels
-            if "org.opencontainers.image.revision" in image_labels:
-                result["configuration"]["collector_image_commit"] = image_labels["org.opencontainers.image.revision"]
-
-        # Parse OTel collector configuration file
-        config_file_path = Path(self.collector_container.config_file)
-        result["configuration"]["config_file"] = config_file_path.name
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])

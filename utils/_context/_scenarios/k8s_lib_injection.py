@@ -235,6 +235,24 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     def configuration(self):
         return self._configuration
 
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        """Weblog and library name identify the run. Component versions use a nested ``version`` key.
+
+        ``fingerprint_parameters`` drops that key from ``test.parameters`` and the suite context tags keep it.
+        """
+        result = super().get_junit_properties()
+        result["weblog_variant"] = self.weblog_variant
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        if self.k8s_cluster_img is not None and self.k8s_cluster_img.version:
+            result["k8s_cluster_agent"] = {"version": self.k8s_cluster_img.version}
+        if self.k8s_injector_img is not None:
+            result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
+        if self.k8s_helm_chart_version:
+            result["k8s_helm_chart"] = {"version": self.k8s_helm_chart_version}
+        if self.k8s_helm_chart_operator_version:
+            result["k8s_helm_chart_operator"] = {"version": self.k8s_helm_chart_operator_version}
+        return result
+
 
 class K8sLibInjectionSparkDjm(K8sScenario):
     """Kubernetes lib injection DJM
