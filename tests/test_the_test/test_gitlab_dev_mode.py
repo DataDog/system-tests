@@ -1,5 +1,6 @@
 """Tests for the dev mode of the GitLab end-to-end pipeline (build_pipeline.py, SYSTEM_TESTS_E2E_DEV_MODE)."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -11,10 +12,12 @@ from utils.ci.gitlab.build_pipeline import (
     DEV_BINARIES_PATH,
     DEV_MODE_LIBRARIES,
     DEV_MODE_UNSUPPORTED_LIBRARIES,
+    TARGET_BRANCH_PATTERN,
     build,
     main,
 )
 from utils.ci.gitlab.jobs import load_dev_binaries
+from utils.ci.gitlab import validate_param_env
 from utils.const import COMPONENT_GROUPS
 
 
@@ -228,4 +231,104 @@ class Test_GitlabDevMode:
         # the job can't hang longer than all its attempts
         assert int(job["timeout"].split()[0]) * 60 > load_dev_binaries.LOAD_ATTEMPTS * (
             load_dev_binaries.LOAD_TIMEOUT_SECONDS + load_dev_binaries.RETRY_DELAY_SECONDS * 2
+        )
+
+
+BRANCHES = ["main", "user/my-branch", "7.70.x", "v1.2+build", "$CI_JOB_TOKEN", "-x", "a b", "", "a;b"]
+
+
+@scenarios.test_the_test
+class Test_GitlabDevModeParamEnv:
+    """The dev mode variables set in the before_script of system_tests_param reach build_pipeline.py through
+    param.env, written by validate_param_env.py.
+    """
+
+    @pytest.mark.parametrize(
+        ("value", "is_valid"),
+        [("true", True), ("false", True), ("TRUE", False), ("yes", False), ("1", False)],
+    )
+    def test_validate_dev_mode(self, value: str, *, is_valid: bool) -> None:
+        validator = dict(validate_param_env.CHECKS)["SYSTEM_TESTS_E2E_DEV_MODE"]
+        assert (validator("SYSTEM_TESTS_E2E_DEV_MODE", value) == []) is is_valid  # type: ignore[operator]
+
+    @pytest.mark.parametrize(
+        ("value", "error"),
+        [
+            ('{"python": "my-branch", "agent": "7.70.x"}', None),
+            ("{}", None),
+            ("{", "invalid JSON"),
+            ('["python"]', "expected a JSON object"),
+            ('{"Python": "x"}', "invalid library name"),
+            ('{"python": 1}', "invalid branch name for python"),
+            ('{"python": "$CI_JOB_TOKEN"}', "invalid branch name for python"),
+        ],
+    )
+    def test_validate_target_branch_map(self, value: str, error: str | None) -> None:
+        errors = validate_param_env.validate_target_branch_map("SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP", value)
+        if error is None:
+            assert errors == []
+        else:
+            assert len(errors) == 1
+            assert error in errors[0]
+            assert errors[0].startswith("❌ SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP:")
+
+    @pytest.mark.parametrize("branch", BRANCHES)
+    def test_same_branch_names_as_build_pipeline(self, branch: str) -> None:
+        """validate_param_env.py is standalone (copied in the CI image): its pattern must match build_pipeline.py's."""
+        errors = validate_param_env.validate_target_branch_map("MAP", json.dumps({"python": branch}))
+        assert (errors == []) is bool(TARGET_BRANCH_PATTERN.fullmatch(branch))
+
+    def test_written_to_param_env_and_read_by_build_pipeline(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        for name, _ in validate_param_env.CHECKS:
+            monkeypatch.delenv(name, raising=False)
+        monkeypatch.setenv("LIBRARIES", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_E2E_DEV_MODE", "true")
+        # multiline, as a YAML block scalar would give
+        monkeypatch.setenv("SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP", '{\n  "python": "my-branch"\n}\n')
+        monkeypatch.chdir(tmp_path)
+
+        validate_param_env.main()
+
+        param_env = (tmp_path / "param.env").read_text().splitlines()
+        assert param_env == [
+            "LIBRARIES=python",
+            "SYSTEM_TESTS_E2E_DEV_MODE=true",
+            'SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP={"python":"my-branch"}',
+        ]
+        # what system_tests_build_pipeline gets from the dotenv report
+        environ = dict(line.split("=", 1) for line in param_env)
+        assert _main_with_params(tmp_path, environ) == 0
+        assert _chunk(tmp_path)["system_tests_dev_binaries_python"]["variables"]["LIBRARY_TARGET_BRANCH"] == "my-branch"
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [("SYSTEM_TESTS_E2E_DEV_MODE", "yes"), ("SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP", '{"python": "$X"}')],
+    )
+    def test_invalid_value_fails_the_job(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], name: str, value: str
+    ) -> None:
+        for check, _ in validate_param_env.CHECKS:
+            monkeypatch.delenv(check, raising=False)
+        monkeypatch.setenv(name, value)
+        monkeypatch.chdir(tmp_path)
+
+        with pytest.raises(SystemExit) as exc:
+            validate_param_env.main()
+
+        assert exc.value.code == 1
+        assert f"❌ {name}:" in capsys.readouterr().err
+        assert not (tmp_path / "param.env").exists()
+
+    def test_ci_image_tag_matches_validate_param_env(self) -> None:
+        """validate_param_env.py is copied in the CI image: CI_IMAGE must be bumped when it changes (build_ci_image
+        fails otherwise, but only in GitLab).
+        """
+        digest = hashlib.sha256()
+        for path in ("utils/ci/gitlab/docker/system-tests.Dockerfile", "requirements.txt", validate_param_env.__file__):
+            digest.update(Path(path).read_bytes())
+        _, pipeline = yaml.safe_load_all(Path("utils/ci/gitlab/main.yml").read_text())
+        assert (
+            pipeline["variables"]["CI_IMAGE"] == f"registry.ddbuild.io/system-tests/ci-runner:{digest.hexdigest()[:12]}"
         )

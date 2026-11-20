@@ -40,7 +40,7 @@ The GitLab end-to-end pipeline (the `system_tests_param` job of `.gitlab-ci.yml`
 
 ### Dev mode
 
-Like the `dev` version of the GitHub workflow, the dev mode tests the last commit of the main branch of the agent and of the libraries. It is opt-in only: nothing runs it automatically. To use it, set these pipeline variables, e.g. when running a pipeline from the GitLab UI:
+Like the `dev` version of the GitHub workflow, the dev mode tests the last commit of the main branch of the agent and of the libraries. It is opt-in only: nothing runs it automatically. To use it, set these variables, either as pipeline variables (e.g. when running a pipeline from the GitLab UI), or by exporting them in the `before_script` of the `system_tests_param` job (checked by `utils/ci/gitlab/validate_param_env.py`, like the other variables of this job):
 
 | Variable                             | Value                                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------------------- |
