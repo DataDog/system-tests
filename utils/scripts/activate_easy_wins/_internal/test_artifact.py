@@ -112,9 +112,9 @@ def parse_artifact_data(
                 continue
 
             context = Context.create(
-                scenario_data.context.get("library.name", ""),
-                scenario_data.context.get("library.version", ""),
-                scenario_data.context.get("weblog_variant", ""),
+                scenario_data.context.get("library.name"),
+                scenario_data.context.get("library.version"),
+                scenario_data.context.get("weblog_variant"),
             )
 
             if not context or context.library not in libraries:
