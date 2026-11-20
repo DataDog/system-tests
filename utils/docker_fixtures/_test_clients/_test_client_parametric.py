@@ -822,6 +822,12 @@ class ParametricTestClientApi(TestClientApi):
         response.raise_for_status()
         return cast("dict[str, Any]", response.json())
 
+    def ffe_fetch_precomputed_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch a context-bound snapshot and exercise its wire with the packaged Node provider."""
+        response = self._session.post(self._url("/ffe/fetch-precomputed-configuration"), json=options, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
+
     def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
         """Fetch and serialize portable rules in a process without tracer/provider initialization."""
         response = self._session.post(self._url("/ffe/fetch-rules-configuration"), json=options, timeout=15)
@@ -1328,6 +1334,10 @@ class APMLibrary:
     def ffe_core_provider(self, options: dict[str, Any]) -> dict[str, Any]:
         """Exercise the standalone provider without initializing the tracer."""
         return self._client.ffe_core_provider(options)
+
+    def ffe_fetch_precomputed_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch precomputed assignments without initializing the tracer."""
+        return self._client.ffe_fetch_precomputed_configuration(options)
 
     def ffe_start(
         self, configuration: dict | None = None, *, flag_selection: dict[str, list[str]] | None = None

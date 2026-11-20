@@ -1021,6 +1021,30 @@ An unexpected failure, process timeout, or invalid child output returns HTTP 500
 The parent strips `NODE_OPTIONS` and imposes a 10-second deadline.
 This does not test tracer hook attachment or delivery to an intake.
 
+#### `POST /ffe/fetch-precomputed-configuration`
+
+Called by `ParametricTestClientApi.ffe_fetch_precomputed_configuration()`. Node.js-only
+fresh-process probe of `fetchPrecomputedConfiguration()` from the packaged Node
+dependency. The request has `options` using the SDK's public fields, optional
+`entryPoint` (`root` or `rules-based`), `abort`, `abortAfterMs`, `mutateContext`,
+`evaluate` (defaults to true), and optional evaluation `contexts`.
+
+The custom Fetch transport routes to `SYSTEM_TESTS_FFE_RULES_BASE_URL` without
+changing the generated path, query, headers, body, or request options. The response
+contains a portable `wire`, codec `restored` wire, diagnostics, and optional actual
+OpenFeature status/results; a typed fetch failure instead returns `error` with
+`name`, `code`, `message`, and optional HTTP `status`. HTTP and exposure-channel
+counts are observed through process exit. Unexpected errors/timeouts are HTTP 500.
+No tracer or uploader is initialized. Future-only opt-out is checked with
+`evaluate: false` because the Node provider does not implement that policy.
+
+The shared mock accepts `POST /precompute-assignments`. Configure its independent
+timeline with `ffe_set_response(..., response_format="precomputed")`; `ffe_reset()`
+resets all three formats. `ffe_get_requests()` includes a detached parsed `body`
+for these POST requests, in addition to their path and headers. Encoding, selection,
+and opt-out results are scripted response cases, not an origin evaluator or rollout
+simulator. The encoded cases test response acceptance, not live negotiation.
+
 #### `POST /ffe/fetch-rules-configuration`
 
 Called by `ParametricTestClientApi.ffe_fetch_rules_configuration()`. Fetch and serialize portable rules in a process without tracer/provider initialization.

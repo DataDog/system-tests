@@ -4,6 +4,7 @@ from ._ffe_flag_selection import (
     SELECTED_FLAG_TAGS,
     Selection,
 )
+from ._ffe_precomputed import PRECOMPUTED_CONFIG_PATH
 from ._backend_ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
@@ -27,6 +28,7 @@ __all__ = [
     "EVALUATION_SUITES_RELATIVE_PATH",
     "EXPECTED_DD_ENV",
     "FLAG_SELECTION_IGNORED_HEADER",
+    "PRECOMPUTED_CONFIG_PATH",
     "RESPONSE_SECRET",
     "RULES_CONFIG_PATH",
     "SELECTED_FLAG_KEY_PATTERNS",

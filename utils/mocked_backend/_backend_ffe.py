@@ -2,9 +2,9 @@
 
 Tests configure the response timeline with ``mocked_backend.client.ffe_set_response(...)`` or
 ``mocked_backend.client.ffe_set_responses([...])`` before starting the test library. Controls
-default to JSON; use ``response_format="protobuf"`` for an independent protobuf timeline.
+default to JSON; use ``response_format="protobuf"`` or ``"precomputed"`` for independent timelines.
 ``mocked_backend.client.ffe_get_status()`` reports request counts, auth, ETag, response codes,
-and paths observed across both formats.
+and paths observed across all three formats. Precomputed POSTs also capture their parsed bodies.
 
 The JSON configuration serves the root UFC, or with ``mocked_backend.client.ffe_use_suite(name)``
 the UFC of that ffe-system-test-data evaluation suite. It applies the ``selected_flag_tags`` and
@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import base64
 import contextlib
+import copy
 from http import HTTPStatus
 import json
 import os
@@ -28,7 +29,7 @@ import re
 import socket
 import threading
 import time
-from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from ._ffe_flag_selection import (
@@ -43,6 +44,7 @@ from ._ffe_flag_selection import (
     validate_forced_reason,
 )
 from ._utils import CONTROL_URL_PREFIX
+from ._ffe_precomputed import PRECOMPUTED_CONFIG_PATH, precomputed_response
 
 
 if TYPE_CHECKING:
@@ -53,7 +55,7 @@ if TYPE_CHECKING:
 else:
     _Base = object
 
-ResponseFormat = Literal["json", "protobuf"]
+ResponseFormat = Literal["json", "protobuf", "precomputed"]
 SELECTION_IGNORED_RESPONSES = {
     "selection_ignored_empty": "",
     "selection_ignored_tag_load_failed": "tag_load_failed",
@@ -78,6 +80,29 @@ VALID_RESPONSE_IDS: dict[ResponseFormat, frozenset[str]] = {
             "server_error",
             "forbidden",
             "redirect",
+            "empty",
+            "wrong_content_type",
+            "delayed",
+            "delayed_body",
+            "disconnect",
+            "truncated_body",
+            *SELECTION_IGNORED_RESPONSES,
+        }
+    ),
+    "precomputed": frozenset(
+        {
+            "valid",
+            "encoded",
+            "unknown_encoding",
+            "selected_empty",
+            "opt_out_immediate",
+            "opt_out_future",
+            "opt_out_mismatch",
+            "forbidden",
+            "server_error",
+            "redirect",
+            "malformed",
+            "invalid_response",
             "empty",
             "wrong_content_type",
             "delayed",
@@ -123,6 +148,7 @@ def load_rules_wire_fixture() -> RulesWireFixture:
 class MockedBackendFFERequest(TypedDict):
     path: str
     headers: dict[str, str]
+    body: NotRequired[dict[str, Any]]
 
 
 class MockedBackendFFEStatus(TypedDict):
@@ -175,7 +201,9 @@ class _MockedBackendFFEState:
             self.last_status_code = None
             self.status_codes = []
 
-    def record_request(self, headers: Mapping[str, str], path: str, response_format: ResponseFormat) -> str:
+    def record_request(
+        self, headers: Mapping[str, str], path: str, response_format: ResponseFormat, body: dict[str, Any] | None = None
+    ) -> str:
         parsed = urlparse(path)
         normalized_headers = {key.lower(): value for key, value in headers.items()}
 
@@ -186,7 +214,10 @@ class _MockedBackendFFEState:
             self.last_path = parsed.path
             self.last_if_none_match = normalized_headers.get("if-none-match")
             self.observed_dd_api_key = _get_dd_api_key(headers)
-            self.requests.append({"path": path, "headers": normalized_headers})
+            recorded: MockedBackendFFERequest = {"path": path, "headers": normalized_headers}
+            if body is not None:
+                recorded["body"] = copy.deepcopy(body)
+            self.requests.append(recorded)
             responses = self.responses[response_format]
             response = responses[0]
             if len(responses) > 1:
@@ -235,7 +266,7 @@ class _MockedBackendFFEState:
 
     def get_requests(self) -> list[MockedBackendFFERequest]:
         with self._lock:
-            return [{"path": request["path"], "headers": dict(request["headers"])} for request in self.requests]
+            return copy.deepcopy(self.requests)
 
 
 def _get_dd_api_key(headers: Mapping[str, str]) -> str | None:
@@ -285,8 +316,8 @@ def _valid_ufc_bytes(selected_keys: list[str] | None = None, suite: str | None =
 
 
 def _validate_response_format(response_format: object) -> ResponseFormat:
-    if response_format not in ("json", "protobuf"):
-        raise ValueError("response_format must be json or protobuf")
+    if response_format not in ("json", "protobuf", "precomputed"):
+        raise ValueError("response_format must be json, protobuf, or precomputed")
     return cast("ResponseFormat", response_format)
 
 
@@ -421,6 +452,7 @@ class MockedBackendServerFfeMixin(_Base):
     # Endpoint contract:
     # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
     # - GET /api/v2/feature-flagging/config/rules-based/{server,client} (protobuf helpers)
+    # - POST /precompute-assignments (scripted precomputed assignments)
     # - GET /system-tests/ffe/status
     # - POST /system-tests/ffe/responses
     # - POST /system-tests/ffe/reset
@@ -434,6 +466,8 @@ class MockedBackendServerFfeMixin(_Base):
         self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/client", self._ffe_handle_rules_config)
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/redirected", self._ffe_handle_rules_config)
+        self.add_handler("POST", PRECOMPUTED_CONFIG_PATH, self._ffe_handle_precomputed)
+        self.add_handler("GET", f"{PRECOMPUTED_CONFIG_PATH}/redirected", self._ffe_handle_precomputed)
 
         # exposures and flag evaluations sent straight to the event platform intake
         for path in EVP_INTAKE_PATHS:
@@ -519,50 +553,82 @@ class MockedBackendServerFfeMixin(_Base):
     ) -> tuple[bytes, bytes]:
         response = self._ffe_state.record_request(dict(request.headers), request.path, "protobuf")
         try:
-            status = HTTPStatus.OK
             wire_fixture = load_rules_wire_fixture()
             headers = {"Content-Type": "application/protobuf", "ETag": wire_fixture["rules"]["etag"]}
             body = base64.b64decode(wire_fixture["rules"]["response"])
-            if response in SELECTION_IGNORED_RESPONSES:
-                headers[FLAG_SELECTION_IGNORED_HEADER] = SELECTION_IGNORED_RESPONSES[response]
-            elif response == "delayed":
-                time.sleep(4)
-            elif response == "delayed_body":
-                # Each phase fits within the deadline, but their combined duration does not.
-                time.sleep(BODY_PHASE_DELAY_SECONDS)
-                request.before_response_body = lambda: time.sleep(BODY_PHASE_DELAY_SECONDS)
-            elif response in {"forbidden", "server_error"}:
-                status = HTTPStatus.FORBIDDEN if response == "forbidden" else HTTPStatus.INTERNAL_SERVER_ERROR
-                body = RESPONSE_SECRET.encode()
-            elif response == "redirect":
-                status = HTTPStatus.FOUND
-                headers["Location"] = f"{self.ffe_library_base_url}{RULES_CONFIG_PATH}/redirected"
-            elif response == "malformed":
-                body = b"\xff"
-            elif response == "empty":
-                body = b""
-            elif response == "wrong_content_type":
-                headers["Content-Type"] = "application/json"
-                body = b"{}"
-            elif response == "disconnect":
-                request.connection.shutdown(socket.SHUT_RDWR)
-            elif response == "truncated_body":
-
-                def truncate_body() -> None:
-                    request.wfile.write(RESPONSE_SECRET.encode())
-                    request.connection.shutdown(socket.SHUT_RDWR)
-
-                request.before_response_body = truncate_body
-            elif response != "valid":
-                raise ValueError(f"Unsupported protobuf rules response: {response}")
-
-            self._ffe_state.record_response(status)
-            request.send_response(status)
-            for name, value in headers.items():
-                request.send_header(name, value)
-            return body, body
+            return self._ffe_send_configuration(request, response, headers, body, f"{RULES_CONFIG_PATH}/redirected")
         finally:
             self._ffe_state.finish_request()
+
+    def _ffe_handle_precomputed(
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
+    ) -> tuple[Mapping | bytes, bytes]:
+        if isinstance(payload, bytes):
+            try:
+                payload = json.loads(payload)
+            except (ValueError, UnicodeDecodeError):
+                return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "expected JSON"})
+        body = payload if isinstance(payload, dict) else {}
+        response = self._ffe_state.record_request(dict(request.headers), request.path, "precomputed", body)
+        try:
+            headers = {"Content-Type": "application/vnd.api+json", "ETag": '"precomputed-v1"'}
+            content = json.dumps(precomputed_response(response)).encode()
+            if response == "invalid_response":
+                content = b"{}"
+            scripted = response if response in VALID_RESPONSE_IDS["protobuf"] else "valid"
+            return self._ffe_send_configuration(
+                request, scripted, headers, content, f"{PRECOMPUTED_CONFIG_PATH}/redirected"
+            )
+        finally:
+            self._ffe_state.finish_request()
+
+    def _ffe_send_configuration(
+        self,
+        request: MockedBackendRequestHandler,
+        response: str,
+        headers: dict[str, str],
+        body: bytes,
+        redirect_path: str,
+    ) -> tuple[bytes, bytes]:
+        status = HTTPStatus.OK
+        if response in SELECTION_IGNORED_RESPONSES:
+            headers[FLAG_SELECTION_IGNORED_HEADER] = SELECTION_IGNORED_RESPONSES[response]
+        elif response == "delayed":
+            time.sleep(4)
+        elif response == "delayed_body":
+            time.sleep(BODY_PHASE_DELAY_SECONDS)
+            request.before_response_body = lambda: time.sleep(BODY_PHASE_DELAY_SECONDS)
+        elif response in {"forbidden", "server_error"}:
+            status = HTTPStatus.FORBIDDEN if response == "forbidden" else HTTPStatus.INTERNAL_SERVER_ERROR
+            body = RESPONSE_SECRET.encode()
+        elif response == "redirect":
+            status = HTTPStatus.FOUND
+            headers["Location"] = f"{self.ffe_library_base_url}{redirect_path}"
+        elif response == "malformed":
+            body = b"\xff"
+        elif response == "empty":
+            body = b""
+        elif response == "wrong_content_type":
+            headers["Content-Type"] = (
+                "application/json" if headers["Content-Type"] == "application/protobuf" else "text/html"
+            )
+            body = b"{}"
+        elif response == "disconnect":
+            request.connection.shutdown(socket.SHUT_RDWR)
+        elif response == "truncated_body":
+
+            def truncate_body() -> None:
+                request.wfile.write(RESPONSE_SECRET.encode())
+                request.connection.shutdown(socket.SHUT_RDWR)
+
+            request.before_response_body = truncate_body
+        elif response != "valid":
+            raise ValueError(f"Unsupported configuration response: {response}")
+        self._ffe_state.record_response(status)
+        request.send_response(status)
+        for name, value in headers.items():
+            request.send_header(name, value)
+        return body, body
 
     def _ffe_handle_control_responses(
         self, request: MockedBackendRequestHandler, payload: bytes | dict | None
