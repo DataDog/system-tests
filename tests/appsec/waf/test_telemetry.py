@@ -179,15 +179,9 @@ class Test_TelemetryMetrics:
             for point in series["points"]:
                 total_requests_metric += point[1]
 
-        # dotnet counted waf.requests per WAF run instead of per request before 3.59.0
-        if context.library < "dotnet@3.59.0":
-            assert total_requests_metric >= request_count, (
-                "Number of requests in traces do nois higher than waf.requests metric total"
-            )
-        else:
-            assert total_requests_metric == request_count, (
-                "Number of requests in traces do not match waf.requests metric total"
-            )
+        assert total_requests_metric == request_count, (
+            "Number of requests in traces do not match waf.requests metric total"
+        )
 
     def _find_series(self, request_type: str, namespace: str, metric: str):
         series = []
