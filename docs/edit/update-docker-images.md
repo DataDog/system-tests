@@ -1,5 +1,7 @@
 Some of images used in system-tests are prebuild and used threw [hub.docker.com/datadog/system-tests](https://hub.docker.com/repository/docker/datadog/system-tests/).
 
+A new weblog must put its fixed package installs in a base image. Those installs call third-party registries. The main CI build must not run them on every job.
+
 For weblog base images (every library with a `utils/build/docker/<library>/docker-bake.hcl`), publishing and
 consumer selection use a two-step lock-file workflow:
 
