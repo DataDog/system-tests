@@ -3705,5 +3705,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
+    @staticmethod
+    def llm_observability_litellm_gateway(test_object):
+        """LLM Observability marks LiteLLM proxy LLM spans with their gateway
+
+        https://feature-parity.us1.prod.dog/#/?feature=651
+        """
+        return _mark_test_object(test_object, feature_id=651, owner=_Owner.ml_observability)
+
 
 features = _Features()

@@ -334,9 +334,17 @@ class Test_BuildPipeline:
         # the CWS runners can run the other scenarios too
         assert pipeline["system_tests_run_python_flask_2"]["tags"] == ["docker-in-docker:amd64-cws"]
         assert "tags" not in pipeline["system_tests_run_python_flask_3"]
-        # twice the expected time, plus 5 minutes
-        assert pipeline["system_tests_run_python_flask_2"]["timeout"] == "17 minutes"
+        # twice the expected time plus 5 minutes (17), but not less than the timeout of .system_tests_run
+        assert pipeline["system_tests_run_python_flask_2"]["timeout"] == "20 minutes"
         assert "timeout" not in pipeline["system_tests_run_java_DEFAULT_spring-boot"]
+
+    def test_run_job_timeout_is_read_from_child_pipeline(self) -> None:
+        assert build_pipeline._run_job_timeout_minutes() == 20  # noqa: SLF001
+
+    def test_grouped_run_job_timeout_is_twice_the_expected_time_plus_5_minutes(self) -> None:
+        assert build_pipeline._grouped_run_job_timeout({"expected_job_time": 900}) == "35 minutes"  # noqa: SLF001
+        # never less than the timeout of .system_tests_run
+        assert build_pipeline._grouped_run_job_timeout({"expected_job_time": 300}) == "20 minutes"  # noqa: SLF001
 
     def test_scheduler_is_deterministic(self) -> None:
         """Ties are broken by the order of the params, then by scenario names."""

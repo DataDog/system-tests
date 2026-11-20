@@ -436,6 +436,14 @@ This endpoint should set the header whose name comes in the `reflected` field of
 
 Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
 
+### GET /iast/untrusted_deserialization/test_insecure
+
+This endpoint should deserialize the value of the `name` query parameter with an unsafe deserializer, to detect the UNTRUSTED_DESERIALIZATION vulnerability. The tests send `name=example` and only check the reported vulnerability, so the endpoint may return an error status if the value can't be deserialized. Python uses `yaml.unsafe_load`, which accepts a plain string.
+
+### GET /iast/untrusted_deserialization/test_secure
+
+Parameterless endpoint. This endpoint should deserialize a constant value with the same deserializer as `/iast/untrusted_deserialization/test_insecure`, so the UNTRUSTED_DESERIALIZATION vulnerability shouldn't be detected. It must return a 200 status.
+
 ### GET /iast/sampling-by-route-method-count/:key
 
 This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
@@ -1534,7 +1542,7 @@ There are several rules shared between all the existing end-to-end weblogs.
 ### Dockerfile requirements
 
 * **Multi-stage builds**: Use when possible for optimization (build → runtime).
-* **Base images**: Use official language images or existing system-tests base images.
+* **Base images**: A new weblog must put OS packages and fixed app dependencies in `<weblog>.base.Dockerfile`. Add a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. CI builds that image once, so the main build does not call those registries on every run. The tested library version and `install_ddtrace.sh` stay in the weblog Dockerfile. Update the lock file after the GitLab publish job finishes. See [Update Docker images](../../edit/update-docker-images.md).
 * **Port**: Must expose port 7777 for consistency
 * **Tracer installation**: Always call the install_ddtrace.sh script.
 * Environment variables**: Set essential DD environment variables:
