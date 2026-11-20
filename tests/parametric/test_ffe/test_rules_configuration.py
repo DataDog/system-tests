@@ -1,6 +1,7 @@
 """Standalone SSR producer contract; intentionally does not initialize a browser SDK."""
 
 import base64
+from datetime import datetime
 import json
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ CLIENT_TOKEN = "system-tests-client-token"
 API_KEY = "system-tests-api-key"
 CLIENT_OPTIONS = {"distributionChannel": "client", "clientToken": CLIENT_TOKEN, "env": "test env"}
 SELECTION_VECTORS_PATH = Path(__file__).parent / "ffe-system-test-data" / "flag-selection" / "selection-vectors.json"
+PRECOMPUTE_WIRE = Path(__file__).with_name("precompute-rules-wire.json").read_text()
 
 
 @pytest.fixture
@@ -402,3 +404,189 @@ class Test_FFE_Rules_Configuration_Selection:
                         case,
                         url.query,
                     )
+
+
+@scenarios.parametric
+@features.feature_flags_portable_configuration
+@slow
+class Test_FFE_Rules_Configuration_Precompute:
+    def test_local_context_assignments_and_metadata(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        contexts = [
+            {"targetingKey": "subject-us", "country": "US"},
+            {"targetingKey": "subject-ca", "country": "CA"},
+        ]
+        with test_library:
+            result = test_library.ffe_precompute_configuration({"wire": PRECOMPUTE_WIRE, "contexts": contexts})
+            opted_out_context = {**contexts[0], "dd_experimentation_opt_out_at": "2026-10-01T00:00:00Z"}
+            opted_out = test_library.ffe_precompute_configuration(
+                {
+                    "wire": PRECOMPUTE_WIRE,
+                    "contexts": [opted_out_context],
+                    "options": {"experimentationOptOutMode": "immediate"},
+                }
+            )
+            default_policy = test_library.ffe_precompute_configuration(
+                {"wire": PRECOMPUTE_WIRE, "contexts": [opted_out_context]}
+            )
+
+        assert "error" not in result, result
+        assert result["httpRequests"] == 0, result
+        assert result["exposureEvents"] == 0, result
+        assert mocked_backend.ffe_get_requests() == []
+        assert len(result["results"]) == len(contexts), result
+        for context, output in zip(contexts, result["results"], strict=True):
+            wire = json.loads(output["wire"])
+            assert set(wire) == {"version", "precomputed"}, wire
+            assert wire["version"] == 1
+            snapshot = wire["precomputed"]
+            assert snapshot["context"] == context
+            assert "etag" not in snapshot
+            assert snapshot["fetchedAt"] > 0
+            attributes = json.loads(snapshot["response"])["data"]["attributes"]
+            assert attributes["format"] == "PRECOMPUTED"
+            assert attributes["obfuscated"] is False
+            assert attributes["environment"] == {"name": "test"}
+            assert attributes["observeFullEvaluationData"] is True
+            assert "evaluation_options" not in attributes
+            assert datetime.fromisoformat(attributes["createdAt"]).timestamp() * 1000 == snapshot["fetchedAt"]
+            flags = attributes["flags"]
+            # No default assignment is invented for the unassigned or unsupported flags.
+            assert set(flags) == {"checkout", "nullable"}, flags
+            is_us = context["country"] == "US"
+            assert flags["checkout"] == {
+                "allocationKey": "us-allocation" if is_us else "fallback",
+                "variationKey": "enabled" if is_us else "disabled",
+                "variationType": "boolean",
+                "variationValue": is_us,
+                "reason": "TARGETING_MATCH" if is_us else "DEFAULT",
+                "doLog": is_us,
+                "serialId": 42 if is_us else 43,
+                **(
+                    {"features": [{"key": "experiment", "value": "checkout", "destinations": ["HOOK", "EXPOSURE"]}]}
+                    if is_us
+                    else {}
+                ),
+            }
+            assert flags["checkout"]["variationValue"] is is_us
+            assert flags["checkout"]["doLog"] is is_us
+            assert flags["nullable"]["variationType"] == "object"
+            assert flags["nullable"]["variationValue"] is None
+            assert output["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
+            assert "private-source-etag" not in output["wire"]
+
+        assert "error" not in default_policy, default_policy
+        assert default_policy["httpRequests"] == 0, default_policy
+        assert default_policy["exposureEvents"] == 0, default_policy
+        assert len(default_policy["results"]) == 1, default_policy
+        default_snapshot = json.loads(default_policy["results"][0]["wire"])["precomputed"]
+        assert default_snapshot["context"] == opted_out_context
+        default_attributes = json.loads(default_snapshot["response"])["data"]["attributes"]
+        assert "evaluation_options" not in default_attributes
+        assert default_attributes["flags"]["checkout"]["allocationKey"] == "us-allocation"
+        assert default_attributes["flags"]["checkout"]["variationValue"] is True
+
+        assert "error" not in opted_out, opted_out
+        assert opted_out["httpRequests"] == 0, opted_out
+        assert opted_out["exposureEvents"] == 0, opted_out
+        assert len(opted_out["results"]) == 1, opted_out
+        opted_out_result = opted_out["results"][0]
+        opted_out_snapshot = json.loads(opted_out_result["wire"])["precomputed"]
+        assert opted_out_snapshot["context"] == opted_out_context
+        opted_out_attributes = json.loads(opted_out_snapshot["response"])["data"]["attributes"]
+        assert opted_out_attributes["evaluation_options"] == {"experimentation_opt_out": True}
+        assert opted_out_attributes["evaluation_options"]["experimentation_opt_out"] is True
+        assert opted_out_attributes["flags"]["checkout"]["variationValue"] is False
+        assert opted_out_attributes["flags"]["checkout"]["allocationKey"] == "fallback"
+        assert opted_out_attributes["flags"]["checkout"]["reason"] == "DEFAULT"
+        assert opted_out_attributes["flags"]["checkout"]["doLog"] is False
+        assert opted_out_result["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
+
+    def test_fetch_once_precompute_multiple_contexts(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        contexts = [{"targetingKey": "subject", "country": country} for country in ("US", "CA")]
+        with test_library:
+            result = test_library.ffe_precompute_configuration({"fetchOptions": CLIENT_OPTIONS, "contexts": contexts})
+
+        assert "error" not in result, result
+        assert result["httpRequests"] == 1, result
+        assert result["exposureEvents"] == 0, result
+        requests = mocked_backend.ffe_get_requests()
+        assert len(requests) == 1, requests
+        assert urlsplit(requests[0]["path"]).path == f"{RULES_CONFIG_PATH}/client"
+        assert len(result["results"]) == 2, result
+        for context, output in zip(contexts, result["results"], strict=True):
+            wire = json.loads(output["wire"])
+            assert set(wire) == {"version", "precomputed"}, wire
+            snapshot = wire["precomputed"]
+            assert snapshot["context"] == context
+            assert "etag" not in snapshot
+            flag = json.loads(snapshot["response"])["data"]["attributes"]["flags"]["test-flag"]
+            is_us = context["country"] == "US"
+            assert flag["variationValue"] is True
+            assert flag["variationKey"] == "on"
+            assert flag["reason"] == ("TARGETING_MATCH" if is_us else "SPLIT")
+            assert flag["allocationKey"] == ("allocation" if is_us else "fallback")
+            assert flag["doLog"] is is_us
+            assert flag["serialId"] == 7
+            assert output["errors"] == []
+            assert CLIENT_TOKEN not in output["wire"]
+            assert WIRE_FIXTURE["rules"]["etag"] not in output["wire"]
+
+    def test_fetch_failure_before_precompute(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        mocked_backend.client.ffe_set_response("forbidden", response_format="protobuf")
+        with test_library:
+            result = test_library.ffe_precompute_configuration(
+                {"fetchOptions": CLIENT_OPTIONS, "contexts": [{"targetingKey": "subject", "country": "US"}]}
+            )
+
+        assert "results" not in result, result
+        assert result["error"]["name"] == "ConfigurationFetchError", result
+        assert result["error"]["code"] == "http", result
+        assert result["error"]["status"] == 403, result
+        assert result["httpRequests"] == 1, result
+        assert result["exposureEvents"] == 0, result
+        assert CLIENT_TOKEN not in json.dumps(result)
+        assert RESPONSE_SECRET not in json.dumps(result)
+        requests = mocked_backend.ffe_get_requests()
+        assert len(requests) == 1, requests
+        assert urlsplit(requests[0]["path"]).path == f"{RULES_CONFIG_PATH}/client"
+
+    def test_invalid_precompute_inputs(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
+        cases: list[tuple[str, dict[str, Any], str]] = [
+            ("malformed-wire", {"wire": "private-invalid-wire"}, "invalid_configuration"),
+            ("empty-configuration", {"wire": json.dumps({"version": 1})}, "invalid_configuration"),
+            ("null-context", {"contexts": [None]}, "invalid_context"),
+            (
+                "invalid-targeting-key",
+                {"contexts": [{"targetingKey": 42, "private": "private-context"}]},
+                "invalid_context",
+            ),
+            ("invalid-policy", {"options": {"experimentationOptOutMode": "private-policy"}}, "invalid_options"),
+            (
+                "invalid-opt-out-timestamp",
+                {
+                    "contexts": [
+                        {"targetingKey": "subject", "dd_experimentation_opt_out_at": "private-not-a-timestamp"}
+                    ],
+                    "options": {"experimentationOptOutMode": "immediate"},
+                },
+                "invalid_context",
+            ),
+        ]
+        with test_library:
+            for case, overrides, code in cases:
+                result = test_library.ffe_precompute_configuration(
+                    {"wire": PRECOMPUTE_WIRE, "contexts": [{"targetingKey": "subject"}], **overrides}
+                )
+                assert "results" not in result, (case, result)
+                assert result["error"]["name"] == "ConfigurationPrecomputeError", (case, result)
+                assert result["error"]["code"] == code, (case, result)
+                assert "private-" not in json.dumps(result), (case, result)
+                assert result["httpRequests"] == 0, (case, result)
+                assert result["exposureEvents"] == 0, (case, result)
+                assert mocked_backend.ffe_get_requests() == [], case
