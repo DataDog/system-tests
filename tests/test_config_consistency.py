@@ -4,6 +4,7 @@
 
 import re
 import json
+import time
 from utils import (
     weblog,
     interfaces,
@@ -49,10 +50,9 @@ class Test_Config_HttpServerErrorStatuses_Default:
 
     def setup_status_code_500(self):
         self.r = weblog.get("/status?code=500")
+        assert self.r.status_code == 500, "The weblog did not return the expected status code"
 
     def test_status_code_500(self):
-        assert self.r.status_code == 500
-
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -657,7 +657,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
     def setup_main(self):
         self.req = weblog.get("/")
-        wait_for_runtime_metrics()
+        time.sleep(30)
 
     def test_main(self):
         assert self.req.status_code == 200
@@ -692,10 +692,10 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
     def setup_main(self):
         self.req = weblog.get("/")
-        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
+        wait_for_runtime_metrics()
 
         runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
