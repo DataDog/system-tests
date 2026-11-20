@@ -65,6 +65,7 @@
     "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-7f1b67ecf0c2",
     "system_tests_base_python_flask_poc": "datadog/system-tests:flask-poc.base-ac207107ea25",
     "system_tests_base_python_lambda_python_lambda_runtime": "datadog/system-tests:python-lambda-runtime.base-aec497f8192f",
+    "system_tests_base_python_litellm_py": "datadog/system-tests:litellm-py.base-ec97c98b684e",
     "system_tests_base_python_openai_py": "datadog/system-tests:openai-py.base-31091e40843e",
     "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-001b21793b9d",
     "system_tests_base_python_python_parametric": "datadog/system-tests:python-parametric.base-be1a47c3d761",
