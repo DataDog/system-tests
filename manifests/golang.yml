@@ -171,14 +171,50 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/catch-all not implemented in Go weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": missing_feature
+        "*": incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-chain not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/search not implemented in Go weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-params not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-segment not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/drafts[/preview] not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/param-names not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/encoded not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/static-text, /version, /files not implemented in Go weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
