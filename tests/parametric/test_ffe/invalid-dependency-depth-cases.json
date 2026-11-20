@@ -1,0 +1,27 @@
+[
+  {
+    "description": "An invalid maxDependencyDepth uses the default of ten, allowing a chain of ten dependency edges.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependency-depth-10",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "enabled"
+    },
+    "targetingKey": "invalid-depth-ten-edges",
+    "variationType": "STRING"
+  },
+  {
+    "description": "An invalid maxDependencyDepth still enforces the default of ten: an eleventh dependency edge returns the caller default and a graph error.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependency-depth-11",
+    "result": {
+      "reason": "ERROR",
+      "errorCode": "GENERAL",
+      "value": "caller-default"
+    },
+    "targetingKey": "invalid-depth-eleven-edges",
+    "variationType": "STRING"
+  }
+]
