@@ -3,7 +3,7 @@
 version: 1
 images:
   alpine:3.22:
-    digest: sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
+    digest: sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f
     target: registry.ddbuild.io/system-tests/mirror/alpine:3.22
     tag: '3.22'
   apache/kafka:3.7.1:
@@ -11,13 +11,13 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/apache/kafka:3.7.1
     tag: 3.7.1
   cassandra:latest:
-    digest: sha256:1d18946ead0b0d22ed0371bd7384d86f540465c489f2935e88df35e755073f6b
+    digest: sha256:7ec032283c56c9ea7c022007b2fecdf5ca69c7a9871e0634f41ae05833dc1638
     target: registry.ddbuild.io/system-tests/mirror/cassandra:latest
-    tag: 5.0.9
+    tag: latest
   datadog/agent:latest:
-    digest: sha256:161a43ad2b290f7527a70e70c8880c1b3d65b39411552a8cb41398049546daf5
+    digest: sha256:109bb519784f413a3520ebb582010a273fb30cd4169a39ea29a949c3e566452a
     target: registry.ddbuild.io/system-tests/mirror/datadog/agent:latest
-    tag: 7.84.1
+    tag: latest
   datadog/serverless-init:1.10.4:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
@@ -51,11 +51,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
     tag: ruby_buddy-v2
   debian:bookworm-slim:
-    digest: sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
+    digest: sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
     target: registry.ddbuild.io/system-tests/mirror/debian:bookworm-slim
     tag: bookworm-slim
   debian:stable-slim:
-    digest: sha256:5bc3287b25407c965a30f38e32603dc253a3869e1b12a21ac09bfc27fd8b13ce
+    digest: sha256:fbfb4059d2127120aa05b6e6064523d2102552f0cf0026ddf0701c12f1f8f3e0
     target: registry.ddbuild.io/system-tests/mirror/debian:stable-slim
     tag: stable-slim
   demisto/fastapi:0.116.1.4266494:
@@ -63,11 +63,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/demisto/fastapi:0.116.1.4266494
     tag: 0.116.1.4266494
   eclipse-temurin:11-jre:
-    digest: sha256:ad419849e59e2c7a325078dff5eb64db6f61c8872e316dfd501031ed72efc2dd
+    digest: sha256:7db5776af2396377c8aae2aa124712da7b72a5b6b014c17d77ae37eb5276f37b
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:11-jre
     tag: 11-jre
   eclipse-temurin:17-jre:
-    digest: sha256:207ecae0b2b104dfc6dfa763d1e9cd2041cb344800a180e24cb1a28ed533ff90
+    digest: sha256:541b08fc7f494edf14e436ff6bfb55767e4a115c87bfc547b8c5de957b58737f
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:17-jre
     tag: 17-jre
   ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0:
@@ -99,11 +99,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
     tag: v1.2.3
   golang:1.26:
-    digest: sha256:0f063af2d465d8dcae54cce04278ada488b96f77b42449c8d071e47d016cc65a
+    digest: sha256:4165ee6bf3b7811fd7b40373290405c83d0167dcb87ee5f29c427cdcef45ff8f
     target: registry.ddbuild.io/system-tests/mirror/golang:1.26
     tag: '1.26'
   golang:1.26-alpine:
-    digest: sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+    digest: sha256:ecb67f987aa1a57794c91d19ade7ae0209f2f0f5496aaef9e6ae85ddf92d02ab
     target: registry.ddbuild.io/system-tests/mirror/golang:1.26-alpine
     tag: 1.26-alpine
   localstack/localstack:4.1:
@@ -115,21 +115,21 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9.14-eclipse-temurin-17
     tag: 3.9.14-eclipse-temurin-17
   mcr.microsoft.com/dotnet/aspnet:8.0:
-    digest: sha256:2f202e1169ec507bdc07007cf68c14d0ff3a098110b17c460a60185e1f36a9d1
+    digest: sha256:dccacae9e0e103b5d3ba5fbe442dd8d3316b990cd8f2ec9be0a0ec9db0c0e520
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/dotnet/aspnet:8.0
     tag: '8.0'
   mcr.microsoft.com/dotnet/sdk:8.0:
-    digest: sha256:78235e09001f52b6592c458ac010775ebac6725422e80cd0c1650590f67b2743
+    digest: sha256:1b955f179b02df4f0eb5fadedaa898cbe44d620a64aab52eec72c8e91d1355b5
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/dotnet/sdk:8.0
     tag: '8.0'
   mcr.microsoft.com/mssql/server:2022-latest:
-    digest: sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+    digest: sha256:4525e3efac9f3e241cb003bb2ff2a82818b502f37e12049d788b1a9fa7e13b7f
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/mssql/server:2022-latest
     tag: 2022-latest
   mongo:latest:
-    digest: sha256:bac22ea7710d774103dcad3ec8ac13cba1eb378f488e3ce8a6b3a1adf2ba9dcc
+    digest: sha256:b0c835c26e5997413e985000f1013c275377cd9607761c1784d486f6dd620b7f
     target: registry.ddbuild.io/system-tests/mirror/mongo:latest
-    tag: 9.0.2
+    tag: latest
   mysql/mysql-server:8.0.32:
     digest: sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313
     target: registry.ddbuild.io/system-tests/mirror/mysql/mysql-server:8.0.32
@@ -143,7 +143,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/node:18.20.8-bookworm-slim
     tag: 18.20.8-bookworm-slim
   node:22-alpine:
-    digest: sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402
+    digest: sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
     target: registry.ddbuild.io/system-tests/mirror/node:22-alpine
     tag: 22-alpine
   otel/opentelemetry-collector-contrib:0.137.0:
@@ -151,11 +151,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/otel/opentelemetry-collector-contrib:0.137.0
     tag: 0.137.0
   postgres:alpine:
-    digest: sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    digest: sha256:8c4bd10dd2f341952e9de9f9420bce15535a5df0d363b5c64c80ed6d552f9a6e
     target: registry.ddbuild.io/system-tests/mirror/postgres:alpine
     tag: alpine
   python:3.11-slim:
-    digest: sha256:6f31d6e9ba2b0a787a3f81c37b004155b87b9efa1b771182bd550c1615745be5
+    digest: sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
     target: registry.ddbuild.io/system-tests/mirror/python:3.11-slim
     tag: 3.11-slim
   rabbitmq:3.12-management-alpine:
@@ -163,7 +163,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/rabbitmq:3.12-management-alpine
     tag: 3.12-management-alpine
   rockylinux:9:
-    digest: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+    digest: sha256:03303863808e9cd79f0c58c833db3e5f9cde9f2abe16804a267b05dc54af86e4
     target: registry.ddbuild.io/system-tests/mirror/rockylinux:9
     tag: '9'
   ruby:3.2.1-bullseye:
@@ -183,6 +183,6 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
     tag: 1.6.11
   ubuntu:22.04:
-    digest: sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956
+    digest: sha256:f64b2ffc2f10ab8f8505aa56b2664bd846cbb9df87c7e2532e30f7667021c0e6
     target: registry.ddbuild.io/system-tests/mirror/ubuntu:22.04
     tag: '22.04'
