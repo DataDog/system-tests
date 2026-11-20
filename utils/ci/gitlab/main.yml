@@ -146,7 +146,7 @@ system_tests_build_pipeline:
     # Passed through a variable rather than inlined in the script, as the JSON value contains quotes
     SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT: $[[ inputs.library_weblog_scenarios ]]
   script:
-    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline" || true
+    - dd_ci_retry --allow-failure 15 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
     # pipeline variables set by the caller (LIBRARIES, SCENARIOS, SYSTEM_TESTS_PARAMETRIC_JOB_COUNT, ...) are
     # read from the environment and merged with the inputs by build_pipeline.py
     - >

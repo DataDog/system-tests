@@ -25,7 +25,7 @@ setup:
   tags: ["arch:amd64"]
   script:
     # dd_ci_retry: see templates.yml
-    - dd_ci_retry 60 datadog-ci tag --level pipeline --tags "system-tests:true" || true
+    - dd_ci_retry --allow-failure 15 datadog-ci tag --level pipeline --tags "system-tests:true"
 
 .push_to_test_optimization:
   after_script:

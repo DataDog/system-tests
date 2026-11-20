@@ -52,9 +52,10 @@ def section(name: str, description: str, *, collapsed: bool = True) -> Iterator[
         log(f"section_end:{int(time.time())}:{name}\r\x1b[0K")
 
 
-# For the dd-sts / datadog-ci calls that only send metadata or fetch credentials (see run()): without a timeout, a
-# hung call blocks the job until its own timeout. Same values as dd_ci_retry in templates.yml.
-DD_CI_TIMEOUT = 60
+# For the best-effort datadog-ci calls that only send metadata (see run()): without a timeout, a hung call blocks
+# the job until its own timeout. A healthy call (one small API request plus Node startup) takes a few seconds.
+# Same values as the dd_ci_retry --allow-failure calls in templates.yml.
+DD_CI_TIMEOUT = 15
 DD_CI_ATTEMPTS = 3
 # after a failed attempt, wait RETRY_BACKOFF * <attempt number> seconds
 RETRY_BACKOFF = 5

@@ -9,16 +9,24 @@ spec:
 
 # Defines dd_ci_retry, for the dd-sts / datadog-ci calls that only send metadata or fetch credentials: without a
 # timeout, a hung call blocks the job until its own timeout (|| true doesn't help against a hang).
-# Usage: dd_ci_retry <timeout in seconds, per attempt> <command...>
+# Usage: dd_ci_retry [--allow-failure] <timeout in seconds, per attempt> <command...>
 # Runs the command up to 3 times, killing each attempt after the timeout (SIGTERM, then SIGKILL 10s later), with
-# a 5s then 10s pause between attempts. Returns the exit code of the last attempt (124 or 137 on timeout).
-# Messages go to stderr, so that the output of the command can be captured.
+# a 5s then 10s pause between attempts. Returns the exit code of the last attempt (124 or 137 on timeout), or, with
+# --allow-failure, logs a warning and returns 0.
+# Use --allow-failure rather than `|| true` at the call site: a job that doesn't define dd_ci_retry must fail
+# (command not found), not silently skip the call.
+# Messages go to stderr. The output of all attempts goes to stdout, so keep only the last line when capturing it.
 # Add `- *dd_ci_retry` to a script of this file to define it (an anchor can't be used from another file).
 .dd_ci_retry:
   script:
     - &dd_ci_retry |
       dd_ci_retry() {
-        local timeout_seconds=$1 attempt returncode
+        local allow_failure=false timeout_seconds attempt returncode
+        if [ "$1" = "--allow-failure" ]; then
+          allow_failure=true
+          shift
+        fi
+        timeout_seconds=$1
         shift
         for attempt in 1 2 3; do
           timeout --kill-after=10s "${timeout_seconds}s" "$@" && return 0
@@ -26,6 +34,10 @@ spec:
           echo "WARNING: $1 failed with exit code $returncode (attempt $attempt/3, ${timeout_seconds}s timeout)" >&2
           if [ "$attempt" -lt 3 ]; then sleep $((attempt * 5)); fi
         done
+        if [ "$allow_failure" = true ]; then
+          echo "WARNING: $1 failed after 3 attempts, ignored" >&2
+          return 0
+        fi
         return "$returncode"
       }
 
@@ -35,7 +47,7 @@ spec:
   script:
     - *dd_ci_retry
     # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
-    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests" || true
+    - dd_ci_retry --allow-failure 15 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests"
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
     - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
 
@@ -62,7 +74,7 @@ spec:
   before_script:
     - *dd_ci_retry
     # first command, before the clone, so the job is tagged even if it fails later
-    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
+    - dd_ci_retry --allow-failure 15 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests"
     - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
     - |
       for attempt in 1 2 3 4 5; do
@@ -83,10 +95,15 @@ spec:
     - source venv/bin/activate
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
     - echo -e "section_end:`date +%s`:setup\r\e[0K"
-    # printenv fails if dd-sts did not set DD_API_KEY, so that this case is retried too
+    # Optional (run.sh only passes it when set): like the other telemetry calls, a failure must not fail the job.
+    # printenv fails if dd-sts did not set DD_API_KEY, so that this case is retried too. Only the last line is
+    # kept: the one of the successful attempt, failed ones may have printed something too (pipefail keeps the exit
+    # code of dd_ci_retry). The key is checked (32 lowercase hex characters), never printed.
     - |
-      if ! DD_API_KEY=$(dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- printenv DD_API_KEY) || [ -z "$DD_API_KEY" ]; then
-        echo "ERROR: could not get DD_API_KEY from dd-sts (policy system-tests-gitlab)" >&2
-        exit 1
+      if DD_API_KEY=$(set -o pipefail; dd_ci_retry 30 dd-sts exchange --policy system-tests-gitlab -- printenv DD_API_KEY | tail -n 1) \
+        && [[ "$DD_API_KEY" =~ ^[0-9a-f]{32}$ ]]; then
+        export DD_API_KEY
+      else
+        unset DD_API_KEY
+        echo "WARNING: could not get a valid DD_API_KEY from dd-sts (policy system-tests-gitlab), continuing without it" >&2
       fi
-      export DD_API_KEY

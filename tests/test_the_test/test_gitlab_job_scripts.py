@@ -90,7 +90,7 @@ def subprocess_calls(monkeypatch: pytest.MonkeyPatch) -> tuple[list[list[str]], 
     return commands, returncodes, sleeps
 
 
-TIMEOUT_TAG = ["timeout", "--kill-after=10s", "60s", "datadog-ci", "tag"]
+TIMEOUT_TAG = ["timeout", "--kill-after=10s", "15s", "datadog-ci", "tag"]
 
 
 @scenarios.test_the_test
@@ -109,7 +109,7 @@ class Test_GitlabRunHelper:
         commands, returncodes, sleeps = subprocess_calls
         returncodes.extend([124, 0])
 
-        assert _common.run(["datadog-ci", "tag"], timeout=60, attempts=3) == 0
+        assert _common.run(["datadog-ci", "tag"], timeout=15, attempts=3) == 0
         assert commands == [TIMEOUT_TAG, TIMEOUT_TAG]
         assert sleeps == [5]
 
@@ -119,7 +119,7 @@ class Test_GitlabRunHelper:
         commands, returncodes, sleeps = subprocess_calls
         returncodes.extend([124, 1, 137])
 
-        assert _common.run(["datadog-ci", "tag"], allow_failure=True, timeout=60, attempts=3) == 137
+        assert _common.run(["datadog-ci", "tag"], allow_failure=True, timeout=15, attempts=3) == 137
         assert commands == [TIMEOUT_TAG] * 3
         assert sleeps == [5, 10]
 
@@ -130,7 +130,7 @@ class Test_GitlabRunHelper:
         returncodes.extend([1, 124])
 
         with pytest.raises(SystemExit) as exc:
-            _common.run(["datadog-ci", "tag"], timeout=60, attempts=2)
+            _common.run(["datadog-ci", "tag"], timeout=15, attempts=2)
         assert exc.value.code == 124
 
     def test_hung_command_is_killed(self) -> None:
@@ -153,7 +153,7 @@ class Test_GitlabRunHelper:
         assert [command[:2] for command, _ in run_calls] == [["datadog-ci", "tag"], ["datadog-ci", "measure"]]
         for _, kwargs in run_calls:
             # best-effort, as before
-            assert kwargs == {"allow_failure": True, "timeout": 60, "attempts": 3}
+            assert kwargs == {"allow_failure": True, "timeout": 15, "attempts": 3}
 
     def test_datadog_ci_trace_is_not_bounded(
         self, run_calls: list[tuple[list[str], dict[str, object]]], monkeypatch: pytest.MonkeyPatch
