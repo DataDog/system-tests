@@ -1,3 +1,4 @@
+---
 name: system-tests
 on:
   workflow_call:
@@ -69,6 +70,11 @@ on:
         default: 1
         required: false
         type: number
+      _experimental_parametric_runs_on:
+        description: "JSON-encoded runner definition for the PARAMETRIC scenario"
+        default: '{ "group": "APM Larger Runners" }'
+        required: false
+        type: string
       desired_execution_time:
         description: "In seconds, system-tests will try to respect this time budget."
         default: "-1"
@@ -167,6 +173,7 @@ jobs:
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
+      _experimental_runs_on: ${{ inputs._experimental_parametric_runs_on }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
@@ -198,14 +205,16 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
+      - name: Disable the containerd image store
+        uses: ./.github/actions/disable_containerd_image_store
       - name: Get binaries artifact
-        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        if: ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: ./.github/actions/download_artifact
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
       - name: Log binaries contents
-        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        if: ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
@@ -247,7 +256,6 @@ jobs:
         uses: ./.github/actions/datadog_ci
         with:
           _is_official_system_tests_job: true
-
 
   run_end_to_end:
     name: "End-to-end #${{ matrix.job.weblog_instance }}"
@@ -326,4 +334,3 @@ jobs:
         uses: ./.github/actions/datadog_ci
         with:
           _is_official_system_tests_job: true
-

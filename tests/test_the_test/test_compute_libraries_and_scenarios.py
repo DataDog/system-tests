@@ -367,6 +367,21 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    @pytest.mark.parametrize("library", ["cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "rust"])
+    def test_parametric_app_file(self, library: str) -> None:
+        """A change in a parametric app only selects its own library"""
+        inputs = build_inputs([f"utils/build/docker/{library}/parametric/Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [library],
+            [library],
+            300 if library == "nodejs" else 600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
@@ -922,6 +937,7 @@ class Test_ComputeLibrariesAndScenarios:
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):
+        # every end-to-end scenario runs the mocked backend behind the agent: all scenarios run
         inputs = build_inputs(modified_files=[file])
         assert_github_processor(
             inputs,
@@ -929,8 +945,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
-            "agentless",
+            "DEFAULT",
+            "all",
         )
 
     def test_end_to_end_scenario_framework_file(self):

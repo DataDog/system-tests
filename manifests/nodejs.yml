@@ -101,6 +101,7 @@ refs:
   - &ref_5_110_0 '>=5.110.0'
   - &ref_5_111_0 '>=5.111.0'
   - &ref_5_125_0 '>=6.14.0 || ^5.125.0'
+  - &ref_5_137_0 '>=6.19.0 || ^5.137.0'
   - &ref_6_0_0 '>=6.0.0-pre'
   - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
@@ -113,6 +114,8 @@ refs:
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
   - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
   - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
+  - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
+  - &ref_6_26_0 '>=6.26.0 || ^5.137.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -340,11 +343,16 @@ manifest:
         "*": *ref_5_3_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.25.0'
+        fastify: '>=6.25.0'
+        nextjs: '>=6.25.0'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
@@ -873,6 +881,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -931,6 +942,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_24_0
@@ -976,6 +990,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -1025,6 +1042,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_23_0
@@ -1070,6 +1090,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+    - declaration: bug (APPSEC-71459)
+      component_version: *ref_6_26_0
+      weblog: [nextjs]
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_20_0
@@ -1095,6 +1118,17 @@ manifest:
     - weblog_declaration:
         nextjs: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        fastify: missing_feature
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_security.py: v5.92.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        nextjs: v6.19.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
@@ -1214,14 +1248,17 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
+    - weblog_declaration:
+        nextjs: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_59_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": *ref_4_16_0
@@ -1240,19 +1277,20 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: v6.19.0  # TODO: a lower version might be supported
+        nextjs: *ref_5_137_0
+        # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: *ref_5_17_0
@@ -1302,6 +1340,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_45_0
         nextjs: missing_feature
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": *ref_5_48_0
@@ -1394,7 +1433,7 @@ manifest:
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor::test_fingerprinting_endpoint_blocking:
     - weblog_declaration:
-        nextjs: missing_feature (Blocking on querystring is not supported)
+        nextjs: *ref_6_26_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: *ref_5_24_0
@@ -1462,7 +1501,7 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature (can not block by query param in nextjs yet)
+        nextjs: *ref_6_26_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: *ref_3_9_0
@@ -1999,6 +2038,7 @@ manifest:
       weblog: [anthropic-js@0.71.0]
     - declaration: missing_feature (APPSEC-69630, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [anthropic-js@0.71.0]
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: incomplete_test_app (anthropic-js weblog is missing the /mcp/create endpoint)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released
@@ -2046,7 +2086,12 @@ manifest:
     - declaration: bug (MLOB-5070)
       excluded_weblog: [google_genai-js@1.34.0]
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
-  : 'missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)'
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)
+      component_version: <6.25.0
+      weblog: [google_genai-js@1.34.0]
+    - declaration: missing_feature (reasoning token metrics pending https://github.com/DataDog/dd-trace-js/pull/11012)
+      excluded_weblog: [google_genai-js@1.34.0]
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools:  # TODO: a lower version might be supported
     - declaration: bug (MLOB-5070)
       component_version: <6.19.0
@@ -2428,20 +2473,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_empty_headers: v5.88.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_default_headers: v5.88.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_headers: v5.81.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_override: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
@@ -2459,11 +2496,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_default_headers
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_signal_overrides
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_unset_falls_back
@@ -2502,11 +2535,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.83.0
-      declaration: missing_feature
-    - component_version: '>=5.83.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_signal_overrides
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_unset_falls_back
@@ -2581,7 +2610,6 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_fractional_is_ignored: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2624,6 +2652,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter:
     - declaration: flaky (APMAPI-2554)
       component_version: '>=5.88.0'
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: '>=6.26.0 || ^5.137.0'
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v5.11.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -2712,12 +2741,14 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
-  : 'missing_feature (Requires a release containing dd-trace-js#11111)'
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Requires a release containing dd-trace-js#11111)
+      component_version: <6.25.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
-  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: *ref_6_25_0
   tests/parametric/test_ffe/test_rules_configuration.py: 7.0.0-pre  # Exact development version until the first containing release is confirmed.
   tests/parametric/test_ffe/test_rules_configuration.py::Test_FFE_Rules_Configuration_Selection: missing_feature (FFL-3364 requires the Node flag-selection dependency update in dd-trace-js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0
@@ -2804,8 +2835,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
       component_version: <6.8.0
-    - declaration: flaky (APMLP-2085)
-      component_version: '>=6.21.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
       component_version: <6.8.0
@@ -2909,7 +2938,9 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v6.20.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v6.11.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
+      component_version: <6.25.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: *ref_5_125_0
@@ -3325,7 +3356,12 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:
     - weblog_declaration:
         "*": missing_feature
@@ -3346,6 +3382,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express4: missing_feature (OTel semantic resource names are not available when sampling decisions occur)
+        express5: v6.25.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:
     - weblog_declaration:
         "*": missing_feature
@@ -3356,7 +3393,12 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      component_version: <6.25.0
+      weblog: [express5]
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
@@ -3368,7 +3410,19 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
       excluded_weblog: [express5]
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.25.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter:
+    - weblog_declaration:
+        express5: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v6.20.0-dev

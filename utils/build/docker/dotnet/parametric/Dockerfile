@@ -5,9 +5,15 @@ WORKDIR /app
 # Opt-out of .NET SDK CLI telemetry
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# dotnet restore
+# dotnet restore. A .nupkg in binaries/ (for example a dd-trace-dotnet PR build) joins the floating-version
+# restore, so a newer local Datadog.FeatureFlags.OpenFeature wins over nuget.org.
 COPY utils/build/docker/dotnet/parametric/ApmTestApi.csproj utils/build/docker/dotnet/parametric/nuget.config ./
-RUN dotnet restore "./ApmTestApi.csproj"
+COPY binaries/ /binaries/
+RUN if ls /binaries/*.nupkg >/dev/null 2>&1; then \
+      mkdir -p /app/local-packages && cp /binaries/*.nupkg /app/local-packages/ \
+      && dotnet nuget add source /app/local-packages --name local-packages --configfile nuget.config; \
+    fi \
+    && dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
 COPY utils/build/docker/dotnet/parametric ./

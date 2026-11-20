@@ -1,6 +1,10 @@
 'use strict'
 
-const tracer = require('dd-trace').init()
+const tracerOptions = {}
+if (process.env.SYSTEM_TESTS_FFE_FLAG_SELECTION !== undefined) {
+  tracerOptions.featureFlags = { flagSelection: JSON.parse(process.env.SYSTEM_TESTS_FFE_FLAG_SELECTION) }
+}
+const tracer = require('dd-trace').init(tracerOptions)
 const { trace, ROOT_CONTEXT, SpanKind, propagation, metrics } = require('@opentelemetry/api')
 tracer.use('express', false)
 tracer.use('http', false)
@@ -400,7 +404,9 @@ app.post('/trace/otel/start_span', (req, res) => {
         links,
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
-    const ctx = span._ddSpan.context()
+    // With tracing disabled, dd-trace returns a non-recording span. It has no Datadog span,
+    // but its span context still wraps the Datadog span context.
+    const ctx = span._ddSpan?.context() ?? span.spanContext()._ddContext
     const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 

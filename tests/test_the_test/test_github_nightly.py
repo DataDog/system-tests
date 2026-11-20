@@ -156,10 +156,10 @@ class Test_GithubNightly:
     def test_extract_reports_from_logs_artifacts(self, tmp_path: Path) -> None:
         artifact_dir = tmp_path / "logs_python"
         artifact_dir.mkdir()
-        report_content = b'{"context": {"library_name": "python"}}'
+        report_content = b"<testsuites />"
 
         with tarfile.open(artifact_dir / "artifact.tar.gz", "w:gz") as archive:
-            info = tarfile.TarInfo("logs/report.json")
+            info = tarfile.TarInfo("logs/reportJunit.xml")
             info.size = len(report_content)
             archive.addfile(info, io.BytesIO(report_content))
             ignored = b"large log"
@@ -169,7 +169,7 @@ class Test_GithubNightly:
 
         extract_reports_from_logs_artifacts(tmp_path)
 
-        assert (artifact_dir / "logs/report.json").read_bytes() == report_content
+        assert (artifact_dir / "logs/reportJunit.xml").read_bytes() == report_content
         assert not (artifact_dir / "logs/weblog.log").exists()
         assert not (artifact_dir / "artifact.tar.gz").exists()
 

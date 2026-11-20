@@ -1,4 +1,5 @@
-FROM maven:3-eclipse-temurin-21
+# The base image holds a maven repository filled from parametric/pom.xml: maven runs offline here
+FROM system_tests_base_java_java_parametric
 
 WORKDIR /client
 RUN mkdir ./tracer

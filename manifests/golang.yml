@@ -700,6 +700,36 @@ manifest:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_security.py: v2.7.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:  # Easy win for fiber-v2-orchestrion and version 2.12.0
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke:
+    - declaration: irrelevant (there is no equivalent to system(3) in go)
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:  # Easy win for fiber-v2-orchestrion and version 2.12.0
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:  # Easy win for fiber-v2-orchestrion and version 2.12.0
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v2.11.0-dev
@@ -1135,6 +1165,7 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
@@ -2094,13 +2125,13 @@ manifest:
         chi: '>=2.11.1'
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.12.0
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
-  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.12.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
   : bug (APMAPI-2502)  # OTel Go SDK caps a batch size larger than the queue to the queue size
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v2.12.0
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.12.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.6.0
@@ -2183,7 +2214,6 @@ manifest:
     - declaration: bug (APMAPI-2460)
       component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero: bug (APMAPI-2460)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.5.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2460)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2208,11 +2238,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name: v2.10.1
-  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name_takes_precedence:  # Easy win for all weblogs and version 2.12.0
-    - declaration: missing_feature
-      component_version: '<2.10.1'
-    - declaration: bug (OTEL-3381)
-      component_version: '>=2.10.1'
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name_takes_precedence: v2.12.0
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v2.6.0
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
@@ -2220,6 +2246,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: bug (APMAPI-2690)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v2.6.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
