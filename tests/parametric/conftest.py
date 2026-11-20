@@ -306,7 +306,7 @@ def nodejs_startup_config(test_library: APMLibrary) -> dict:
     log line that carries them, so it is the non-internal source for those cases.
     """
     marker = "DATADOG TRACER CONFIGURATION - "
-    for line in test_library.get_logs().splitlines():
+    for line in test_library.wait_for_log(marker).splitlines():
         index = line.find(marker)
         if index != -1:
             return json.loads(line[index + len(marker) :])
