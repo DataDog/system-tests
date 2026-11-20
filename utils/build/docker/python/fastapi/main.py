@@ -34,6 +34,7 @@ import requests
 import stripe
 import urllib3
 import xmltodict
+import yaml
 import anyio
 from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
@@ -1290,6 +1291,18 @@ async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
         return ops[op](float(a), float(b))
 
     _ = safe_eval(code)
+    return "OK"
+
+
+@app.get("/iast/untrusted_deserialization/test_insecure", response_class=PlainTextResponse)
+async def view_iast_untrusted_deserialization_insecure(name: str):
+    _ = yaml.unsafe_load(name)
+    return "OK"
+
+
+@app.get("/iast/untrusted_deserialization/test_secure", response_class=PlainTextResponse)
+async def view_iast_untrusted_deserialization_secure():
+    _ = yaml.unsafe_load("name: example")
     return "OK"
 
 
