@@ -24,7 +24,8 @@ setup:
   extends: .system_tests_base
   tags: ["arch:amd64"]
   script:
-    - datadog-ci tag --level pipeline --tags "system-tests:true" || true
+    # dd_ci_retry: see templates.yml
+    - dd_ci_retry 60 datadog-ci tag --level pipeline --tags "system-tests:true" || true
 
 .push_to_test_optimization:
   after_script:
@@ -52,7 +53,9 @@ setup:
   extends:
     - .system_tests_base
     - .kube_requests
-  timeout: 15 minutes
+  # longer than the ~15m pod start timeout of the runners, so that a pod that never starts fails as a
+  # runner_system_failure, which is retried, rather than as a job timeout, which isn't
+  timeout: 20 minutes
   script:
     - python utils/ci/gitlab/run_job.py run_scenario
   artifacts:

@@ -7,6 +7,38 @@ spec:
 
 ---
 
+# Defines dd_ci_retry, for the dd-sts / datadog-ci calls that only send metadata or fetch credentials: without a
+# timeout, a hung call blocks the job until its own timeout (|| true doesn't help against a hang).
+# Usage: dd_ci_retry <timeout in seconds, per attempt> <command...>
+# Runs the command up to 3 times, killing each attempt after the timeout (SIGTERM, then SIGKILL 10s later), with
+# a 5s then 10s pause between attempts. Returns the exit code of the last attempt (124 or 137 on timeout).
+# Messages go to stderr, so that the output of the command can be captured.
+# Add `- *dd_ci_retry` to a script of this file to define it (an anchor can't be used from another file).
+.dd_ci_retry:
+  script:
+    - &dd_ci_retry |
+      dd_ci_retry() {
+        local timeout_seconds=$1 attempt returncode
+        shift
+        for attempt in 1 2 3; do
+          timeout --kill-after=10s "${timeout_seconds}s" "$@" && return 0
+          returncode=$?
+          echo "WARNING: $1 failed with exit code $returncode (attempt $attempt/3, ${timeout_seconds}s timeout)" >&2
+          if [ "$attempt" -lt 3 ]; then sleep $((attempt * 5)); fi
+        done
+        return "$returncode"
+      }
+
+# Script of .system_tests_param_base (main.yml), defined here to use dd_ci_retry. Not in a before_script: jobs
+# extending .system_tests_param_base override it (e.g. system_tests_param in the .gitlab-ci.yml of system-tests).
+.system_tests_param_script:
+  script:
+    - *dd_ci_retry
+    # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
+    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests" || true
+    - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
+    - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
+
 .system_tests_base:
   image: $CI_IMAGE
   tags:
@@ -28,8 +60,9 @@ spec:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   before_script:
+    - *dd_ci_retry
     # first command, before the clone, so the job is tagged even if it fails later
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
+    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
     - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
     - |
       for attempt in 1 2 3 4 5; do
@@ -50,4 +83,10 @@ spec:
     - source venv/bin/activate
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
     - echo -e "section_end:`date +%s`:setup\r\e[0K"
-    - export DD_API_KEY=$(dd-sts exchange --policy system-tests-gitlab -- env | sed -n 's/^DD_API_KEY=//p')
+    # printenv fails if dd-sts did not set DD_API_KEY, so that this case is retried too
+    - |
+      if ! DD_API_KEY=$(dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- printenv DD_API_KEY) || [ -z "$DD_API_KEY" ]; then
+        echo "ERROR: could not get DD_API_KEY from dd-sts (policy system-tests-gitlab)" >&2
+        exit 1
+      fi
+      export DD_API_KEY

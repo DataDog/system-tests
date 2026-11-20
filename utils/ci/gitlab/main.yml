@@ -114,6 +114,8 @@ variables:
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
+  # script defined in templates.yml
+  extends: .system_tests_param_script
   image: $CI_IMAGE
   allow_failure: $[[ inputs.allow_failure ]]
   tags:
@@ -121,11 +123,6 @@ variables:
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
-  script:
-    # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests" || true
-    - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
-    - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
   artifacts:
     reports:
       dotenv: param.env
@@ -149,7 +146,7 @@ system_tests_build_pipeline:
     # Passed through a variable rather than inlined in the script, as the JSON value contains quotes
     SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT: $[[ inputs.library_weblog_scenarios ]]
   script:
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline" || true
+    - dd_ci_retry 60 dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline" || true
     # pipeline variables set by the caller (LIBRARIES, SCENARIOS, SYSTEM_TESTS_PARAMETRIC_JOB_COUNT, ...) are
     # read from the environment and merged with the inputs by build_pipeline.py
     - >

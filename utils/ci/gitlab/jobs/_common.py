@@ -52,17 +52,48 @@ def section(name: str, description: str, *, collapsed: bool = True) -> Iterator[
         log(f"section_end:{int(time.time())}:{name}\r\x1b[0K")
 
 
-def run(command: list[str], *, allow_failure: bool = False, check: bool = True) -> int:
+# For the dd-sts / datadog-ci calls that only send metadata or fetch credentials (see run()): without a timeout, a
+# hung call blocks the job until its own timeout. Same values as dd_ci_retry in templates.yml.
+DD_CI_TIMEOUT = 60
+DD_CI_ATTEMPTS = 3
+# after a failed attempt, wait RETRY_BACKOFF * <attempt number> seconds
+RETRY_BACKOFF = 5
+# SIGKILL a command that is still running this long after the SIGTERM of its timeout
+KILL_AFTER = 10
+
+
+def run(
+    command: list[str],
+    *,
+    allow_failure: bool = False,
+    check: bool = True,
+    timeout: int | None = None,
+    attempts: int = 1,
+) -> int:
     """Run a command and return its return code.
+
+    With a timeout (in seconds), each attempt is run through coreutils timeout, which also kills its children (e.g.
+    the command run by dd-sts exchange): exit code 124 on timeout, 137 if it had to be killed. Up to attempts
+    attempts are made, until one succeeds, with a short pause between them.
 
     If it fails: with allow_failure, only log a warning; otherwise, exit with its return code, unless check is
     False, in which case the caller handles the failure.
     """
-    log(f"$ {' '.join(command)}")
-    returncode = subprocess.run(command, check=False).returncode
+    name = command[0]
+    if timeout is not None:
+        command = ["timeout", f"--kill-after={KILL_AFTER}s", f"{timeout}s", *command]
+    returncode = 0
+    for attempt in range(1, attempts + 1):
+        log(f"$ {' '.join(command)}")
+        returncode = subprocess.run(command, check=False).returncode
+        if returncode == 0:
+            break
+        if attempt < attempts:
+            log(f"WARNING: {name} failed with exit code {returncode} (attempt {attempt}/{attempts}), retrying")
+            time.sleep(RETRY_BACKOFF * attempt)
     if returncode != 0:
         if allow_failure:
-            log(f"WARNING: {command[0]} failed with exit code {returncode}, ignored")
+            log(f"WARNING: {name} failed with exit code {returncode}, ignored")
         elif check:
             sys.exit(returncode)
     return returncode
@@ -70,7 +101,12 @@ def run(command: list[str], *, allow_failure: bool = False, check: bool = True) 
 
 def tag_job(job_type: str) -> None:
     # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
-    run(["datadog-ci", "tag", "--level", "job", "--tags", f"system-tests.job_type:{job_type}"], allow_failure=True)
+    run(
+        ["datadog-ci", "tag", "--level", "job", "--tags", f"system-tests.job_type:{job_type}"],
+        allow_failure=True,
+        timeout=DD_CI_TIMEOUT,
+        attempts=DD_CI_ATTEMPTS,
+    )
 
 
 def traced(name: str, command: list[str], *, scenario: str | None = None, check: bool = True) -> int:
@@ -118,4 +154,6 @@ def emit_execution_time_metric() -> None:
     run(
         ["datadog-ci", "measure", "--level", "job", "--measures", f"system-tests.total_duration:{elapsed}"],
         allow_failure=True,
+        timeout=DD_CI_TIMEOUT,
+        attempts=DD_CI_ATTEMPTS,
     )
