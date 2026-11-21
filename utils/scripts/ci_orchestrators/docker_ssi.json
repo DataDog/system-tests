@@ -2,6 +2,18 @@
     "scenario_matrix": [
         {
             "scenarios": [
+                "DOCKER_SSI"
+            ],
+            "weblogs": [
+                {
+                    "ruby": [
+                        "ruby-app-rvm"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "DOCKER_SSI",
                 "DOCKER_SSI_APPSEC"
             ],
@@ -299,6 +311,14 @@
                             "RB33",
                             "RB34"
                         ]
+                    }
+                ]
+            },
+            {
+                "name": "ruby-app-rvm",
+                "supported_images": [
+                    {
+                        "name": "Passenger_Ruby33_amd64"
                     }
                 ]
             },

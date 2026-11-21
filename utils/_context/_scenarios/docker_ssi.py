@@ -459,7 +459,8 @@ class DockerSSIImageBuilder:
         runtime = (
             resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
         )
-        return f"{self._base_image}_{runtime}{self._arch}".replace(".", "_").replace(":", "-").replace("/", "-").lower()
+        name = f"{self._base_image}_{runtime}{self._arch}"
+        return name.replace(".", "_").replace(":", "-").replace("/", "-").replace("@", "-").lower()
 
     def _build_image(
         self,
