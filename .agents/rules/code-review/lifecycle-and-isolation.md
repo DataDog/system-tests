@@ -8,7 +8,7 @@
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
 - Severity: P1
 - Flag: Do not use `time.sleep()`, fixed delays, or unbounded polling to wait for end-to-end data. Use `agent_interface_timeout` or `library_interface_timeout` for the general post-setup flush window. Use a bounded condition wait in `setup_*` when a specific condition must be observed before teardown or before triggering a subsequent action.
-- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition.
+- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition. The scenario flush timeout ends before the last periodic flush that the test counts. A test requires an exact count of telemetry points or stats requests that periodic flushes send. No wait covers every flush. A wait returns as soon as the expected count arrives, and the test then asserts that no extra item exists.
 - Not when: The delay itself is the behavior under test and no observable condition can represent it.
 - ✅ Configure the scenario flush timeout for general data collection, or use `interfaces.library.wait_for(condition, timeout=...)` for a specific condition.
 - ❌ Use `time.sleep(30)` before assuming that traces or Remote Config are ready.

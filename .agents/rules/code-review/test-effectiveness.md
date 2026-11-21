@@ -2,7 +2,7 @@
 - Old_id: codex-09
 - Severity: P1
 - Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input.
-- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`.
+- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`. A test requires exactly one stats request, or an exact telemetry count, although periodic flushes can split or delay data. A test requires a timing-dependent outcome, such as at least one dropped trace under a rate limit. A test compares serialized JSON with a `json.dumps` string instead of the parsed value.
 - Not when: The whole field is under test.
 - ✅ For the sampled bit, accept `01` and `03` when the extra bit is allowed. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp containing `1234` must not count as leaked input.
 - ❌ `assert len(tracestate) == 1`.
@@ -28,7 +28,7 @@
 - Old_id: claude-13
 - Severity: P0
 - Flag: A test of behavior that does not depend on the trace encoding must give the same result for v0.4, v0.5, and v1.0 payloads. Compare trace IDs with `trace_id_equals()`, read the sampling priority with `get_sampling_priority()`, and filter intake requests with `interfaces.library.trace_paths`. Use `is_same_boolean()` only when the contract accepts `True`, `1`, and `"true"` as the same value. A test of the wire format itself must check the exact fields and types of its encoding.
-- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter lists only `/v0.4/traces` or `/v0.5/traces`.
+- Detect: A test that is not about the encoding compares raw fields, as in `span["trace_id"] == expected` or `meta[key] == "true"`. A test reads a sampling priority field directly. A path filter lists only `/v0.4/traces` or `/v0.5/traces`. A numeric or boolean check ignores Python coercion, so it accepts `1` for `True` or rejects a valid `1.0`.
 - Not when: The test is explicitly validating the wire format itself.
 - ✅ `assert span.trace_id_equals(int(expected_id))`.
 - ❌ `assert span["trace_id"] == int(expected_id)`.
@@ -59,3 +59,17 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-008: Assert every expectation that the contract defines.
+- Severity: P0
+- Flag: A test must check each expectation that its contract or fixture defines. If only one case needs a looser check, keep the strict check for the other cases. Check each subject or case on its own, not through a sum. If the contract defines an error path, cover it too.
+- Detect: A runner reads fixture cases but ignores some expected fields. A test skips the shared assertion helper that its siblings use. A check sums counts across subjects, so data from the wrong subject passes. A relaxation for one payload format applies to every format. Scoping to one request drops a run-wide guarantee.
+- ✅ Validate the shared flag separately for the opted-out subject and the allowed subject.
+- ❌ `counts[case["flag"]] = counts.get(case["flag"], 0) + case["expected_count"]`
+
+### TEST-009: Prove that the test reached the behavior under test.
+- Severity: P0
+- Flag: A test must fail when the behavior under test does not run. The test app must not swallow errors and report success. Add a positive assertion that shows the code path ran.
+- Detect: A weblog endpoint catches every exception and returns OK, so a status check proves only that the route exists. A weblog drops the output on one variant, so the check has nothing to reject. A test checks only timing. A `skip.yml` entry says that the test passes without testing anything.
+- ✅ Accept only the expected exception, and let other failures return HTTP 500.
+- ❌ `} catch (Exception ignored) {}`
