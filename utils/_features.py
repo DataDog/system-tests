@@ -68,7 +68,7 @@ class _Owner(Enum):
                                 "dd-trace-java":    "@DataDog/asm-java",
                                 "dd-trace-js":      "@DataDog/asm-js",
                                 "dd-trace-php":     "@DataDog/asm-php",
-                                "dd-trace-py":      "@DataDog/asm-python",
+                                "dd-trace-py":      "@DataDog/k9-appsec-python",
                                 "dd-trace-rb":      "@DataDog/asm-ruby",
                                 "httpd-datadog":    "@DataDog/asm-cpp",
                                 "nginx-datadog":    "@DataDog/asm-cpp",
