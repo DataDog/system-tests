@@ -1,6 +1,7 @@
 """Validate the shared precomputed HTTP fixture independently of SDK results."""
 
 import hashlib
+import json
 
 import requests
 
@@ -19,7 +20,10 @@ class Test_Mock_FFE_Precomputed_Backend:
         }
         try:
             response = requests.post(
-                f"{backend.base_url}{PRECOMPUTED_CONFIG_PATH}?dd_env=test", json=payload, timeout=5
+                f"{backend.base_url}{PRECOMPUTED_CONFIG_PATH}?dd_env=test",
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/vnd.api+json"},
+                timeout=5,
             )
             assert response.status_code == 200
             assert response.headers["Content-Type"] == "application/vnd.api+json"
@@ -35,6 +39,52 @@ class Test_Mock_FFE_Precomputed_Backend:
             assert captured[0]["body"] == payload
             captured[0]["body"]["data"]["type"] = "changed"
             assert backend.ffe_get_requests()[0]["body"] == payload
+        finally:
+            backend.close()
+
+    @pytest.mark.parametrize("body", [b"{", b"\xff"])
+    def test_invalid_json_api_body_does_not_consume_response(self, body: bytes) -> None:
+        backend = MockedBackendServer(port=0)
+        try:
+            backend.client.ffe_set_response("forbidden", response_format="precomputed")
+            url = f"{backend.base_url}{PRECOMPUTED_CONFIG_PATH}"
+            response = requests.post(url, data=body, headers={"Content-Type": "application/vnd.api+json"}, timeout=5)
+            assert response.status_code == 400
+            assert response.json() == {"error": "expected JSON"}
+            assert backend.ffe_get_requests() == []
+            assert requests.post(url, json={}, timeout=5).status_code == 403
+        finally:
+            backend.close()
+
+    def test_redirect_records_destination_requests(self) -> None:
+        backend = MockedBackendServer(port=0)
+        try:
+            backend.client.ffe_set_response("redirect", response_format="precomputed")
+            response = requests.post(
+                f"{backend.base_url}{PRECOMPUTED_CONFIG_PATH}", json={}, allow_redirects=False, timeout=5
+            )
+            redirect_path = f"{PRECOMPUTED_CONFIG_PATH}/redirected"
+            assert response.status_code == 302
+            assert response.headers["Location"] == f"{backend.ffe_library_base_url}{redirect_path}"
+            backend.client.ffe_set_response("valid", response_format="precomputed")
+            destination = requests.get(f"{backend.base_url}{redirect_path}", timeout=5)
+            assert destination.status_code == 200
+            assert destination.json()["data"]["attributes"]["flags"]["test-flag"]["variationValue"] is True
+            captured = backend.ffe_get_requests()
+            assert len(captured) == 2
+            assert captured[1]["path"] == redirect_path
+            assert captured[1]["body"] == {}
+        finally:
+            backend.close()
+
+    def test_wrong_content_type(self) -> None:
+        backend = MockedBackendServer(port=0)
+        try:
+            backend.client.ffe_set_response("wrong_content_type", response_format="precomputed")
+            response = requests.post(f"{backend.base_url}{PRECOMPUTED_CONFIG_PATH}", json={}, timeout=5)
+            assert response.status_code == 200
+            assert response.headers["Content-Type"] == "text/html"
+            assert response.content == b"{}"
         finally:
             backend.close()
 

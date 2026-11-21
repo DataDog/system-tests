@@ -8,6 +8,7 @@ async function main () {
   const { options, entryPoint = 'root', abort = false, abortAfterMs, mutateContext = false, evaluate = true, contexts, trackExposures = false } = JSON.parse(process.argv[2])
   let httpRequests = 0
   let exposureEvents = 0
+  let requestUrl
   let outcome
   const subscriptions = [
     ['undici:request:create', () => { httpRequests++ }],
@@ -16,8 +17,9 @@ async function main () {
   ]
   for (const [name, listener] of subscriptions) channel(name).subscribe(listener)
   const requireLibrary = createRequire(require.resolve('dd-trace/package.json'))
-  const root = requireLibrary('@datadog/openfeature-node-server')
-  const rules = requireLibrary('@datadog/openfeature-node-server/rules-based')
+  // Load the bundles shipped by the tracer, without importing or initializing the tracer.
+  const root = requireLibrary('./vendor/dist/@datadog/openfeature-node-server')
+  const rules = requireLibrary('./vendor/dist/@datadog/openfeature-node-server/rules-based')
   const sdk = entryPoint === 'root' ? root : rules
   const { OpenFeature } = require('@openfeature/server-sdk')
   OpenFeature.setLogger({ error () {}, warn () {}, info () {}, debug () {} })
@@ -33,14 +35,18 @@ async function main () {
         signal: controller.signal,
         logger: { error: message => diagnostics.push(message) },
         fetch: (url, init) => {
-          if (mutateContext) options.context.country = 'changed-after-request'
+          requestUrl = String(url)
+          if (mutateContext) {
+            options.context.country = 'changed-after-request'
+            options.context.nested.tags.push('changed-after-request')
+          }
           const { pathname, search } = new URL(url)
           return fetch(`${process.env.SYSTEM_TESTS_FFE_RULES_BASE_URL}${pathname}${search}`, init)
         }
       })
       const wire = sdk.configurationToString(configuration)
       const restored = sdk.configurationFromString(wire)
-      outcome = { wire, restored: sdk.configurationToString(restored), diagnostics, sameFetch: root.fetchPrecomputedConfiguration === rules.fetchPrecomputedConfiguration, exposuresBeforeTracking: exposureEvents }
+      outcome = { wire, restored: sdk.configurationToString(restored), diagnostics, exposuresBeforeTracking: exposureEvents }
       if (evaluate) {
         const provider = new rules.DatadogCoreProvider(restored, {
           experimentationOptOutMode: options.experimentationOptOutMode,
@@ -60,7 +66,7 @@ async function main () {
     clearTimeout(timer)
     await OpenFeature.clearProviders()
     process.once('exit', () => {
-      if (outcome !== undefined) writeFileSync(1, JSON.stringify({ ...outcome, httpRequests, exposureEvents }))
+      if (outcome !== undefined) writeFileSync(1, JSON.stringify({ ...outcome, requestUrl, httpRequests, exposureEvents }))
       for (const [name, listener] of subscriptions) channel(name).unsubscribe(listener)
     })
   }

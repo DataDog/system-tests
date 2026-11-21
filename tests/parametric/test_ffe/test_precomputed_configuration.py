@@ -85,7 +85,9 @@ class Test_FFE_Precomputed_Configuration:
                     }
                 )
                 wire, attributes = snapshot(result)
-                assert result["sameFetch"] is True
+                request_url = urlsplit(result["requestUrl"])
+                assert request_url.scheme == "https"
+                assert request_url.netloc == "preview.ff-cdn.datad0g.com"
                 assert result["providerStatus"] == "READY"
                 assert wire["version"] == 1
                 assert wire["precomputed"]["context"] == CONTEXT
@@ -233,7 +235,10 @@ class Test_FFE_Precomputed_Configuration:
     ) -> None:
         context = {**CONTEXT, "dd_experimentation_opt_out_at": CUTOFF}
         with test_library:
-            for mode, response in (("immediate", "opt_out_immediate"), ("future_experiments_only", "opt_out_future")):
+            for mode, response, other_mode in (
+                ("immediate", "opt_out_immediate", "opt_out_future"),
+                ("future_experiments_only", "opt_out_future", "opt_out_immediate"),
+            ):
                 options = {**OPTIONS, "context": context, "experimentationOptOutMode": mode}
                 mocked_backend.client.ffe_set_response(response, response_format="precomputed")
                 result = test_library.ffe_fetch_precomputed_configuration(
@@ -249,7 +254,7 @@ class Test_FFE_Precomputed_Configuration:
                 assert mocked_backend.ffe_get_requests()[-1]["body"]["data"]["attributes"]["evaluation_options"] == {
                     "experimentation_opt_out_mode": mode
                 }
-                for invalid_response in ("valid", "opt_out_mismatch"):
+                for invalid_response in ("valid", other_mode, "opt_out_mismatch"):
                     mocked_backend.client.ffe_set_response(invalid_response, response_format="precomputed")
                     invalid = test_library.ffe_fetch_precomputed_configuration({"options": options, "evaluate": False})
                     assert_error(invalid, "decode", requests=1)
@@ -313,6 +318,10 @@ class Test_FFE_Precomputed_Configuration:
             {"clientFingerprint": "private-invalid"},
             {"clientFingerprint": json.dumps({"version": 999})},
             {"experimentationOptOutMode": "private-invalid"},
+            {
+                "experimentationOptOutMode": "immediate",
+                "context": {**CONTEXT, "dd_experimentation_opt_out_at": "private-invalid"},
+            },
         ]
         with test_library:
             for extra in cases:

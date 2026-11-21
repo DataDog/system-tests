@@ -96,8 +96,9 @@ Node precomputed-fetch helper from both entry points: JSON:API request fields,
 context binding and codec round-trips, fingerprint query mapping and response
 encoding checks, selection diagnostics, opt-out acknowledgments, transport failures,
 deadlines/cancellation, and invalid options without a request. It uses the shared
-mock's `precomputed` response timeline and remains gated pending a containing Node
-dependency update. Use the same command above with this file selected and forced.
+mock's `precomputed` response timeline and loads the tracer's vendored Node SDK
+bundles. It remains gated pending a tracer release containing both the fetch helper
+and `DatadogCoreProvider`. Use the same command above with this file selected and forced.
 These tests validate scripted responses, not live Datadog selection or encoding rollout.
 
 `Test_FFE_Rules_Configuration_Selection` covers tag/key-pattern query parameters on both distribution channels, invalid/URL-overflow selections dropped with diagnostics, quiet empty-selection omission, and retention of the full response when the backend ignores selection. It also checks diagnostics for nonempty `DD-Flag-Selection-Ignored` response headers, including unknown reasons. The mock does not implement backend filtering. These cases require [openfeature-js-client #445](https://github.com/DataDog/openfeature-js-client/pull/445) in the `dd-trace` dependency and remain gated in the Node manifest until a containing build is available. Other SDKs retain the existing file-level gate.

@@ -596,6 +596,7 @@ class MockedBackendServerFfeMixin(_Base):
         elif response == "delayed":
             time.sleep(4)
         elif response == "delayed_body":
+            # Each phase fits within the deadline, but their combined duration does not.
             time.sleep(BODY_PHASE_DELAY_SECONDS)
             request.before_response_body = lambda: time.sleep(BODY_PHASE_DELAY_SECONDS)
         elif response in {"forbidden", "server_error"}:

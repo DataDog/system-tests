@@ -7,7 +7,8 @@ PRECOMPUTED_CONFIG_PATH = "/precompute-assignments"
 
 
 def precomputed_response(mode: str) -> dict[str, Any]:
-    # JSON:API envelope and assignments match the public browser precomputed-v1 fixture.
+    # JSON:API envelope and assignment fields follow the public browser precomputed-v1
+    # fixture shape; flag keys, values, serialId, and features are local test data.
     # Encoding metadata follows flag-key-sha256-v1; selection/policy outcomes are scripted.
     assignment = {
         "allocationKey": "allocation",
