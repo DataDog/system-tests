@@ -31,6 +31,13 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_HIGH_CARDINALITY_EVALS = 12_000
+TEST_ENVIRONMENT_ID = "11111111-1111-4111-8111-111111111111"
+OTHER_TEST_ENVIRONMENT_ID = "22222222-2222-4222-8222-222222222222"
+REPLACEMENT_ENVIRONMENT_IDENTITIES: tuple[tuple[str, str], ...] = (
+    (TEST_ENVIRONMENT_ID, "Production"),
+    (TEST_ENVIRONMENT_ID, "Renamed"),
+    (OTHER_TEST_ENVIRONMENT_ID, "Production"),
+)
 
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
@@ -187,6 +194,13 @@ def assert_event_contract(event: JSON, flag_key: str) -> None:
     object_key(event.get("allocation"), "allocation")
 
 
+def assert_environment_identity(event: JSON, environment_id: str | None, environment_name: str) -> None:
+    expected = {"name": environment_name}
+    if environment_id is not None:
+        expected["id"] = environment_id
+    assert event.get("environment") == expected, f"expected environment {expected}, got {event.get('environment')}"
+
+
 def event_identity(event: JSON) -> str:
     visible_identity = {
         "flag": event.get("flag"),
@@ -197,6 +211,7 @@ def event_identity(event: JSON) -> str:
         "targeting_rule": event.get("targeting_rule"),
         "error": event.get("error"),
         "context": event.get("context"),
+        "environment": event.get("environment"),
     }
     return json.dumps(visible_identity, sort_keys=True, default=str)
 
@@ -381,6 +396,162 @@ class Test_FFE_EVP_Flagevaluation_Basic:
         assert_event_contract(event, self.flag_key)
         assert object_key(event.get("variant"), "variant") == "on"
         assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@slow
+class Test_FFE_EVP_Flagevaluation_Environment_Identity:
+    """Test that evaluation-time environment identity survives EVP aggregation."""
+
+    def setup_ffe_evp_flagevaluation_environment_outcomes(self) -> None:
+        self.outcomes_flag_key = "evp-environment-outcomes-flag"
+        self.missing_flag_key = "evp-environment-missing-flag"
+        config_path = f"{RC_PATH}/ffe-evp-environment-outcomes/config"
+
+        rc.tracer_rc_state.reset().set_config(
+            config_path,
+            make_ufc_fixture(
+                self.outcomes_flag_key,
+                environment_id=TEST_ENVIRONMENT_ID,
+                environment_name="Production",
+            ),
+        ).apply()
+        self.outcome_responses = [evaluate_flag(self.outcomes_flag_key, targeting_key="environment-outcomes-user")]
+
+        without_allocation = make_ufc_fixture(
+            self.outcomes_flag_key,
+            environment_id=TEST_ENVIRONMENT_ID,
+            environment_name="Production",
+        )
+        flag = cast("JSON", cast("JSON", without_allocation["flags"])[self.outcomes_flag_key])
+        flag["allocations"] = []
+        rc.tracer_rc_state.set_config(config_path, without_allocation).apply()
+        self.outcome_responses.append(evaluate_flag(self.outcomes_flag_key, targeting_key="environment-outcomes-user"))
+
+        rc.tracer_rc_state.set_config(
+            config_path,
+            make_ufc_fixture(
+                self.outcomes_flag_key,
+                allocation_key="replacement-allocation",
+                environment_id=TEST_ENVIRONMENT_ID,
+                environment_name="Production",
+            ),
+        ).apply()
+        self.outcome_responses.extend(
+            [
+                evaluate_flag(self.outcomes_flag_key, targeting_key="environment-outcomes-user"),
+                evaluate_flag(
+                    self.outcomes_flag_key,
+                    targeting_key="environment-type-mismatch-user",
+                    variation_type="BOOLEAN",
+                    default_value=False,
+                ),
+                evaluate_flag(self.missing_flag_key, targeting_key="environment-missing-user"),
+            ]
+        )
+
+    def test_ffe_evp_flagevaluation_environment_outcomes(self) -> None:
+        for response in self.outcome_responses:
+            assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
+
+        events = find_evp_flagevaluation_events(self.outcomes_flag_key)
+        assert_total_evaluation_count(events, 4, self.outcomes_flag_key)
+        for _, event in events:
+            assert_event_contract(event, self.outcomes_flag_key)
+            assert_environment_identity(event, TEST_ENVIRONMENT_ID, "Production")
+
+        assert any(
+            object_key(event.get("allocation"), "allocation") is None and event.get("runtime_default_used") is True
+            for _, event in events
+        ), "an evaluation without allocations must retain environment identity on its code-default event"
+        assert any(
+            object_key(event.get("allocation"), "allocation") == "replacement-allocation"
+            and event.get("runtime_default_used") is not True
+            for _, event in events
+        ), "an allocation replacement must retain environment identity on subsequent successful evaluations"
+        assert any(event.get("error") for _, event in events), "a configured type error must produce an error event"
+
+        missing_events = find_evp_flagevaluation_events(self.missing_flag_key)
+        assert_total_evaluation_count(missing_events, 1, self.missing_flag_key)
+        for _, event in missing_events:
+            assert_event_contract(event, self.missing_flag_key)
+            assert_environment_identity(event, TEST_ENVIRONMENT_ID, "Production")
+            assert event.get("runtime_default_used") is True
+            assert event.get("error"), "a missing flag in a loaded configuration must produce an error event"
+
+    def setup_ffe_evp_flagevaluation_environment_replacement(self) -> None:
+        self.replacement_flag_key = "evp-environment-replacement-flag"
+        config_path = f"{RC_PATH}/ffe-evp-environment-replacement/config"
+        self.replacement_responses: list[HttpResponse] = []
+        rc.tracer_rc_state.reset()
+        for environment_id, environment_name in REPLACEMENT_ENVIRONMENT_IDENTITIES:
+            rc.tracer_rc_state.set_config(
+                config_path,
+                make_ufc_fixture(
+                    self.replacement_flag_key,
+                    environment_id=environment_id,
+                    environment_name=environment_name,
+                ),
+            ).apply()
+            self.replacement_responses.extend(
+                evaluate_flag(self.replacement_flag_key, targeting_key="environment-replacement-user") for _ in range(2)
+            )
+
+    def test_ffe_evp_flagevaluation_environment_replacement(self) -> None:
+        for response in self.replacement_responses:
+            assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
+
+        events = find_evp_flagevaluation_events(self.replacement_flag_key)
+        assert_total_evaluation_count(events, 6, self.replacement_flag_key)
+        counts: dict[tuple[str, str], int] = {}
+        for _, event in events:
+            assert_event_contract(event, self.replacement_flag_key)
+            environment = event.get("environment")
+            assert isinstance(environment, dict), f"environment must be an object: {event}"
+            environment_id = environment.get("id")
+            environment_name = environment.get("name")
+            assert isinstance(environment_id, str), f"environment.id must be a string: {event}"
+            assert isinstance(environment_name, str), f"environment.name must be a string: {event}"
+            evaluation_count = event.get("evaluation_count")
+            assert isinstance(evaluation_count, int), f"evaluation_count must be an integer: {event}"
+            identity = (environment_id, environment_name)
+            counts[identity] = counts.get(identity, 0) + evaluation_count
+
+        assert counts == dict.fromkeys(REPLACEMENT_ENVIRONMENT_IDENTITIES, 2), (
+            "configuration replacements and environment renames must form distinct aggregation buckets"
+        )
+        assert_no_duplicate_visible_events(events)
+
+    def setup_ffe_evp_flagevaluation_environment_legacy_and_absent(self) -> None:
+        self.legacy_flag_key = "evp-environment-legacy-flag"
+        self.no_config_flag_key = "evp-environment-no-config-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/ffe-evp-environment-legacy/config",
+            make_ufc_fixture(self.legacy_flag_key, environment_name="Legacy"),
+        ).apply()
+        self.legacy_response = evaluate_flag(self.legacy_flag_key, targeting_key="environment-legacy-user")
+
+        rc.tracer_rc_state.reset().apply()
+        self.no_config_response = evaluate_flag(self.no_config_flag_key, targeting_key="environment-no-config-user")
+
+    def test_ffe_evp_flagevaluation_environment_legacy_and_absent(self) -> None:
+        assert self.legacy_response.status_code == 200, f"Flag evaluation failed: {self.legacy_response.text}"
+        assert self.no_config_response.status_code == 200, f"Flag evaluation failed: {self.no_config_response.text}"
+
+        legacy_events = find_evp_flagevaluation_events(self.legacy_flag_key)
+        assert_total_evaluation_count(legacy_events, 1, self.legacy_flag_key)
+        for _, event in legacy_events:
+            assert_event_contract(event, self.legacy_flag_key)
+            assert_environment_identity(event, None, "Legacy")
+
+        no_config_events = find_evp_flagevaluation_events(self.no_config_flag_key)
+        assert_total_evaluation_count(no_config_events, 1, self.no_config_flag_key)
+        for _, event in no_config_events:
+            assert_event_contract(event, self.no_config_flag_key)
+            assert "environment" not in event, (
+                "an evaluation without configuration must not fabricate environment identity"
+            )
 
 
 @scenarios.feature_flagging_and_experimentation

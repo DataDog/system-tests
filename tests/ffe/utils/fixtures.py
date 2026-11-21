@@ -25,6 +25,8 @@ def make_ufc_fixture(
     variation_values: dict[str, VariationValue] | None = None,
     observe_full_evaluation_data: bool | None = None,
     serial_id: int | None = None,
+    environment_id: str | None = None,
+    environment_name: str = "Test",
 ) -> JSON:
     values = variation_values or DEFAULT_VARIATION_VALUES[variation_type]
 
@@ -32,10 +34,14 @@ def make_ufc_fixture(
     if serial_id is not None:
         split["serialId"] = serial_id
 
+    environment: JSON = {"name": environment_name}
+    if environment_id is not None:
+        environment["id"] = environment_id
+
     ufc: JSON = {
         "createdAt": "2024-04-17T19:40:53.716Z",
         "format": "SERVER",
-        "environment": {"name": "Test"},
+        "environment": environment,
         "flags": {
             flag_key: {
                 "key": flag_key,
