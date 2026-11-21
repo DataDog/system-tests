@@ -11,6 +11,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.*;
 import java.io.Closeable;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,10 @@ public class OpenTelemetryMetricsController {
 
   /** Previously created instruments of various types. */
   private final Map<String, Object> instruments = new ConcurrentHashMap<>();
+
+  /** Observations reported by asynchronous instrument callbacks, keyed by instrument key. */
+  private final Map<String, List<SetAsynchronousObservationsArgs.Observation>>
+      asynchronousObservations = new ConcurrentHashMap<>();
 
   @PostMapping("get_meter")
   public void getMeter(@RequestBody GetMeterArgs args) {
@@ -135,8 +140,12 @@ public class OpenTelemetryMetricsController {
     String instrumentKey =
         instrumentKey(
             meterName, args.name(), "observable_counter", args.unit(), args.description());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableLongMeasurement> observeCallback =
-        measurement -> measurement.record(args.value().longValue(), fromMap(args.attributes()));
+        measurement ->
+            asynchronousObservations
+                .getOrDefault(instrumentKey, List.of())
+                .forEach(o -> measurement.record(o.value().longValue(), fromMap(o.attributes())));
     ObservableLongCounter observableCounter =
         meter
             .counterBuilder(args.name())
@@ -155,8 +164,12 @@ public class OpenTelemetryMetricsController {
     String instrumentKey =
         instrumentKey(
             meterName, args.name(), "observable_updowncounter", args.unit(), args.description());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableLongMeasurement> observeCallback =
-        measurement -> measurement.record(args.value().longValue(), fromMap(args.attributes()));
+        measurement ->
+            asynchronousObservations
+                .getOrDefault(instrumentKey, List.of())
+                .forEach(o -> measurement.record(o.value().longValue(), fromMap(o.attributes())));
     ObservableLongUpDownCounter observableUpDownCounter =
         meter
             .upDownCounterBuilder(args.name())
@@ -173,8 +186,13 @@ public class OpenTelemetryMetricsController {
     Meter meter = lookupMeter(meterName);
     String instrumentKey =
         instrumentKey(meterName, args.name(), "observable_gauge", args.unit(), args.description());
+    setObservations(instrumentKey, args.value(), args.attributes());
     Consumer<ObservableDoubleMeasurement> observeCallback =
-        measurement -> measurement.record(args.value().doubleValue(), fromMap(args.attributes()));
+        measurement ->
+            asynchronousObservations
+                .getOrDefault(instrumentKey, List.of())
+                .forEach(
+                    o -> measurement.record(o.value().doubleValue(), fromMap(o.attributes())));
     ObservableDoubleGauge observableGauge =
         meter
             .gaugeBuilder(args.name())
@@ -182,6 +200,25 @@ public class OpenTelemetryMetricsController {
             .setDescription(args.description())
             .buildWithCallback(observeCallback);
     instruments.put(instrumentKey, observableGauge);
+  }
+
+  @PostMapping("set_asynchronous_observations")
+  public void setAsynchronousObservations(@RequestBody SetAsynchronousObservationsArgs args) {
+    LOGGER.info("Setting OTel asynchronous instrument observations: {}", args);
+    String instrumentKey =
+        instrumentKey(
+            args.meterName(),
+            args.name(),
+            "observable_" + args.kind(),
+            args.unit(),
+            args.description());
+    asynchronousObservations.put(instrumentKey, List.copyOf(args.observations()));
+  }
+
+  private void setObservations(
+      String instrumentKey, Number value, Map<String, String> attributes) {
+    asynchronousObservations.put(
+        instrumentKey, List.of(new SetAsynchronousObservationsArgs.Observation(value, attributes)));
   }
 
   @PostMapping("create_histogram")

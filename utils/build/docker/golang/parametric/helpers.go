@@ -283,6 +283,20 @@ type OtelCreateAsynchronousGaugeArgs struct {
 	Attributes  AttributeKeyVals `json:"attributes"`
 }
 
+type OtelAsynchronousObservation struct {
+	Value      float64          `json:"value"`
+	Attributes AttributeKeyVals `json:"attributes"`
+}
+
+type OtelSetAsynchronousObservationsArgs struct {
+	MeterName    string                        `json:"meter_name"`
+	Kind         string                        `json:"kind"`
+	Name         string                        `json:"name"`
+	Unit         string                        `json:"unit"`
+	Description  string                        `json:"description"`
+	Observations []OtelAsynchronousObservation `json:"observations"`
+}
+
 type OtelMetricsForceFlushArgs struct {
 }
 

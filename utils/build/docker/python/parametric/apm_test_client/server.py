@@ -105,6 +105,8 @@ ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 otel_meters: Dict[str, Meter] = {}
 otel_meter_instruments: Dict[str, Instrument] = {}
+# Observations reported by asynchronous instrument callbacks, keyed by instrument key
+otel_asynchronous_observations: Dict[str, List[Tuple[Union[int, float], dict]]] = {}
 logger_dict: Dict[str, Any] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
@@ -1246,6 +1248,16 @@ def otel_histogram_record(args: OtelHistogramRecordArgs):
     return OtelHistogramRecordReturn()
 
 
+def stored_observations_callback(instrument_key: str):
+    """Return a callback that reports the observations currently stored for the instrument key."""
+
+    def observable_func(options: CallbackOptions):
+        for observation_value, observation_attributes in otel_asynchronous_observations.get(instrument_key, []):
+            yield Observation(observation_value, observation_attributes)
+
+    return observable_func
+
+
 class OtelCreateAsynchronousCounterArgs(BaseModel):
     meter_name: str
     name: str
@@ -1259,26 +1271,23 @@ class OtelCreateAsynchronousCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_counter_func(value: Union[int, float], attributes: dict):
-    def observable_counter_func(options: CallbackOptions):
-        yield Observation(value, attributes)
-
-    return observable_counter_func
-
-
 @app.post("/metrics/otel/create_asynchronous_counter")
 def otel_create_asynchronous_counter(args: OtelCreateAsynchronousCounterArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     meter = otel_meters[args.meter_name]
-    observable_counter = meter.create_observable_counter(
-        args.name, [create_constant_observable_counter_func(args.value, args.attributes)], args.unit, args.description
-    )
-
     instrument_key = create_instrument_key(
         args.meter_name, args.name, "observable_counter", args.unit, args.description
     )
+    otel_asynchronous_observations[instrument_key] = [(args.value, args.attributes)]
+    observable_counter = meter.create_observable_counter(
+        args.name,
+        [stored_observations_callback(instrument_key)],
+        args.unit,
+        args.description,
+    )
+
     otel_meter_instruments[instrument_key] = observable_counter
     return OtelCreateAsynchronousCounterReturn()
 
@@ -1296,29 +1305,23 @@ class OtelCreateAsynchronousUpDownCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_updowncounter_func(value: Union[int, float], attributes: dict):
-    def observable_updowncounter_func(options: CallbackOptions):
-        yield Observation(value, attributes)
-
-    return observable_updowncounter_func
-
-
 @app.post("/metrics/otel/create_asynchronous_updowncounter")
 def otel_create_asynchronous_updowncounter(args: OtelCreateAsynchronousUpDownCounterArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     meter = otel_meters[args.meter_name]
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, "observable_updowncounter", args.unit, args.description
+    )
+    otel_asynchronous_observations[instrument_key] = [(args.value, args.attributes)]
     observable_updowncounter = meter.create_observable_up_down_counter(
         args.name,
-        [create_constant_observable_updowncounter_func(args.value, args.attributes)],
+        [stored_observations_callback(instrument_key)],
         args.unit,
         args.description,
     )
 
-    instrument_key = create_instrument_key(
-        args.meter_name, args.name, "observable_updowncounter", args.unit, args.description
-    )
     otel_meter_instruments[instrument_key] = observable_updowncounter
     return OtelCreateAsynchronousUpDownCounterReturn()
 
@@ -1336,26 +1339,50 @@ class OtelCreateAsynchronousGaugeReturn(BaseModel):
     pass
 
 
-def create_constant_observable_gauge_func(value: Union[int, float], attributes: dict):
-    def observable_gauge_func(options: CallbackOptions):
-        yield Observation(value, attributes)
-
-    return observable_gauge_func
-
-
 @app.post("/metrics/otel/create_asynchronous_gauge")
 def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     meter = otel_meters[args.meter_name]
+    instrument_key = create_instrument_key(args.meter_name, args.name, "observable_gauge", args.unit, args.description)
+    otel_asynchronous_observations[instrument_key] = [(args.value, args.attributes)]
     observable_gauge = meter.create_observable_gauge(
-        args.name, [create_constant_observable_gauge_func(args.value, args.attributes)], args.unit, args.description
+        args.name,
+        [stored_observations_callback(instrument_key)],
+        args.unit,
+        args.description,
     )
 
-    instrument_key = create_instrument_key(args.meter_name, args.name, "observable_gauge", args.unit, args.description)
     otel_meter_instruments[instrument_key] = observable_gauge
     return OtelCreateAsynchronousGaugeReturn()
+
+
+class OtelAsynchronousObservation(BaseModel):
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelSetAsynchronousObservationsArgs(BaseModel):
+    meter_name: str
+    kind: str
+    name: str
+    unit: str
+    description: str
+    observations: List[OtelAsynchronousObservation]
+
+
+class OtelSetAsynchronousObservationsReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/set_asynchronous_observations")
+def otel_set_asynchronous_observations(args: OtelSetAsynchronousObservationsArgs):
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, f"observable_{args.kind}", args.unit, args.description
+    )
+    otel_asynchronous_observations[instrument_key] = [(o.value, o.attributes) for o in args.observations]
+    return OtelSetAsynchronousObservationsReturn()
 
 
 class OtelMetricsForceFlushArgs(BaseModel):
