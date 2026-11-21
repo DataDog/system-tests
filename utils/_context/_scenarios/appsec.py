@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from ._core import DdTraceEndToEndScenario, EndToEndScenario, scenario_groups
@@ -147,6 +150,38 @@ class AppsecRuntimeActivation(DdTraceEndToEndScenario):
         )
 
 
+# Inline fixtures so edits select this scenario in CI.
+_SCA_ADVISORIES = {
+    "java": {
+        "version": 1,
+        "entries": [
+            {
+                "vuln_id": "system-tests-sca",
+                "artifact": "com.github.junrar:junrar",
+                "version_ranges": [">=0"],
+                "symbols": [{"class": "com/github/junrar/LocalFolderExtractor", "method": "createDirectory"}],
+            }
+        ],
+    },
+    "python": {
+        "targets": [
+            {
+                "id": "system-tests-sca",
+                "lang": "python",
+                "dependency_name": "requests",
+                "package_versions": [">=0"],
+                "targets": ["requests.sessions:Session.send"],
+                "vulnerability": {
+                    "id": "system-tests-sca",
+                    "severity": "LOW",
+                    "description": "Synthetic requests target for system-tests SCA reachability coverage.",
+                },
+            }
+        ]
+    },
+}
+
+
 class RuntimeScaReachability(DdTraceEndToEndScenario):
     """Scenario to test SCA telemetry events"""
 
@@ -158,6 +193,23 @@ class RuntimeScaReachability(DdTraceEndToEndScenario):
             },
             scenario_groups=[scenario_groups.appsec],
         )
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        if self.replay:
+            return
+
+        container = self.weblog_infra.library_container
+        advisory = _SCA_ADVISORIES.get(container.image.labels["system-tests-library"])
+        if advisory is None:
+            return
+
+        catalog = Path(container.log_folder_path) / "sca-advisories.json"
+        catalog.write_text(json.dumps(advisory), encoding="utf-8")
+
+        container_path = "/sca/advisories.json"
+        container.volumes[str(catalog)] = {"bind": container_path, "mode": "ro"}
+        container.environment["_DD_APPSEC_SCA_CVE_FILE"] = container_path
 
 
 class IastDeduplication(DdTraceEndToEndScenario):

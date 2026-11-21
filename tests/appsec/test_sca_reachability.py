@@ -18,23 +18,28 @@ SCA_REACHABILITY_RFC = "https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJ
 # Only populate entries once the language's tracer supports SCA reachability
 # and the expected values are confirmed. Missing languages gracefully
 # degrade: structural assertions still run, but value comparisons are skipped.
-# `cve_id` is a list to support retrocompatibility across tracer versions that
-# may emit different identifiers (e.g. CVE id vs GHSA id) for the same advisory.
+# Regular and Lambda scenarios use the same synthetic advisory for each language.
 _LANG_CONFIG: dict[str, dict[str, Any]] = {
     "python": {
-        "cve_id": ["CVE-2024-35195", "GHSA-652x-xj99-gmcc"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "requests",
         "path": "app.py",
         "symbol": "sca_requests_vulnerable_call",
     },
     "java": {
-        "cve_id": ["GHSA-hf5p-q87m-crj7"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "junrar",
         "path": "com.datadoghq.system_tests.springboot.ScaReachability",
         "symbol": "junrarHit",
     },
+    "python_lambda": {
+        "cve_id": ["system-tests-sca"],
+        "vulnerable_dep": "requests",
+        "path": "handler.py",
+        "symbol": "sca_requests_vulnerable_call",
+    },
     "java_lambda": {
-        "cve_id": ["GHSA-hf5p-q87m-crj7"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "junrar",
         "path": "com.datadoghq.lambda.ScaReachability",
         "symbol": "junrarHit",
