@@ -135,7 +135,34 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (Laravel and Symfony route parsers reject non-word chars in parameter names)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        php-fpm-8.5: '>=2.0.0'
+        apache-mod-8.2: '>=2.0.0'
+        apache-mod-7.3-zts: '>=2.0.0'
+        apache-mod-7.4-zts: '>=2.0.0'
+        apache-mod-8.0: '>=2.0.0'
+        apache-mod-8.1-zts: '>=2.0.0'
+        apache-mod-7.0: '>=2.0.0'
+        php-fpm-7.1: '>=2.0.0'
+        php-fpm-7.2: '>=2.0.0'
+        apache-mod-7.1: '>=2.0.0'
+        php-fpm-7.4: '>=2.0.0'
+        apache-mod-7.2-zts: '>=2.0.0'
+        php-fpm-8.0: '>=2.0.0'
+        php-fpm-7.3: '>=2.0.0'
+        apache-mod-7.4: '>=2.0.0'
+        apache-mod-7.0-zts: '>=2.0.0'
+        php-fpm-8.1: '>=2.0.0'
+        apache-mod-7.3: '>=2.0.0'
+        php-fpm-8.2: '>=2.0.0'
+        php-fpm-7.0: '>=2.0.0'
+        apache-mod-8.0-zts: '>=2.0.0'
+        apache-mod-8.2-zts: '>=2.0.0'
+        apache-mod-7.1-zts: '>=2.0.0'
+        apache-mod-7.2: '>=2.0.0'
+        apache-mod-8.1: '>=2.0.0'
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
