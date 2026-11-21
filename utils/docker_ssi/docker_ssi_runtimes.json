@@ -140,6 +140,11 @@
       {
         "version_id": "PY315",
         "version": "3.15.2"
+      },
+      {
+        "version_id": "PY316A2",
+        "version": "3.16.0a2",
+        "expected_ssi_result": "abort"
       }
     ],
     "php": [

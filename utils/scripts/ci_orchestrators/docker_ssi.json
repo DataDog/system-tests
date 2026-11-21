@@ -75,6 +75,18 @@
                     ]
                 }
             ]
+        },
+        {
+            "scenarios": [
+                "DOCKER_SSI_GUARDRAIL"
+            ],
+            "weblogs": [
+                {
+                    "python": [
+                        "py-app"
+                    ]
+                }
+            ]
         }
     ],
     "weblogs_spec": {

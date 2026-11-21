@@ -241,7 +241,12 @@ def _write_docker_ssi_files(folder: Path) -> tuple[str, str, str]:
         }
     }
     docker_ssi = {
-        "scenario_matrix": [{"scenarios": ["DOCKER_SSI"], "weblogs": [{"python": ["py-app", "py-explicit-app"]}]}],
+        "scenario_matrix": [
+            {
+                "scenarios": ["DOCKER_SSI", "DOCKER_SSI_GUARDRAIL"],
+                "weblogs": [{"python": ["py-app", "py-explicit-app"]}],
+            }
+        ],
         "weblogs_spec": {
             "python": [
                 {
@@ -271,3 +276,13 @@ def test_docker_ssi_matrix_excludes_abort_runtimes(tmp_path: Path) -> None:
 
     assert matrix["DOCKER_SSI"]["py-app"] == [{"ubuntu:22.04": ["3.14.10"], "arch": "linux/amd64"}]
     assert matrix["DOCKER_SSI"]["py-explicit-app"] == [{"ubuntu:22.04": ["3.14.10"], "arch": "linux/amd64"}]
+
+
+@scenarios.test_the_test
+def test_docker_ssi_matrix_guardrail_only_runs_abort_runtimes(tmp_path: Path) -> None:
+    images, runtimes, docker_ssi = _write_docker_ssi_files(tmp_path)
+
+    matrix: dict = get_docker_ssi_matrix(images, runtimes, docker_ssi, [scenarios.docker_ssi_guardrail], "python")
+
+    assert matrix["DOCKER_SSI_GUARDRAIL"]["py-app"] == [{"ubuntu:22.04": ["3.16.0a2"], "arch": "linux/amd64"}]
+    assert matrix["DOCKER_SSI_GUARDRAIL"]["py-explicit-app"] == [{"ubuntu:22.04": ["3.16.0a2"], "arch": "linux/amd64"}]
