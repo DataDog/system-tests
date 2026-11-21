@@ -1,0 +1,31 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Expression",
+            "sourceFile": null
+        },
+        "when": {
+            "dsl": "testStruct.Dictionary['nope'] == 1",
+            "json": {
+                "eq": [
+                    {
+                        "index": [
+                            {"getmember": [{"ref": "testStruct"}, "Dictionary"]},
+                            "nope"
+                        ]
+                    },
+                    1
+                ]
+            }
+        },
+        "captureSnapshot": true,
+        "segments": [
+            {"str": "missing-map-key condition fired"}
+        ]
+    }
+]

@@ -202,6 +202,24 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 
         self._validate_capture_expressions(expected_captures)
 
+    def setup_complex_capture_expressions_dictionary_value(self):
+        self._setup("probe_capture_expressions_complex", "/debugger/expression?inputValue=testValue", "log", lines=None)
+
+    def test_complex_capture_expressions_dictionary_value(self):
+        """``testStruct.Dictionary['two']`` names an existing key, so it must capture 2, not a not-captured marker."""
+        self._assert()
+
+        expected_captures = {
+            probe_id: {
+                "dictionary_value": lambda v: (
+                    isinstance(v, dict) and "notCapturedReason" not in v and str(v.get("value")) == "2"
+                ),
+            }
+            for probe_id in self.probe_ids
+        }
+
+        self._validate_capture_expressions(expected_captures)
+
 
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
