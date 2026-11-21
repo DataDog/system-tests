@@ -188,7 +188,9 @@ The `uds` weblog does not support these build arguments or the local package sou
 A provider built with evaluation telemetry off sends no flag evaluation EVP events and no
 `feature_flag.evaluations` metric for its evaluations. A provider built with exposures off sends
 no exposures and records nothing in the exposure deduplication cache. Both default to on, are set
-in code only, and do not change flag values. The Java reference is
+in code only, and do not change flag values. The fixture has a single allocation, so the tests
+check that values are unchanged, not that assignment interactions such as experimentation opt-out
+are; SDK unit tests cover those. The Java reference is
 `Provider.Options#evaluationTelemetryEnabled(boolean)` and `#exposuresEnabled(boolean)` in
 [dd-trace-java#12387](https://github.com/DataDog/dd-trace-java/pull/12387).
 
@@ -199,7 +201,7 @@ off, exposures off, and both off.
 
 | Provider | Subject evaluated only through it | Subject evaluated through it, then the default client |
 | --- | --- | --- |
-| Telemetry off | One exposure; no EVP evaluations or metric | Not checked |
+| Telemetry off | One exposure; no EVP evaluations or metric | EVP evaluation from the default client only; exposures not checked |
 | Exposures off | No exposures; EVP evaluations and metric | Exactly one exposure, same variant; EVP evaluations from both |
 | Both off | Nothing | Exactly one exposure, same variant; one EVP evaluation |
 
@@ -211,10 +213,12 @@ flags evaluated through the configured provider alone. Span enrichment is not co
 does not enable it.
 
 Only the Java `spring-boot` weblog implements `POST /ffe/provider-options`. It sets the options by
-reflection and answers 501 on SDK versions without them. Go and Ruby manifests mark these classes
-`incomplete_test_app` until their weblogs implement the endpoint. Every library is marked
-`missing_feature` until a release contains the options. To validate a local build, put its artifacts in
-`binaries/` and force the tests:
+reflection and answers 501 on SDK versions without them. Java runs the tests on `spring-boot` from
+the first development version that contains the options. Other libraries are marked `missing_feature`
+or `irrelevant`; Go and Ruby also mark these classes `incomplete_test_app` until their weblogs implement
+the endpoint, and any other library must do the same when it enables the tests. To validate a local
+build, put its artifacts in `binaries/` (see [binaries](../../docs/execute/binaries.md#java-library)).
+A local Java build at or above the manifest version runs the tests directly; otherwise, force them:
 
 ```bash
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION tests/ffe/test_evaluation_telemetry_and_exposures_switches.py \

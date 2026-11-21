@@ -8,6 +8,7 @@ provider is built with the requested options; `POST /ffe` evaluates through the 
 For each combination with a switch off, one subject is evaluated only through the configured provider:
 only the switched-off signal may be missing. With exposures off, a second subject is evaluated through
 the configured provider, then the default one, and must get exactly one exposure with the same variant.
+EVP and metric classes also evaluate a telemetry-off subject through both.
 The configured provider therefore neither sends an exposure nor records the subject in the shared
 exposure deduplication cache. Every signal has its own class so manifests can describe SDK support.
 """
@@ -76,8 +77,8 @@ class _ProviderOptionsContract:
     def _prepare(self, signal: str) -> None:
         for label, evaluation_telemetry, exposures in COMBINATIONS:
             # Whether a default evaluation adds an exposure after one was sent depends on whether
-            # providers share their deduplication cache, so check it only when none was sent.
-            for then_default in [False] if exposures else [False, True]:
+            # providers share their deduplication cache, so exposures check it only when none was sent.
+            for then_default in [False] if exposures and signal == "exposures" else [False, True]:
                 flag = f"switches-{signal}-{label}" + ("-then-default" if then_default else "")
                 self.cases.append(
                     SwitchCase(
@@ -128,6 +129,8 @@ class Test_FFE_Provider_Options_Exposures(_ProviderOptionsContract):
         for case in self.cases:
             events = _exposures(case)
             if case["then_default"]:
+                # With the both-off and exposures-off subjects evaluated only through the configured
+                # provider getting none, this one exposure comes from the default client.
                 assert len(events) == 1, f"{case['flag']}: expected one exposure, from the default client, got {events}"
             elif case["exposures"]:
                 assert len(events) == 1, f"{case['flag']}: expected one deduplicated exposure, got {events}"

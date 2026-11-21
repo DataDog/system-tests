@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 public class FeatureFlagEvaluatorController {
@@ -105,7 +104,7 @@ public class FeatureFlagEvaluatorController {
         final String domain = "telemetry-" + evaluationTelemetry + "-exposures-" + exposures;
         Client optionClient = optionClients.get(domain);
         if (optionClient == null) {
-            final Provider.Options options = new Provider.Options().initTimeout(30, TimeUnit.SECONDS);
+            final Provider.Options options = new Provider.Options();
             options.getClass().getMethod("evaluationTelemetryEnabled", boolean.class).invoke(options, evaluationTelemetry);
             options.getClass().getMethod("exposuresEnabled", boolean.class).invoke(options, exposures);
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
