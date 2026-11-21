@@ -12,6 +12,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 | `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
+| `test_evaluation_telemetry_and_exposures_switches.py` | Per-provider options that turn off evaluation telemetry and exposures |
 
 ## Canonical parametric fixtures
 
@@ -181,6 +182,48 @@ Brackets require that exact version. A plain version is a minimum; NuGet can sel
 Use unique candidate versions that are not published on nuget.org, so only `binaries/` can supply them.
 Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
 The `uds` weblog does not support these build arguments or the local package source.
+
+## Evaluation telemetry and exposures provider options
+
+A provider built with evaluation telemetry off sends no flag evaluation EVP events and no
+`feature_flag.evaluations` metric for its evaluations. A provider built with exposures off sends
+no exposures and records nothing in the exposure deduplication cache. Both default to on, are set
+in code only, and do not change flag values. The fixture has a single allocation, so the tests
+check that values are unchanged, not that assignment interactions such as experimentation opt-out
+are; SDK unit tests cover those. The Java reference is
+`Provider.Options#evaluationTelemetryEnabled(boolean)` and `#exposuresEnabled(boolean)` in
+[dd-trace-java#12387](https://github.com/DataDog/dd-trace-java/pull/12387).
+
+The tests run in `FEATURE_FLAGGING_AND_EXPERIMENTATION`. `POST /ffe/provider-options` evaluates
+through an OpenFeature domain whose provider is built with the requested options, and `POST /ffe`
+through the default domain. Exposure, EVP, and metric classes each check three providers: telemetry
+off, exposures off, and both off.
+
+| Provider | Subject evaluated only through it | Subject evaluated through it, then the default client |
+| --- | --- | --- |
+| Telemetry off | One exposure; no EVP evaluations or metric | EVP evaluation from the default client only; exposures not checked |
+| Exposures off | No exposures; EVP evaluations and metric | Exactly one exposure, same variant; EVP evaluations from both |
+| Both off | Nothing | Exactly one exposure, same variant; one EVP evaluation |
+
+A subject evaluated first through a provider with exposures off must still get the exposure from the
+default client, so the first provider recorded nothing in the shared deduplication cache. When the first
+provider sends an exposure, whether the default client sends another depends on whether providers share
+their cache, so that case is not checked. Metrics carry no subject, so suppression is checked only on
+flags evaluated through the configured provider alone. Span enrichment is not covered: the scenario
+does not enable it.
+
+Only the Java `spring-boot` weblog implements `POST /ffe/provider-options`. It sets the options by
+reflection and answers 501 on SDK versions without them. Java runs the tests on `spring-boot` from
+the first development version that contains the options. Other libraries are marked `missing_feature`
+or `irrelevant`; Go and Ruby also mark these classes `incomplete_test_app` until their weblogs implement
+the endpoint, and any other library must do the same when it enables the tests. To validate a local
+build, put its artifacts in `binaries/` (see [binaries](../../docs/execute/binaries.md#java-library)).
+A local Java build at or above the manifest version runs the tests directly; otherwise, force them:
+
+```bash
+./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION tests/ffe/test_evaluation_telemetry_and_exposures_switches.py \
+  -F tests/ffe/test_evaluation_telemetry_and_exposures_switches.py
+```
 
 ## Test-contract self-tests
 

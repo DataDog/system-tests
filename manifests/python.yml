@@ -2294,6 +2294,7 @@ manifest:
     - declaration: flaky (FFL-1622)
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py: missing_feature (Evaluation telemetry and exposures switches are not released yet)
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: v4.2.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:

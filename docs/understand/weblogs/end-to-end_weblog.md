@@ -1305,6 +1305,15 @@ timing. When the array is absent or empty, evaluate the single `targetingKey`.
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
 
+### POST /ffe/provider-options
+
+This endpoint accepts the same body as `POST /ffe`, plus two optional booleans,
+`evaluationTelemetryEnabled` and `exposuresEnabled` (absent means `true`), and
+returns the same response. It evaluates through the client of an OpenFeature
+domain whose Datadog provider is built with those options in code. Create one
+provider per combination of options, on its first request, and keep the default
+`/ffe` client unchanged. If the SDK has no such options, respond with status 501.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :
