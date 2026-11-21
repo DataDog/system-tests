@@ -816,6 +816,12 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
+    def ffe_core_provider(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Exercise a locally initialized provider through OpenFeature in a fresh process."""
+        response = self._session.post(self._url("/ffe/core-provider"), json=options, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
+
     def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
         """Fetch and serialize portable rules in a process without tracer/provider initialization."""
         response = self._session.post(self._url("/ffe/fetch-rules-configuration"), json=options, timeout=15)
@@ -1318,6 +1324,10 @@ class APMLibrary:
     def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
         """Fetch and serialize portable rules without initializing a tracer or provider."""
         return self._client.ffe_fetch_rules_configuration(options)
+
+    def ffe_core_provider(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Exercise the standalone provider without initializing the tracer."""
+        return self._client.ffe_core_provider(options)
 
     def ffe_start(
         self, configuration: dict | None = None, *, flag_selection: dict[str, list[str]] | None = None
