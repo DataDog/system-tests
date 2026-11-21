@@ -33,3 +33,17 @@ When a modification is made in system tests, the CI tries to detect which scenar
 1. based on modified files in `tests/`, by extracting scenarios targeted by those files
 2. based on any modification in a `tests/**/utils.py`, and applying the logic 1. on any sub file in `tests/**`
 
+## GitLab CI runner images
+
+The `build_ci_image` job publishes the runner selected by `CI_IMAGE` in
+[`utils/ci/gitlab/main.yml`](../../utils/ci/gitlab/main.yml), using a tag derived from its build inputs.
+The `publish_ci_image_nydus` job also publishes that runner at the same tag with a `-nydus` suffix,
+for example `registry.ddbuild.io/system-tests/ci-runner:ff6ff6ba2012-nydus`.
+It runs in normal pipelines after the source image is available, skips conversion when the variant
+already exists, and signs and verifies the resulting digest with `ddsign` on every run.
+
+Conversion uses Datadog's
+[`nydus-convert` helper](https://gitlab.ddbuild.io/ddoghq/images/-/blob/master/nydus/v2.4.2-dd.7/nydus-convert.sh)
+and preserves the source's supported Linux architectures (currently `amd64`; the helper also handles
+`arm64` when present). The existing OCI image and `CI_IMAGE` selection remain unchanged.
+
