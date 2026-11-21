@@ -69,6 +69,8 @@ Rails.application.routes.draw do
   %w(operators strings collections null exception).each do |sub|
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end
+  get '/debugger/correlation' => 'debugger#correlation'
+  get '/debugger/correlation/loop/:loops' => 'debugger#correlation_loop'
 
   scope '/rasp' do
     get 'sqli' => 'rasp#sqli'
