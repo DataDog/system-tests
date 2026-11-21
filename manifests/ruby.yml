@@ -2184,10 +2184,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev
-  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py: missing_feature (Evaluation telemetry and exposures switches are not released yet)
-  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Provider_Options_EVP: incomplete_test_app (The weblog does not provide POST /ffe/provider-options)
-  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Provider_Options_Exposures: incomplete_test_app (The weblog does not provide POST /ffe/provider-options)
-  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py::Test_FFE_Provider_Options_Metrics: incomplete_test_app (The weblog does not provide POST /ffe/provider-options)
+  tests/ffe/test_evaluation_telemetry_and_exposures_switches.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: missing_feature (Evaluation telemetry and exposures switches are not released yet)
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:

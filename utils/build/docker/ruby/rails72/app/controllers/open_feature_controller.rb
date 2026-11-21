@@ -10,10 +10,51 @@ class OpenFeatureController < ApplicationController
     render json: {error: e.message}, status: :internal_server_error
   end
 
-  def evaluate
-    client = OpenFeature::SDK.build_client
+  PROVIDER_OPTIONS = %i[evaluation_telemetry_enabled exposures_enabled].freeze
+  OPTION_CLIENTS = {}
+  OPTION_CLIENTS_MUTEX = Mutex.new
 
+  def evaluate
+    render_evaluation(OpenFeature::SDK.build_client, JSON.parse(request.body.string))
+  end
+
+  # Evaluates like #evaluate, through an OpenFeature domain whose provider is built with the requested
+  # options, one provider per combination. SDKs without the options answer 501.
+  def evaluate_with_provider_options
     payload = JSON.parse(request.body.string)
+    unsupported = PROVIDER_OPTIONS - provider_keywords
+    unless unsupported.empty?
+      return render json: {errorCode: 'UNSUPPORTED', errorMessage: "Provider.new does not support #{unsupported.join(', ')}"},
+        status: :not_implemented
+    end
+
+    options = {
+      evaluation_telemetry_enabled: payload['evaluationTelemetryEnabled'] != false,
+      exposures_enabled: payload['exposuresEnabled'] != false
+    }
+    render_evaluation(option_client(options), payload)
+  rescue => e
+    render json: {errorCode: 'GENERAL', errorMessage: e.message}, status: :internal_server_error
+  end
+
+  private
+
+  def provider_keywords
+    Datadog::OpenFeature::Provider.instance_method(:initialize).parameters
+      .select { |type, _| type == :key || type == :keyreq }.map(&:last)
+  end
+
+  def option_client(options)
+    domain = "telemetry-#{options[:evaluation_telemetry_enabled]}-exposures-#{options[:exposures_enabled]}"
+    OPTION_CLIENTS_MUTEX.synchronize do
+      OPTION_CLIENTS[domain] ||= begin
+        OpenFeature::SDK.set_provider_and_wait(Datadog::OpenFeature::Provider.new(**options), domain: domain)
+        OpenFeature::SDK.build_client(domain: domain)
+      end
+    end
+  end
+
+  def render_evaluation(client, payload)
     args = {
       flag: payload['flag'],
       variation_type: payload['variationType'],

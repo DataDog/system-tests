@@ -772,6 +772,7 @@ func main() {
 	mux.HandleFunc("/stub_dbm", dbm.StubDbmHandler)
 
 	mux.HandleFunc("/ffe", common.FFeEval())
+	mux.HandleFunc("/ffe/provider-options", common.FFeProviderOptionsEval())
 
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)
