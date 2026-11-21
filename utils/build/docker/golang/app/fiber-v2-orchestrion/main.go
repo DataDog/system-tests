@@ -214,6 +214,7 @@ func newApp() *fiber.App {
 	app.All("/requestdownstream", httpHandler(common.Requestdownstream))
 	app.All("/returnheaders", httpHandler(common.Returnheaders))
 	app.All("/ffe", httpHandler(common.FFeEval()))
+	app.All("/ffe/provider-options", httpHandler(common.FFeProviderOptionsEval()))
 
 	var debugger DebuggerController
 	app.All("/debugger/log", httpHandler(debugger.logProbe))
