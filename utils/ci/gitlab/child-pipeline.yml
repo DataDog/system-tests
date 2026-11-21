@@ -41,6 +41,32 @@ setup:
     KUBERNETES_HELPER_CPU_REQUEST: 50m
     KUBERNETES_HELPER_MEMORY_REQUEST: 25Mi
 
+# Dev mode only (see build_pipeline.py): dev binaries of the agent and of one library, downloaded by all its jobs
+.system_tests_dev_binaries:
+  extends: .system_tests_base
+  # each load-binary.sh call has its own timeout and retries (see jobs/load_dev_binaries.py): ~35 minutes at most
+  timeout: 40 minutes
+  # like the default retry, but not on timeouts: the job already retries what can hang, a timeout is not transient
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - scheduler_failure
+      - unknown_failure
+      - data_integrity_failure
+    exit_codes:
+      - 255
+  id_tokens:
+    # merged with the ones of .system_tests_base. Used to get a GitHub token from dd-octo-sts, only by the jobs
+    # setting SYSTEM_TESTS_DEV_BINARIES_GITHUB_TOKEN
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  script:
+    - python utils/ci/gitlab/run_job.py load_dev_binaries
+  artifacts:
+    paths:
+      - dev-binaries/
+
 .system_tests_build:
   extends: .system_tests_base
   script:

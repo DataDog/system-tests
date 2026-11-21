@@ -1,0 +1,10 @@
+workflow:
+  name: "System-tests end to end (empty chunk)"
+stages:
+  - e2e
+noop:
+  stage: e2e
+  tags:
+    - arch:amd64
+  script:
+    - echo "no libraries assigned to this chunk"
