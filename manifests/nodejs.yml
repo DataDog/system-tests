@@ -364,11 +364,27 @@ manifest:
   : incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <6.26.0
+      weblog: [express5]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [express5]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        express5: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
+    - weblog_declaration:
+        express5: missing_feature (RFC-1125 not implemented yet)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <6.26.0
+      weblog: [express5]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [express5]
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Node.js weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
@@ -897,7 +913,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: *ref_5_30_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
     - weblog_declaration:
@@ -929,7 +945,7 @@ manifest:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: *ref_5_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
     - weblog_declaration:
@@ -955,7 +971,7 @@ manifest:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
@@ -1055,7 +1071,7 @@ manifest:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
@@ -1095,6 +1111,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
+        nextjs: v6.26.0  # TODO: a lower version might be supported
     - declaration: bug (APPSEC-71459)
       component_version: *ref_6_26_0
       weblog: [nextjs]
@@ -1103,7 +1120,7 @@ manifest:
         "*": *ref_5_20_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
@@ -1111,7 +1128,7 @@ manifest:
         nextjs: v6.19.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
@@ -1121,7 +1138,7 @@ manifest:
         nextjs: v6.19.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
@@ -1132,7 +1149,7 @@ manifest:
         nextjs: v6.19.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: v6.26.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
