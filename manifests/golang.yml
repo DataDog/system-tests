@@ -171,14 +171,50 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/catch-all not implemented in Go weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": missing_feature
+        "*": incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-chain not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/search not implemented in Go weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-params not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/optional-segment not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/drafts[/preview] not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/param-names not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/encoded not implemented in Go weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+        "*": incomplete_test_app (/api_security/static-text, /version, /files not implemented in Go weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -2312,6 +2348,8 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST=true is unsupported; dd-trace-go panics when extraction fails)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

@@ -1,7 +1,9 @@
 """Tests for the scripts run by the jobs of the generated GitLab child pipeline (utils/ci/gitlab/jobs/)."""
 
+import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from utils import pytest
@@ -52,6 +54,130 @@ def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]
     ):
         monkeypatch.delenv(name, raising=False)
     return recorded
+
+
+@pytest.fixture
+def run_calls(
+    commands: list[list[str]],  # noqa: ARG001 - for its fake system-tests clone and environment
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[list[str], dict[str, object]]]:
+    """Like commands, with the keyword arguments of each run() call."""
+    recorded: list[tuple[list[str], dict[str, object]]] = []
+
+    def record(command: list[str], **kwargs: object) -> int:
+        recorded.append((command, kwargs))
+        return 0
+
+    monkeypatch.setattr(_common, "run", record)
+    return recorded
+
+
+@pytest.fixture
+def subprocess_calls(monkeypatch: pytest.MonkeyPatch) -> tuple[list[list[str]], list[int], list[float]]:
+    """Make the subprocesses started by run() return the exit codes appended to the 2nd list, record the commands
+    in the 1st one, and the pauses between attempts in the 3rd one.
+    """
+    commands: list[list[str]] = []
+    returncodes: list[int] = []
+    sleeps: list[float] = []
+
+    def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+        commands.append(command)
+        return subprocess.CompletedProcess(command, returncodes.pop(0))
+
+    monkeypatch.setattr(_common.subprocess, "run", fake_run)
+    monkeypatch.setattr(_common.time, "sleep", sleeps.append)
+    return commands, returncodes, sleeps
+
+
+TIMEOUT_TAG = ["timeout", "--kill-after=10s", "15s", "datadog-ci", "tag"]
+
+
+@scenarios.test_the_test
+class Test_GitlabRunHelper:
+    def test_command_without_timeout_is_run_once(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.append(3)
+
+        assert _common.run(["false"], check=False) == 3
+        assert commands == [["false"]]
+        assert sleeps == []
+
+    def test_failed_attempt_is_retried(self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.extend([124, 0])
+
+        assert _common.run(["datadog-ci", "tag"], timeout=15, attempts=3) == 0
+        assert commands == [TIMEOUT_TAG, TIMEOUT_TAG]
+        assert sleeps == [5]
+
+    def test_allowed_failure_after_all_attempts(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.extend([124, 1, 137])
+
+        assert _common.run(["datadog-ci", "tag"], allow_failure=True, timeout=15, attempts=3) == 137
+        assert commands == [TIMEOUT_TAG] * 3
+        assert sleeps == [5, 10]
+
+    def test_failure_after_all_attempts_exits(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        _, returncodes, _ = subprocess_calls
+        returncodes.extend([1, 124])
+
+        with pytest.raises(SystemExit) as exc:
+            _common.run(["datadog-ci", "tag"], timeout=15, attempts=2)
+        assert exc.value.code == 124
+
+    def test_hung_command_is_killed(self) -> None:
+        """A real hung command: coreutils timeout stops it, and its children, with exit code 124."""
+        if not shutil.which("timeout"):
+            pytest.skip("coreutils timeout is not installed")
+        start = time.monotonic()
+        # the sleep is a child of sh, like datadog-ci is a child of dd-sts exchange
+        assert _common.run(["sh", "-c", "sleep 30; true"], timeout=1, check=False) == 124
+        assert time.monotonic() - start < 10
+
+    def test_datadog_ci_metadata_calls_are_bounded(
+        self, run_calls: list[tuple[list[str], dict[str, object]]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME", "0")
+
+        _common.tag_job("run")
+        _common.emit_execution_time_metric()
+
+        assert [command[:2] for command, _ in run_calls] == [["datadog-ci", "tag"], ["datadog-ci", "measure"]]
+        for _, kwargs in run_calls:
+            # best-effort, as before
+            assert kwargs == {"allow_failure": True, "timeout": 15, "attempts": 3}
+
+    def test_datadog_ci_trace_is_not_bounded(
+        self, run_calls: list[tuple[list[str], dict[str, object]]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """datadog-ci trace wraps build.sh / run.sh, which legitimately run for minutes."""
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+
+        _common.traced("run python DEFAULT", ["./run.sh", "DEFAULT"])
+
+        assert run_calls == [
+            (_trace("run python DEFAULT", ["system-tests.library:python"], "./run.sh", "DEFAULT"), {"check": True})
+        ]
+
+    def test_junit_upload_is_bounded(self, run_calls: list[tuple[list[str], dict[str, object]]]) -> None:
+        Path("logs_default").mkdir()
+        Path("logs_default/reportJunit.xml").write_text("<testsuites/>")
+
+        push_to_test_optimization.main()
+
+        assert run_calls[0] == (["dd-sts", "debug"], {"timeout": 15})
+        command, kwargs = run_calls[1]
+        assert command[5:8] == ["datadog-ci", "junit", "upload"]
+        # not allowed to fail, as before
+        assert kwargs == {"timeout": 90, "attempts": 2}
 
 
 @scenarios.test_the_test

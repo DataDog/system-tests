@@ -1,0 +1,63 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.30.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.30.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "x64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.18",
+      "X-Stainless-Async": "false",
+      "X-Stainless-Raw-Response": "true",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600.0",
+      "Content-Length": "115",
+      "x-datadog-trace-id": "7044406734884660154",
+      "x-datadog-parent-id": "11878170970915202883",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=5358665898630105528,_dd.p.llmobs_trace_id=142208696038841219233316929362482446538,_dd.p.llmobs_ml_app=test-app,_dd.p.llmobs_sr=1,_dd.p.llmobs_sd=1,_dd.p.tid=6afc660b00000000",
+      "traceparent": "00-6afc660b0000000061c2c29a3e2b63ba-a4d7bd9096c1e743-01",
+      "tracestate": "dd=p:a4d7bd9096c1e743;s:1;t.dm:-0;t.llmobs_parent_id:5358665898630105528;t.llmobs_trace_id:142208696038841219233316929362482446538;t.llmobs_ml_app:test-app;t.llmobs_sr:1;t.llmobs_sd:1;t.tid:6afc660b00000000,ot=rv:32de2271ecd860;th:0"
+    },
+    "body": "{\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2? Answer with one word.\"}],\"model\":\"gpt-4o-mini\",\"max_tokens\":10}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Tue, 17 Nov 2026 14:34:52 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-Ray": "a5bf7568be7e6617-MAD",
+      "CF-Cache-Status": "DYNAMIC",
+      "Server": "cloudflare",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+      "openai-processing-ms": "458",
+      "openai-project": "proj_REDACTED",
+      "openai-version": "2020-10-01",
+      "x-openai-proxy-wasm": "v0.1",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999987",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_REDACTED",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"chatcmpl-ElEYll0Fq30u4cUtw60XwYXsEluhA\",\n  \"object\": \"chat.completion\",\n  \"created\": 1794926091,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"Four.\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 19,\n    \"completion_tokens\": 2,\n    \"total_tokens\": 21,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_eb10824ee9\"\n}\n"
+  }
+}
