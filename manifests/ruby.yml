@@ -396,11 +396,47 @@ manifest:
   : incomplete_test_app (/api_security/three-params not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Ruby weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <2.49.0
+      weblog: [sinatra22, rails61, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [sinatra22, rails61, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        rails80: missing_feature (RFC-1125 not implemented yet)
+        rails61: missing_feature (RFC-1125 not implemented yet)
+        sinatra22: missing_feature (RFC-1125 not implemented yet)
+        uds-rails: missing_feature (RFC-1125 not implemented yet)
+        rails72: missing_feature (RFC-1125 not implemented yet)
+        rails52: missing_feature (RFC-1125 not implemented yet)
+        rails42: missing_feature (RFC-1125 not implemented yet)
+        uds-sinatra: missing_feature (RFC-1125 not implemented yet)
+        sinatra41: missing_feature (RFC-1125 not implemented yet)
+        sinatra32: missing_feature (RFC-1125 not implemented yet)
+        sinatra14: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
+    - weblog_declaration:
+        rails80: missing_feature (RFC-1125 not implemented yet)
+        rails61: missing_feature (RFC-1125 not implemented yet)
+        sinatra22: missing_feature (RFC-1125 not implemented yet)
+        uds-rails: missing_feature (RFC-1125 not implemented yet)
+        rails72: missing_feature (RFC-1125 not implemented yet)
+        rails52: missing_feature (RFC-1125 not implemented yet)
+        rails42: missing_feature (RFC-1125 not implemented yet)
+        uds-sinatra: missing_feature (RFC-1125 not implemented yet)
+        sinatra41: missing_feature (RFC-1125 not implemented yet)
+        sinatra32: missing_feature (RFC-1125 not implemented yet)
+        sinatra14: missing_feature (RFC-1125 not implemented yet)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Ruby weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <2.49.0
+      weblog: [sinatra22, rails61, rack, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [sinatra22, rails61, rack, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Ruby weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
