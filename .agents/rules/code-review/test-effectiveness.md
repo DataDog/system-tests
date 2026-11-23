@@ -1,8 +1,8 @@
 ### TEST-001: Do not reject valid output because of unrelated data.
 - Old_id: codex-09
 - Severity: P1
-- Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input.
-- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`.
+- Flag: When checking one protocol flag, mask that bit and accept other bits the protocol allows, unless the whole field is under test. When checking one member of a list field, such as a `tracestate` vendor or an `x-datadog-tags` entry, find that member. Do not require a count or an order that the protocol does not define. When checking for redaction leaks, use a distinctive marker or the relevant parsed field so unrelated payload values cannot count as leaked input. A mock server must accept a request with an extra parameter that the real service accepts. If timing selects between two valid outcomes, accept each outcome under the condition that selects it.
+- Detect: A sampled-bit assertion requires exact flags `01`. A test requires `len(tracestate) == 1` or compares `x-datadog-tags` as a raw string. A redaction check searches an entire payload for a short marker such as `1234`. A test requires one stats bucket, although the tracer buckets stats by wall-clock time. A test compares serialized JSON strings instead of parsed values.
 - Not when: The whole field is under test.
 - ✅ For the sampled bit, accept `01` and `03` when the extra bit is allowed. Use `assert any(item.startswith("dd=") for item in tracestate)`. A timestamp containing `1234` must not count as leaked input.
 - ❌ `assert len(tracestate) == 1`.
@@ -59,3 +59,16 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-009: Do not let an error pass as a valid result.
+- Severity: P0
+- Flag: The test and its app must report an unexpected failure as a failure. Do not catch every exception and return success. Do not treat a failed command like an empty result. Do not coerce malformed input into a default value. If the app drops data that the test path needs, the test must fail.
+- Detect: A weblog endpoint catches all exceptions and returns 200. A test treats a failed `container_exec_run` like a `pgrep` without match. An app discards decoder errors. A weblog response omits a header that the tested path needs.
+- ✅ Catch only the expected `InvocationTargetException`, and return HTTP 500 for other failures.
+- ❌ `} catch (Exception ignored) {}`
+
+### TEST-010: Assert every expectation that the shared cases define.
+- Severity: P1
+- Flag: A test must check every expected field that a shared fixture or a shared assertion helper defines. Do not skip the helper that sibling tests use.
+- Detect: A runner reads fixture cases and ignores an expectation field such as `result.features`. A test checks one value while its siblings call `_assert_context_evaluation`.
+- ✅ Route the test through `_assert_context_evaluation`, as its siblings do.
