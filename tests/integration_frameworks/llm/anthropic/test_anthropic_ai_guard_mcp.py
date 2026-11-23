@@ -45,7 +45,8 @@ from .utils import TOOLS, BaseAnthropicTest
 
 
 # Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], with
-# key "stdio|python|integration_frameworks.mcp_echo_server" (command, then the module of python -m).
+# key "stdio|python|integration_frameworks.mcp_echo_server" (the program name of the command, then the
+# module of python -m).
 ECHO_SERVER_ID = "mcp_9d097fe19379c0dd"
 # The mcp_servers entry of the weblog echo server: its env and extra args are never reported.
 ECHO_SERVER: dict[str, Any] = {
@@ -84,13 +85,14 @@ def _mcp_create(
     tools: list[dict[str, Any]] | None = None,
     *,
     raise_for_status: bool = True,
+    command_path: bool = False,
 ) -> requests.Response:
-    return test_client.request(
-        "POST",
-        "/mcp/create",
-        dict(model=MODEL, messages=[{"role": "user", "content": prompt}], parameters=PARAMETERS, tools=tools or []),
-        raise_for_status=raise_for_status,
+    body: dict[str, Any] = dict(
+        model=MODEL, messages=[{"role": "user", "content": prompt}], parameters=PARAMETERS, tools=tools or []
     )
+    if command_path:
+        body["command_path"] = True
+    return test_client.request("POST", "/mcp/create", body, raise_for_status=raise_for_status)
 
 
 def _anthropic_spans(test_agent: TestAgentAPI) -> list[dict[str, Any]]:
@@ -172,6 +174,43 @@ class Test_AnthropicAiGuardMcp(BaseAnthropicTest):
         (weather,) = ai_guard_tool_calls(span, "get_weather")
         assert "mcp" not in weather
         assert len(_tool_uses(response, "get_weather")) == 1
+
+    def test_ai_guard_anthropic_mcp_reconnect_same_server_id(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ) -> None:
+        """The server ID does not depend on the connection: each request spawns a new stdio server and
+        opens a new MCP session, and both response evaluations report the same server entry and ID.
+        """
+        with test_agent.vcr_context():
+            responses = [_mcp_create(test_client, ECHO_PROMPT).json() for _ in range(2)]
+
+        anthropic_spans = wait_for_spans(test_agent, lambda traces: spans_named(traces, "anthropic.request"), 2)
+        assert len(anthropic_spans) == 2, f"expected two anthropic.request spans, got {len(anthropic_spans)}"
+        spans = wait_for_ai_guard_spans(test_agent, 4, settle_seconds=SPANS_SETTLE_SECONDS)
+        assert len(spans) == 4, f"expected a prompt and a response evaluation per request, got {len(spans)}"
+        for span in spans:
+            assert "ai_guard.action" in span["meta"], f"an AI Guard evaluation missed its cassette: {span['meta']}"
+
+        tool_spans = [span for span in spans if span["meta"]["ai_guard.target"] == "tool"]
+        assert len(tool_spans) == 2, f"expected one response evaluation per request, got {len(tool_spans)}"
+        for span, response in zip(tool_spans, responses, strict=True):
+            assert ai_guard_mcp_servers(span) == [ECHO_SERVER]
+            _assert_echo_call(span, response, {"server_id": ECHO_SERVER_ID})
+
+    def test_ai_guard_anthropic_mcp_command_path(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ) -> None:
+        """A stdio server started from an absolute path is reported and hashed with its program name only:
+        the path can hold a user name and changes from machine to machine, so it never reaches AI Guard.
+        """
+        with test_agent.vcr_context():
+            response = _mcp_create(test_client, ECHO_PROMPT, command_path=True).json()
+
+        # The cassettes match only when mcp_servers carries command "python" and ECHO_SERVER_ID.
+        spans, span = _evaluations(test_agent, [ECHO_SERVER])
+        _assert_echo_call(span, response, {"server_id": ECHO_SERVER_ID})
+        for guard_span in spans:
+            assert "/python" not in json.dumps(guard_span.get("meta_struct")), "the command path reached AI Guard"
 
     def test_ai_guard_anthropic_mcp_response_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi

@@ -61,6 +61,18 @@ DROPBOX_SERVER = {
     "tools": {"search": "search"},
 }
 
+# The RFC host canonicalization vectors, shared by every tracer: server_label, configured server_url,
+# the url origin reported in mcp_servers (None: omitted, so the name key is used) and the expected ID.
+HOST_VECTORS: list[tuple[str, str, str | None, str]] = [
+    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1", "mcp_bb3842ff8c77d25d"),
+    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080", "mcp_b339e608ea2ddcc1"),
+    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000", "mcp_cc35033de8004f7e"),
+    ("percent_host", "http://%65xample.com/mcp", "http://example.com", "mcp_35da95b0ebe35a00"),
+    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example", "mcp_2607363cabc2eebc"),
+    # An IDN host has no url: key "name|idn_host".
+    ("idn_host", "http://bücher.example/mcp", None, "mcp_905c59cb4ec642b0"),
+]
+
 # The request constants below are the ones the cassettes were generated for: keep them in sync with
 # utils/scripts/gen_aiguard_mcp_cassettes.py, a difference makes the cassettes miss.
 MODEL = "gpt-4.1"
@@ -240,6 +252,52 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         _, span = _matched_evaluations(test_agent, request, [EXAMPLE_SERVER])
         assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
         assert "mcp" not in _tool_call(span, "get_weather")
+
+    def test_ai_guard_openai_mcp_server_id_host_vectors(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
+    ):
+        """Each server_url host is canonicalized with the WHATWG rules before the ID is computed, so
+        every tracer reports the RFC vector ID. An IDN host has no url and gets the ID of its name key.
+        """
+        tools = [
+            {"type": "mcp", "server_label": label, "server_url": url, "require_approval": "never"}
+            for label, url, _, _ in HOST_VECTORS
+        ]
+        with test_agent.vcr_context():
+            _create_response(test_client, "Run the lookup tool of every MCP server.", tools)
+
+        expected_servers = []
+        for label, _, origin, expected_id in HOST_VECTORS:
+            server: dict[str, Any] = {"id": expected_id, "managed_by": "provider", "name": label}
+            if origin is not None:
+                server["url"] = origin
+            server.update(transport="unknown", tools={f"{label}_lookup": f"{label}_lookup"})
+            expected_servers.append(server)
+        _, span = _matched_evaluations(test_agent, request, expected_servers)
+        for label, _, _, expected_id in HOST_VECTORS:
+            assert _tool_call(span, f"{label}_lookup")["mcp"] == {"server_id": expected_id}, label
+
+    def test_ai_guard_openai_mcp_servers_sharing_an_id_merge(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
+    ):
+        """Two servers on one origin with different paths share an ID, so they are reported as one
+        mcp_servers entry: the first label's fields, with the tools of both labels.
+        """
+        sse_tool = {
+            "type": "mcp",
+            "server_label": "example_sse",
+            "server_url": "https://mcp.example.com/sse",
+            "require_approval": "never",
+        }
+        with test_agent.vcr_context():
+            _create_response(
+                test_client, "Ask the example MCP server about the RFC, then read its docs.", [EXAMPLE_TOOL, sse_tool]
+            )
+
+        merged = {**EXAMPLE_SERVER, "tools": {"ask_question": "ask_question", "read_docs": "read_docs"}}
+        _, span = _matched_evaluations(test_agent, request, [merged])
+        assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
+        assert _tool_call(span, "read_docs")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
 
     def test_ai_guard_openai_mcp_approval_request_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest

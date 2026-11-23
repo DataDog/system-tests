@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
 import pg from 'pg'
+import { getParam } from '../getParam'
 
 export const dynamic = 'force-dynamic'
 
 const pool = new pg.Pool()
 
-export async function GET (request) {
+async function handler (request) {
+  const userId = await getParam(request, 'user_id')
+
   try {
-    await pool.query(`SELECT * FROM users WHERE id='${request.nextUrl.searchParams.get('user_id')}'`)
+    await pool.query(`SELECT * FROM users WHERE id='${userId}'`)
   } catch (e) {
     if (e.name === 'DatadogRaspAbortError') {
       throw e
@@ -18,3 +21,5 @@ export async function GET (request) {
     status: 200
   })
 }
+
+export { handler as GET, handler as POST }

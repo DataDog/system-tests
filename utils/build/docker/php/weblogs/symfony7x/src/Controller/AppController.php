@@ -956,4 +956,90 @@ END;
                 break;
         }
     }
+
+    // RFC-1125 normalized route endpoints (tests/appsec/api_security_testing/test_normalized_route.py).
+    #[Route('/api_security/multi-params-in-segment/{id}.{format}', name: 'api_security_multi_params_in_segment', methods: ['GET'])]
+    public function apiSecurityMultiParamsInSegment(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // A trailing variable with a default is optional in Symfony; the '.' before it goes with it.
+    #[Route('/api_security/optional-params/{id}.{format}', name: 'api_security_optional_params', defaults: ['format' => null], methods: ['GET'])]
+    public function apiSecurityOptionalParams(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/static-text/user-{id}', name: 'api_security_static_text', methods: ['GET'])]
+    public function apiSecurityStaticText(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/optional-segment/{id}/{tab}', name: 'api_security_optional_segment', defaults: ['tab' => null], methods: ['GET'])]
+    public function apiSecurityOptionalSegment(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // Symfony has no catch-all syntax: a variable whose requirement accepts '/'.
+    #[Route('/api_security/catch-all/{path}', name: 'api_security_catch_all', requirements: ['path' => '.+'], methods: ['GET'])]
+    public function apiSecurityCatchAll(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/three-params/{a}-{b}-{c}', name: 'api_security_three_params', methods: ['GET'])]
+    public function apiSecurityThreeParams(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/version/v{version}/items', name: 'api_security_version', methods: ['GET'])]
+    public function apiSecurityVersion(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/files/{name}.json', name: 'api_security_files', methods: ['GET'])]
+    public function apiSecurityFiles(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/search.{format}', name: 'api_security_search', defaults: ['format' => null], methods: ['GET'])]
+    public function apiSecuritySearch(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/optional-chain/{x}/{y}', name: 'api_security_optional_chain', defaults: ['x' => null, 'y' => null], methods: ['GET'])]
+    public function apiSecurityOptionalChain(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // UTF-8 static text in a segment: 'é' (U+00E9) is a single declaration;
+    // the matching request URL is '/api_security/encoded/caf%C3%A9'.
+    #[Route('/api_security/encoded/café', name: 'api_security_encoded', methods: ['GET'])]
+    public function apiSecurityEncoded(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    // Optional static text ('/preview') as a segment of its own. Symfony has no
+    // optional-segment syntax, so declare the two shapes as two routes; the
+    // tracer reports each request's matched template.
+    #[Route('/api_security/drafts', name: 'api_security_drafts', methods: ['GET'])]
+    public function apiSecurityDrafts(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/api_security/drafts/preview', name: 'api_security_drafts_preview', methods: ['GET'])]
+    public function apiSecurityDraftsPreview(): Response
+    {
+        return new Response('ok', 200, ['Content-Type' => 'text/plain']);
+    }
 }

@@ -145,9 +145,9 @@ OK\n
 
 ### GET /api_security/multi-params-in-segment/{id}.{format}
 
-This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+This endpoint is used to test two mandatory path parameters within a single URL segment (RFC-1103, amended by RFC-1125).
 
-The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must keep them separate, with the `.` between them: `_dd.appsec.normalized_route` must be `/api_security/multi-params-in-segment/{id}.{format}`.
 
 The response status code must be `200` and the response body must contain:
 
@@ -157,12 +157,130 @@ ok
 
 ### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}.{format}
 
-These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+These two routes together test optional path parameters (RFC-1125).
 
 - `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
-- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}.{format}`.
 
 Frameworks with native optional-parameter support (e.g. Express `:id.:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/static-text/user-{id}
+
+This endpoint tests static text in a URL segment (RFC-1125). The route must declare the segment as the literal `user-` followed by the path parameter `id` (e.g. Express `user-:id`, Flask `user-<id>`, Laravel/Symfony `user-{id}`). `_dd.appsec.normalized_route` must be `/api_security/static-text/user-{id}`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-segment/{id} and /api_security/optional-segment/{id}/{tab}
+
+These routes test an optional path parameter in a segment of its own (RFC-1125). The route must declare `id` as mandatory and `tab` as optional (e.g. Laravel `{id}/{tab?}`, Express `:id/:tab?`, Rails `:id(/:tab)`). Frameworks without optional-parameter support must declare two routes with the same handler.
+
+- `/api_security/optional-segment/1` — `_dd.appsec.normalized_route` must be `/api_security/optional-segment/{id}`.
+- `/api_security/optional-segment/1/posts` — `_dd.appsec.normalized_route` must be `/api_security/optional-segment/{id}/{tab}`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/three-params/{a}-{b}-{c}
+
+This endpoint tests three path parameters in one URL segment, separated by literal `-` (RFC-1125 test 13). For `/api_security/three-params/1-2-3`, `_dd.appsec.normalized_route` must be `/api_security/three-params/{a}-{b}-{c}`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/version/v{version}/items and /api_security/files/{name}.json
+
+These endpoints test static text before and after the parameter of a segment (RFC-1125 tests 7 and 8). The literal `v` and `.json` are part of the route declaration.
+
+- `/api_security/version/v2/items` — `_dd.appsec.normalized_route` must be `/api_security/version/v{version}/items`.
+- `/api_security/files/report.json` — `_dd.appsec.normalized_route` must be `/api_security/files/{name}.json`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/search and /api_security/search.{format}
+
+These routes test an optional parameter after static text in the same segment (RFC-1125 tests 19 and 20). The route must declare `format` as optional after the literal `search.` (e.g. Laravel `search.{format?}`, Rails `search(.:format)`); frameworks without optional-parameter support must declare two routes with the same handler.
+
+- `/api_security/search` — `_dd.appsec.normalized_route` must be `/api_security/search`.
+- `/api_security/search.json` — `_dd.appsec.normalized_route` must be `/api_security/search.{format}`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-chain, /api_security/optional-chain/{x} and /api_security/optional-chain/{x}/{y}
+
+These routes test several optional parameters in a row (RFC-1125 tests 21-23). The route must declare `x` and `y` as optional (e.g. Laravel `{x?}/{y?}`, Express `:x?/:y?`); frameworks without optional-parameter support must declare three routes with the same handler.
+
+- `/api_security/optional-chain` — `_dd.appsec.normalized_route` must be `/api_security/optional-chain`.
+- `/api_security/optional-chain/1` — `_dd.appsec.normalized_route` must be `/api_security/optional-chain/{x}`.
+- `/api_security/optional-chain/1/2` — `_dd.appsec.normalized_route` must be `/api_security/optional-chain/{x}/{y}`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/catch-all/{path}
+
+This endpoint tests a catch-all parameter (RFC-1125). The route must take the whole remainder of the path, including `/`, as one parameter: the framework's catch-all syntax (e.g. Express `*path`, Rails `*path`, ASP.NET `{*path}`, gin `*path`), or a parameter whose requirement accepts `/` where the framework has no catch-all (e.g. Laravel `{path}` with `where('path', '.*')`, Symfony `{path}` with requirement `.+`). For `/api_security/catch-all/a/b/c.txt`, `_dd.appsec.normalized_route` must be `/api_security/catch-all/{<name>}`, with one parameter whose name the framework gives it.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/encoded/café
+
+This endpoint tests static text with a non-ASCII character in a URL segment (RFC-1125 test 9). The route must be declared as the literal path `/api_security/encoded/café` (`é` is U+00E9). The matching request URL is `/api_security/encoded/caf%C3%A9`. The tracer must percent-encode the non-ASCII byte as UTF-8 with uppercase hex: `_dd.appsec.normalized_route` must be `/api_security/encoded/caf%C3%A9`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/param-names/{user-id}/{user_id}
+
+This endpoint tests parameter-name normalization and collision resolution (RFC-1125 tests 30 and 32). The route must declare two path parameters in order: the first with a name containing a character outside `A-Z a-z 0-9 _` (e.g. the dash in `user-id`), and the second named exactly `user_id`. The tracer must substitute the out-of-range character with `_`, which collides with the declared `user_id`; the first parameter then gets the smallest free `_N` suffix. For `/api_security/param-names/1/2`, `_dd.appsec.normalized_route` must be `/api_security/param-names/{user_id_2}/{user_id}`.
+
+Frameworks whose routers reject non-word characters in parameter names (e.g. Laravel 11, Symfony 7) cannot implement this endpoint; declare the manifest entry as `incomplete_test_app` instead of `missing_feature`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/drafts and /api_security/drafts/preview
+
+These routes test an optional part made only of static text (RFC-1125 tests 26-27). The route must declare `/preview` as an optional segment with no parameter (e.g. Rails `/drafts(/preview)`); frameworks without optional-static-segment support must declare two routes with the same handler.
+
+- `/api_security/drafts` — `_dd.appsec.normalized_route` must be `/api_security/drafts`.
+- `/api_security/drafts/preview` — `_dd.appsec.normalized_route` must be `/api_security/drafts/preview`.
 
 The response status code must be `200` and the response body must contain:
 
@@ -435,6 +553,14 @@ This endpoint should set the header whose name comes in the `reflected` field of
 ### GET /iast/header_injection/reflected/no-exclusion
 
 Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
+
+### GET /iast/untrusted_deserialization/test_insecure
+
+This endpoint should deserialize the value of the `name` query parameter with an unsafe deserializer, to detect the UNTRUSTED_DESERIALIZATION vulnerability. The tests send `name=example` and only check the reported vulnerability, so the endpoint may return an error status if the value can't be deserialized. Python uses `yaml.unsafe_load`, which accepts a plain string.
+
+### GET /iast/untrusted_deserialization/test_secure
+
+Parameterless endpoint. This endpoint should deserialize a constant value with the same deserializer as `/iast/untrusted_deserialization/test_insecure`, so the UNTRUSTED_DESERIALIZATION vulnerability shouldn't be detected. It must return a 200 status.
 
 ### GET /iast/sampling-by-route-method-count/:key
 
