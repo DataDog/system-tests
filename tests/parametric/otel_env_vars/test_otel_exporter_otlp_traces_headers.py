@@ -1,4 +1,5 @@
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.otel_env_vars import utils as otel_env_var_utils
 from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures._test_agent import AgentRequest
@@ -33,7 +34,7 @@ def _trace_request(test_agent: TestAgentAPI, test_library: APMLibrary) -> AgentR
             pass
         library.dd_flush()
 
-    requests = [request for request in test_agent.requests() if request["url"].endswith("/v1/traces")]
+    requests = otel_env_var_utils.wait_for_otlp_export_requests(test_agent, "traces")
     assert requests, f"Expected OTLP trace request, got {test_agent.requests()}"
     return requests[0]
 

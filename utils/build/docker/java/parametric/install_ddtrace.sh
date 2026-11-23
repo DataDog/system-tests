@@ -1,19 +1,24 @@
 #!/bin/bash
 
+set -eu
+
 MAVEN_PROFILES=
+
+# Bash globs rather than `find ... 2>/dev/null | wc -l`, which counts 0 jars when `find` is missing
+# globstar makes `**` recursive, nullglob makes a pattern without match expand to nothing.
+shopt -s globstar nullglob
 
 configure_custom_jar() {
     local jar_pattern="$1"
     local artifact_name="$2"
     local maven_property="$3"
-    local jar_count
-    jar_count=$(find /binaries/ -name "${jar_pattern}" 2>/dev/null | wc -l)
+    # shellcheck disable=SC2206 # the pattern must be expanded as a glob
+    local jars=(/binaries/**/$jar_pattern)
 
-    if [ "$jar_count" = 0 ]; then
+    if [ "${#jars[@]}" = 0 ]; then
         echo "Using default $artifact_name"
-    elif [ "$jar_count" = 1 ]; then
-        local custom_jar
-        custom_jar=$(find /binaries/ -name "${jar_pattern}")
+    elif [ "${#jars[@]}" = 1 ]; then
+        local custom_jar="${jars[0]}"
         echo "Using custom $artifact_name: ${custom_jar}"
         MAVEN_PROFILES="$MAVEN_PROFILES -D${maven_property}=${custom_jar}"
     else
@@ -26,8 +31,10 @@ configure_custom_jar() {
 configure_custom_jar "dd-trace-api*.jar" "dd-trace-api" "customDdTraceApi"
 
 # Look for custom dd-java-agent jar in custom binaries folder
-CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)
-CUSTOM_DD_OPENFEATURE_COUNT=$(find /binaries/ -name "dd-openfeature*.jar" 2>/dev/null | wc -l)
+CUSTOM_DD_JAVA_AGENTS=(/binaries/dd-java-agent*.jar)
+CUSTOM_DD_OPENFEATURES=(/binaries/**/dd-openfeature*.jar)
+CUSTOM_DD_JAVA_AGENT_COUNT=${#CUSTOM_DD_JAVA_AGENTS[@]}
+CUSTOM_DD_OPENFEATURE_COUNT=${#CUSTOM_DD_OPENFEATURES[@]}
 
 # The dd-openfeature provider must have the same version as the agent: either both jars are in binaries,
 # or none of them, and the dd-openfeature release matching the latest agent release is used
@@ -44,7 +51,7 @@ if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 0 ]; then
     echo "Using latest dd-java-agent"
     wget -O /client/tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
 elif [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 1 ]; then
-    CUSTOM_DD_JAVA_AGENT=$(find /binaries/dd-java-agent*.jar)
+    CUSTOM_DD_JAVA_AGENT="${CUSTOM_DD_JAVA_AGENTS[0]}"
     echo "Using custom dd-java-agent: ${CUSTOM_DD_JAVA_AGENT}"
     cp "$CUSTOM_DD_JAVA_AGENT" /client/tracer/dd-java-agent.jar
 else

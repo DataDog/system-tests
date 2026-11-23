@@ -67,8 +67,17 @@ manifest:
   tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: irrelevant (not applicable to proxies)
   tests/appsec/iast/sink/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
@@ -470,6 +479,7 @@ manifest:
   tests/test_otel_http_semantics.py: missing_feature (nginx-datadog does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are not implemented)
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_resource_renaming.py: '>=1.20.0'  # TODO: a lower version might be supported

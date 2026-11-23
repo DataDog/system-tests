@@ -144,8 +144,9 @@ unambiguous:
 (`COPY --from=<stage-or-image>` is unaffected: it isn't a local repository path, so it's skipped.)
 
 The job computes a content hash from normalized build arguments, the target's Dockerfile, and
-every git-tracked file under each derived dependency path, then pushes the base image to Docker
-Hub tagged `<base-tag>-<hash12>` if that tag doesn't already exist. Other Bake target fields are
+every git-tracked file under each derived dependency path, then pushes the base image tagged
+`<base-tag>-<hash12>` to Docker Hub and to the CI mirror (`registry.ddbuild.io/system-tests/mirror`),
+wherever that tag doesn't already exist. Other Bake target fields are
 rejected until their hash semantics are explicitly defined.
 
 Consumer Dockerfiles use stable BuildKit context aliases in `FROM`, for example
@@ -166,5 +167,4 @@ GitHub Actions never builds these base images itself: `utils/scripts/wait-for-ba
 resolves the alias through the same lock and polls Docker Hub for the locked tag (with a timeout)
 before building the weblog, since GitLab CI is the only pipeline that builds and pushes them.
 After changing a base input, first let GitLab publish the prospective content tags. Then run
-`python utils/scripts/update-base-images-lock.py` and
-`python utils/scripts/update_mirror_images.py`, and commit the lock and mirror artifacts.
+`python utils/scripts/update-base-images-lock.py`, and commit the lock.

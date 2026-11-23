@@ -20,7 +20,7 @@ def test_schemas():
 def test_not_reported():
     result = run_system_tests(test_path=FILENAME)
 
-    assert len(result) == 0
+    assert result[f"{FILENAME}::test_schemas"]["features"] == []
 
 
 @scenarios.test_the_test

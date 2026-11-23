@@ -91,6 +91,13 @@ INVALID_VALUE = [
     ),
 ]
 
+OTLP_IN_LIST_VALUE = [
+    pytest.param(
+        {**BASE_ENV, "OTEL_TRACES_EXPORTER": f"{CONSOLE_EXPORTER},{OTLP_EXPORTER}"},
+        id="console-otlp",
+    ),
+]
+
 
 @pytest.fixture(autouse=True)
 def _exporter_endpoints(
@@ -240,6 +247,11 @@ class Test_OTEL_TRACES_EXPORTER:
 
     @pytest.mark.parametrize("library_env", INVALID_VALUE)
     def test_invalid_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        _assert_otlp_export(test_agent, test_library)
+
+    # The spec defines the value as a list: unsupported entries are ignored, so otlp still exports.
+    @pytest.mark.parametrize("library_env", OTLP_IN_LIST_VALUE)
+    def test_otlp_in_list(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         _assert_otlp_export(test_agent, test_library)
 
     @pytest.mark.parametrize(

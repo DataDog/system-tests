@@ -48,6 +48,17 @@ Route::get('/status', function (Request $request) {
     return response('', $code);
 });
 
+Route::get('/add_event', function () {
+    $span = \DDTrace\root_span();
+    if ($span === null) {
+        return response('root span not found', 500);
+    }
+
+    $span->events[] = new \DDTrace\SpanEvent('span.event', ['string' => 'value', 'int' => 1]);
+
+    return response('[Event added]', 200);
+});
+
 Route::get('/trace/manual_keep_drop', function (Request $request) {
     $decision = $request->query('decision', '');
     if ($decision !== 'keep' && $decision !== 'drop') {
@@ -786,4 +797,62 @@ Route::post('/stripe/webhook', function (Request $request) {
     } catch (\Throwable $e) {
         return response(json_encode(['error' => $e->getMessage()]), 403, ['Content-Type' => 'application/json']);
     }
+});
+
+// RFC-1125 normalized route endpoints (tests/appsec/api_security_testing/test_normalized_route.py).
+Route::get('/api_security/multi-params-in-segment/{id}.{format}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-params/{id}.{format?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/static-text/user-{id}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-segment/{id}/{tab?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+// Laravel has no catch-all syntax: a parameter whose requirement accepts '/'.
+Route::get('/api_security/catch-all/{path}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+})->where('path', '.+');
+
+Route::get('/api_security/three-params/{a}-{b}-{c}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/version/v{version}/items', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/files/{name}.json', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/search.{format?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/api_security/optional-chain/{x?}/{y?}', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+// UTF-8 static text in a segment: 'é' (U+00E9) is a single declaration;
+// the matching request URL is '/api_security/encoded/caf%C3%A9'.
+Route::get('/api_security/encoded/café', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+
+// Optional static text ('/preview') as a segment of its own. Laravel has no
+// optional-segment syntax, so declare the two shapes as two routes; the tracer
+// reports each request's matched template.
+Route::get('/api_security/drafts', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});
+Route::get('/api_security/drafts/preview', function () {
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
 });
