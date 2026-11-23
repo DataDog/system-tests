@@ -495,7 +495,9 @@ def _assert_stacks(span: DataDogAgentSpan, expected: set[str]) -> None:
 
 
 def _has_executed_sink_metric() -> bool:
-    # The intake records telemetry per SDK, not per trace. Match the specific sink, not another IAST check.
+    # Telemetry metrics carry no request or span ID, so this cannot be tied to the smoke request: other requests in
+    # the scenario that reach a path traversal sink (e.g. /rasp/lfi) emit the same series. It checks that sink
+    # telemetry reaches the intake with the expected namespace, metric and tag, not which request produced it.
     for data in interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=False):
         content = data["request"]["content"]
         if content.get("request_type") != "generate-metrics":
@@ -513,7 +515,9 @@ def _has_executed_sink_metric() -> bool:
 
 
 class BaseIastSmokeTests:
-    """Verify IAST report, stack, retention and telemetry carriers from a native smoke request."""
+    """Verify the IAST report, stack and retention carriers of a native smoke request, and that path traversal
+    sink telemetry reaches the intake (scenario-wide, not correlated to the request).
+    """
 
     def setup_iast_smoke(self) -> None:
         self.r = weblog.post("/iast/path_traversal/test_insecure", data={"path": _SMOKE_PATH})
@@ -534,5 +538,5 @@ class BaseIastSmokeTests:
             for report in reports:
                 _assert_stacks(span, _assert_report(report))
         assert _has_executed_sink_metric(), (
-            "Backend did not receive positive IAST executed.sink telemetry for this sink"
+            "Backend did not receive positive IAST executed.sink telemetry for path traversal"
         )
