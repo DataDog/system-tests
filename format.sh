@@ -163,8 +163,9 @@ else
     fi
     curl "${curl_retry[@]}" -fLo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
 
-    # Validate checksum of downloaded archive
-    if command -v sha256sum > /dev/null; then
+    # Validate checksum of downloaded archive. Recent macOS ships a BSD
+    # sha256sum without --strict, so only use sha256sum when it is GNU coreutils.
+    if command -v sha256sum > /dev/null && sha256sum --version 2>&1 | grep -q GNU; then
       echo "$YAMLFMT_SHA256 *$YAMLFMT_BIN.tar.gz" | sha256sum --check --strict
     elif command -v shasum > /dev/null; then
       echo "$YAMLFMT_SHA256 *$YAMLFMT_BIN.tar.gz" | shasum -a 256 --check --strict
