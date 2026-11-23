@@ -344,6 +344,38 @@ class Test_GithubNightly:
         assert "comments(first: 1)" in " ".join(thread_query_command.args)
         assert '.comments.nodes[0].author.__typename == "Bot"' in thread_query_command.args[-1]
 
+    @pytest.mark.parametrize(("pr_state", "skipped"), [("MERGED", True), ("CLOSED", True), ("OPEN", False)])
+    def test_push_failure_on_existing_pr(self, tmp_path: Path, pr_state: str, *, skipped: bool) -> None:
+        """The PR may be merged by auto-merge between its lookup and the push of its update"""
+        runner = FakeRunner(
+            [
+                *EXISTING_PR_UPDATE_RESULTS[:-1],
+                result(returncode=1, stderr="update ref: PATCH ...: 422 Reference cannot be updated []"),
+                result(f"{pr_state}\n"),  # gh pr view --json state
+            ]
+        )
+
+        if skipped:
+            process_activation_branch("easy-win/asm-libraries/python", "python", options(tmp_path), runner)
+        else:
+            with pytest.raises(RuntimeError, match="422 Reference cannot be updated"):
+                process_activation_branch("easy-win/asm-libraries/python", "python", options(tmp_path), runner)
+
+        assert runner.commands[-1].args == ["gh", "pr", "view", "123", "--json", "state", "--jq", ".state"]
+
+    def test_push_failure_on_new_pr_is_raised(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                *NEW_PR_RESULTS[:5],
+                result(returncode=1, stderr="update ref: PATCH ...: 422 Reference cannot be updated []"),
+            ]
+        )
+
+        with pytest.raises(RuntimeError, match="422 Reference cannot be updated"):
+            process_activation_branch("easy-win/asm-libraries/python", "python", options(tmp_path), runner)
+
+        assert not any(command[:3] == ["gh", "pr", "view"] for command in commands(runner))
+
     def test_auto_merge_runs_for_non_opted_out_pair(self, tmp_path: Path) -> None:
         runner = FakeRunner(
             [
