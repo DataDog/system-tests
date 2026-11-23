@@ -1,5 +1,5 @@
 name: "Interact with datadog-ci CLI"
-description: "Run all datadog-ci command for one job (allow to have only one API call per job on dd-sts)"
+description: "Run all datadog-ci command for one job (allow to have only one credential exchange per job)"
 inputs:
   datadog_site:
     description: Which DataDog site shoud be used
@@ -35,18 +35,19 @@ runs:
         path: repo
 
     - name: Get Datadog credentials
-      id: dd-sts
+      id: dd-wif
       if: github.event.pull_request.user.login != 'dependabot[bot]'
       continue-on-error: true
-      uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2 # v1.0.5
+      uses: DataDog/datadog-workload-identity-federation-github-action/intake@c99aa70b13689969f606ae732c7f9eaaeb44cd70 # v1.1.0
       with:
-        policy: system-tests
-        retries: 16
+        org_uuid: 8dee7c38-00cb-11ea-a77b-8b5a08d3b091
+        site: ${{ inputs.datadog_site }}
+        exchange_retries: 5
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
       continue-on-error: true
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' && inputs.push_to_test_optimization == 'true'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-wif.outcome == 'success' && inputs.push_to_test_optimization == 'true'
       shell: bash
       run: |
         cd repo
@@ -58,14 +59,14 @@ runs:
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
+        DATADOG_API_KEY: ${{ steps.dd-wif.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
 
     - name: Tag system-tests workflow
       continue-on-error: true
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' && inputs._is_official_system_tests_job == 'true'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-wif.outcome == 'success' && inputs._is_official_system_tests_job == 'true'
       shell: bash
       run: datadog-ci tag --level job --tags ci.framework.name:system-tests
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
+        DATADOG_API_KEY: ${{ steps.dd-wif.outputs.api_key }}
