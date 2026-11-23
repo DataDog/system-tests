@@ -1,9 +1,9 @@
 """AAP smoke tests with classic Agent infrastructure and native tracing."""
 
 from utils import features, scenarios
-from tests.appsec.smoke_tests.iast import BaseIastSmokeTests
 from tests.appsec.smoke_tests.utils import (
     BaseApiSecuritySmokeTests,
+    BaseIastSmokeTests,
     BaseRaspSmokeTests,
     BaseRemoteConfigSmokeTests,
     BaseTelemetrySmokeTests,
