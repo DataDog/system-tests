@@ -681,6 +681,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
@@ -710,6 +711,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
@@ -736,10 +738,12 @@ manifest:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py: v2.7.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:  # Easy win for fiber-v2-orchestrion and version 2.12.0
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
