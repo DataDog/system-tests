@@ -65,6 +65,15 @@ class SystemTestController < ApplicationController
     render plain: File.read(params[:file])
   end
 
+  def thread_context_sharing
+    span = Datadog::Tracing.active_span
+    return render plain: 'No active span', status: :internal_server_error if span.nil?
+
+    File.write(params.fetch(:path), 'system-tests thread context sharing')
+
+    render json: { trace_id: span.trace_id.to_s, span_id: span.id.to_s }
+  end
+
   def trace_manual_keep_drop
     decision = params[:decision]
     return render plain: 'decision must be keep or drop', status: 400 unless %w[keep drop].include?(decision)
