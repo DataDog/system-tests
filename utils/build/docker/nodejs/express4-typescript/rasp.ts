@@ -1,8 +1,9 @@
 'use strict'
 
+import http from 'node:http';
+
 import type { Express, Request, Response } from 'express';
 
-const http = require('http')
 const pg = require('pg')
 const { statSync } = require('fs')
 const { execFileSync, execSync } = require('child_process')
@@ -11,7 +12,8 @@ function initRaspEndpoints (app: Express) {
     const pool = new pg.Pool()
 
     app.get('/rasp/ssrf', (req: Request, res: Response) => {
-        const clientRequest = http.get(`http://${req.query.domain}`, () => {
+        const clientRequest = http.get(`http://${req.query.domain}`, (response) => {
+            response.resume()
             res.end('end')
         })
         clientRequest.on('error', (e: any) => {
@@ -23,7 +25,8 @@ function initRaspEndpoints (app: Express) {
     })
 
     app.post('/rasp/ssrf', (req: Request, res: Response) => {
-        const clientRequest = http.get(`http://${req.body.domain}`, () => {
+        const clientRequest = http.get(`http://${req.body.domain}`, (response) => {
+            response.resume()
             res.end('end')
         })
         clientRequest.on('error', (e: any) => {
