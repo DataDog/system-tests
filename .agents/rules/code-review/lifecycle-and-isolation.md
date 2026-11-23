@@ -8,7 +8,7 @@
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
 - Severity: P1
 - Flag: Do not use `time.sleep()`, fixed delays, or unbounded polling to wait for end-to-end data. Use `agent_interface_timeout` or `library_interface_timeout` for the general post-setup flush window. Use a bounded condition wait in `setup_*` when a specific condition must be observed before teardown or before triggering a subsequent action.
-- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition.
+- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition. An HTTP call to the test app has no timeout, so a silent app blocks the test and its retry deadline. A wait uses a shorter timeout than other call sites of the same helper.
 - Not when: The delay itself is the behavior under test and no observable condition can represent it.
 - ✅ Configure the scenario flush timeout for general data collection, or use `interfaces.library.wait_for(condition, timeout=...)` for a specific condition.
 - ❌ Use `time.sleep(30)` before assuming that traces or Remote Config are ready.
@@ -32,3 +32,11 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Do not tie counts to one flush or one bucket.
+- Severity: P0
+- Flag: Telemetry, stats, and spans can arrive over several flushes and time buckets. If a test asserts an exact count, it must merge all payloads and buckets. The wait must also last long enough for late payloads to arrive.
+- Detect: A test reads only the first stats bucket or asserts that there is one bucket. A wait returns as soon as the expected count appears, and then the test asserts that exact count. A test asserts an exact scenario-wide metric count that needs every point flushed before teardown.
+- Not when: The payload format guarantees one bucket or one flush for the data under test.
+- ✅ Merge stats entries across all requests and buckets by aggregation key, then sum the counters.
+- ❌ `assert len(buckets) == 1, "There should be one bucket containing the stats"`
