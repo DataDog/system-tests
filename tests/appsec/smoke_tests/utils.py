@@ -463,14 +463,20 @@ def _assert_report(report: dict[str, Any]) -> set[str]:
     }
     assert source_indices, "IAST report lost the submitted path source"
 
-    findings = [finding for finding in report["vulnerabilities"] if finding["type"] == "PATH_TRAVERSAL"]
-    assert findings, "IAST report lost the path finding"
+    path_findings = [finding for finding in report["vulnerabilities"] if finding["type"] == "PATH_TRAVERSAL"]
+    assert path_findings, "IAST report lost the path finding"
+    # Other path findings on the request may come from other sources; only the one for the submitted path is checked.
+    findings = [
+        finding
+        for finding in path_findings
+        if any(
+            part.get("source") in source_indices and _SMOKE_PATH in part.get("value", "")
+            for part in finding["evidence"].get("valueParts", [])
+        )
+    ]
+    assert findings, "IAST evidence does not point to the submitted path"
     stack_ids = set()
     for finding in findings:
-        parts = finding["evidence"].get("valueParts", [])
-        assert any(part.get("source") in source_indices and _SMOKE_PATH in part.get("value", "") for part in parts), (
-            "IAST evidence does not point to the submitted path"
-        )
         stack_id = finding["location"].get("stackId")
         assert isinstance(stack_id, str), "IAST finding lost its stackId"
         assert stack_id, "IAST finding has an empty stackId"
@@ -490,6 +496,7 @@ def _assert_stacks(span: DataDogAgentSpan, expected: set[str]) -> None:
                 frames = stack.get("frames")
                 assert isinstance(frames, list)
                 assert frames, "IAST stack lost its frames"
+                assert all(isinstance(frame, dict) and frame for frame in frames), "IAST stack has empty frames"
                 seen.add(stack["id"])
         assert expected <= seen, f"IAST stacks missing for findings: {expected - seen}"
 
@@ -507,6 +514,7 @@ def _has_executed_sink_metric() -> bool:
             if (
                 (series.get("namespace") or payload.get("namespace")) == "iast"
                 and series.get("metric") == "executed.sink"
+                and series.get("type", "count") == "count"
                 and "vulnerability_type:path_traversal" in map(str.lower, series.get("tags", []))
                 and any(value > 0 for _, value in series.get("points", []))
             ):
