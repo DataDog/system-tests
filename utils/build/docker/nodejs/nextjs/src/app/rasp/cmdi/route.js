@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { execFileSync } from 'child_process'
+import { getParam } from '../getParam'
 
 export const dynamic = 'force-dynamic'
 
-export function GET (request) {
+async function handler (request) {
+  const command = await getParam(request, 'command')
+
   try {
-    execFileSync(request.nextUrl.searchParams.get('command'))
+    execFileSync(command)
   } catch (e) {
     if (e.name === 'DatadogRaspAbortError') {
       throw e
@@ -16,3 +19,5 @@ export function GET (request) {
     status: 200
   })
 }
+
+export { handler as GET, handler as POST }

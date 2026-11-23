@@ -63,6 +63,9 @@ def _copy_entry(source: Path, destination: Path) -> None:
 
     destination.mkdir(parents=True, exist_ok=True)
     for child in sorted(source.iterdir()):
+        # Upstream documentation, such as a suite's AGENTS.md, is not fixture data.
+        if child.suffix == ".md" and not child.is_dir():
+            continue
         _copy_entry(child, destination / child.name)
 
 

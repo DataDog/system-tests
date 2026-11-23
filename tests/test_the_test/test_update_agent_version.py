@@ -6,6 +6,8 @@ import traceback
 import urllib.error
 from pathlib import Path
 
+import yaml
+
 from utils import pytest
 
 from utils import scenarios
@@ -96,6 +98,19 @@ def test_agent_version_consumers_load_lock() -> None:
         content = launcher.read_text()
         assert 'AGENT_LOCK="agent.lock"' in content
         assert '. "./${AGENT_LOCK}"' in content
+
+
+@scenarios.test_the_test
+def test_installer_manual_pins_agent_on_every_os() -> None:
+    root = Path(__file__).resolve().parents[2]
+    provision = root / "utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml"
+    os_installations = yaml.safe_load(provision.read_text())
+
+    assert {installation["os_type"] for installation in os_installations} == {"linux", "windows"}
+    for installation in os_installations:
+        copied_files = [copy_file["local_path"] for copy_file in installation["copy_files"]]
+        assert str(AGENT_VERSION_LOCK) in copied_files, installation["os_type"]
+        assert "DD_AGENT_VERSION" in installation["remote-command"], installation["os_type"]
 
 
 @scenarios.test_the_test

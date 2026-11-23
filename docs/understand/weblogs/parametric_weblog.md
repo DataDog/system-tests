@@ -976,6 +976,7 @@ _not declared by the reference server_
 #### `POST /ffe/evaluate`
 
 Called by `ParametricTestClientApi.ffe_evaluate()`. Evaluate a feature flag.
+The client applies its configured connection/read timeout (60 seconds in the normal parametric fixture), including when an evaluation retry loop is in use.
 
 Request body (not declared by the reference server, which reads the raw request; fields sent by the client):
 
@@ -1004,13 +1005,14 @@ Called by `ParametricTestClientApi.ffe_fetch_rules_configuration()`. Fetch and s
 #### `POST /ffe/start`
 
 Called by `ParametricTestClientApi.ffe_start()`. Initialize the FFE (Feature Flagging & Experimentation) provider.
+The client applies its configured HTTP timeout (60 seconds in the normal parametric fixture) so an unresponsive startup request can finish even if application termination fails.
 
 Request body (not declared by the reference server, which reads the raw request; fields sent by the client):
 
 | Field | Type | Required |
 |--|--|--|
 | `configuration` | object | no |
-| `flag_selection` | any: passed untouched to the flag selection option of the SDK | no |
+| `flag_selection` | object `{tags?: string[], keyPatterns?: string[]}`: passed as is to the flag selection option of the SDK; absent means no selection. Other shapes are not part of the contract | no |
 
 Response:
 

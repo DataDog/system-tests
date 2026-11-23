@@ -65,6 +65,7 @@ from .appsec_rasp import (
     AppsecRaspWithoutDownstreamBodyAnalysisUsingSampleRate,
     AppsecStandaloneRasp,
 )
+from .security_smoke import SecuritySmoke
 from .appsec_standalone import (
     AppsecApmStandalone,
     AppsecStandalone,
@@ -303,6 +304,7 @@ class _Scenarios:
     appsec_auto_events_rc = AppsecAutoEventsRc()
     runtime_sca_reachability = RuntimeScaReachability()
     appsec_standalone = AppsecStandalone()
+    security_smoke = SecuritySmoke()
     appsec_apm_standalone = AppsecApmStandalone()
     appsec_standalone_apm_standalone = AppsecStandaloneApmStandalone()
     # Combined scenario for API Security in standalone mode

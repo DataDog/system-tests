@@ -141,7 +141,7 @@ def _extract_report_files(archive_path: Path, destination: Path) -> None:
     destination_root = destination.resolve()
     with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive.getmembers():
-            if not member.isfile() or not member.name.endswith("/report.json"):
+            if not member.isfile() or not member.name.endswith("/reportJunit.xml"):
                 continue
             target = (destination / member.name).resolve()
             if not target.is_relative_to(destination_root):

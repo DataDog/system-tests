@@ -182,6 +182,17 @@ The script `utils/build/ssi/base/<lang>_install_runtimes.sh` installs the runtim
 
 2. In `docker_ssi.json`, add the image `name` to the `supported_images` of each weblog that must run on it.
 
+### Expected SSI result of a runtime
+
+The CI matrix reads the installable runtimes from `utils/docker_ssi/docker_ssi_runtimes.json`. Each runtime can set the optional field `expected_ssi_result`:
+
+* `instrumented` (default): SSI must instrument the application. The runtime runs in `DOCKER_SSI`, `DOCKER_SSI_APPSEC`, `DOCKER_SSI_CRASHTRACKING` and `DOCKER_SSI_SERVICENAMING`.
+* `abort`: the tracer does not support the runtime, so SSI must not instrument the application. The runtime runs only in the scenarios that expect an abort.
+
+```json
+{ "version_id": "PY316A2", "version": "3.16.0a2", "expected_ssi_result": "abort" }
+```
+
 ## Create a new weblog
 
 We can differentiate between two types of applications:

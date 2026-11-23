@@ -11,17 +11,18 @@ from utils._weblog import HttpResponse
 NORMALIZED_ROUTE_TAG = "_dd.appsec.normalized_route"
 HTTP_ROUTE_TAG = "http.route"
 
-# RFC-1103 syntax validator for `_dd.appsec.normalized_route`.
-# Atomic elements are slash-separated; static constants use [A-Za-z0-9.-~_] or
-# percent-encoded sequences; dynamic parameters use {name} where name may
-# contain anything except the six reserved characters /?#+{} (with `+` allowed
-# only as the rule-5 combining marker between framework-supplied subnames).
-# Percent-encoded sequences are accepted in either case (RFC 3986 normalization
-# treats them as equivalent), even though the RFC text recommends uppercase.
-_STATIC_CHAR = r"[A-Za-z0-9.\-~_]|%[0-9A-Fa-f]{2}"
-_PARAM_NAME = r"(?:[^/?#+{}]|%[0-9A-Fa-f]{2})+(?:\+(?:[^/?#+{}]|%[0-9A-Fa-f]{2})+)*"
-_ATOMIC_ELEMENT = rf"(?:(?:{_STATIC_CHAR})+|\{{{_PARAM_NAME}\}})"
-_NORMALIZED_ROUTE_REGEX = re.compile(rf"^/(?:{_ATOMIC_ELEMENT}(?:/{_ATOMIC_ELEMENT})*/?)?$")
+# RFC-1125 grammar for `_dd.appsec.normalized_route` (it replaces the
+# RFC-1103 normalization rules):
+#   route   = "/" / 1*( "/" segment ) [ "/" ]
+#   segment = 1*( literal / "{" name "}" )
+#   name    = 1*( ALPHA / DIGIT / "_" )
+# A literal is static text in which every character other than
+# A-Z a-z 0-9 - . _ ~ is percent-encoded with uppercase hex. Static text and
+# several parameters can share a segment (`user-{id}`, `{id}.{format}`).
+_LITERAL_CHAR = r"[A-Za-z0-9.\-~_]|%[0-9A-F]{2}"
+_PARAM = r"\{[A-Za-z0-9_]+\}"
+_SEGMENT = rf"(?:{_LITERAL_CHAR}|{_PARAM})+"
+_NORMALIZED_ROUTE_REGEX = re.compile(rf"^/(?:{_SEGMENT}(?:/{_SEGMENT})*/?)?$")
 
 
 def _get_meta(response: HttpResponse) -> dict:
@@ -43,22 +44,22 @@ def _require_normalized(meta: dict) -> str:
     # Every emitted value must conform to the RFC grammar regardless of the
     # underlying route shape; a malformed value is a tracer bug.
     assert _NORMALIZED_ROUTE_REGEX.match(normalized), (
-        f"{NORMALIZED_ROUTE_TAG}={normalized!r} does not conform to RFC-1103 syntax"
+        f"{NORMALIZED_ROUTE_TAG}={normalized!r} does not conform to the RFC-1125 grammar"
     )
     return normalized
 
 
 @rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRoute:
-    """RFC-1103: tracers emit `_dd.appsec.normalized_route` on every request
-    span that already carries `http.route` when API Security is enabled.
+    """RFC-1103, amended by RFC-1125: tracers emit `_dd.appsec.normalized_route`
+    on every request span that already carries `http.route` when API Security
+    is enabled.
 
     The tag is a per-request, framework-agnostic representation of the matched
-    route. Rules 1-6 govern leading slash, atomic-element separation,
-    static-constant character set, parameter-name grammar, intra-segment
-    composition and the catch-all tail exception.
+    route, as an OpenAPI path template that follows the RFC-1125 grammar.
     """
 
     def setup_static_route(self):
@@ -132,42 +133,54 @@ class Test_NormalizedRoute:
 
 
 @rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRouteMultiParamsInSegment:
-    """RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+    """RFC-1125: two mandatory path parameters within a single URL segment.
 
     When a route template places two dynamic parameters inside the same
-    path segment (e.g. `/<id>.<format>`), the tracer must collapse them into a
-    single atomic element using the `+` combining marker, in declaration order:
-    `{id+format}`.  The resulting normalized route is deterministic and
-    identical across all weblogs because the parameter names `id` and `format`
-    are fixed in the endpoint declaration.
+    path segment (e.g. `/<id>.<format>`), each parameter is its own template
+    expression and the static text between them is kept, as OpenAPI path
+    templating requires: `{id}.{format}`. RFC-1103's `+` combining
+    (`{id+format}`) is replaced.
     """
 
     def setup_multi_params_in_segment(self):
         self.r = weblog.get("/api_security/multi-params-in-segment/123.json")
 
     def test_multi_params_in_segment(self):
-        """Rule 5: two intra-segment params are joined with `+` into `{id+format}`."""
+        """Two intra-segment params stay separate, with the `.` between them."""
         meta = _get_meta(self.r)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/multi-params-in-segment/{id+format}", (
-            f"expected '/api_security/multi-params-in-segment/{{id+format}}', got {normalized!r}"
+        assert normalized == "/api_security/multi-params-in-segment/{id}.{format}", (
+            f"expected '/api_security/multi-params-in-segment/{{id}}.{{format}}', got {normalized!r}"
+        )
+
+    def setup_three_params_in_segment(self):
+        self.r_three_params_in_segment = weblog.get("/api_security/three-params/1-2-3")
+
+    def test_three_params_in_segment(self):
+        """RFC-1125 test 13: three params in one segment, with the `-` between them."""
+        meta = _get_meta(self.r_three_params_in_segment)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/three-params/{a}-{b}-{c}", (
+            f"expected '/api_security/three-params/{{a}}-{{b}}-{{c}}', got {normalized!r}"
         )
 
 
 @rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRouteOptionalParams:
-    """RFC-1103 rule 5 + optional-element resolution: an optional path parameter
-    that shares a URL segment with a mandatory parameter must be combined with `+`
-    when present (`{id+format}`) and dropped from the combined name when absent,
-    leaving the mandatory parameter alone (`{id}`).
+    """RFC-1125 optional path parameters: an optional parameter that shares a
+    URL segment with a mandatory parameter is included, with the static text
+    before it, when present in the request (`{id}.{format}`) and left out when
+    absent (`{id}`).
 
     The two requests target the same route declaration but resolve to distinct
-    normalized routes, which is intentional per rule 6.
+    normalized routes: the tag describes the effective route of each request.
     """
 
     def setup_without_optional(self):
@@ -185,11 +198,11 @@ class Test_NormalizedRouteOptionalParams:
         self.r_with = weblog.get("/api_security/optional-params/123.json")
 
     def test_with_optional(self):
-        """Optional param present in same segment: combined as `{id+format}`."""
+        """Optional param present in the same segment: kept separate, as `{id}.{format}`."""
         meta = _get_meta(self.r_with)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/optional-params/{id+format}", (
-            f"expected '/api_security/optional-params/{{id+format}}', got {normalized!r}"
+        assert normalized == "/api_security/optional-params/{id}.{format}", (
+            f"expected '/api_security/optional-params/{{id}}.{{format}}', got {normalized!r}"
         )
 
     def setup_optional_routes_are_distinct(self):
@@ -197,11 +210,294 @@ class Test_NormalizedRouteOptionalParams:
         self.r_with = weblog.get("/api_security/optional-params/123.json")
 
     def test_optional_routes_are_distinct(self):
-        """The two requests yield distinct normalized routes (rule 6)."""
+        """The two requests yield distinct normalized routes (per-request value)."""
         meta_without = _get_meta(self.r_without)
         meta_with = _get_meta(self.r_with)
         normalized_without = _require_normalized(meta_without)
         normalized_with = _require_normalized(meta_with)
         assert normalized_without != normalized_with, (
             f"optional-absent and optional-present routes must differ; both got {normalized_without!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteStaticTextInSegment:
+    """RFC-1125 tests 6-8: static text in a segment is kept next to the parameter.
+
+    `/api_security/static-text/user-{id}` is a valid OpenAPI path template as
+    written, so it is not folded into `/api_security/static-text/{id}`.
+    """
+
+    def setup_static_text_in_segment(self):
+        self.r = weblog.get("/api_security/static-text/user-42")
+
+    def test_static_text_in_segment(self):
+        """The static prefix `user-` stays in the segment of its parameter."""
+        meta = _get_meta(self.r)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/static-text/user-{id}", (
+            f"expected '/api_security/static-text/user-{{id}}', got {normalized!r}"
+        )
+
+    def setup_static_text_before_param(self):
+        self.r_static_text_before_param = weblog.get("/api_security/version/v2/items")
+
+    def test_static_text_before_param(self):
+        """RFC-1125 test 7: static text before the parameter of a segment."""
+        meta = _get_meta(self.r_static_text_before_param)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/version/v{version}/items", (
+            f"expected '/api_security/version/v{{version}}/items', got {normalized!r}"
+        )
+
+    def setup_static_text_after_param(self):
+        self.r_static_text_after_param = weblog.get("/api_security/files/report.json")
+
+    def test_static_text_after_param(self):
+        """RFC-1125 test 8: static text after the parameter of a segment."""
+        meta = _get_meta(self.r_static_text_after_param)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/files/{name}.json", (
+            f"expected '/api_security/files/{{name}}.json', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteOptionalSegment:
+    """RFC-1125: an optional parameter in a segment of its own.
+
+    The optional part is in the tag when the request has it and left out,
+    with the `/` before it, when it does not. The tag is never omitted
+    because of an optional parameter.
+    """
+
+    def setup_optional_segment_absent(self):
+        self.r_absent = weblog.get("/api_security/optional-segment/1")
+
+    def test_optional_segment_absent(self):
+        """Absent optional: only the mandatory `{id}`."""
+        meta = _get_meta(self.r_absent)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-segment/{id}", (
+            f"expected '/api_security/optional-segment/{{id}}', got {normalized!r}"
+        )
+
+    def setup_optional_segment_present(self):
+        self.r_present = weblog.get("/api_security/optional-segment/1/posts")
+
+    def test_optional_segment_present(self):
+        """Present optional: `{id}/{tab}`."""
+        meta = _get_meta(self.r_present)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-segment/{id}/{tab}", (
+            f"expected '/api_security/optional-segment/{{id}}/{{tab}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteCatchAll:
+    """RFC-1125: a catch-all is a single parameter, even though its value
+    spans several segments (the declared OpenAPI exception).
+
+    The catch-all name is framework-specific: named catch-alls keep their
+    name, and symbol-only ones (`*`) get `param<N>`.
+    """
+
+    def setup_catch_all(self):
+        self.r = weblog.get("/api_security/catch-all/a/b/c.txt")
+
+    def test_catch_all(self):
+        """The whole remainder `a/b/c.txt` is one parameter, with no request value in the tag."""
+        meta = _get_meta(self.r)
+        normalized = _require_normalized(meta)
+        assert re.fullmatch(rf"/api_security/catch-all/{_PARAM}", normalized), (
+            f"expected '/api_security/catch-all/{{<param>}}', got {normalized!r}"
+        )
+
+    def setup_empty_catch_all(self):
+        # The catch-all captures only a slash: Express serves the route with an empty value.
+        self.r_empty = weblog.get("/api_security/catch-all//")
+
+    def test_empty_catch_all(self):
+        """RFC-1125 test 49: an empty catch-all is left out, and the route keeps its trailing `/`."""
+        meta = _get_meta(self.r_empty)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/catch-all/", f"expected '/api_security/catch-all/', got {normalized!r}"
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteRoot:
+    """RFC-1125 test 2: the root route normalizes to `/`."""
+
+    def setup_root_route(self):
+        self.r_root_route = weblog.get("/")
+
+    def test_root_route(self):
+        """The root route is `/` when `http.route` is set, and has no tag otherwise."""
+        meta = _get_meta(self.r_root_route)
+        expected = "/" if meta.get(HTTP_ROUTE_TAG) else None
+        normalized = meta.get(NORMALIZED_ROUTE_TAG)
+        assert normalized == expected, f"expected {expected!r}, got {normalized!r}"
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteOptionalAfterStaticText:
+    """RFC-1125 tests 19-20: an optional parameter after static text in the
+    same segment (`/api_security/search.{format?}`). When absent, it is left
+    out with the `.` before it.
+    """
+
+    def setup_optional_after_static_text_absent(self):
+        self.r_optional_after_static_text_absent = weblog.get("/api_security/search")
+
+    def test_optional_after_static_text_absent(self):
+        """Test 19: absent, the `.` goes with it."""
+        meta = _get_meta(self.r_optional_after_static_text_absent)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/search", f"expected '/api_security/search', got {normalized!r}"
+
+    def setup_optional_after_static_text_present(self):
+        self.r_optional_after_static_text_present = weblog.get("/api_security/search.json")
+
+    def test_optional_after_static_text_present(self):
+        """Test 20: present, `.{format}`."""
+        meta = _get_meta(self.r_optional_after_static_text_present)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/search.{format}", (
+            f"expected '/api_security/search.{{format}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteMultipleOptionals:
+    """RFC-1125 tests 21-23: several optional parameters in a row
+    (`/api_security/optional-chain/{x?}/{y?}`); each is in the tag only when
+    the request has it.
+    """
+
+    def setup_multiple_optionals_none(self):
+        self.r_multiple_optionals_none = weblog.get("/api_security/optional-chain")
+
+    def test_multiple_optionals_none(self):
+        """Test 21: no optional present."""
+        meta = _get_meta(self.r_multiple_optionals_none)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain", (
+            f"expected '/api_security/optional-chain', got {normalized!r}"
+        )
+
+    def setup_multiple_optionals_first(self):
+        self.r_multiple_optionals_first = weblog.get("/api_security/optional-chain/1")
+
+    def test_multiple_optionals_first(self):
+        """Test 22: the first optional present."""
+        meta = _get_meta(self.r_multiple_optionals_first)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain/{x}", (
+            f"expected '/api_security/optional-chain/{{x}}', got {normalized!r}"
+        )
+
+    def setup_multiple_optionals_both(self):
+        self.r_multiple_optionals_both = weblog.get("/api_security/optional-chain/1/2")
+
+    def test_multiple_optionals_both(self):
+        """Test 23: both optionals present."""
+        meta = _get_meta(self.r_multiple_optionals_both)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/optional-chain/{x}/{y}", (
+            f"expected '/api_security/optional-chain/{{x}}/{{y}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteStaticEncoding:
+    """RFC-1125 test 9: static text outside A-Z a-z 0-9 - . _ ~ is percent-encoded
+    as UTF-8 with uppercase hex (`café` is `caf%C3%A9`).
+    """
+
+    def setup_static_encoding(self):
+        self.r_static_encoding = weblog.get("/api_security/encoded/caf%C3%A9")
+
+    def test_static_encoding(self):
+        """The encoded static segment is emitted with uppercase hex."""
+        meta = _get_meta(self.r_static_encoding)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/encoded/caf%C3%A9", (
+            f"expected '/api_security/encoded/caf%C3%A9', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteParamNames:
+    """RFC-1125 tests 30 and 32: parameter names are limited to A-Z a-z 0-9 _
+    (other characters become `_`), and a name that collides gets the
+    smallest free `_N` suffix.
+    """
+
+    def setup_param_names(self):
+        self.r_param_names = weblog.get("/api_security/param-names/1/2")
+
+    def test_param_names(self):
+        """`user-id` becomes `user_id`, which collides with the declared `user_id`."""
+        meta = _get_meta(self.r_param_names)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/param-names/{user_id_2}/{user_id}", (
+            f"expected '/api_security/param-names/{{user_id_2}}/{{user_id}}', got {normalized!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteOptionalStaticText:
+    """RFC-1125 tests 26-27: an optional part made only of static text
+    (`/api_security/drafts{/preview}`) is in the tag when the request has it.
+    """
+
+    def setup_optional_static_text_present(self):
+        self.r_optional_static_text_present = weblog.get("/api_security/drafts/preview")
+
+    def test_optional_static_text_present(self):
+        """Test 26: present, the static text is kept."""
+        meta = _get_meta(self.r_optional_static_text_present)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/drafts/preview", (
+            f"expected '/api_security/drafts/preview', got {normalized!r}"
+        )
+
+    def setup_optional_static_text_absent(self):
+        self.r_optional_static_text_absent = weblog.get("/api_security/drafts")
+
+    def test_optional_static_text_absent(self):
+        """Test 27: absent, it is left out."""
+        meta = _get_meta(self.r_optional_static_text_absent)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/drafts", f"expected '/api_security/drafts', got {normalized!r}"
+
+    def setup_optional_static_text_routes_are_distinct(self):
+        self.r_present = weblog.get("/api_security/drafts/preview")
+        self.r_absent = weblog.get("/api_security/drafts")
+
+    def test_optional_static_text_routes_are_distinct(self):
+        """The two requests yield distinct normalized routes (per-request value)."""
+        normalized_present = _require_normalized(_get_meta(self.r_present))
+        normalized_absent = _require_normalized(_get_meta(self.r_absent))
+        assert normalized_present != normalized_absent, (
+            f"optional-present and optional-absent routes must differ; both got {normalized_present!r}"
         )
