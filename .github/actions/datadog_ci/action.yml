@@ -38,10 +38,11 @@ runs:
       id: dd-wif
       if: github.event.pull_request.user.login != 'dependabot[bot]'
       continue-on-error: true
-      uses: DataDog/datadog-workload-identity-federation-github-action/intake@c9456387851248e0a5452f99085b16ad14fc3acb # v1.0.0
+      uses: DataDog/datadog-workload-identity-federation-github-action/intake@c99aa70b13689969f606ae732c7f9eaaeb44cd70 # v1.1.0
       with:
         org_uuid: 8dee7c38-00cb-11ea-a77b-8b5a08d3b091
         site: ${{ inputs.datadog_site }}
+        exchange_retries: 5
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
