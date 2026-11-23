@@ -297,8 +297,8 @@ def restart_and_get_runtime_id(test_agent: TestAgentAPI, test_library: APMLibrar
     return test_agent.wait_for_telemetry_runtime_id(exclude=previous_runtime_id)
 
 
-def nodejs_startup_config(test_library: APMLibrary) -> dict:
-    """Parse the tracer's published `DATADOG TRACER CONFIGURATION - {json}` startup line.
+def nodejs_startup_config(test_library: APMLibrary) -> dict[str, object]:
+    """Read the tracer's startup configuration from plain text or a JSON log message.
 
     Some facts have no telemetry signal: an unreachable agent never delivers telemetry (so the
     resolved agent URL is unobservable that way), and OTEL_LOG_LEVEL=debug toggles debug logging
@@ -307,7 +307,12 @@ def nodejs_startup_config(test_library: APMLibrary) -> dict:
     """
     marker = "DATADOG TRACER CONFIGURATION - "
     for line in test_library.get_logs().splitlines():
-        index = line.find(marker)
-        if index != -1:
-            return json.loads(line[index + len(marker) :])
+        if marker not in line:
+            continue
+        message = json.loads(line).get("message") if line.startswith("{") else line
+        if not isinstance(message, str):
+            continue
+        _, separator, configuration = message.partition(marker)
+        if separator:
+            return json.loads(configuration)
     raise AssertionError("No 'DATADOG TRACER CONFIGURATION' line found in container logs")
