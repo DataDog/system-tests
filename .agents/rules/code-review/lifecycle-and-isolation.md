@@ -34,7 +34,7 @@
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
 
 ### LIFE-005: Do not tie counts to one flush or one bucket.
-- Severity: P0
+- Severity: P1
 - Flag: Telemetry, stats, and spans can arrive over several flushes and time buckets. If a test asserts an exact count, it must merge all payloads and buckets. The wait must also last long enough for late payloads to arrive.
 - Detect: A test reads only the first stats bucket or asserts that there is one bucket. A wait returns as soon as the expected count appears, and then the test asserts that exact count. A test asserts an exact scenario-wide metric count that needs every point flushed before teardown.
 - Not when: The payload format guarantees one bucket or one flush for the data under test.
