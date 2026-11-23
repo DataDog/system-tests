@@ -16,7 +16,6 @@ from typing import Any, Literal, TypedDict
 import pytest
 from _pytest.junitxml import xml_key
 from pluggy._result import _Result as Result
-from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context.junit_parameters import fingerprint_parameters
@@ -29,9 +28,6 @@ from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
-
-# Monkey patch JSON-report plugin to avoid noise in report
-JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items: list[pytest.Item] = []
@@ -221,7 +217,6 @@ def pytest_configure(config: pytest.Config) -> None:
         pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     if not config.option.replay and not config.option.collectonly:
-        config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
@@ -525,15 +520,17 @@ def pytest_fixture_setup(
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:
+    if call.when == "setup":
+        _collect_item_metadata(item)
+
     # Run all other hooks to get the report object
     outcome = yield
     rep: pytest.TestReport = outcome.get_result()
 
     if rep.when == "call":  # only attach outcome after test call
         # rep.outcome is one of: passed, failed, skipped
-        # but json_report also distinguishes xfailed/xpassed
-        # via rep.wasxfail and outcome
+        # xfailed/xpassed are distinguished via rep.wasxfail and outcome
         value = rep.outcome
         if getattr(rep, "wasxfail", None):
             if rep.outcome == "skipped":
@@ -556,21 +553,6 @@ def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]
 
     user_properties.append(("dd_tags[systest.case.outcome]", outcome))  # legacy
     user_properties.append(("dd_tags[test.final_status]", final_status))
-
-
-@pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> dict | None:
-    if call.when != "setup":
-        return {}
-
-    return _collect_item_metadata(item)
-
-
-def pytest_json_modifyreport(json_report: dict) -> None:
-    # add usefull data for reporting
-    json_report["context"] = context.serialize()
-
-    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
