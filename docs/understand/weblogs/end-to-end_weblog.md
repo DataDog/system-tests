@@ -1487,7 +1487,10 @@ This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method fr
 
 **Request Format:**
 - **Content-Type:** `application/json`
-- **Body:** List of AI Guard `Message` objects to be evaluated
+- **Body:** List of AI Guard `Message` objects to be evaluated, or an object with:
+  - `messages`: that list
+  - `mcp_servers` (optional): the MCP servers that the `mcp.server_id` of the tool calls reference,
+    passed to the SDK evaluation (`mcp_servers` argument in Python, `mcpServers` option in Node.js)
 - **Header:** `X-AI-Guard-Block` (optional, default: `false`) - Controls whether blocking is enabled
 - **Header:** `X-User-Id` (optional) - If present and non-empty, sets `usr.id` on the local root span
 - **Header:** `X-Session-Id` (optional) - If present and non-empty, sets `session.id` on the local root span
@@ -1516,6 +1519,34 @@ This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method fr
     ]
   }
 ]
+```
+
+**Request Body Example with MCP servers:**
+```json
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call_mcp_1",
+          "function": { "name": "local_search", "arguments": "{\"query\":\"APPSEC\"}" },
+          "mcp": { "server_id": "mcp_0f2f11f8cafdbcc5" }
+        }
+      ]
+    }
+  ],
+  "mcp_servers": [
+    {
+      "id": "mcp_0f2f11f8cafdbcc5",
+      "managed_by": "client",
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["mcp-example"],
+      "tools": { "local_search": "search" }
+    }
+  ]
+}
 ```
 
 **Response Behavior:**

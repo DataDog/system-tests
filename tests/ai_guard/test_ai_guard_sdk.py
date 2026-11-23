@@ -502,6 +502,63 @@ class Test_SDS_Findings_In_SDK_Response:
 # redaction_replacements the backend returns, the messages expected once redaction has been
 # applied and the expected value of the redacted tags, so the tests below and the cassettes
 # never drift. Regenerate both after editing.
+# Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], with key "stdio|uvx|mcp-example".
+MCP_SERVER_ID = "mcp_0f2f11f8cafdbcc5"
+MCP_SERVERS: list[dict] = [
+    {
+        "id": MCP_SERVER_ID,
+        "managed_by": "client",
+        "transport": "stdio",
+        "name": "local-docs",
+        "command": "uvx",
+        "args": ["mcp-example"],
+        "tools": {"local_search": "search"},
+    }
+]
+MCP_MESSAGES: list[dict] = [
+    {"role": "user", "content": "Search the local docs for APPSEC issues."},
+    {
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "id": "call_mcp_1",
+                "function": {"name": "local_search", "arguments": '{"query":"APPSEC"}'},
+                "mcp": {"server_id": MCP_SERVER_ID},
+            }
+        ],
+    },
+]
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_MCP_ToolCalls:
+    """SDK evaluations send the MCP servers that the tool calls reference, and report them on the span.
+
+    The evaluate cassette is addressed by a hash of the exact request body: a tracer that drops the
+    mcp_servers list or the mcp.server_id of the tool call misses it, and the evaluation fails.
+    """
+
+    def setup_mcp_tool_call(self):
+        self.r = weblog.post("/ai_guard/evaluate", json={"messages": MCP_MESSAGES, "mcp_servers": MCP_SERVERS})
+
+    def test_mcp_tool_call(self):
+        assert self.r.status_code == 200, f"the evaluation did not match its cassette: {self.r.text}"
+        _assert_key(json.loads(self.r.text), "action", "ALLOW")
+
+        def validate(span: DataDogLibrarySpan) -> bool:
+            if span["resource"] != "ai_guard":
+                return False
+            assert span["meta"]["ai_guard.target"] == "tool"
+            ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+            assert _assert_key(ai_guard, "mcp_servers") == MCP_SERVERS
+            (tool_call,) = _assert_key(ai_guard, "messages")[-1]["tool_calls"]
+            assert tool_call["mcp"] == {"server_id": MCP_SERVER_ID}
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate, full_trace=True)
+
+
 REDACTION_SCENARIOS: dict = json.loads((Path(__file__).parent / "redaction_scenarios.json").read_text())
 
 REDACTED_TAG = "ai_guard.redacted"
