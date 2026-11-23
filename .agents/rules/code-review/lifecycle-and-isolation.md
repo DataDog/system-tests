@@ -8,7 +8,7 @@
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
 - Severity: P1
 - Flag: Do not use `time.sleep()`, fixed delays, or unbounded polling to wait for end-to-end data. Use `agent_interface_timeout` or `library_interface_timeout` for the general post-setup flush window. Use a bounded condition wait in `setup_*` when a specific condition must be observed before teardown or before triggering a subsequent action.
-- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition.
+- Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition. A call inside a deadline loop has no timeout of its own, so it can block past the deadline. A flush timeout or wait budget is shorter than the flush interval of the library, or than other waits for the same event.
 - Not when: The delay itself is the behavior under test and no observable condition can represent it.
 - ✅ Configure the scenario flush timeout for general data collection, or use `interfaces.library.wait_for(condition, timeout=...)` for a specific condition.
 - ❌ Use `time.sleep(30)` before assuming that traces or Remote Config are ready.
@@ -32,3 +32,17 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Count asynchronous data only after the flush ends.
+- Severity: P0
+- Flag: Assert an exact count of flushed spans, events, or metrics only after the flush ends. A wait that returns at the expected count misses a late extra item. For scenario-wide data, count only the data of the requests of this test.
+- Detect: The test asserts an exact count right after a wait that stops at that count. The test compares a scenario-wide metric count with its own requests.
+- ✅ Wait for the flush window. Then count only the items of the requests of this test.
+- ❌ `spans = wait_for_ai_guard_spans(test_agent, 2)` followed by an exact evaluation count check.
+
+### LIFE-006: Accept every outcome that a time window can produce.
+- Severity: P0
+- Flag: An assertion on a result that depends on a wall-clock window must accept each valid outcome. Stats buckets and sampling windows are such windows. Do not hide this with a `flaky` manifest entry.
+- Detect: The test assumes that all spans land in one stats bucket, or it reads only the first bucket. A `flaky` manifest entry hides a result that changes with a sampling window.
+- ✅ Merge the stats of all buckets by aggregation key. Adjust the expected tags when the sampling window let a schema be collected.
+- ❌ `assert len(buckets) == 1`, or a `flaky` manifest entry for a timing-dependent tag.
