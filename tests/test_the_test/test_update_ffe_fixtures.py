@@ -67,6 +67,7 @@ def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path
     (suite / "cases").mkdir(parents=True)
     (suite / "ufc-config.json").write_text('{"flags": {"flag": {}}}', encoding="utf-8")
     (suite / "cases" / "case.json").write_text('[{"flag": "flag"}]', encoding="utf-8")
+    (suite / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
     _write_selection_vectors(source)
     (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
     (source / "flag-selection" / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
@@ -77,6 +78,7 @@ def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path
     assert (snapshot / "evaluation-cases" / "case.json").is_file()
     for path in (Path("ufc-config.json"), Path("cases/case.json")):
         assert (snapshot / "evaluation-suites" / "feature" / path).read_bytes() == (suite / path).read_bytes()
+    assert not (snapshot / "evaluation-suites" / "feature" / "AGENTS.md").exists()
     assert not (snapshot / "README.md").exists()
     assert not (snapshot / "AGENTS.md").exists()
     assert not (snapshot / "precomputed-assignments").exists()
