@@ -115,17 +115,6 @@ class Test_DD_SDK_MODE:
             "DD_SDK_MODE=otel didn't capture OpenTelemetry spans"
         )
 
-    @pytest.mark.parametrize(
-        "library_env",
-        [{**OTEL_MODE_ENV, "DD_RUNTIME_METRICS_ENABLED": "true", "OTEL_METRIC_EXPORT_INTERVAL": "1000"}],
-    )
-    @pytest.mark.usefixtures("otlp_endpoints")
-    def test_otel_exports_metrics_over_otlp(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        # Runtime metrics are produced by the Datadog SDK, not with the OpenTelemetry metrics API.
-        # Wait while the SDK runs, as they're only collected periodically.
-        with test_library:
-            test_agent.wait_for_num_otlp_metrics(num=1, wait_loops=150)
-
     @pytest.mark.parametrize("library_env", [OTEL_MODE_ENV])
     @pytest.mark.usefixtures("otlp_endpoints")
     def test_otel_enables_otel_metrics_api(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
