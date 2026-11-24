@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -40,6 +41,115 @@ def _ensure_mirror_builder(docker_bin: str) -> str:
     return _MIRROR_BUILDER
 
 
+# Registry / network errors that are worth retrying the build for. The base images are
+# passed as docker-image:// build contexts, so a flaky registry (HEAD/GET on the manifest
+# or a blob) fails the build before any Dockerfile instruction is executed.
+_TRANSIENT_BUILD_ERROR = re.compile(
+    r"TLS handshake timeout"
+    r"|i/o timeout"
+    r"|connection reset by peer"
+    r"|connection refused"
+    r"|net/http: request canceled"  # "while waiting for connection", "(Client.Timeout exceeded ...)"
+    r"|context deadline exceeded"
+    r"|temporary failure in name resolution"
+    r"|no such host"
+    r"|unexpected EOF"
+    r"|: EOF$"  # connection closed during a request (e.g. Head "...": EOF)
+    r"|code = Unavailable"  # buildx lost its builder (rpc error ... error reading from server: EOF)
+    r"|toomanyrequests"
+    r"|429 Too Many Requests"
+    r"|\b50[0234] (?:Internal Server Error|Bad Gateway|Service Unavailable|Gateway Timeout)\b",
+    re.IGNORECASE,
+)
+# Only the lines that describe why the build failed are classified: buildx's final summary
+# (column 0, e.g. "ERROR: failed to solve: ...") and the failing step ("#5 ERROR: ...").
+# Step output is always prefixed with "#N <time>", so an error printed (and maybe recovered
+# from) by a step never matches.
+_BUILD_FAILURE_LINE = re.compile(r"^(?:#\d+ )?ERROR: ")
+# A RUN instruction that exits non-zero, or an invalid Dockerfile, is a real build failure,
+# even if the message mentions a network error (or ends with ": EOF"): never retry it.
+_NON_TRANSIENT_FAILURES = ("did not complete successfully", "dockerfile parse error")
+_BUILD_ATTEMPTS = 3
+_BUILD_RETRY_DELAYS = (10, 30)  # seconds to wait before attempt 2, 3
+_BUILD_ATTEMPT_TIMEOUT = 600  # seconds, for one attempt
+_BUILD_TOTAL_TIMEOUT = 900  # seconds, for all attempts and waits
+_BUILD_MIN_ATTEMPT_BUDGET = 120  # seconds: don't start an attempt with less time than this left
+
+
+def _is_transient_build_failure(output: str) -> bool:
+    """Tell whether a failed docker build log only shows a transient registry/network error"""
+    failure_lines = [line.rstrip() for line in output.splitlines() if _BUILD_FAILURE_LINE.match(line)]
+    if any(marker in line for line in failure_lines for marker in _NON_TRANSIENT_FAILURES):
+        return False
+    return any(_TRANSIENT_BUILD_ERROR.search(line) for line in failure_lines)
+
+
+def _append_to_log(log_path: str, message: str) -> None:
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(f"\n===== {message} =====\n")
+
+
+def _run_docker_build(
+    cmd: list[str],
+    log_path: str,
+    env: dict[str, str],
+    attempt_timeout: float = _BUILD_ATTEMPT_TIMEOUT,
+    total_timeout: float = _BUILD_TOTAL_TIMEOUT,
+) -> int:
+    """Run the docker build, retrying on transient registry/network errors.
+
+    Each attempt is limited to attempt_timeout, and all attempts (with the waits between them)
+    to total_timeout. A timeout raises subprocess.TimeoutExpired, it is not retried.
+    Every attempt is appended to log_path, after an attempt header.
+    Returns the exit code of the last attempt.
+    """
+    deadline = time.monotonic() + total_timeout
+    returncode = 0
+    for attempt in range(1, _BUILD_ATTEMPTS + 1):
+        with open(log_path, "a", encoding="utf-8") as log_file:
+            log_file.write(f"\n===== docker build attempt {attempt}/{_BUILD_ATTEMPTS} =====\n")
+            log_file.flush()
+            attempt_start = os.fstat(log_file.fileno()).st_size
+
+            returncode = subprocess.run(
+                cmd,
+                text=True,
+                stdout=log_file,
+                stderr=log_file,
+                env=env,
+                timeout=min(attempt_timeout, deadline - time.monotonic()),
+                check=False,
+            ).returncode
+
+        if returncode == 0:
+            return 0
+
+        attempt_output = Path(log_path).read_bytes()[attempt_start:].decode(errors="replace")
+
+        if attempt == _BUILD_ATTEMPTS or not _is_transient_build_failure(attempt_output):
+            return returncode
+
+        delay = _BUILD_RETRY_DELAYS[min(attempt, len(_BUILD_RETRY_DELAYS)) - 1]
+        if deadline - time.monotonic() - delay < _BUILD_MIN_ATTEMPT_BUDGET:
+            message = (
+                f"docker build attempt {attempt}/{_BUILD_ATTEMPTS} failed with a transient registry/network error, "
+                f"not retrying: less than {_BUILD_MIN_ATTEMPT_BUDGET}s left of the {total_timeout:.0f}s build budget"
+            )
+            logger.stdout(message)
+            _append_to_log(log_path, message)
+            return returncode
+
+        message = (
+            f"docker build attempt {attempt}/{_BUILD_ATTEMPTS} failed with a transient registry/network error, "
+            f"retrying in {delay}s"
+        )
+        logger.stdout(message)
+        _append_to_log(log_path, message)
+        time.sleep(delay)
+
+    return returncode
+
+
 class TestClientFactory:
     """Abstracts a docker image builing for docker fixtures scenarios"""
 
@@ -74,7 +184,7 @@ class TestClientFactory:
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
         Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
-        with open(log_path, "w+", encoding="utf-8") as log_file:
+        with open(log_path, "w", encoding="utf-8") as log_file:
             docker_bin = shutil.which("docker")
 
             if docker_bin is None:
@@ -116,43 +226,30 @@ class TestClientFactory:
                 ".",
             ]
             log_file.write(f"running {cmd}\n")
-            log_file.flush()
 
-            env = os.environ.copy()
-            env["DOCKER_SCAN_SUGGEST"] = "false"
+        env = os.environ.copy()
+        env["DOCKER_SCAN_SUGGEST"] = "false"
 
-            timeout = 600
+        if _run_docker_build(cmd, log_path, env) != 0:
+            with Path(log_path).open() as f:
+                lines = f.readlines()
 
-            p = subprocess.run(
-                cmd,
-                text=True,
-                stdout=log_file,
-                stderr=log_file,
-                env=env,
-                timeout=timeout,
-                check=False,
-            )
+            TAIL_LIMIT = 50  # noqa: N806
+            SEP = "=" * 30  # noqa: N806
 
-            if p.returncode != 0:
-                with Path(log_path).open() as f:
-                    lines = f.readlines()
+            logger.stdout(f"\n{SEP} {log_path} last {TAIL_LIMIT} lines {SEP}")
+            logger.stdout("")
+            # print last <tail> lines in stdout
+            logger.stdout("".join(lines[-TAIL_LIMIT:]))
+            logger.stdout("")
 
-                TAIL_LIMIT = 50  # noqa: N806
-                SEP = "=" * 30  # noqa: N806
+            pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
 
-                logger.stdout(f"\n{SEP} {log_path} last {TAIL_LIMIT} lines {SEP}")
-                logger.stdout("")
-                # print last <tail> lines in stdout
-                logger.stdout("".join(lines[-TAIL_LIMIT:]))
-                logger.stdout("")
+        # Sanity checks
+        if "Config" not in self.image.attrs or not self.image.attrs["Config"].get("Cmd"):
+            pytest.exit(f"{self.dockerfile} does not set a command", 1)
 
-                pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
-
-            # Sanity checks
-            if "Config" not in self.image.attrs or not self.image.attrs["Config"].get("Cmd"):
-                pytest.exit(f"{self.dockerfile} does not set a command", 1)
-
-            assert isinstance(self.command, list)
+        assert isinstance(self.command, list)
 
         logger.stdout("Build complete")
 
