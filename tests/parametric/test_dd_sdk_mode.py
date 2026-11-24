@@ -2,7 +2,8 @@
 
 DD_SDK_MODE=otel replaces the settings that enable OpenTelemetry mode: it makes "otlp" the default of
 OTEL_TRACES_EXPORTER, and true the default of DD_TRACE_OTEL_ENABLED, DD_TRACE_OTEL_SEMANTICS_ENABLED,
-DD_METRICS_OTEL_ENABLED and DD_LOGS_OTEL_ENABLED. These settings still win when they're set explicitly.
+DD_METRICS_OTEL_ENABLED and DD_LOGS_OTEL_ENABLED. These settings still win when they're set explicitly, and
+OTEL_SDK_DISABLED=true still turns off OpenTelemetry mode.
 """
 
 from typing import Final
@@ -63,6 +64,7 @@ def _emit_otel_span(library: APMLibrary) -> None:
 def _emit_log(library: APMLibrary) -> None:
     assert library.create_logger(LOGGER, LogLevel.INFO)
     assert library.write_log(LOGGER, LogLevel.INFO, LOG_MESSAGE)
+    # A disabled SDK may have no logger provider to flush
     library.otel_logs_flush()
 
 
@@ -160,6 +162,37 @@ class Test_DD_SDK_MODE:
         assert not wait_for_otlp_export_requests(test_agent, "traces", timeout=1)
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1)
+
+    # OTEL_SDK_DISABLED=true turns off OpenTelemetry mode for every signal, and maps to DD_TRACE_ENABLED=false.
+    # It keeps doing so with DD_SDK_MODE=otel, whose test_otel_enables_* tests show that the signals are on otherwise.
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "OTEL_SDK_DISABLED": "true", "DD_TRACE_ENABLED": None}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_otel_sdk_disabled_disables_tracing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            _emit_span(library)
+            _emit_otel_span(library)
+
+        assert not wait_for_otlp_export_requests(test_agent, "traces", timeout=1)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
+
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "OTEL_SDK_DISABLED": "true"}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_otel_sdk_disabled_disables_otel_metrics(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            generate_default_counter_data_point(library, COUNTER)
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_otlp_metrics(num=1)
+
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "OTEL_SDK_DISABLED": "true"}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_otel_sdk_disabled_disables_otel_logs(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            _emit_log(library)
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_log_payloads(1)
 
     @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_TRACE_AGENT_PROTOCOL_VERSION": "0.4"}])
     @pytest.mark.usefixtures("otlp_endpoints")
