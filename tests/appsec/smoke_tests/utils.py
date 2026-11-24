@@ -5,11 +5,11 @@
 """Shared security smoke tests verifying payload carriers at backend intake."""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import jsonschema
 
+from tests.appsec.utils import IAST_VULNERABILITY_SCHEMA_PATH
 from utils import context, interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
 from utils.dd_constants import SamplingPriority
@@ -450,7 +450,7 @@ class BaseUserEventsSmokeTests:
 
 # The harness mounts this directory in every weblog. No traversal or application file is needed.
 _SMOKE_PATH = "/var/log/system-tests"
-_SCHEMA = json.loads((Path(__file__).parents[1] / "iast/vulnerability_schema.json").read_text(encoding="utf-8"))
+_SCHEMA = json.loads(IAST_VULNERABILITY_SCHEMA_PATH.read_text(encoding="utf-8"))
 
 
 def _assert_report(report: dict[str, Any]) -> set[str]:

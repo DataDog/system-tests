@@ -1112,9 +1112,6 @@ manifest:
         nextjs: *ref_6_26_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Iast:
-    - weblog_declaration:
-        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0  # TODO: a lower version might be supported
@@ -1125,9 +1122,6 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Iast:
-    - weblog_declaration:
-        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0  # TODO: a lower version might be supported
@@ -1138,7 +1132,7 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_IastStandalone_Iast:
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
     - weblog_declaration:
         nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py: v5.92.0
