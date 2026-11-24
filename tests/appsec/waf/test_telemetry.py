@@ -179,14 +179,9 @@ class Test_TelemetryMetrics:
             for point in series["points"]:
                 total_requests_metric += point[1]
 
-        if context.library == "dotnet":
-            assert total_requests_metric >= request_count, (
-                "Number of requests in traces do nois higher than waf.requests metric total"
-            )
-        else:
-            assert total_requests_metric == request_count, (
-                "Number of requests in traces do not match waf.requests metric total"
-            )
+        assert total_requests_metric == request_count, (
+            "Number of requests in traces do not match waf.requests metric total"
+        )
 
     def _find_series(self, request_type: str, namespace: str, metric: str):
         series = []
@@ -221,7 +216,7 @@ class Test_TelemetryMetrics:
             "request_blocked",
         }
 
-        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0":
+        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0" or context.library >= "dotnet@3.37.0":
             mandatory_tag_prefixes.update({"block_failure", "rate_limited", "input_truncated"})
 
         return mandatory_tag_prefixes
