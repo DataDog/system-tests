@@ -176,7 +176,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_MCP_ToolCalls:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express5: "missing_feature (MCP servers in the SDK evaluate call, DataDog/dd-trace-js#11384)"
+        express5: '^5.138.0 || >=6.27.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
