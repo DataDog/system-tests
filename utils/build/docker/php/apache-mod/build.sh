@@ -20,7 +20,7 @@ cp -rf /tmp/php/common/php.ini /etc/php/
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 jq librdkafka-dev \
+		apache2 jq librdkafka-dev unzip \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 

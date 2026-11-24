@@ -17,6 +17,12 @@ import (
 // tracer's own timeout governs whenever it applies one.
 const ffeStartTimeout = 15 * time.Second
 
+// ffeFlagSelection is the /ffe/start body's flag_selection, passed to the SDK as is.
+type ffeFlagSelection struct {
+	Tags        []string `json:"tags"`
+	KeyPatterns []string `json:"keyPatterns"`
+}
+
 // ffeStartMu guards ffeStarted, which records a *successful* start. sync.Once
 // would burn its one shot on a failed attempt and then report 200 with no
 // client, so a retry could never recover.
@@ -33,7 +39,14 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 			return nil
 		}
 
-		provider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
+		var startBody struct {
+			FlagSelection *ffeFlagSelection `json:"flag_selection"`
+		}
+		if request.Body != nil {
+			_ = json.NewDecoder(request.Body).Decode(&startBody)
+		}
+
+		provider, err := ddof.NewDatadogProvider(ffeProviderConfig(startBody.FlagSelection))
 		if err != nil {
 			return err
 		}

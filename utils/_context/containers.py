@@ -22,7 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client, log_host_diagnostics
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
-from utils.base_images.base_image import base_image_contexts
+from utils.base_images.base_image import base_image_aliases
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
@@ -984,11 +984,31 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # read from the image, so that the version is known before the agent starts
+        version = self.image.labels.get("org.opencontainers.image.version", "")
+        if not version:
+            pytest.exit(
+                f"The agent image {self.image.name} has no org.opencontainers.image.version label, "
+                "so its version can't be known before it starts. Add this label to the image.",
+                1,
+            )
+        self.agent_version = ComponentVersion("agent", version).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = ComponentVersion("agent", data["version"]).version
+        reported_version = Version(data["version"])
+        # dev images labels have more build metadata than /info: compare without it
+        # e.g. 7.87.0-devel+git.810.4e18469.pipeline.153953738 vs 7.87.0-devel+git.810.4e18469
+        if reported_version.truncate("prerelease") != self.agent_version.truncate("prerelease"):
+            pytest.exit(
+                f"The agent runs {reported_version}, but its image {self.image.name} is labeled {self.agent_version}",
+                1,
+            )
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
@@ -1085,10 +1105,11 @@ class BuddyContainer(TestedContainer):
 
 
 def dockerfile_image_list(dockerfile: Path) -> list[str]:
-    """Return the images referenced in the FROM lines of a Dockerfile.
+    """Return the images pulled by the FROM lines of a Dockerfile.
 
-    system-tests base-image aliases are resolved to their locked reference, and
-    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    ARG defaults are substituted, unresolved placeholders are kept as-is. system-tests
+    base-image aliases are skipped: they are not pulled by the Dockerfile, build.sh supplies
+    them as named build contexts (see utils/base_images/base_image.py).
     """
     result: list[str] = []
     args: dict[str, str] = {}
@@ -1096,14 +1117,15 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
     pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
     arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
     dockerfile_text = dockerfile.read_text()
-    base_contexts = base_image_contexts(dockerfile_text)
+    base_aliases = base_image_aliases(dockerfile_text)
     for line in dockerfile_text.splitlines():
         if match := arg_pattern.match(line):
             args[match.group("arg_name")] = match.group("arg_value")
 
         if match := pattern.match(line):
             image_name = match.group("image_name")
-            image_name = base_contexts.get(image_name, image_name)
+            if image_name in base_aliases:
+                continue
 
             for name, value in args.items():
                 image_name = image_name.replace(f"${name}", value)

@@ -69,7 +69,7 @@ def _trace_request(test_agent: TestAgentAPI, test_library: APMLibrary) -> AgentR
             pass
         library.dd_flush()
 
-    requests = [request for request in test_agent.requests() if request["url"].endswith(OTLP_TRACE_PATH)]
+    requests = otel_env_var_utils.wait_for_otlp_export_requests(test_agent, "traces")
     assert requests, f"Expected OTLP trace request, got {test_agent.requests()}"
     return requests[0]
 

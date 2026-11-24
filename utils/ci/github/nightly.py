@@ -141,7 +141,7 @@ def _extract_report_files(archive_path: Path, destination: Path) -> None:
     destination_root = destination.resolve()
     with tarfile.open(archive_path, "r:gz") as archive:
         for member in archive.getmembers():
-            if not member.isfile() or not member.name.endswith("/report.json"):
+            if not member.isfile() or not member.name.endswith("/reportJunit.xml"):
                 continue
             target = (destination / member.name).resolve()
             if not target.is_relative_to(destination_root):
@@ -242,7 +242,15 @@ def process_activation_branch(
             return
         print(f"PR #{pr_number} exists but has no human activity, updating")  # noqa: T201
 
-    _push_signed_branch(branch_name, options, runner)
+    try:
+        _push_signed_branch(branch_name, options, runner)
+    except RuntimeError:
+        # The PR may have been merged (auto-merge) or closed between the lookup and the push:
+        # GitHub then refuses to update its branch. The next nightly recreates it from an up-to-date main.
+        if pr_number is None or _get_pr_state(pr_number, runner) == "OPEN":
+            raise
+        print(f"PR #{pr_number} for {branch_name} was merged or closed during the update, skipping")  # noqa: T201
+        return
 
     if pr_number is None:
         _create_pr(branch_name, owner, library, options.github, runner)
@@ -295,6 +303,11 @@ def _find_pr_number(branch_name: str, runner: CommandRunner) -> str | None:
     if value in ("", "null"):
         return None
     return value
+
+
+def _get_pr_state(pr_number: str, runner: CommandRunner) -> str:
+    """Returns OPEN, CLOSED or MERGED"""
+    return _run_checked(["gh", "pr", "view", pr_number, "--json", "state", "--jq", ".state"], runner).stdout.strip()
 
 
 def _get_pr_activity(repository: str, pr_number: str, runner: CommandRunner) -> PullRequestActivity:

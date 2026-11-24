@@ -1,5 +1,6 @@
 from collections.abc import Callable
 import re
+import time
 from typing import Any, Final
 
 from utils import pytest
@@ -7,6 +8,8 @@ from utils import pytest
 from utils import context
 
 from tests.parametric.conftest import APMLibrary
+from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.parametric import LogLevel
 
 
@@ -76,6 +79,20 @@ def assert_blrp_configuration(test_library: APMLibrary, variable_name: str, expe
     value = config[key]
     assert value is not None, f"No effective BLRP configuration '{key}'"
     assert int(value) == expected_value
+
+
+def wait_for_otlp_export_requests(test_agent: TestAgentAPI, signal: str, timeout: float = 5) -> list[AgentRequest]:
+    """OTLP export requests for a signal, waiting up to `timeout` seconds for the first one.
+
+    A flush can return before the exporter delivers its request, so a single read is racy.
+    An empty list means nothing was exported within the timeout.
+    """
+    deadline = time.monotonic() + timeout
+    while True:
+        requests = [request for request in test_agent.requests() if request["url"].endswith(f"/v1/{signal}")]
+        if requests or time.monotonic() > deadline:
+            return requests
+        time.sleep(0.1)
 
 
 # A protocol test input: a literal value, or a function of (signal, SDK default)

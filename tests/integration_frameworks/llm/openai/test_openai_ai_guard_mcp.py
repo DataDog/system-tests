@@ -16,7 +16,7 @@ every mcp.server_id of the reported messages resolves to a server.
 """
 
 import json
-import time
+from typing import Any
 
 from utils import pytest
 
@@ -28,9 +28,12 @@ from tests.integration_frameworks.llm.utils import (
     ai_guard_mcp_servers,
     ai_guard_messages,
     ai_guard_spans,
+    ai_guard_tool_calls,
     assert_ai_guard_evaluated,
     find_ai_guard_spans_with_reason,
+    spans_named,
     wait_for_ai_guard_spans,
+    wait_for_spans,
 )
 from .utils import BaseOpenaiTest
 
@@ -57,6 +60,18 @@ DROPBOX_SERVER = {
     "transport": "unknown",
     "tools": {"search": "search"},
 }
+
+# The RFC host canonicalization vectors, shared by every tracer: server_label, configured server_url,
+# the url origin reported in mcp_servers (None: omitted, so the name key is used) and the expected ID.
+HOST_VECTORS: list[tuple[str, str, str | None, str]] = [
+    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1", "mcp_bb3842ff8c77d25d"),
+    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080", "mcp_b339e608ea2ddcc1"),
+    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000", "mcp_cc35033de8004f7e"),
+    ("percent_host", "http://%65xample.com/mcp", "http://example.com", "mcp_35da95b0ebe35a00"),
+    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example", "mcp_2607363cabc2eebc"),
+    # An IDN host has no url: key "name|idn_host".
+    ("idn_host", "http://bücher.example/mcp", None, "mcp_905c59cb4ec642b0"),
+]
 
 # The request constants below are the ones the cassettes were generated for: keep them in sync with
 # utils/scripts/gen_aiguard_mcp_cassettes.py, a difference makes the cassettes miss.
@@ -157,7 +172,7 @@ def _matched_evaluations(
         "meta_struct.ai_guard.mcp_servers must report the mcp_servers sent to AI Guard"
     )
     reported_ids = {server["id"] for server in mcp_servers or []}
-    for tool_call in _tool_calls(response_span):
+    for tool_call in ai_guard_tool_calls(response_span):
         if "mcp" in tool_call:
             assert tool_call["mcp"]["server_id"] in reported_ids, (
                 f"mcp.server_id {tool_call['mcp']['server_id']} does not resolve to a reported MCP server"
@@ -165,33 +180,10 @@ def _matched_evaluations(
     return spans, response_span
 
 
-def _tool_calls(span: dict) -> list[dict]:
-    return [
-        tool_call
-        for message in ai_guard_messages(span)
-        if message.get("role") == "assistant"
-        for tool_call in message.get("tool_calls") or []
-    ]
-
-
-def _tool_call(span: dict, name: str) -> dict:
-    calls = [tool_call for tool_call in _tool_calls(span) if tool_call["function"]["name"] == name]
-    assert len(calls) == 1, f"expected one {name} tool call in the AI Guard evaluation, got {_tool_calls(span)}"
+def _tool_call(span: dict[str, Any], name: str) -> dict[str, Any]:
+    calls = ai_guard_tool_calls(span, name)
+    assert len(calls) == 1, f"expected one {name} tool call in the AI Guard evaluation, got {ai_guard_tool_calls(span)}"
     return calls[0]
-
-
-def _wait_for_openai_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
-    """Poll until at least count openai.request spans arrived and return all of them, so the caller
-    can assert the exact count: extra spans are returned, never hidden (fewer on timeout).
-    """
-    spans: list[dict] = []
-    for _ in range(30):
-        traces = test_agent.traces(clear=False)
-        spans = [span for trace in traces for span in trace if span.get("name") == "openai.request"]
-        if len(spans) >= count:
-            break
-        time.sleep(0.1)
-    return spans
 
 
 @pytest.fixture
@@ -261,6 +253,52 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
         assert "mcp" not in _tool_call(span, "get_weather")
 
+    def test_ai_guard_openai_mcp_server_id_host_vectors(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
+    ):
+        """Each server_url host is canonicalized with the WHATWG rules before the ID is computed, so
+        every tracer reports the RFC vector ID. An IDN host has no url and gets the ID of its name key.
+        """
+        tools = [
+            {"type": "mcp", "server_label": label, "server_url": url, "require_approval": "never"}
+            for label, url, _, _ in HOST_VECTORS
+        ]
+        with test_agent.vcr_context():
+            _create_response(test_client, "Run the lookup tool of every MCP server.", tools)
+
+        expected_servers = []
+        for label, _, origin, expected_id in HOST_VECTORS:
+            server: dict[str, Any] = {"id": expected_id, "managed_by": "provider", "name": label}
+            if origin is not None:
+                server["url"] = origin
+            server.update(transport="unknown", tools={f"{label}_lookup": f"{label}_lookup"})
+            expected_servers.append(server)
+        _, span = _matched_evaluations(test_agent, request, expected_servers)
+        for label, _, _, expected_id in HOST_VECTORS:
+            assert _tool_call(span, f"{label}_lookup")["mcp"] == {"server_id": expected_id}, label
+
+    def test_ai_guard_openai_mcp_servers_sharing_an_id_merge(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
+    ):
+        """Two servers on one origin with different paths share an ID, so they are reported as one
+        mcp_servers entry: the first label's fields, with the tools of both labels.
+        """
+        sse_tool = {
+            "type": "mcp",
+            "server_label": "example_sse",
+            "server_url": "https://mcp.example.com/sse",
+            "require_approval": "never",
+        }
+        with test_agent.vcr_context():
+            _create_response(
+                test_client, "Ask the example MCP server about the RFC, then read its docs.", [EXAMPLE_TOOL, sse_tool]
+            )
+
+        merged = {**EXAMPLE_SERVER, "tools": {"ask_question": "ask_question", "read_docs": "read_docs"}}
+        _, span = _matched_evaluations(test_agent, request, [merged])
+        assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
+        assert _tool_call(span, "read_docs")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
+
     def test_ai_guard_openai_mcp_approval_request_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
     ):
@@ -306,7 +344,7 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         ]
 
         # Both calls failed with the AI Guard abort, and the continuation added no evaluation.
-        openai_spans = _wait_for_openai_spans(test_agent, 2)
+        openai_spans = wait_for_spans(test_agent, lambda traces: spans_named(traces, "openai.request"), 2)
         assert len(openai_spans) == 2, f"expected two openai.request spans, got {len(openai_spans)}"
         for openai_span in openai_spans:
             assert "AIGuardAbortError" in openai_span["meta"].get("error.type", ""), openai_span["meta"]
@@ -343,4 +381,4 @@ class Test_OpenAiAiGuardMcpDisabled(BaseOpenaiTest):
         # The matched cassette has no mcp_servers key and no mcp field in its messages.
         _, span = _matched_evaluations(test_agent, request, None)
         assert "mcp" not in _tool_call(span, "ask_question")
-        assert all("mcp" not in tool_call for tool_call in _tool_calls(span))
+        assert all("mcp" not in tool_call for tool_call in ai_guard_tool_calls(span))

@@ -1,10 +1,13 @@
 from collections.abc import Generator, Iterable
 import os
+from pathlib import Path
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 from utils.dd_types import DataDogLibrarySpan
+
+IAST_VULNERABILITY_SCHEMA_PATH = Path(__file__).parent / "utils" / "vulnerability_schema.json"
 
 BLOCKED_IPS_COUNT_ENV_VAR = "_SYSTEM_TESTS_BLOCKED_IPS_COUNT"
 DEFAULT_BLOCKED_IPS_COUNT = 12500

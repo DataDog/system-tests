@@ -1,6 +1,10 @@
 'use strict'
 
-const tracer = require('dd-trace').init()
+const tracerOptions = {}
+if (process.env.SYSTEM_TESTS_FFE_FLAG_SELECTION !== undefined) {
+  tracerOptions.featureFlags = { flagSelection: JSON.parse(process.env.SYSTEM_TESTS_FFE_FLAG_SELECTION) }
+}
+const tracer = require('dd-trace').init(tracerOptions)
 const { trace, ROOT_CONTEXT, SpanKind, propagation, metrics } = require('@opentelemetry/api')
 tracer.use('express', false)
 tracer.use('http', false)

@@ -202,10 +202,26 @@
   copy_files:
     - name: copy-auto-inject-lock
       local_path: utils/build/auto_inject.lock
+    - name: copy-agent-version-lock
+      local_path: utils/build/virtual_machine/agent.lock
     - name: copy-binaries
       local_path: binaries/
 
   remote-command: |
+    $AGENT_LOCK_PATH = "agent.lock"
+    $DD_AGENT_VERSION = Get-Content -Path $AGENT_LOCK_PATH -ErrorAction Stop |
+      Where-Object { $_ -match '^DD_AGENT_VERSION=' } |
+      ForEach-Object { $_.Substring('DD_AGENT_VERSION='.Length).Trim() } |
+      Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($DD_AGENT_VERSION)) {
+      throw "No DD_AGENT_VERSION found in '$AGENT_LOCK_PATH'; refusing to install an unpinned agent"
+    }
+    # Windows environment variables are case-insensitive: these replace the scenario's DD_agent_major_version,
+    # otherwise the installer requests the moving "7" tag, which the dev registry doesn't publish.
+    $env:DD_AGENT_MAJOR_VERSION = $DD_AGENT_VERSION.Split('.', 2)[0]
+    $env:DD_AGENT_MINOR_VERSION = $DD_AGENT_VERSION.Split('.', 2)[1]
+    Write-Host "Using pinned agent version from agent.lock: $DD_AGENT_VERSION"
+
     if ($env:DD_env -eq "dev") {
       $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
     }
@@ -297,7 +313,12 @@
       [System.IO.File]::WriteAllText($datadogYaml, $backendConfig)
     }
 
+    # The install script reports its failures through `exit`, which doesn't stop this script
+    $global:LASTEXITCODE = 0
     C:\Windows\SystemTemp\Install-Datadog.ps1
+    if ($LASTEXITCODE -ne 0) {
+      throw "Install-Datadog.ps1 failed with exit code $LASTEXITCODE"
+    }
 
     if ($env:DD_AGENT_BACKEND_URL) {
       if (-not (Select-String -Path $datadogYaml -SimpleMatch -Quiet -Pattern $env:DD_AGENT_BACKEND_URL)) {
