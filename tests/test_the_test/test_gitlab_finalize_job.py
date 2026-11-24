@@ -136,9 +136,13 @@ def test_ssi_profiles_upload_junit_reports_from_any_repository(
     ("profile", "variable"),
     [("docker", "ONBOARDING_FILTER_ENV"), ("aws", "ONBOARDING_FILTER_ENV"), ("k8s", "REPORT_ENVIRONMENT")],
 )
-def test_junit_reports_are_labelled_with_the_generated_job_environment(tmp_path: Path, profile: str, variable: str):
+def test_junit_reports_are_labelled_with_the_generated_job_environment(
+    tmp_path: Path, profile: str, variable: str
+) -> None:
     assert _job(profile, tmp_path, **{variable: "dev"}).ci_environment == "dev"
     assert _job(profile, tmp_path, CI_ENVIRONMENT="custom").ci_environment == "custom"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="prod", SYSTEM_TESTS_CI_ENVIRONMENT="dev").ci_environment == "dev"
+    assert _job(profile, tmp_path, SYSTEM_TESTS_CI_ENVIRONMENT="prod", **{variable: "dev"}).ci_environment == "dev"
     assert _job(profile, tmp_path).ci_environment == "prod"
 
 
