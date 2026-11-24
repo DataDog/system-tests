@@ -122,9 +122,9 @@ jobs:
     - fail-if-target-branch
     - system_tests
     - exotics
-    # !cancelled(): without it, a failed/skipped need skips this job, and a skipped required check counts as passing.
-    # Only on PRs: it's a merge gate
-    if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+    # always(): otherwise a failed, skipped or cancelled need skips this job, and a skipped required check counts
+    # as passing (even a cancelled workflow could be merged). Only on PRs: it's a merge gate
+    if: ${{ always() && github.event_name == 'pull_request' }}
     steps:
     - name: Fail if any job failed or was cancelled
       if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
