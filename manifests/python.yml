@@ -222,13 +222,11 @@ manifest:
     - weblog_declaration:
         '*': '>=3.17.0'
         aiohttp: v4.17.0-rc1
-  tests/appsec/api_security/test_endpoint_discovery.py:
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": v3.13.0.dev
         *django : v3.12.0.dev
+        aiohttp: v4.18.0-rc1
         tornado: v4.7.0-rc1
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant
@@ -337,20 +335,49 @@ manifest:
         fastapi: v4.11.0-rc1
         *flask : v4.11.0-rc1
         tornado: v4.12.0-rc1
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
+  : incomplete_test_app (/api_security/three-params not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <4.17.2
+      weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        django-poc: missing_feature (RFC-1125 not implemented yet)
+        django-py3.13: missing_feature (RFC-1125 not implemented yet)
+        python3.12: missing_feature (RFC-1125 not implemented yet)
+        tornado: missing_feature (RFC-1125 not implemented yet)
+        uds-flask: missing_feature (RFC-1125 not implemented yet)
+        fastapi: missing_feature (RFC-1125 not implemented yet)
+        uwsgi-poc: missing_feature (RFC-1125 not implemented yet)
+        flask-poc: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
     - weblog_declaration:
-        "*": missing_feature
-        *django : v4.12.0-rc1
-        fastapi: v4.11.0-rc1
-        *flask : v4.11.0-rc1
-        tornado: v4.12.0-rc1
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
-    - weblog_declaration:
-        "*": missing_feature
-        *django : v4.12.0-rc1
-        fastapi: v4.11.0-rc1
-        *flask : v4.11.0-rc1
-        tornado: v4.12.0-rc1
+        django-poc: missing_feature (RFC-1125 not implemented yet)
+        django-py3.13: missing_feature (RFC-1125 not implemented yet)
+        python3.12: missing_feature (RFC-1125 not implemented yet)
+        tornado: missing_feature (RFC-1125 not implemented yet)
+        uds-flask: missing_feature (RFC-1125 not implemented yet)
+        fastapi: missing_feature (RFC-1125 not implemented yet)
+        uwsgi-poc: missing_feature (RFC-1125 not implemented yet)
+        flask-poc: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <4.17.2
+      weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Python weblogs)
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -361,7 +388,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: v2.20.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: v3.9.0.dev
@@ -369,7 +396,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
     - weblog_declaration:
         "*": v2.10.0
@@ -447,24 +474,24 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
@@ -477,14 +504,14 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_ldap_injection.py:
     - weblog_declaration:
         tornado: missing_feature
@@ -501,24 +528,24 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
@@ -531,14 +558,14 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
         "*": v1.19.0
@@ -547,24 +574,24 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
@@ -577,14 +604,14 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py:
     - weblog_declaration:
         tornado: missing_feature
@@ -597,7 +624,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal:
     - weblog_declaration:
         "*": v2.10.0
@@ -616,7 +643,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
     - weblog_declaration:
         '*': v1.18.0
@@ -630,7 +657,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF::test_secure:
     - weblog_declaration:
@@ -641,7 +668,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
   tests/appsec/iast/sink/test_template_injection.py:
@@ -663,15 +690,15 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: missing_feature
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: missing_feature
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
+        aiohttp: v4.18.0-rc1 (IAST sources are tainted for aiohttp from this version)
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
     - weblog_declaration:
         "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
@@ -707,7 +734,7 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
   tests/appsec/iast/sink/test_weak_cipher.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher:
     - weblog_declaration:
         "*": v1.18.0
@@ -716,7 +743,7 @@ manifest:
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_weak_hash.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
     - weblog_declaration:
         "*": v1.18.0
@@ -729,7 +756,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
     - weblog_declaration:
         "*": v2.0.0
@@ -755,7 +782,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/sink/test_xss.py::TestXSS:
     - weblog_declaration:
         "*": v3.0.0.dev
@@ -765,7 +792,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/source/test_body.py::TestRequestBody:
     - weblog_declaration:
         '*': v1.20.0
@@ -819,7 +846,7 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: v3.9.0.dev
   tests/appsec/iast/test_security_controls.py:  # Created by easy win activation script
     - weblog_declaration:
@@ -832,7 +859,12 @@ manifest:
         *flask : v3.11.0.dev
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
-  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
+  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
+    - declaration: missing_feature
+      component_version: '<3.8.0-dev'
+    - declaration: bug (APPSEC-71849)
+      component_version: '>=3.15.0 <4.18.0-rc1'
+      excluded_weblog: [aiohttp, tornado]
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         '*': '>=4.5.0-rc1'
@@ -1151,6 +1183,30 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py: v4.6.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Threats:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1
   tests/appsec/test_alpha.py:
     - weblog_declaration:
@@ -1182,25 +1238,25 @@ manifest:
         tornado: v4.6.4  # TODO: a lower version might be supported
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2
   : - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
@@ -1582,7 +1638,7 @@ manifest:
         "*": v3.11.0.dev
         tornado: missing_feature
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.18.0-rc1
   tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
   tests/appsec/test_rate_limiter.py:
     - weblog_declaration:
@@ -2387,6 +2443,10 @@ manifest:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py::TestAnthropicAiGuard: v4.11.0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py:  # Easy win for anthropic-py@0.84.0 and version 4.17.1
+    - weblog_declaration:
+        "*": v4.18.0-rc1
+        anthropic-py@0.75.0: "irrelevant (anthropic<0.84.0 has no MCP tool helpers)"
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error:  # TODO: a lower version might be supported
@@ -2406,6 +2466,10 @@ manifest:
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: v3.13.0
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : bug (MLOB-5071)
+  tests/integration_frameworks/llm/litellm/test_litellm_llmobs.py::TestLitellmLlmObsGateway: v4.18.0-rc1
+  tests/integration_frameworks/llm/litellm/test_litellm_llmobs.py::TestLitellmLlmObsGateway::test_not_streamed:
+    - declaration: bug (APPSEC-71787)
+      excluded_weblog: [litellm-py@1.78.5]
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: v4.10.0
   tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: v4.18.0-rc1  # Easy win for openai-py@2.0.0 and version 4.17.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
@@ -2930,7 +2994,7 @@ manifest:
   : v4.11.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
-  : bug (APMAPI-2481)
+  : v4.18.0-dev
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty:
@@ -2940,7 +3004,7 @@ manifest:
   : - declaration: bug (APMAPI-2476)
       component_version: '<4.15.0-rc2'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid: bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid: v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_empty_is_treated_as_unset
   : bug (APMAPI-2461)
@@ -2975,7 +3039,7 @@ manifest:
   : v4.11.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
-  : bug (APMAPI-2481)
+  : v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_empty:
     - declaration: bug (APMAPI-2476)
       component_version: '<4.15.0-rc2'
@@ -2985,7 +3049,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
   : missing_feature (OTLP HTTP JSON exporter is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_invalid
-  : bug (APMAPI-2481)
+  : v4.18.0-dev
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
   : v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
@@ -3004,21 +3068,21 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT::test_zero_is_unlimited
   : bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_empty:
     - declaration: bug (APMAPI-2476)
       component_version: '<4.15.0-rc2'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_invalid: bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_invalid: v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive: bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive: v4.18.0-dev
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty:
     - declaration: bug (APMAPI-2476)
       component_version: '<4.15.0-rc2'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid: bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid: v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT::test_empty_is_treated_as_unset
   : bug (APMAPI-2461)
@@ -3082,12 +3146,12 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : v4.15.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: v4.18.0-dev
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: v4.18.0-dev
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: v4.18.0-dev
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: v4.18.0-dev
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: v4.18.0-dev
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: v4.18.0-dev
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset:  # TODO: a lower version might be supported
@@ -3100,6 +3164,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: bug (APMAPI-2691)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v4.11.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -3170,6 +3235,10 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
   : 'missing_feature (Requires a release containing dd-trace-py#21548)'
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release; dd-trace-py PR 21346)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC:
+    - declaration: irrelevant (Legacy coverage is pinned to Python 4.16.0)
+      component_version: '<4.16.0 || >4.16.0'
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
@@ -3810,7 +3879,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # Easy win for aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.17.0
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_client_error_statuses_config_excludes_500
@@ -3830,7 +3899,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:  # Easy win for aiohttp, django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.17.0
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
@@ -3848,13 +3917,13 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:  # Easy win for fastapi, flask-poc, uds-flask, uwsgi-poc and version 4.16.3
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
     - weblog_declaration:
         '*': 4.15.0-dev
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.15.3
@@ -3933,18 +4002,7 @@ manifest:
   tests/test_otlp_runtime_metrics.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        python3.12: '>=4.10.5'
-        django-poc: '>=4.10.5'
-        flask-poc: '>=4.10.5'
-        tornado: '>=4.10.5'
-        fastapi: '>=4.10.5'
-        uwsgi-poc: '>=4.10.5'
-        uds-flask: '>=4.10.5'
-        django-py3.13: '>=4.10.5'
-        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are sent through DogStatsD, OTEL-3447)
   tests/test_profiling.py:
     - weblog_declaration:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
@@ -4010,7 +4068,7 @@ manifest:
     - weblog_declaration:
         "*": v1.7.1
         fastapi: v2.4.0
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_scrubbing.py::Test_UrlQuery: v1.6.0-rc1
@@ -4050,7 +4108,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp:
     - weblog_declaration:
         '*': '>=4.12.0-rc1'
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
@@ -4196,19 +4254,19 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
-        aiohttp: v4.17.0  # TODO: a lower version might be supported
+        aiohttp: v4.17.2  # TODO: a lower version might be supported
     - weblog_declaration:
         aiohttp: missing_feature
     - weblog_declaration:
         aiohttp: v4.17.0  # TODO: a lower version might be supported
-        python3.12: v4.17.0  # TODO: a lower version might be supported
-        flask-poc: v4.17.0  # TODO: a lower version might be supported
-        uds-flask: v4.17.0  # TODO: a lower version might be supported
-        uwsgi-poc: v4.17.0  # TODO: a lower version might be supported
-        django-py3.13: v4.17.0  # TODO: a lower version might be supported
-        django-poc: v4.17.0  # TODO: a lower version might be supported
-        tornado: v4.17.0  # TODO: a lower version might be supported
-        fastapi: v4.17.0  # TODO: a lower version might be supported
+        python3.12: v4.17.2  # TODO: a lower version might be supported
+        flask-poc: v4.17.2  # TODO: a lower version might be supported
+        uds-flask: v4.17.2  # TODO: a lower version might be supported
+        uwsgi-poc: v4.17.2  # TODO: a lower version might be supported
+        django-py3.13: v4.17.2  # TODO: a lower version might be supported
+        django-poc: v4.17.2  # TODO: a lower version might be supported
+        tornado: v4.17.2  # TODO: a lower version might be supported
+        fastapi: v4.17.2  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
     - weblog_declaration:
         tornado: v4.6.4  # TODO: a lower version might be supported

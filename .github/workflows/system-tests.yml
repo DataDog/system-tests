@@ -116,7 +116,7 @@ on:
         required: false
         type: string
       dd_sts_policy:
-        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
+        description: "Deprecated and unused, kept for backward compatibility"
         default: ""
         required: false
         type: string
@@ -205,6 +205,8 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
+      - name: Disable the containerd image store
+        uses: ./.github/actions/disable_containerd_image_store
       - name: Get binaries artifact
         if: ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: ./.github/actions/download_artifact
@@ -301,7 +303,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write  # needed by dd-sts to tag the job
+      id-token: write  # needed by Datadog Workload Identity Federation to tag the job
     steps:
       - name: Checkout
         id: checkout

@@ -46,9 +46,8 @@ def _write(path: Path, content: str = "") -> Path:
 
 
 @scenarios.test_the_test
-def test_docker_profile_publishes_reports_on_system_tests_main(tmp_path: Path, commands: list[list[str]]):
+def test_docker_profile_uploads_the_junit_report(tmp_path: Path, commands: list[list[str]]):
     logs = tmp_path / "system-tests" / "logs_docker_ssi"
-    _write(logs / "feature_parity.json", "{}")
     _write(logs / "reportJunit.xml", "<testsuites/>")
     job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_PROJECT_NAME="system-tests", CI_COMMIT_BRANCH="main")
 
@@ -58,20 +57,9 @@ def test_docker_profile_publishes_reports_on_system_tests_main(tmp_path: Path, c
     assert (reports / "reportJunit.xml").is_file()
     assert [command[:3] for command in commands] == [
         ["datadog-ci", "tag", "--level"],
-        ["curl", "-X", "POST"],
         ["datadog-ci", "junit", "upload"],
         ["bash", str(tmp_path / "system-tests" / "utils" / "scripts" / "gitlab_print_logs.sh")],
     ]
-    assert f"@{reports / 'feature_parity.json'}" in commands[1]
-
-
-@scenarios.test_the_test
-def test_feature_parity_is_only_published_on_system_tests_main(tmp_path: Path, commands: list[list[str]]):
-    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "feature_parity.json", "{}")
-    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_PROJECT_NAME="dd-trace-java", CI_COMMIT_BRANCH="main")
-
-    assert finalizer.finalize(job) == 0
-    assert not [command for command in commands if command[0] == "curl"]
 
 
 @scenarios.test_the_test
@@ -80,8 +68,7 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
 ):
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     logs = tmp_path / "system-tests" / "logs_simple_installer_auto_injection"
-    _write(logs / "vm_feature_parity.json", "{}")
-    _write(logs / "feature_parity.json", "{}")
+    logs.mkdir(parents=True)
     with (logs / "large.log").open("wb") as large_file:
         large_file.truncate(finalizer.MAX_ARTIFACT_FILE_SIZE + 1)
     job = _job(
@@ -103,8 +90,6 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
     assert (tmp_path / "home" / ".aws" / "config").read_text() == "apm-ecosystems-reliability-profile/config\n"
     reports = tmp_path / "project" / "reports" / "logs_simple_installer_auto_injection"
     assert not (reports / "large.log").exists()
-    uploaded = [command[-1] for command in commands if command[0] == "curl"]
-    assert uploaded == [f"@{reports / 'vm_feature_parity.json'}"]
 
 
 @scenarios.test_the_test
@@ -151,9 +136,13 @@ def test_ssi_profiles_upload_junit_reports_from_any_repository(
     ("profile", "variable"),
     [("docker", "ONBOARDING_FILTER_ENV"), ("aws", "ONBOARDING_FILTER_ENV"), ("k8s", "REPORT_ENVIRONMENT")],
 )
-def test_junit_reports_are_labelled_with_the_generated_job_environment(tmp_path: Path, profile: str, variable: str):
+def test_junit_reports_are_labelled_with_the_generated_job_environment(
+    tmp_path: Path, profile: str, variable: str
+) -> None:
     assert _job(profile, tmp_path, **{variable: "dev"}).ci_environment == "dev"
     assert _job(profile, tmp_path, CI_ENVIRONMENT="custom").ci_environment == "custom"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="prod", SYSTEM_TESTS_CI_ENVIRONMENT="dev").ci_environment == "dev"
+    assert _job(profile, tmp_path, SYSTEM_TESTS_CI_ENVIRONMENT="prod", **{variable: "dev"}).ci_environment == "dev"
     assert _job(profile, tmp_path).ci_environment == "prod"
 
 

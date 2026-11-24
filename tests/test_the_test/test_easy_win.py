@@ -2,6 +2,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -12,7 +13,9 @@ from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRan
 from utils.scripts.activate_easy_wins import __main__ as activate_easy_wins_main
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
+    junit_name_to_nodeid,
     parse_artifact_data,
+    read_junit_report,
 )
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
@@ -23,13 +26,13 @@ from utils.scripts.activate_easy_wins._internal.manifest_editor import EASY_WIN_
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
-def create_report_json(
+def create_report(
     library_name: str,
     library_version: str,
     weblog_variant: str,
     tests: list[dict],
 ) -> dict:
-    """Helper to create report.json content."""
+    """Helper to create the content of a scenario report, written with write_junit_report"""
     return {
         "context": {
             "library_name": library_name,
@@ -38,6 +41,35 @@ def create_report_json(
         },
         "tests": tests,
     }
+
+
+def write_junit_report(scenario_dir: Path, report: dict) -> None:
+    """Write a report created by create_report as a junit report, the way conftest.py does"""
+    context = report["context"]
+    testsuites = ET.Element("testsuites")
+    testsuite = ET.SubElement(testsuites, "testsuite", {"name": "system_tests_suite"})
+    suite_properties = ET.SubElement(testsuite, "properties")
+    for name, value in (
+        ("library.name", context["library_name"]),
+        ("library.version", context["library"]),
+        ("weblog_variant", context["weblog_variant"]),
+    ):
+        ET.SubElement(suite_properties, "property", {"name": f"dd_tags[systest.suite.context.{name}]", "value": value})
+
+    for test in report["tests"]:
+        name, _, params = test["nodeid"].partition("[")
+        params = params.removesuffix("]")
+        path, *names = name.split("::")
+        junit_name = ".".join([path.removesuffix(".py").replace("/", "."), *names])
+        weblog_params = f"{params}, {context['weblog_variant']}" if params else context["weblog_variant"]
+
+        testcase = ET.SubElement(testsuite, "testcase", {"name": f"{junit_name}[{weblog_params}]"})
+        properties = ET.SubElement(testcase, "properties")
+        owners = test.get("metadata", {}).get("owners", [])
+        ET.SubElement(properties, "property", {"name": "test.codeowners", "value": json.dumps(owners)})
+        ET.SubElement(properties, "property", {"name": "dd_tags[systest.case.outcome]", "value": test["outcome"]})
+
+    ET.ElementTree(testsuites).write(scenario_dir / "reportJunit.xml")
 
 
 def create_manifest_yaml(rules: dict[str, str]) -> str:
@@ -71,7 +103,7 @@ def test_parse_artifact_data_xpassed_tests():
         scenario_dir = data_dir / "test_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
 
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.0.0",
             weblog_variant="flask",
@@ -80,8 +112,7 @@ def test_parse_artifact_data_xpassed_tests():
                 {"nodeid": "tests/test_module.py::Test_Class::test_other", "outcome": "passed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
@@ -91,6 +122,55 @@ def test_parse_artifact_data_xpassed_tests():
         assert "tests/test_module.py::Test_Class::test_method" in test_data[context].xpass_nodes
         assert "tests/test_module.py::Test_Class::test_other" not in test_data[context].xpass_nodes
         assert weblogs["python"] == {"flask"}
+
+
+@pytest.mark.parametrize(
+    ("name", "nodeid"),
+    [
+        ("tests.appsec.test_x.Test_A.test_b[flask]", "tests/appsec/test_x.py::Test_A::test_b"),
+        ("tests.appsec.test_x.Test_A.test_b[1.2.3, a.b, flask]", "tests/appsec/test_x.py::Test_A::test_b"),
+        ("tests.test_the_test.test_junit.test_main[spring]", "tests/test_the_test/test_junit.py::test_main"),
+        ("tests.test_x.Test_A.Test_Nested.test_b", "tests/test_x.py::Test_A::Test_Nested::test_b"),
+        ("pytest.internal[flask]", None),
+        ("tests.test_x", None),
+    ],
+)
+def test_junit_name_to_nodeid(name: str, nodeid: str | None) -> None:
+    assert junit_name_to_nodeid(name) == nodeid
+
+
+def test_read_junit_report(tmp_path: Path) -> None:
+    """Report shaped like the one produced by conftest.py"""
+    report_path = tmp_path / "reportJunit.xml"
+    report_path.write_text(
+        """<testsuites><testsuite name="system_tests_suite"><properties>
+<property name="dd_tags[systest.suite.context.scenario]" value="DEFAULT" />
+<property name="dd_tags[systest.suite.context.library.name]" value="python" />
+<property name="dd_tags[systest.suite.context.library.version]" value="4.12.0" />
+<property name="dd_tags[systest.suite.context.weblog_variant]" value="flask-poc" />
+<property name="dd_tags[test.parameters]" value="{}" />
+</properties>
+<testcase name="tests.appsec.test_x.Test_A.test_b[1.2, flask-poc]"><properties>
+<property name="test.codeowners" value="[&quot;@DataDog/asm-libraries&quot;]" />
+<property name="dd_tags[systest.case.outcome]" value="xpassed" />
+</properties></testcase>
+<testcase name="tests.appsec.test_x.Test_A.test_no_outcome[flask-poc]" />
+<testcase name="pytest.internal[flask-poc]"><properties>
+<property name="dd_tags[systest.case.outcome]" value="failed" />
+</properties></testcase>
+</testsuite></testsuites>""",
+        encoding="utf-8",
+    )
+
+    report = read_junit_report(report_path)
+
+    assert report.context["library.name"] == "python"
+    assert report.context["library.version"] == "4.12.0"
+    assert report.context["weblog_variant"] == "flask-poc"
+    assert len(report.tests) == 1
+    assert report.tests[0].nodeid == "tests/appsec/test_x.py::Test_A::test_b"
+    assert report.tests[0].outcome == "xpassed"
+    assert report.tests[0].owners == {"@DataDog/asm-libraries"}
 
 
 @pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
@@ -104,7 +184,7 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes(
         scenario_dir = data_dir / "test_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
 
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.0.0",
             weblog_variant="flask",
@@ -117,8 +197,7 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes(
         )
         if reverse_order:
             report["tests"].reverse()
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
@@ -136,7 +215,7 @@ def test_parse_artifact_data_xfailed_tests(outcome: str) -> None:
         scenario_dir = data_dir / "test_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
 
-        report = create_report_json(
+        report = create_report(
             library_name="java",
             library_version="1.5.0",
             weblog_variant="spring-boot",
@@ -144,8 +223,7 @@ def test_parse_artifact_data_xfailed_tests(outcome: str) -> None:
                 {"nodeid": "tests/test_feature.py::Test_Feature::test_xfail", "outcome": outcome},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, weblogs, _ = parse_artifact_data(data_dir, ["java"])
 
@@ -168,7 +246,7 @@ def test_parse_artifact_data_excluded_owners():
         scenario_dir = data_dir / "test_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
 
-        report = create_report_json(
+        report = create_report(
             library_name="nodejs",
             library_version="3.0.0",
             weblog_variant="express",
@@ -185,8 +263,7 @@ def test_parse_artifact_data_excluded_owners():
                 },
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, *_ = parse_artifact_data(data_dir, ["nodejs"], excluded_owners={"@excluded-team"})
 
@@ -198,10 +275,10 @@ def test_parse_artifact_data_excluded_owners():
 
 
 def test_parse_artifact_data_missing_report():
-    """Test that missing report.json files are gracefully skipped."""
+    """Test that missing junit reports are gracefully skipped."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir)
-        # Create a scenario directory without report.json
+        # Create a scenario directory without junit report
         scenario_dir = data_dir / "test_run" / "scenario_no_report"
         scenario_dir.mkdir(parents=True)
 
@@ -219,25 +296,23 @@ def test_parse_artifact_data_library_filter():
         # Create reports for two different libraries
         python_dir = data_dir / "python_run" / "scenario1"
         python_dir.mkdir(parents=True)
-        python_report = create_report_json(
+        python_report = create_report(
             library_name="python",
             library_version="2.0.0",
             weblog_variant="flask",
             tests=[{"nodeid": "tests/test_py.py::test_python", "outcome": "xpassed"}],
         )
-        with (python_dir / "report.json").open("w") as f:
-            json.dump(python_report, f)
+        write_junit_report(python_dir, python_report)
 
         ruby_dir = data_dir / "ruby_run" / "scenario1"
         ruby_dir.mkdir(parents=True)
-        ruby_report = create_report_json(
+        ruby_report = create_report(
             library_name="ruby",
             library_version="1.0.0",
             weblog_variant="rails",
             tests=[{"nodeid": "tests/test_rb.py::test_ruby", "outcome": "xpassed"}],
         )
-        with (ruby_dir / "report.json").open("w") as f:
-            json.dump(ruby_report, f)
+        write_junit_report(ruby_dir, ruby_report)
 
         # Filter to only python
         test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
@@ -264,7 +339,7 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes(outcome: str, *,
         scenario_dir.mkdir(parents=True)
 
         # Create tests with mixed outcomes under the same class and directory
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.0.0",
             weblog_variant="flask",
@@ -282,8 +357,7 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes(outcome: str, *,
         )
         if reverse_order:
             report["tests"].reverse()
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
@@ -332,7 +406,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated(outcome
         scenario_dir.mkdir(parents=True)
 
         # Create parametric tests with mixed outcomes across parameters
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.0.0",
             weblog_variant="flask",
@@ -352,8 +426,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated(outcome
         )
         if reverse_order:
             report["tests"].reverse()
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
@@ -398,7 +471,7 @@ def test_e2e_activation_modifies_manifest():
         # Create artifact data with xpassed test
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -406,8 +479,7 @@ def test_e2e_activation_modifies_manifest():
                 {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Create manifest with missing_feature rule
         manifest_content = create_manifest_yaml(
@@ -446,7 +518,7 @@ def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
 
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -455,8 +527,7 @@ def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
                 {"nodeid": "tests/appsec/test_clause.py::Test_Clause::test_method2", "outcome": "xfailed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Comma-separated weblog key: the parser splits this into
         #   condition["weblog"] = ["rails70", "sinatra"]  (len == 2)
@@ -510,7 +581,7 @@ def test_e2e_activation_skips_child_rules_when_parent_anchor_poke_is_skipped(tmp
     scenario_dir.mkdir(parents=True)
     manifest_dir.mkdir()
 
-    report = create_report_json(
+    report = create_report(
         library_name="python",
         library_version="4.12.0",
         weblog_variant="tornado",
@@ -519,8 +590,7 @@ def test_e2e_activation_skips_child_rules_when_parent_anchor_poke_is_skipped(tmp
             {"nodeid": "tests/debugger/test_symdb.py::Test_SymDb::test_fails", "outcome": "xfailed"},
         ],
     )
-    with (scenario_dir / "report.json").open("w", encoding="utf-8") as file:
-        json.dump(report, file)
+    write_junit_report(scenario_dir, report)
 
     (manifest_dir / "python.yml").write_text(
         """---
@@ -556,7 +626,7 @@ def test_e2e_activation_merges_child_rule_before_poke_when_one_parent_is_skipped
     failing_test = f"{test_class}::test_fails"
     tornado_scenario_dir = data_dir / "python_tornado_run" / "scenario1"
     tornado_scenario_dir.mkdir(parents=True)
-    tornado_report = create_report_json(
+    tornado_report = create_report(
         library_name="python",
         library_version="4.12.0",
         weblog_variant="tornado",
@@ -565,19 +635,17 @@ def test_e2e_activation_merges_child_rule_before_poke_when_one_parent_is_skipped
             {"nodeid": failing_test, "outcome": "xfailed"},
         ],
     )
-    with (tornado_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
-        json.dump(tornado_report, file)
+    write_junit_report(tornado_scenario_dir, tornado_report)
 
     flask_scenario_dir = data_dir / "python_flask_run" / "scenario1"
     flask_scenario_dir.mkdir(parents=True)
-    flask_report = create_report_json(
+    flask_report = create_report(
         library_name="python",
         library_version="4.12.0",
         weblog_variant="flask-poc",
         tests=[{"nodeid": failing_test, "outcome": "xpassed"}],
     )
-    with (flask_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
-        json.dump(flask_report, file)
+    write_junit_report(flask_scenario_dir, flask_report)
 
     (manifest_dir / "python.yml").write_text(
         f"""---
@@ -690,14 +758,13 @@ def test_e2e_activation_filters_by_component():
         for lib_name, weblog in [("ruby", "rails70"), ("python", "flask")]:
             scenario_dir = data_dir / f"{lib_name}_run" / "scenario1"
             scenario_dir.mkdir(parents=True)
-            report = create_report_json(
+            report = create_report(
                 library_name=lib_name,
                 library_version="2.0.0",
                 weblog_variant=weblog,
                 tests=[{"nodeid": f"tests/test_{lib_name}.py::Test_Class::test_method", "outcome": "xpassed"}],
             )
-            with (scenario_dir / "report.json").open("w") as f:
-                json.dump(report, f)
+            write_junit_report(scenario_dir, report)
 
         # Create manifests
         for lib_name in ["ruby", "python"]:
@@ -729,7 +796,7 @@ def test_e2e_activation_excludes_owners():
         # Create artifact data with tests from different owners
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -746,8 +813,7 @@ def test_e2e_activation_excludes_owners():
                 },
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Create manifest
         manifest_content = create_manifest_yaml(
@@ -779,7 +845,7 @@ def test_e2e_activation_tracks_activations_per_owner():
         # Create artifact data with tests from multiple owners
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -801,8 +867,7 @@ def test_e2e_activation_tracks_activations_per_owner():
                 },
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Create manifest
         manifest_content = create_manifest_yaml(
@@ -836,7 +901,7 @@ def test_e2e_activation_handles_mixed_outcomes(outcome: str) -> None:
         # Create artifact data with mixed outcomes
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -847,8 +912,7 @@ def test_e2e_activation_handles_mixed_outcomes(outcome: str) -> None:
                 {"nodeid": "tests/passing/test_all_pass.py::Test_AllPass::test_two", "outcome": "xpassed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Create manifest
         manifest_content = create_manifest_yaml(
@@ -886,7 +950,7 @@ def test_manifest_editor_add_condition_to_function_level_inline_declaration():
 
         scenario_dir = data_dir / "python_flask_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.5.0",
             weblog_variant="flask",
@@ -895,18 +959,16 @@ def test_manifest_editor_add_condition_to_function_level_inline_declaration():
                 {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method2", "outcome": "xfailed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
         scenario_dir = data_dir / "python_django_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="python",
             library_version="2.5.0",
             weblog_variant="django",
             tests=[],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         manifest_content = """---
 manifest:
@@ -968,7 +1030,7 @@ def test_easy_win_comment_preserves_existing_comment():
 
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -976,8 +1038,7 @@ def test_easy_win_comment_preserves_existing_comment():
                 {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Create manifest with a pre-existing inline comment on a list-style rule.
         # The list-style bug declaration without weblog_declaration triggers the
@@ -1016,7 +1077,7 @@ def test_easy_win_comment_added_when_no_existing_comment():
 
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -1024,8 +1085,7 @@ def test_easy_win_comment_added_when_no_existing_comment():
                 {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         # Same manifest structure but WITHOUT a pre-existing comment
         manifest_content = """---
@@ -1061,7 +1121,7 @@ def test_skip_nodeid_for_all_components():
 
         scenario_dir = data_dir / "ruby_run" / "scenario1"
         scenario_dir.mkdir(parents=True)
-        report = create_report_json(
+        report = create_report(
             library_name="ruby",
             library_version="2.5.0",
             weblog_variant="rails70",
@@ -1070,8 +1130,7 @@ def test_skip_nodeid_for_all_components():
                 {"nodeid": "tests/kept/test_kept.py::Test_Kept::test_two", "outcome": "xpassed"},
             ],
         )
-        with (scenario_dir / "report.json").open("w") as f:
-            json.dump(report, f)
+        write_junit_report(scenario_dir, report)
 
         manifest_content = create_manifest_yaml(
             {
@@ -1105,14 +1164,13 @@ def test_skip_nodeid_for_specific_component():
         for lib_name, weblog in [("ruby", "rails70"), ("python", "flask")]:
             scenario_dir = data_dir / f"{lib_name}_run" / "scenario1"
             scenario_dir.mkdir(parents=True)
-            report = create_report_json(
+            report = create_report(
                 library_name=lib_name,
                 library_version="2.5.0",
                 weblog_variant=weblog,
                 tests=[{"nodeid": skipped_nodeid, "outcome": "xpassed"}],
             )
-            with (scenario_dir / "report.json").open("w") as f:
-                json.dump(report, f)
+            write_junit_report(scenario_dir, report)
 
         for lib_name in ["ruby", "python"]:
             manifest_content = create_manifest_yaml({"tests/feature/test_feature.py::Test_Feature": "missing_feature"})

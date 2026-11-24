@@ -1,14 +1,13 @@
-FROM maven:3.9-eclipse-temurin-11 as build
+# The base image holds a maven repository filled from java_otel/spring-boot/pom.xml: maven runs offline here
+FROM system_tests_base_java_otel_java_otel_spring_boot_otel AS build
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
 COPY ./utils/build/docker/java_otel/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
-
 COPY ./utils/build/docker/java_otel/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
+RUN mvn -o -Dmaven.repo.local=/maven -B package
 
 COPY ./utils/build/docker/java_otel/install_opentelemetry.sh binaries* /binaries/
 RUN /binaries/install_opentelemetry.sh

@@ -101,6 +101,7 @@ refs:
   - &ref_5_110_0 '>=5.110.0'
   - &ref_5_111_0 '>=5.111.0'
   - &ref_5_125_0 '>=6.14.0 || ^5.125.0'
+  - &ref_5_137_0 '>=6.19.0 || ^5.137.0'
   - &ref_6_0_0 '>=6.0.0-pre'
   - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
@@ -113,6 +114,7 @@ refs:
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
   - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
   - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
+  - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
   - &ref_6_26_0 '>=6.26.0 || ^5.137.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
@@ -356,14 +358,35 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
+  : incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <6.26.0
+      weblog: [express5]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [express5]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        express5: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
     - weblog_declaration:
-        "*": missing_feature
-        express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
-    - weblog_declaration:
-        "*": missing_feature
-        express5: *ref_6_10_0
+        express5: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <6.26.0
+      weblog: [express5]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [express5]
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Node.js weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Node.js weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
@@ -847,12 +870,12 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
     - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
     - weblog_declaration:
         "*": missing_feature
@@ -879,9 +902,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: bug (APPSEC-71459)
-      component_version: *ref_6_26_0
-      weblog: [nextjs]
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -890,20 +911,20 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: *ref_5_30_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
     - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
     - weblog_declaration:
         "*": missing_feature
@@ -922,7 +943,7 @@ manifest:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: *ref_5_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
     - weblog_declaration:
@@ -940,28 +961,26 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: bug (APPSEC-71459)
-      component_version: *ref_6_26_0
-      weblog: [nextjs]
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
     - weblog_declaration:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
     - weblog_declaration:
         "*": missing_feature
@@ -988,9 +1007,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: bug (APPSEC-71459)
-      component_version: *ref_6_26_0
-      weblog: [nextjs]
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -1000,20 +1017,20 @@ manifest:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
     - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
     - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
     - weblog_declaration:
         "*": missing_feature
@@ -1040,26 +1057,24 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: bug (APPSEC-71459)
-      component_version: *ref_6_26_0
-      weblog: [nextjs]
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
         "*": *ref_5_20_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
     - weblog_declaration:
         "*": *ref_5_20_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
     - weblog_declaration:
         "*": missing_feature
@@ -1088,15 +1103,13 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
-    - declaration: bug (APPSEC-71459)
-      component_version: *ref_6_26_0
-      weblog: [nextjs]
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": *ref_5_20_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
@@ -1104,7 +1117,7 @@ manifest:
         nextjs: v6.19.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
@@ -1114,8 +1127,25 @@ manifest:
         nextjs: v6.19.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        fastify: missing_feature
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py: v5.92.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        nextjs: v6.19.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: v6.26.0  # TODO: a lower version might be supported
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
@@ -1235,14 +1265,17 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
+    - weblog_declaration:
+        nextjs: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_59_0
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": *ref_4_16_0
@@ -1261,19 +1294,20 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: v6.19.0  # TODO: a lower version might be supported
+        nextjs: *ref_5_137_0
+        # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: *ref_6_26_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: *ref_5_17_0
@@ -1416,7 +1450,7 @@ manifest:
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor::test_fingerprinting_endpoint_blocking:
     - weblog_declaration:
-        nextjs: missing_feature (Blocking on querystring is not supported)
+        nextjs: *ref_6_26_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: *ref_5_24_0
@@ -1484,7 +1518,7 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
-        nextjs: missing_feature (can not block by query param in nextjs yet)
+        nextjs: *ref_6_26_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: *ref_3_9_0
@@ -2021,6 +2055,7 @@ manifest:
       weblog: [anthropic-js@0.71.0]
     - declaration: missing_feature (APPSEC-69630, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [anthropic-js@0.71.0]
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: incomplete_test_app (anthropic-js weblog is missing the /mcp/create endpoint)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released
@@ -2455,20 +2490,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_empty_headers: v5.88.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_default_headers: v5.88.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_headers: v5.81.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_override: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
@@ -2486,11 +2513,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_default_headers
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.88.0
-      declaration: missing_feature
-    - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_signal_overrides
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_unset_falls_back
@@ -2529,11 +2552,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
-  :  # Easy win for all weblogs and version 6.24.0
-    - component_version: <5.83.0
-      declaration: missing_feature
-    - component_version: '>=5.83.0'
-      declaration: bug (APMAPI-2450)
+  : *ref_6_24_0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_signal_overrides
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_unset_falls_back
@@ -2630,14 +2649,30 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : *ref_5_125_0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v5.83.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <6.26.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
+      component_version: <6.26.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v5.88.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v5.88.0
@@ -2650,6 +2685,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter:
     - declaration: flaky (APMAPI-2554)
       component_version: '>=5.88.0'
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: '>=6.26.0 || ^5.137.0'
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v5.11.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -2741,11 +2777,13 @@ manifest:
   :  # TODO: a lower version might be supported
     - declaration: missing_feature (Requires a release containing dd-trace-js#11111)
       component_version: <6.25.0
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
-  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py: *ref_6_25_0
   tests/parametric/test_ffe/test_rules_configuration.py: 7.0.0-pre  # Exact development version until the first containing release is confirmed.
   tests/parametric/test_ffe/test_rules_configuration.py::Test_FFE_Rules_Configuration_Selection: missing_feature (FFL-3364 requires the Node flag-selection dependency update in dd-trace-js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0

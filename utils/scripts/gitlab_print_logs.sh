@@ -25,7 +25,7 @@ if [ -f "${COLLAPSIBLE_LOGS_SCRIPT}" ]; then
   while IFS= read -r -d '' file; do
     section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
     bash "${COLLAPSIBLE_LOGS_SCRIPT}" "$file" "logs_${LABEL}_${section_id}" "Logs for ${LABEL} - ${file}"
-  done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+  done < <(find reports -type f \! -name tests.log -print0)
 else
   echo "Skipping collapsible log dump: ${COLLAPSIBLE_LOGS_SCRIPT} not found"
 fi

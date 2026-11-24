@@ -10,6 +10,3 @@
 
 [registry."mcr.microsoft.com"]
   mirrors = ["registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com"]
-
-[registry."public.ecr.aws"]
-  mirrors = ["registry.ddbuild.io/system-tests/mirror/public.ecr.aws"]

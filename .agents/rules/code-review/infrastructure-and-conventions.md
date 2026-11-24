@@ -73,3 +73,21 @@
 - ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
 - ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
 - Ref: [Weblogs](../../../docs/understand/weblogs/README.md)
+
+### INFRA-011: Do not hide shell errors that select what is tested.
+- Severity: P0
+- Flag: A shell command whose result decides what is built or tested must not hide its errors. If it fails, the script must stop with a message. It must not fall back to a default, such as the latest release instead of the jar in `binaries/`. A build image can lack a tool that another image has: the GraalVM image has no `find`. The error was hidden, the jar count was 0, and the dev job tested the release.
+- Detect: The script discards stderr (`2>/dev/null`, `&>/dev/null`) or ignores a failure (`|| true`) on a command whose output is counted, parsed, or tested, and an error then looks like an empty result. A pipeline drops the failure of its first command because `pipefail` is off, as in `cmd 2>/dev/null | wc -l` or `cmd | jq`. A failed check goes silently to a fallback branch. A command runs under `if !` with its stderr discarded, so the failure message loses the cause.
+- Not when: The check tests only whether a tool or option exists (`command -v`, `curl --retry-all-errors --version`), and the code after it fails loudly if needed. The step is best-effort cleanup or log collection that cannot change what is tested.
+- ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
+- ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
+- Ref: [Code format standards](../code-format-standards.md)
+
+### INFRA-012: Put fixed weblog installs in a base image.
+- Severity: P1
+- Flag: A new weblog must keep third-party installs out of the main CI build. Put OS packages and fixed app dependencies in a base image. A base image is a Docker image that CI builds once and reuses. Add `<name>.base.Dockerfile` and a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. Fixed packages do not change when the tested library version changes. Leave the tested library version, and `install_ddtrace.sh`, in the weblog Dockerfile. Update `base-images.lock.json` only after the GitLab publish job finishes.
+- Detect: Report a new weblog Dockerfile under `utils/build/docker/` when it runs a fixed install. A fixed install uses apt-get, apk, yum, or dnf. It also uses pip install, npm install, pnpm, yarn, or bundle install. It also uses composer install, mvn, gradle, go mod download, or dotnet restore. A curl or wget of a remote URL is a fixed install too. Also report a new `<name>.base.Dockerfile` when the library `docker-bake.hcl` has no target for it.
+- Not when: If the install is only the framework version under test, do not report it. If the command only runs the tracer installer `install_ddtrace.sh`, do not report it. If the Dockerfile installs nothing, do not report it.
+- ✅ See `utils/build/docker/python/openai-py.base.Dockerfile`. It installs curl and the pinned Python packages. `utils/build/docker/python/docker-bake.hcl` has an `openai-py` target. `openai-py.Dockerfile` starts with `FROM system_tests_base_python_openai_py`. That file only installs the OpenAI version under test.
+- ❌ A new weblog Dockerfile starts with `FROM python:3.11-slim`. The same file runs `apt-get` and `pip install`.
+- Ref: [Update Docker images](../../../docs/edit/update-docker-images.md), [Base image dependencies](../../../docs/understand/weblogs/weblog-metadata.md#base-image-dependencies)

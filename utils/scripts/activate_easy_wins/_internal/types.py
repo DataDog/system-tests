@@ -21,8 +21,8 @@ class Context:
     processors = [strip_java_build_metadata]
 
     @staticmethod
-    def create(library: str, library_version_string: str, variant: str) -> Context | None:
-        if library not in COMPONENT_GROUPS.easy_win or not library_version_string:
+    def create(library: str | None, library_version_string: str | None, variant: str | None) -> Context | None:
+        if library is None or library not in COMPONENT_GROUPS.easy_win or not library_version_string or variant is None:
             return None
         for processor in Context.processors:
             library_version_string = processor(library, library_version_string)

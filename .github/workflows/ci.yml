@@ -110,6 +110,16 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
+  nix:
+    name: Nix
+    needs:
+      - compute_libraries_and_scenarios
+    if: fromJson(needs.compute_libraries_and_scenarios.outputs.run_nix)
+    uses: ./.github/workflows/nix.yml
+    permissions:
+      contents: read
+      id-token: write
+
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
     # name: All jobs are green  # DO NOT SET A NAME
     runs-on: ubuntu-latest

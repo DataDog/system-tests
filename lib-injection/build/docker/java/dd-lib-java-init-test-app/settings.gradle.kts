@@ -1,8 +1,6 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        maven("https://repo.spring.io/milestone")
-        maven("https://repo.spring.io/snapshot")
+        System.getenv("MAVEN_REPOSITORY_PROXY")?.let { maven(it) } ?: gradlePluginPortal()
     }
     resolutionStrategy {
         eachPlugin {

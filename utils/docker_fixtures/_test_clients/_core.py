@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -38,6 +39,20 @@ def _ensure_mirror_builder(docker_bin: str) -> str:
             check=True,
         )
     return _MIRROR_BUILDER
+
+
+# Registry/network errors worth retrying, e.g. when resolving the docker-image:// base contexts
+_TRANSIENT_ERROR = re.compile(
+    r"TLS handshake timeout|i/o timeout|connection (reset|refused)|no such host|unexpected EOF|: EOF$"
+    r"|context deadline exceeded|request canceled|code = Unavailable|toomanyrequests|\b(429|50[0234]) [A-Z]",
+    re.IGNORECASE,
+)
+
+
+def _is_transient_build_failure(log: str) -> bool:
+    """Only look at buildx's final error and the failing step's one, never at the output of a step"""
+    errors = [line.rstrip() for line in log.splitlines() if re.match(r"(#\d+ )?ERROR: ", line)]
+    return not any("did not complete successfully" in e for e in errors) and any(map(_TRANSIENT_ERROR.search, errors))
 
 
 class TestClientFactory:
@@ -121,17 +136,26 @@ class TestClientFactory:
             env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"
 
-            timeout = 600
+            timeout = 300  # per attempt
+            attempts = 3
 
-            p = subprocess.run(
-                cmd,
-                text=True,
-                stdout=log_file,
-                stderr=log_file,
-                env=env,
-                timeout=timeout,
-                check=False,
-            )
+            for attempt in range(1, attempts + 1):
+                log_file.write(f"===== docker build attempt {attempt}/{attempts} =====\n")
+                log_file.flush()
+                attempt_start = log_file.tell()
+                p = subprocess.run(
+                    cmd,
+                    text=True,
+                    stdout=log_file,
+                    stderr=log_file,
+                    env=env,
+                    timeout=timeout,
+                    check=False,
+                )
+                attempt_log = Path(log_path).read_bytes()[attempt_start:].decode(errors="replace")
+                if p.returncode == 0 or attempt == attempts or not _is_transient_build_failure(attempt_log):
+                    break
+                time.sleep(10 * attempt)
 
             if p.returncode != 0:
                 with Path(log_path).open() as f:

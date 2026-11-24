@@ -44,7 +44,7 @@ class _CaseFile:
     cases: list[dict[str, Any]]
 
     @property
-    def flag_selection(self) -> object:
+    def flag_selection(self) -> dict[str, list[str]] | None:
         return self.cases[0].get("providerOptions", {}).get("flagSelection")
 
     @property

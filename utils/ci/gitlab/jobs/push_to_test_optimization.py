@@ -10,6 +10,11 @@ from pathlib import Path
 from . import _common as ci
 
 DD_STS_POLICY = "system-tests-gitlab"
+# The upload sends files: a longer timeout than for the other datadog-ci calls, but fewer attempts, as GitLab
+# kills after_script after 5 minutes: at most 2 * (90s + 10s to kill it) + 5s between them, plus the 15s (+10s)
+# of dd-sts debug.
+UPLOAD_TIMEOUT = 90
+UPLOAD_ATTEMPTS = 2
 
 
 def main() -> None:
@@ -19,7 +24,7 @@ def main() -> None:
             ci.log("No JUnit report found, nothing to upload")
             return
 
-        ci.run(["dd-sts", "debug"])
+        ci.run(["dd-sts", "debug"], timeout=15)
         ci.run(
             [
                 *("dd-sts", "exchange", "--policy", DD_STS_POLICY, "--"),
@@ -27,7 +32,9 @@ def main() -> None:
                 *("--service", "system-tests", "--env", "ci"),
                 "--xpath-tag",
                 "test.codeowners=/testcase/properties/property[@name='test.codeowners']",
-            ]
+            ],
+            timeout=UPLOAD_TIMEOUT,
+            attempts=UPLOAD_ATTEMPTS,
         )
 
 
