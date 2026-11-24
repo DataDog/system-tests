@@ -32,3 +32,10 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Do not tie exact counts to one flush.
+- Severity: P0
+- Flag: Tracers flush spans, metrics, and stats on their own intervals and in time buckets. If a test asserts an exact count, it must wait until no more data can arrive. Otherwise, assert that the expected data is present. Merge data across all requests and buckets before counting.
+- Detect: A wait returns as soon as the expected count appears, and then the test asserts an exact count. A test asserts an exact metric total that depends on every point flushing before teardown. A test asserts one stats bucket or reads only the first bucket.
+- ✅ Merge stats across all requests and buckets by aggregation key, then check the totals.
+- ❌ `assert len(buckets) == 1, "There should be one bucket containing the stats"`
