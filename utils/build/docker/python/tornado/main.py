@@ -890,7 +890,7 @@ class CreateExtraServiceHandler(BaseHandler):
     def get(self) -> None:
         service_name = self.get_argument("serviceName", "")
         if service_name:
-            ddtrace.config.service = service_name
+            tracer.trace("extra.service", service=service_name).finish()
         self.write("OK")
 
 
