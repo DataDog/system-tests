@@ -99,18 +99,18 @@ manifest:
         uds: '>=3.58.0'
         poc: '>=3.58.0'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v3.45.0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: incomplete_test_app (/api_security/optional-params not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in .NET weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: v3.60.0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: v3.60.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
