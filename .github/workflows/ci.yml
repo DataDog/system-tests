@@ -110,7 +110,7 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+  all-jobs-are-green:
     # name: All jobs are green  # DO NOT SET A NAME
     runs-on: ubuntu-latest
     permissions:

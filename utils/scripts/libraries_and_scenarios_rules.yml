@@ -278,8 +278,6 @@ patterns:
         libraries: null
     utils/scripts/get-nightly-logs.py:
         scenario_groups: null
-    utils/scripts/get-workflow-summary.py:
-        scenario_groups: null
     # all libraries and all non-SSI scenarios: it changes what the GitLab end-to-end pipeline runs
     utils/scripts/gitlab_libraries.py:
         scenario_groups: [end_to_end, exotics, ffe, integration_frameworks, open_telemetry]
