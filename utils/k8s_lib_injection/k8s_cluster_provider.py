@@ -8,9 +8,12 @@ import json
 import base64
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import K8sLibInjectionError, execute_command
-from kubernetes import client, config
+
+if TYPE_CHECKING:
+    from kubernetes import client
 
 
 class PrivateRegistryConfig:
@@ -99,6 +102,8 @@ class K8sClusterProvider:
 
     def configure_cluster_api_connection(self) -> None:
         """Configure the k8s cluster api connection"""
+        from kubernetes import config  # noqa: PLC0415
+
         try:
             config.load_kube_config()
         except Exception as e:
@@ -207,11 +212,15 @@ class K8sClusterInfo:
 
     def core_v1_api(self) -> client.CoreV1Api:
         """Provides de CoreV1Api object (from kubernetes python api) to interact with the k8s cluster"""
+        from kubernetes import client  # noqa: PLC0415
+
         # return client.CoreV1Api(api_client=config.new_client_from_config(context=self.context_name))
         return client.CoreV1Api()
 
     def apps_api(self) -> client.AppsV1Api:
         """Provides de AppsV1Api object (from kubernetes python api) to interact with the k8s cluster"""
+        from kubernetes import client  # noqa: PLC0415
+
         # return client.AppsV1Api(api_client=config.new_client_from_config(context=self.context_name))
         return client.AppsV1Api()
 
@@ -314,6 +323,8 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
             )
 
             token = self.get_token(self._cluster_info.cluster_name)
+
+            from kubernetes import client  # noqa: PLC0415
 
             configuration = client.Configuration()
 

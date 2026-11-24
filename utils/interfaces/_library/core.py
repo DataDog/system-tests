@@ -40,10 +40,62 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self, name: str):
         super().__init__(name)
         self.ready = threading.Event()
+        self._traces_by_rid: dict[str, list[tuple[dict, DataDogLibraryTrace]]] | None = None
+        self._spans_by_rid: dict[str, list[tuple[dict, DataDogLibraryTrace, DataDogLibrarySpan]]] | None = None
+
+    def configure(self, host_log_folder: str, *, replay: bool):
+        super().configure(host_log_folder, replay=replay)
+        with self._lock:
+            self._traces_by_rid = None
+            self._spans_by_rid = None
+
+    def _append_data(self, data: dict):
+        super()._append_data(data)
+        self._traces_by_rid = None
+        self._spans_by_rid = None
 
     def ingest_file(self, src_path: str):
         self.ready.set()
         return super().ingest_file(src_path)
+
+    def _ensure_rid_index(
+        self,
+    ) -> tuple[
+        dict[str, list[tuple[dict, DataDogLibraryTrace]]],
+        dict[str, list[tuple[dict, DataDogLibraryTrace, DataDogLibrarySpan]]],
+    ]:
+        with self._lock:
+            if self._traces_by_rid is not None and self._spans_by_rid is not None:
+                return self._traces_by_rid, self._spans_by_rid
+
+            traces_by_rid: dict[str, list[tuple[dict, DataDogLibraryTrace]]] = {}
+            spans_by_rid: dict[str, list[tuple[dict, DataDogLibraryTrace, DataDogLibrarySpan]]] = {}
+
+            for data, trace in self.get_traces():
+                seen_rids: set[str] = set()
+                for span in trace.spans:
+                    try:
+                        span_rid = span.get_rid()
+                    except (AssertionError, KeyError, TypeError):
+                        continue
+                    if span_rid is None:
+                        continue
+                    spans_bucket = spans_by_rid.get(span_rid)
+                    if spans_bucket is None:
+                        spans_by_rid[span_rid] = [(data, trace, span)]
+                    else:
+                        spans_bucket.append((data, trace, span))
+                    if span_rid not in seen_rids:
+                        seen_rids.add(span_rid)
+                        traces_bucket = traces_by_rid.get(span_rid)
+                        if traces_bucket is None:
+                            traces_by_rid[span_rid] = [(data, trace)]
+                        else:
+                            traces_bucket.append((data, trace))
+
+            self._traces_by_rid = traces_by_rid
+            self._spans_by_rid = spans_by_rid
+            return traces_by_rid, spans_by_rid
 
     ################################################################
     def wait_for_remote_config_request(self, timeout: int = 30):
@@ -80,6 +132,17 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if isinstance(request, HttpResponse) and request.status_code is None:
                 logger.warning("HTTP app failed to respond, it will very probably fail")
 
+        if rid is not None:
+            traces_by_rid, _ = self._ensure_rid_index()
+            matches = traces_by_rid.get(rid)
+            if not matches:
+                logger.warning("No trace found")
+                return
+            for data, result in matches:
+                logger.debug(f"Found a trace in {result.log_filename}")
+                yield data, result
+            return
+
         trace_found = False
         for data in self.get_data(path_filters=self.trace_paths):
             content = data["request"]["content"]
@@ -90,16 +153,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if data["path"] in ("/v0.4/traces", "/v0.5/traces"):
                 for trace in content:
                     result = DataDogLibraryTrace.from_legacy(data, trace)
-                    if rid is None:
-                        trace_found = True
-                        yield data, result
-                    else:
-                        for span in result.spans:
-                            if rid == span.get_rid():
-                                logger.debug(f"Found a trace in {result.log_filename}")
-                                trace_found = True
-                                yield data, result
-                                break
+                    trace_found = True
+                    yield data, result
 
             elif data["path"] == "/v1.0/traces":
                 if not content.get("chunks"):
@@ -107,16 +162,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
                 for trace in content.get("chunks"):
                     result = DataDogLibraryTrace.from_v1(data, trace)
-                    if rid is None:
-                        trace_found = True
-                        yield data, result
-                    else:
-                        for span in result.spans:
-                            if rid == span.get_rid():
-                                logger.debug(f"Found a trace in {result.log_filename}")
-                                trace_found = True
-                                yield data, result
-                                break
+                    trace_found = True
+                    yield data, result
 
             else:
                 raise ValueError(f"Unkown trace path: {data['path']}")
@@ -133,6 +180,20 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         request will be returned.
         """
         rid = request.get_rid() if request else None
+
+        if rid is not None and not full_trace:
+            logger.debug(f"Try to find traces related to request {rid}")
+            if isinstance(request, HttpResponse) and request.status_code is None:
+                logger.warning("HTTP app failed to respond, it will very probably fail")
+            _, spans_by_rid = self._ensure_rid_index()
+            matches = spans_by_rid.get(rid)
+            if not matches:
+                logger.warning("No trace found")
+                return
+            for data, trace, span in matches:
+                logger.debug(f"Found a span in {trace.log_filename}")
+                yield data, trace, span
+            return
 
         for data, trace in self.get_traces(request=request):
             for span in trace.spans:

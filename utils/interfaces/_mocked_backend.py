@@ -26,6 +26,19 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         super().__init__("mocked_backend")
         self._mock_server: MockedBackendServer | None = None
         self.ready = threading.Event()
+        self._traces_by_rid: dict[str, list[tuple[dict, DataDogAgentTrace]]] | None = None
+        self._spans_by_rid: dict[str, list[tuple[dict, DataDogAgentSpan]]] | None = None
+
+    def configure(self, host_log_folder: str, *, replay: bool):
+        super().configure(host_log_folder, replay=replay)
+        with self._lock:
+            self._traces_by_rid = None
+            self._spans_by_rid = None
+
+    def _append_data(self, data: dict):
+        super()._append_data(data)
+        self._traces_by_rid = None
+        self._spans_by_rid = None
 
     def ingest_file(self, src_path: str):
         self.ready.set()
@@ -74,8 +87,10 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def _on_message(self, data: dict) -> None:
         # The mock server runs in this same process: data is appended as it is received, without the watchdog
         with self._lock:
+            need_sort = bool(self._data_list) and data["log_filename"] < self._data_list[-1]["log_filename"]
             self._append_data(data)
-            self._data_list.sort(key=lambda data: data["log_filename"])
+            if need_sort:
+                self._data_list.sort(key=lambda item: item["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
@@ -89,6 +104,45 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         return None
 
+    def _ensure_rid_index(
+        self,
+    ) -> tuple[
+        dict[str, list[tuple[dict, DataDogAgentTrace]]],
+        dict[str, list[tuple[dict, DataDogAgentSpan]]],
+    ]:
+        with self._lock:
+            if self._traces_by_rid is not None and self._spans_by_rid is not None:
+                return self._traces_by_rid, self._spans_by_rid
+
+            traces_by_rid: dict[str, list[tuple[dict, DataDogAgentTrace]]] = {}
+            spans_by_rid: dict[str, list[tuple[dict, DataDogAgentSpan]]] = {}
+
+            for data, trace in self.get_traces():
+                seen_rids: set[str] = set()
+                for span in trace.spans:
+                    try:
+                        span_rid = span.get_rid()
+                    except (AssertionError, KeyError, TypeError):
+                        continue
+                    if span_rid is None:
+                        continue
+                    spans_bucket = spans_by_rid.get(span_rid)
+                    if spans_bucket is None:
+                        spans_by_rid[span_rid] = [(data, span)]
+                    else:
+                        spans_bucket.append((data, span))
+                    if span_rid not in seen_rids:
+                        seen_rids.add(span_rid)
+                        traces_bucket = traces_by_rid.get(span_rid)
+                        if traces_bucket is None:
+                            traces_by_rid[span_rid] = [(data, trace)]
+                        else:
+                            traces_bucket.append((data, trace))
+
+            self._traces_by_rid = traces_by_rid
+            self._spans_by_rid = spans_by_rid
+            return traces_by_rid, spans_by_rid
+
     def get_traces(
         self, request: HttpResponse | None = None, *, with_api_key: str | None = None
     ) -> Generator[tuple[dict, DataDogAgentTrace]]:
@@ -101,6 +155,14 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         rid = request.get_rid() if request else None
+        if rid is not None and with_api_key is None:
+            logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
+            traces_by_rid, _ = self._ensure_rid_index()
+            for data, trace in traces_by_rid.get(rid, ()):
+                logger.debug(f"Found a span in {trace.log_filename}")
+                yield data, trace
+            return
+
         if rid:
             logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
 
@@ -126,7 +188,7 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for payload in content:
                 for chunk in payload.get("chunks", []):
-                    trace = builder(data, raw_trace=chunk)
+                    trace = builder(data, chunk)
                     if rid is None:
                         yield data, trace
                     else:
@@ -148,6 +210,12 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         rid = request.get_rid() if request else None
+        if rid is not None and with_api_key is None:
+            logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
+            _, spans_by_rid = self._ensure_rid_index()
+            yield from spans_by_rid.get(rid, ())
+            return
+
         if rid:
             logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
 

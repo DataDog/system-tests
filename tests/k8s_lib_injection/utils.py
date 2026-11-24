@@ -1,7 +1,6 @@
 import time
 
 import requests
-from kubernetes import client
 
 from utils import logger, context
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
@@ -45,6 +44,8 @@ def run_https_probe_pod(
     image completed a verified HTTPS request. The probe pod is always cleaned up.
     """
     api = k8s_cluster_info.core_v1_api()
+    from kubernetes import client  # noqa: PLC0415
+
     name = "init-https-probe"
     pod = client.V1Pod(
         metadata=client.V1ObjectMeta(name=name),

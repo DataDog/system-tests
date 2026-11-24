@@ -80,3 +80,33 @@ def test_feature_are_correctly_declared():
             assert f"https://feature-parity.us1.prod.dog/#/?feature={feature_id}" in feature.__doc__, (
                 f"Feature `{name}` must have a link to the feature parity in its docstring"
             )
+
+
+@scenarios.test_the_test
+def test_all_test_the_test_items_declare_test_the_test_scenario(
+    session: pytest.Session, deselected_items: list[pytest.Item]
+) -> None:
+    """Guard for pytest_ignore_collect: every test under tests/test_the_test/ must declare a _TestTheTestScenario."""
+    from utils._context._scenarios import scenarios as scenario_registry  # noqa: PLC0415
+    from utils._context._scenarios.test_the_test import _TestTheTestScenario  # noqa: PLC0415
+
+    allowed = {
+        getattr(scenario_registry, attr).name
+        for attr in dir(scenario_registry)
+        if isinstance(getattr(scenario_registry, attr), _TestTheTestScenario)
+    }
+
+    offenders: list[str] = []
+    for item in session.items + deselected_items:
+        if not item.nodeid.startswith("tests/test_the_test/"):
+            continue
+        own_markers = [m for m in item.own_markers if m.name == "scenario"]
+        scenario_markers = own_markers if own_markers else list(item.iter_markers("scenario"))
+        declared = [m.args[0] for m in scenario_markers] if scenario_markers else ["DEFAULT"]
+        if not any(name in allowed for name in declared):
+            offenders.append(f"{item.nodeid} -> {declared}")
+
+    assert not offenders, (
+        "All tests under tests/test_the_test/ must belong to a _TestTheTestScenario "
+        f"(allowed={sorted(allowed)}): {offenders}"
+    )

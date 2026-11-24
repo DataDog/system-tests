@@ -5,6 +5,7 @@
 """Contains base class used to validate interfaces"""
 
 from collections.abc import Callable, Iterable
+from functools import lru_cache
 import json
 from pathlib import Path
 import re
@@ -16,6 +17,11 @@ from typing import Any
 import pytest
 
 from utils._logger import logger
+
+
+@lru_cache(maxsize=256)
+def _compile_path_regex(pattern: str) -> re.Pattern[str]:
+    return re.compile(pattern)
 
 
 class InterfaceValidator:
@@ -87,11 +93,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                     # the file may not be finished
                     return
 
+            need_sort = bool(self._data_list) and data["log_filename"] < self._data_list[-1]["log_filename"]
             self._append_data(data)
             self._ingested_files.add(src_path)
 
             # Ensure the list is completely sorted
-            self._data_list.sort(key=lambda data: data["log_filename"])
+            if need_sort:
+                self._data_list.sort(key=lambda item: item["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
@@ -130,9 +138,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         if path_filters is not None:
             if isinstance(path_filters, str):
-                path_filters = [path_filters]
+                path_filters = (path_filters,)
 
-            path_regexes = [re.compile(path) for path in path_filters]
+            path_regexes = [_compile_path_regex(path) for path in path_filters]
         else:
             path_regexes = None
 

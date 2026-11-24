@@ -1,14 +1,60 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, get_args, get_origin
+from typing import Any
 
 import yaml
 
 from .const import TestDeclaration
 from .declaration import Declaration
 from .types import Condition, ManifestData, SkipDeclaration, SemverRange
+
+YAML_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+ALL_MANIFEST_COMPONENTS: tuple[str, ...] = (
+    "agent",
+    "c",
+    "cpp",
+    "cpp_httpd",
+    "cpp_kong",
+    "cpp_nginx",
+    "dotnet",
+    "golang",
+    "java",
+    "java_lambda",
+    "java_otel",
+    "nodejs",
+    "nodejs_lambda",
+    "nodejs_otel",
+    "php",
+    "python",
+    "python_otel",
+    "ruby",
+    "rust",
+    "dd_apm_inject",
+    "k8s_cluster_agent",
+    "python_lambda",
+    "ruby_lambda",
+    "envoy",
+    "haproxy",
+)
+
+_CONDITION_SCALAR_TYPES: dict[str, type] = {
+    "declaration": SkipDeclaration,
+    "component": str,
+    "component_version": SemverRange,
+    "excluded_component_version": SemverRange,
+}
+
+_CONDITION_LIST_TYPES: dict[str, type] = {
+    "weblog": str,
+    "excluded_weblog": str,
+}
+
+_CONDITION_VALID_FIELDS: frozenset[str] = frozenset(
+    ("component_version", "excluded_component_version", "weblog", "excluded_weblog", "declaration")
+)
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:
@@ -29,32 +75,21 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
     return condition
 
 
-def check_condition(condition: Condition):
-    def type_check(key: str, value: Any, expected_type: type):  # noqa: ANN401
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Wrong type for {key}, expected {expected_type} got {type(value)}")
-
-    def type_check_list(key: str, value: Any, inner_type: type):  # noqa: ANN401
-        type_check(key, value, list)
-        for e in value:
-            type_check(key, e, inner_type)
-
-    types = {
-        "declaration": SkipDeclaration,
-        "component": str,
-        "component_version": SemverRange,
-        "excluded_component_version": SemverRange,
-        "weblog": list[str],
-        "excluded_weblog": list[str],
-    }
-
+def check_condition(condition: Condition) -> None:
     for key, item in condition.items():
-        assert key in types, f"The type of {key} should be added to the check_condition function"
-        if get_origin(types[key]) is list:
-            (inner_type,) = get_args(types[key])
-            type_check_list(key, item, inner_type)
+        if key in _CONDITION_SCALAR_TYPES:
+            expected_type = _CONDITION_SCALAR_TYPES[key]
+            if not isinstance(item, expected_type):
+                raise TypeError(f"Wrong type for {key}, expected {expected_type} got {type(item)}")
+        elif key in _CONDITION_LIST_TYPES:
+            if not isinstance(item, list):
+                raise TypeError(f"Wrong type for {key}, expected {list} got {type(item)}")
+            inner_type = _CONDITION_LIST_TYPES[key]
+            for e in item:
+                if not isinstance(e, inner_type):
+                    raise TypeError(f"Wrong type for {key}, expected {inner_type} got {type(e)}")
         else:
-            type_check(key, item, types[key])
+            raise AssertionError(f"The type of {key} should be added to the check_condition function")
 
 
 def cast_to_condition(entry: dict, component: str) -> Condition:
@@ -75,7 +110,7 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
 
     check_condition(condition)
     for key in entry:
-        if key not in ["component_version", "excluded_component_version", "weblog", "excluded_weblog", "declaration"]:
+        if key not in _CONDITION_VALID_FIELDS:
             raise ValueError(f"Field {key} unknown")
 
     return condition
@@ -192,7 +227,7 @@ class FieldProcessor:
 def _load_file(file: Path, component: str) -> ManifestData:
     try:
         with open(file, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+            data = yaml.load(f, Loader=YAML_LOADER)  # noqa: S506
     except FileNotFoundError:
         return ManifestData()
 
@@ -253,7 +288,7 @@ def _load_file(file: Path, component: str) -> ManifestData:
     return ret
 
 
-def load(base_dir: Path = Path("manifests/")) -> ManifestData:
+def load(base_dir: Path = Path("manifests/"), components: Iterable[str] | None = None) -> ManifestData:
     """Transforms the following raw manifest data:
     --------------------------------------------------------------
     -------------------------------------------------------      |
@@ -300,33 +335,13 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
 
     result: ManifestData = ManifestData()
 
-    for component in (
-        "agent",
-        "c",
-        "cpp",
-        "cpp_httpd",
-        "cpp_kong",
-        "cpp_nginx",
-        "dotnet",
-        "golang",
-        "java",
-        "java_lambda",
-        "java_otel",
-        "nodejs",
-        "nodejs_lambda",
-        "nodejs_otel",
-        "php",
-        "python",
-        "python_otel",
-        "ruby",
-        "rust",
-        "dd_apm_inject",
-        "k8s_cluster_agent",
-        "python_lambda",
-        "ruby_lambda",
-        "envoy",
-        "haproxy",
-    ):
+    if components is None:
+        selected_components: Iterable[str] = ALL_MANIFEST_COMPONENTS
+    else:
+        requested = set(components)
+        selected_components = [c for c in ALL_MANIFEST_COMPONENTS if c in requested]
+
+    for component in selected_components:
         data = _load_file(base_dir.joinpath(f"{component}.yml"), component)
 
         for nodeid, value in data.items():

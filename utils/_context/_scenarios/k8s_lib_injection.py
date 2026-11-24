@@ -1,13 +1,15 @@
-import os
+from __future__ import annotations
 
-import pytest
+import os
+from typing import TYPE_CHECKING
 
 from utils import interfaces
 from utils._context.component_version import ComponentVersion, Version
 from utils.k8s.k8s_components_parser import K8sComponentsParser
-from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
-from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
-from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory, K8sClusterProvider
+
+if TYPE_CHECKING:
+    import pytest
+    from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterProvider
 
 from utils.k8s.k8s_component_image import (
     K8sComponentImage,
@@ -107,6 +109,10 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.components[self._library.name] = self._library.version
 
         # Configure the K8s cluster provider
+        from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory  # noqa: PLC0415
+        from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog  # noqa: PLC0415
+        from utils.k8s_lib_injection.k8s_weblog import K8sWeblog  # noqa: PLC0415
+
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         if self.with_datadog_operator and self.k8s_provider_name == "eksremote":
@@ -264,6 +270,9 @@ class K8sLibInjectionSparkDjm(K8sScenario):
         super().__init__("K8S_LIB_INJECTION_SPARK_DJM")
 
     def configure(self, config: pytest.Config):
+        from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog  # noqa: PLC0415
+        from utils.k8s_lib_injection.k8s_weblog import K8sWeblog  # noqa: PLC0415
+
         super().configure(config)
         self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img.registry_url
 

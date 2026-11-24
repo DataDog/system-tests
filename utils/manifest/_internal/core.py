@@ -3,8 +3,8 @@ import re
 
 from utils._context.component_version import Version
 
-from .parser import load
-from .rule import get_rules, match_rule
+from .parser import ALL_MANIFEST_COMPONENTS, load
+from .rule import get_rules, nodeid_elements, rule_elements
 from .types import ManifestData, SkipDeclaration
 from .validate import validate_manifest_files as validate
 from .const import default_manifests_path
@@ -27,21 +27,54 @@ class Manifest:
         weblog: str | None = None,
         path: Path = default_manifests_path,
     ):
-        """Parses all the manifest files on creation and filters the results based on
+        """Parses the relevant manifest files on creation and filters the results based on
         the information provided
         """
-        self.data = load(path)
-        self.rules = None
+        self._path = path
+        self._rules_index: dict[tuple[str, ...], list[tuple[int, str, list[SkipDeclaration]]]] = {}
+        self._rule_lengths: tuple[int, ...] = ()
         if components is not None:
+            self._loaded_components: set[str] | None = set(components.keys())
+            self.data = load(path, components=self._loaded_components)
+            self._initial_data: ManifestData = self.data
+            self.rules = None
             self._components: dict[str, Version] = components
             self.update_rules(self._components, weblog)
+        else:
+            self._loaded_components = None
+            self.data = load(path)
+            self._initial_data = self.data
+            self.rules = None
 
     def update_rules(
         self,
         components: dict[str, Version],
         weblog: str | None = None,
     ):
+        if self._loaded_components is not None and self.data is self._initial_data:
+            missing = [c for c in components if c in ALL_MANIFEST_COMPONENTS and c not in self._loaded_components]
+            if missing:
+                self._loaded_components.update(missing)
+                self.data = load(self._path, components=self._loaded_components)
+                self._initial_data = self.data
+
         self.rules, self.condition_tracker = get_rules(self.data, components, weblog)
+        self._build_rules_index()
+
+    def _build_rules_index(self) -> None:
+        index: dict[tuple[str, ...], list[tuple[int, str, list[SkipDeclaration]]]] = {}
+        lengths: set[int] = set()
+        if self.rules is not None:
+            for order_idx, (rule, declarations) in enumerate(self.rules.items()):
+                key = rule_elements(rule)
+                lengths.add(len(key))
+                bucket = index.get(key)
+                if bucket is None:
+                    index[key] = [(order_idx, rule, declarations)]
+                else:
+                    bucket.append((order_idx, rule, declarations))
+        self._rules_index = index
+        self._rule_lengths = tuple(sorted(lengths))
 
     @staticmethod
     def parse(path: Path = default_manifests_path) -> ManifestData:
@@ -70,20 +103,38 @@ class Manifest:
     def get_declarations(
         self, nodeid: str, declaration_sources: list[tuple[str, list[tuple[int, int]]]] | None = None
     ) -> list[SkipDeclaration]:
-        """Returns a dict containing all the SkipDeclarations that should be applied
+        """Returns a list containing all the SkipDeclarations that should be applied
         to the nodeid provided
 
         Args:
             nodeid (str): The nodeid for which to get the SkipDeclarations
-            declaration_sources (dict[str, list[int]]): is modified to add the rule
+            declaration_sources (list[tuple[str, list[tuple[int, int]]]]): is modified to add the rule
                 and condition index that declarations are originating from
 
         """
-        ret: list[SkipDeclaration] = []
         assert self.rules is not None, "You need to provide a library name to the constructor or call update_rules"
-        for rule, declarations in self.rules.items():
-            if not match_rule(rule, nodeid):
-                continue
+        if not self._rules_index:
+            return []
+
+        n_parts = nodeid_elements(nodeid)
+        n_elements = len(n_parts)
+
+        matches: list[tuple[int, str, list[SkipDeclaration]]] = []
+        for length in self._rule_lengths:
+            if length > n_elements:
+                break
+            bucket = self._rules_index.get(n_parts[:length])
+            if bucket is not None:
+                matches.extend(bucket)
+
+        if not matches:
+            return []
+
+        if len(matches) > 1:
+            matches.sort(key=lambda item: item[0])
+
+        ret: list[SkipDeclaration] = []
+        for _, rule, declarations in matches:
             ret += declarations
             if declaration_sources is not None:
                 declaration_sources.append((rule, self.condition_tracker[rule]))
