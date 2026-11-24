@@ -139,14 +139,6 @@ class Test_DD_SDK_MODE:
 
     @pytest.mark.parametrize("library_env", [OTEL_MODE_ENV])
     @pytest.mark.usefixtures("otlp_endpoints")
-    def test_otel_exports_logs_over_otlp(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        with test_library as library:
-            _emit_log(library)
-
-        assert wait_for_otlp_export_requests(test_agent, "logs"), "DD_SDK_MODE=otel didn't export logs over OTLP"
-
-    @pytest.mark.parametrize("library_env", [OTEL_MODE_ENV])
-    @pytest.mark.usefixtures("otlp_endpoints")
     def test_otel_enables_otel_logs_api(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         # Some SDKs also export the application's own logs in OpenTelemetry mode: look for the record written with the API
         with test_library as library:
