@@ -13,16 +13,19 @@ print_usage() {
     echo -e "  ./format.sh [options...]"
     echo
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
-    echo -e "  ${CYAN}--check${NC}     Only performs checks without modifying files. Command unsed in the CI."
-    echo -e "  ${CYAN}--help${NC}      Prints this message and exits."
+    echo -e "  ${CYAN}--check${NC}               Only performs checks without modifying files. Command unsed in the CI."
+    echo -e "  ${CYAN}--force-nodejs-lint${NC}   Runs the Node.js linters even if no linted Node.js file has changed."
+    echo -e "  ${CYAN}--help${NC}                Prints this message and exits."
     echo
 }
 
 COMMAND=fix
+FORCE_NODEJS_LINT=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -c|--check) COMMAND=check ;;
+        --force-nodejs-lint) FORCE_NODEJS_LINT=true ;;
         -h|--help) print_usage; exit 0 ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
@@ -244,25 +247,58 @@ if ! ./utils/scripts/shellcheck.sh; then
   exit 1
 fi
 
-echo "Running Node.js linters"
-# currently only fastify requires linting
-# this can be added later
 nodejs_dirs=("express" "fastify")
+# Keep it a literal value on a single line: utils/scripts/update_mirror_images.py reads it, to keep it mirrored
+NODEJS_LINT_IMAGE="node:18-alpine"
 
+# The linters only need to run if a linted file, or this script, has changed
+nodejs_lint_paths=("format.sh")
 for dir in "${nodejs_dirs[@]}"; do
+  nodejs_lint_paths+=("utils/build/docker/nodejs/$dir/")
+done
 
-  docker run \
-    --rm \
-    -w /app \
-    -v "$PWD"/utils/build/docker/nodejs/"$dir":/app \
-    -e NODE_NO_WARNINGS=1 \
-    node:18-alpine \
-    sh -c "npm install --silent && npm run --silent ${COMMAND}_lint"
+# Prints the files among the given paths that changed since the merge base with origin/main: committed, staged,
+# unstaged and untracked. Fails if they can't be computed (not a git checkout, shallow clone, no origin/main).
+changed_files() {
+  local merge_base
 
-  if [ $? -ne 0 ]; then
-    echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
+  [[ "$(git rev-parse --is-shallow-repository 2>/dev/null)" == "false" ]] || return 1
+  merge_base="$(git merge-base origin/main HEAD 2>/dev/null)" || return 1
+  git diff --name-only --no-renames "$merge_base" -- "$@" || return 1
+  git ls-files --others --exclude-standard -- "$@" || return 1
+}
+
+run_nodejs_lint=true
+if [ "$FORCE_NODEJS_LINT" == "false" ]; then
+  if ! nodejs_changed_files="$(changed_files "${nodejs_lint_paths[@]}")"; then
+    echo "Can't list the changes since origin/main (e.g. not a git checkout, shallow clone, or no origin/main): running the Node.js linters anyway"
+  elif [ -z "$nodejs_changed_files" ]; then
+    run_nodejs_lint=false
+  fi
+fi
+
+if [ "$run_nodejs_lint" == "false" ]; then
+  echo "Skipping Node.js linters: nothing changed in ${nodejs_lint_paths[*]} since origin/main. Use --force-nodejs-lint to run them anyway."
+else
+  echo "Running Node.js linters"
+  # with USE_IMAGE_MIRROR, pulled from the mirror, like the scenarios do
+  if ! nodejs_lint_image="$(python -c 'import sys; from utils._context._image_mirror import mirror_image; print(mirror_image(sys.argv[1]))' "$NODEJS_LINT_IMAGE")"; then
+    echo "Can't resolve the Node.js linters image. Please fix the errors above. 💥 💔 💥"
     exit 1
   fi
-done
+
+  for dir in "${nodejs_dirs[@]}"; do
+    if ! docker run \
+      --rm \
+      -w /app \
+      -v "$PWD"/utils/build/docker/nodejs/"$dir":/app \
+      -e NODE_NO_WARNINGS=1 \
+      "$nodejs_lint_image" \
+      sh -c "npm install --silent && npm run --silent ${COMMAND}_lint"; then
+      echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
+      exit 1
+    fi
+  done
+fi
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

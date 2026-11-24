@@ -216,6 +216,21 @@ class Test_UpdateMirrorImages:
 
         assert "golang:1.26" in images
 
+    def test_collect_images_includes_the_format_sh_lint_image(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """format.sh pulls its Node.js lint image through the mirror, though no scenario requires it."""
+        format_sh = tmp_path / "format.sh"
+        format_sh.write_text('echo\nNODEJS_LINT_IMAGE="lint:only"\necho\n', encoding="utf-8")
+        monkeypatch.setattr(update_mirror_images, "FORMAT_SH", format_sh)
+        monkeypatch.setattr(update_mirror_images, "get_all_scenarios", list)
+
+        assert update_mirror_images.collect_images(set()) == ["lint:only"]
+
+    def test_format_sh_lint_image_is_mirrored(self):
+        """With USE_IMAGE_MIRROR, format.sh only pulls its lint image from the mirror if the lock file lists it."""
+        lock = yaml.safe_load(update_mirror_images.LOCK_YAML.read_text(encoding="utf-8"))
+
+        assert update_mirror_images._format_sh_images() <= set(lock["images"])
+
     def test_library_weblog_pairs_are_the_weblogs(self):
         """Only weblog Dockerfiles: other Dockerfiles of a library folder are not built for a scenario."""
         pairs = update_mirror_images._library_weblog_pairs()
