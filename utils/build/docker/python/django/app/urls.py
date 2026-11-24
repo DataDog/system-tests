@@ -1077,7 +1077,7 @@ def get_value(request):
 def create_extra_service(request):
     new_service_name = request.GET.get("serviceName", default="")
     if new_service_name:
-        tracer.trace("extra.service", service=new_service_name).finish()
+        ddtrace.config.service = new_service_name
     return HttpResponse("OK")
 
 

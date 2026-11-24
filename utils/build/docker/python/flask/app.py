@@ -1837,7 +1837,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        tracer.trace("extra.service", service=new_service_name).finish()
+        ddtrace.config.service = new_service_name
     return Response("OK")
 
 

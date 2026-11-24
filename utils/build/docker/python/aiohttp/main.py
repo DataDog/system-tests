@@ -219,7 +219,7 @@ async def read_file(request: web.Request) -> web.Response:
 async def create_extra_service(request: web.Request) -> web.Response:
     service_name = request.query.get("serviceName", "")
     if service_name:
-        tracer.trace("extra.service", service=service_name).finish()
+        ddtrace.config.service = service_name
     return web.Response(text="OK")
 
 

@@ -996,7 +996,7 @@ These endpoints will be used for `Exception Replay` tests.
 
 ### GET /createextraservice
 
-Creates an additional service in the tracer by assigning the requested service name to a span.
+Sets the tracer service name to the requested value.
 
 The parameter `serviceName` is required and should be a string with the name for the fake service
 
