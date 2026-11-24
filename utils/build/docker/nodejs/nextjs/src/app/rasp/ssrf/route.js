@@ -9,7 +9,8 @@ async function handler (request) {
 
   let status = 200
   await new Promise((resolve, reject) => {
-    const clientRequest = http.get(`http://${domain}`, () => {
+    const clientRequest = http.get(`http://${domain}`, (response) => {
+      response.resume()
       resolve()
     })
     clientRequest.on('error', (e) => {
