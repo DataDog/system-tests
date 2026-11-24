@@ -2738,6 +2738,7 @@ manifest:
   tests/parametric/test_crashtracking.py::Test_Crashtracking: *ref_5_27_0
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=6.21.0'  # TODO: a lower version might be supported
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: *ref_5_16_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:
     - declaration: missing_feature

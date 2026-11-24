@@ -150,6 +150,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_extended_configs: missing_feature (extended configs are not supported)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:
     - declaration: bug (APMAPI-863)
       component_version: <=1.0.0
