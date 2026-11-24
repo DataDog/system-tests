@@ -130,7 +130,7 @@ capabilities:
     '>=3.54.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
-    '3.59.0-dev':
+    '>=3.59.0-dev':
       - FFE_FLAG_DEPENDENT_FLAG_VARIANT_KEY_V1
 
   cpp:
