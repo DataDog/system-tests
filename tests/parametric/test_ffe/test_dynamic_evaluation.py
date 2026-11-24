@@ -19,6 +19,7 @@ from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import (
     assert_feature_map,
+    evaluation_reasons_match,
     events_match,
     ffe_events_for_target,
     ffe_events_from_requests,
@@ -236,10 +237,17 @@ def _assert_evaluation_cases(
             f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
         )
         for field in ("value", "reason"):
-            assert result.get(field) == expected_result[field], (
+            expected_value = expected_result[field]
+            actual_value = result.get(field)
+            matches = (
+                evaluation_reasons_match(expected_value, actual_value)
+                if field == "reason"
+                else actual_value == expected_value
+            )
+            assert matches, (
                 f"Test case {index} in {test_case_file.name} failed: "
                 f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', field='{field}', "
-                f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                f"expected={expected_value!r}, actual={actual_value!r}"
             )
         if "errorCode" in expected_result:
             assert result.get("errorCode") == expected_result["errorCode"], (
