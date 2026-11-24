@@ -22,6 +22,16 @@ class Test_NativeCGitLabCI:
         assert component["system_tests_build_pipeline"]["tags"] == ["arch:amd64"]
 
     def test_all_gitlab_jobs_are_merge_blocking(self) -> None:
+        pipeline = yaml.safe_load(Path(".gitlab-ci.yml").read_text())
+        job = pipeline["all-gitlab-jobs-are-green"]
+
+        # no needs + last stage + default `when: on_success`: it waits for all jobs, and runs only if all succeeded
+        assert "needs" not in job
+        assert job["stage"] == pipeline["stages"][-1]
+        assert job.get("when", "on_success") == "on_success"
+        assert job.get("allow_failure", False) is False
+
+    def test_legacy_gate_blocks_on_all_gitlab_jobs(self) -> None:
         workflow = yaml.safe_load(Path(".github/workflows/ci.yml").read_text())
         ignored_patterns = workflow["jobs"]["all-jobs-are-green"]["steps"][0]["with"]["ignored-name-patterns"]
         patterns = ignored_patterns.splitlines()
