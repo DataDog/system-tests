@@ -38,24 +38,16 @@ class Test_GeneratePublicRegistryPipeline:
         images = generator.wanted_images(_write_mirror_lock(tmp_path / "mirror_images.lock.yaml"))
 
         assert images == {
-            "x.base-123456789abc": (f"{MIRROR}/datadog/system-tests:x.base-123456789abc", None),
-            "proxy-v1": (f"{MIRROR}/datadog/system-tests:proxy-v1", "sha256:proxy"),
+            "x.base-123456789abc": f"{MIRROR}/datadog/system-tests:x.base-123456789abc",
+            "proxy-v1": f"{MIRROR}/datadog/system-tests:proxy-v1",
         }
 
     def test_missing_images(self, monkeypatch: pytest.MonkeyPatch):
-        published = {"present.base-1": "sha256:any", "same": "sha256:same", "moved": "sha256:old"}
-        monkeypatch.setattr(generator, "published_digest", published.get)
+        monkeypatch.setattr(generator, "is_published", lambda tag: tag == "present.base-1")
 
-        missing = generator.missing_images(
-            {
-                "absent.base-1": ("src/absent", None),
-                "present.base-1": ("src/present", None),
-                "same": ("src/same", "sha256:same"),
-                "moved": ("src/moved", "sha256:new"),
-            }
-        )
+        missing = generator.missing_images({"absent.base-1": "src/absent", "present.base-1": "src/present"})
 
-        assert missing == {"absent.base-1": "src/absent", "moved": "src/moved"}
+        assert missing == {"absent.base-1": "src/absent"}
 
     def test_child_pipeline(self):
         pipeline = generator.child_pipeline({"proxy-v1": f"{MIRROR}/datadog/system-tests:proxy-v1"})
@@ -67,8 +59,6 @@ class Test_GeneratePublicRegistryPipeline:
                     "IMG_SOURCES": f"{MIRROR}/datadog/system-tests:proxy-v1",
                     "IMG_DESTINATIONS": "system-tests:proxy-v1",
                     "IMG_REGISTRIES": "prod",
-                    "IMG_MERGE_STRATEGY": "none",
-                    "IMG_SIGNING": "false",
                 },
             }
         }

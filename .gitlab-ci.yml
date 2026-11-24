@@ -640,9 +640,10 @@ build_base_images:
 # CI pulls these images from Docker Hub, where anonymous pulls are rate limited.
 # registry.datadoghq.com has no pull rate limit, but only the DataDog/public-images
 # pipeline can push to it. On every push to main, generate_public_registry_pipeline
-# lists the images that registry.datadoghq.com does not have yet (or has with another
-# digest), and publish_public_registry runs one DataDog/public-images pipeline per
-# image (IMG_REGISTRIES=prod: registry.datadoghq.com only). The source is the
+# lists the tags that registry.datadoghq.com does not have yet, and
+# publish_public_registry runs one DataDog/public-images pipeline per tag
+# (IMG_REGISTRIES=prod: registry.datadoghq.com only). A published tag is never
+# published again: push new content with a new tag. The source is the
 # system-tests mirror, which mirror_images and build_base_images fill first.
 # Only main runs it: public-images refuses to publish from untrusted branches.
 # ──────────────────────────────────────────────

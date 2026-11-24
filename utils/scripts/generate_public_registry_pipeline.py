@@ -4,10 +4,14 @@ CI pulls every ``datadog/system-tests:<tag>`` image from Docker Hub today, where
 rate limited. registry.datadoghq.com has no pull rate limit, but only the DataDog/public-images
 pipeline can push to it. This script lists the images that system-tests uses (the base images of
 ``utils/build/docker/base-images.lock.json`` and the ``datadog/system-tests`` entries of
-``mirror_images.lock.yaml``), checks which ones registry.datadoghq.com does not have yet (or has with
-another digest), and writes one DataDog/public-images trigger job for each of them. The source of each
+``mirror_images.lock.yaml``), checks which tags registry.datadoghq.com does not have yet, and writes
+one DataDog/public-images trigger job for each of them. The source of each
 copy is the system-tests mirror in registry.ddbuild.io, which the mirror_images and build_base_images
 jobs fill before this script runs.
+
+A tag that registry.datadoghq.com already has is never published again. Base image tags end with a
+content hash, so they never change. To publish new content of another image (e.g. a buddy), push it
+with a new tag (e.g. python_buddy-v3).
 
 Usage:
     python utils/scripts/generate_public_registry_pipeline.py --output public-registry-pipeline.yml
@@ -39,42 +43,35 @@ MANIFEST_ACCEPT = (
 )
 
 
-def wanted_images(mirror_lock_path: Path = MIRROR_LOCK) -> dict[str, tuple[str, str | None]]:
-    """Return tag -> (source reference, expected digest or None) for each datadog/system-tests image."""
-    images: dict[str, tuple[str, str | None]] = {}
+def wanted_images(mirror_lock_path: Path = MIRROR_LOCK) -> dict[str, str]:
+    """Return tag -> source reference for each datadog/system-tests image."""
+    images: dict[str, str] = {}
     for image in load_base_image_lock().values():
-        # Base image tags end with a content hash, so a tag never points to other content.
-        images[image.removeprefix(IMAGE_PREFIX)] = (mirror_base_image(image), None)
+        images[image.removeprefix(IMAGE_PREFIX)] = mirror_base_image(image)
 
     mirror_lock = yaml.safe_load(mirror_lock_path.read_text())
     for image, entry in mirror_lock["images"].items():
         if image.startswith(IMAGE_PREFIX):
-            # These tags (proxy-v1, python_buddy-v2, ...) can be pushed again with new content.
-            images[image.removeprefix(IMAGE_PREFIX)] = (entry["target"], entry["digest"])
+            images[image.removeprefix(IMAGE_PREFIX)] = entry["target"]
     return images
 
 
-def published_digest(tag: str) -> str | None:
-    """Return the digest of system-tests:<tag> on registry.datadoghq.com, or None if the tag is missing."""
+def is_published(tag: str) -> bool:
+    """Return whether registry.datadoghq.com has system-tests:<tag>."""
     url = f"https://{PUBLIC_REGISTRY}/v2/{PUBLIC_REPOSITORY}/manifests/{tag}"
     request = urllib.request.Request(url, method="HEAD", headers={"Accept": MANIFEST_ACCEPT})  # noqa: S310
     try:
         with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
-            return response.headers.get("Docker-Content-Digest") or ""
+            return response.status == 200  # noqa: PLR2004
     except urllib.error.HTTPError as exc:
         if exc.code == 404:  # noqa: PLR2004
-            return None
+            return False
         raise
 
 
-def missing_images(images: dict[str, tuple[str, str | None]]) -> dict[str, str]:
-    """Return tag -> source reference for each image to publish."""
-    missing: dict[str, str] = {}
-    for tag, (source, digest) in sorted(images.items()):
-        current = published_digest(tag)
-        if current is None or (digest is not None and current != digest):
-            missing[tag] = source
-    return missing
+def missing_images(images: dict[str, str]) -> dict[str, str]:
+    """Return tag -> source reference for each image that registry.datadoghq.com does not have."""
+    return {tag: source for tag, source in sorted(images.items()) if not is_published(tag)}
 
 
 def child_pipeline(missing: dict[str, str]) -> dict[str, dict[str, object]]:
@@ -99,9 +96,6 @@ def child_pipeline(missing: dict[str, str]) -> dict[str, dict[str, object]]:
                 # `prod` selects registry.datadoghq.com only. Docker Hub already gets these images
                 # from the jobs that build them.
                 "IMG_REGISTRIES": "prod",
-                # Copy the source as is, so the published digest is the mirror digest.
-                "IMG_MERGE_STRATEGY": "none",
-                "IMG_SIGNING": "false",
             },
         }
     return pipeline
