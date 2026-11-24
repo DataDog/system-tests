@@ -111,32 +111,8 @@ jobs:
     secrets: inherit
 
   all-jobs-are-green:
-    # name: All jobs are green  # DO NOT SET A NAME
-    runs-on: ubuntu-latest
-    permissions:
-      checks: read
-      statuses: read
-      actions: read
-    needs:
-    - system_tests
-    if: '!cancelled()'
-    steps:
-    - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e
-      with:
-        # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
-        polling-interval-seconds: '60'
-        max-retries: '120'
-        # Every GitLab job must pass. Ignore the merge-queue checks that wait
-        # for this gate and the aggregate DDCI status.
-
-        ignored-name-patterns: |
-          devflow/merge
-          devflow/mergegate
-          DDCI Status
-
-  all-github-jobs-are-green:
-    # name: ...  # DO NOT SET A NAME: it's a required check, its name must stay the job id
-    # Only covers this workflow: GitLab jobs are gated by all-gitlab-jobs-are-green (.gitlab-ci.yml)
+    # name: All jobs are green  # DO NOT SET A NAME: it's a required check, its name must stay the job id
+    # Only covers this workflow: GitLab jobs are gated by the DDCI Status check
     runs-on: ubuntu-latest
     permissions: {}
     needs:

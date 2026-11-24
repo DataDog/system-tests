@@ -17,7 +17,6 @@ stages:
   - ruby
   - pipeline-status
   - system-tests-utils
-  - all-green  # must stay the last stage
 
 variables:
     TEST: 1
@@ -634,21 +633,3 @@ build_base_images:
       artifacts: false
   script:
     - python3 utils/base_images/build_base_images.py --changed-only --merge
-
-# Required check on GitHub PRs (dd-gitlab/all-gitlab-jobs-are-green). It has no `needs` and runs in the last stage, so
-# it waits for every job of the pipeline (child pipelines included, through their `strategy: depend` trigger jobs),
-# and only runs if none of them failed. If one failed, it's skipped and the check stays pending, blocking the merge.
-all-gitlab-jobs-are-green:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
-  tags: ["arch:amd64"]
-  stage: all-green
-  interruptible: true
-  script:
-    - echo "✅ All GitLab jobs are green"
-  rules:
-    # Only on PR branches: it's a merge gate, it must not run on main nor on scheduled pipelines
-    - if: >-
-        $CI_PIPELINE_SOURCE == "push" &&
-        $CI_COMMIT_BRANCH &&
-        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
-        ($SCHEDULED_JOB == "" || $SCHEDULED_JOB == null)
