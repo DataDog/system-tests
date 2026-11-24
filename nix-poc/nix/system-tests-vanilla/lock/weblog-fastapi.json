@@ -1,0 +1,265 @@
+{
+  "baseAlias": "system_tests_base_python_fastapi",
+  "baseImage": "datadog/system-tests:fastapi.base-7f1b67ecf0c2",
+  "ddtrace": {
+    "4.17.2": {
+      "amd64": {
+        "files": [
+          {
+            "filename": "bytecode-0.19.2-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "bytecode",
+            "sha256": "10d6e1735efc5ebbdf6f24430187cf35e1a74cdc63f347a73c391ffe0c731714",
+            "url": "https://files.pythonhosted.org/packages/33/c1/7d13fb7631bfe77d3e13cd20f9e7406ccace5e157c2e5fffccfe3692b3f1/bytecode-0.19.2-py3-none-any.whl",
+            "version": "0.19.2"
+          },
+          {
+            "filename": "ddtrace-4.17.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+            "kind": "wheel",
+            "name": "ddtrace",
+            "sha256": "3320d628ddc692b1fcfc8f3c1335162706330ace7c23e7e27c74baa926b2debf",
+            "url": "https://files.pythonhosted.org/packages/6e/04/dd0fb6525f92442d52fd3b8a002bd23a03469a4cfb925cd99b61f648c4cb/ddtrace-4.17.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+            "version": "4.17.2"
+          },
+          {
+            "filename": "ddtrace_internal-0.2.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "ddtrace-internal",
+            "sha256": "bafbc6b32c9f274ead3b5b2bb1652b198b4e75fe10e7a3436e05f05711f5fbd8",
+            "url": "https://files.pythonhosted.org/packages/1f/50/8e0029676e6ea68cf4c34eee74deaf51b05ea38385a06d4d800d80b901a1/ddtrace_internal-0.2.0-py3-none-any.whl",
+            "version": "0.2.0"
+          },
+          {
+            "filename": "envier-0.6.1-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "envier",
+            "sha256": "73609040a76be48bbcb97074d9969666484aa0de706183a6e9ef773156a8a6a9",
+            "url": "https://files.pythonhosted.org/packages/56/e9/30493b1cc967f7c07869de4b2ab3929151a58e6bb04495015554d24b61db/envier-0.6.1-py3-none-any.whl",
+            "version": "0.6.1"
+          },
+          {
+            "filename": "googleapis_common_protos-1.76.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "googleapis-common-protos",
+            "sha256": "59e13344a9f3651aa201a03e2bee815a3bf43a4baf1f9ff8a9b62a840ce25fac",
+            "url": "https://files.pythonhosted.org/packages/05/6d/78dc67a9e779e594b49bf62604034d3a6aa428a55afc729cafda4b7333e1/googleapis_common_protos-1.76.0-py3-none-any.whl",
+            "version": "1.76.0"
+          },
+          {
+            "filename": "importlib_metadata-8.7.1-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "importlib-metadata",
+            "sha256": "5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151",
+            "url": "https://files.pythonhosted.org/packages/fa/5e/f8e9a1d23b9c20a551a8a02ea3637b4642e22c2626e3a13a9a29cdea99eb/importlib_metadata-8.7.1-py3-none-any.whl",
+            "version": "8.7.1"
+          },
+          {
+            "filename": "opentelemetry_api-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-api",
+            "sha256": "82dd69331ae74b06f6a874704be0cfaa49a1650e1537d4a813b86ecef7d0ecf9",
+            "url": "https://files.pythonhosted.org/packages/5f/bf/93795954016c522008da367da292adceed71cca6ee1717e1d64c83089099/opentelemetry_api-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_exporter_otlp_proto_common-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-exporter-otlp-proto-common",
+            "sha256": "7081ff453835a82417bf38dccf122c827c3cbc94f2079b03bba02a3165f25149",
+            "url": "https://files.pythonhosted.org/packages/8b/ca/8f122055c97a932311a3f640273f084e738008933503d0c2563cd5d591fc/opentelemetry_exporter_otlp_proto_common-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_exporter_otlp_proto_http-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-exporter-otlp-proto-http",
+            "sha256": "a8d1dab28f504c5d96577d6509f80a8150e44e8f45f82cdbe0e34c99ab040069",
+            "url": "https://files.pythonhosted.org/packages/a0/3a/8865d6754e61c9fb170cdd530a124a53769ee5f740236064816eb0ca7301/opentelemetry_exporter_otlp_proto_http-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_proto-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-proto",
+            "sha256": "266c4385d88923a23d63e353e9761af0f47a6ed0d486979777fe4de59dc9b25f",
+            "url": "https://files.pythonhosted.org/packages/b9/b2/189b2577dde745b15625b3214302605b1353436219d42b7912e77fa8dc24/opentelemetry_proto-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_sdk-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-sdk",
+            "sha256": "787d2154a71f4b3d81f20524a8ce061b7db667d24e46753f32a7bc48f1c1f3f1",
+            "url": "https://files.pythonhosted.org/packages/2c/c5/6a852903d8bfac758c6dc6e9a68b015d3c33f2f1be5e9591e0f4b69c7e0a/opentelemetry_sdk-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-semantic-conventions",
+            "sha256": "fa530a96be229795f8cef353739b618148b0fe2b4b3f005e60e262926c4d38e2",
+            "url": "https://files.pythonhosted.org/packages/b2/37/cc6a55e448deaa9b27377d087da8615a3416d8ad523d5960b78dbeadd02a/opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl",
+            "version": "0.61b0"
+          },
+          {
+            "filename": "protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl",
+            "kind": "wheel",
+            "name": "protobuf",
+            "sha256": "e9db7e292e0ab79dd108d7f1a94fe31601ce1ee3f7b79e0692043423020b0593",
+            "url": "https://files.pythonhosted.org/packages/16/92/d1e32e3e0d894fe00b15ce28ad4944ab692713f2e7f0a99787405e43533a/protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl",
+            "version": "6.33.6"
+          },
+          {
+            "filename": "wrapt-2.5.2-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+            "kind": "wheel",
+            "name": "wrapt",
+            "sha256": "0743950d3dda9940e56f81f5334ba051c4fe2e1421e4e4a4ef8eb8fb86a90894",
+            "url": "https://files.pythonhosted.org/packages/98/00/a0effd5872aed3271b28b4740a71bc2d7406d33b4e03eac01ae099ac8569/wrapt-2.5.2-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+            "version": "2.5.2"
+          },
+          {
+            "filename": "zipp-4.1.2-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "zipp",
+            "sha256": "b30cb6cd253122169c47de245ca24a86bac2a5d3802ba15bf7ba6414eb9e144d",
+            "url": "https://files.pythonhosted.org/packages/b8/44/7bd2007260da11cccca29ba2d4c345f1287aa663db38ee7cefeabf6386a5/zipp-4.1.2-py3-none-any.whl",
+            "version": "4.1.2"
+          }
+        ],
+        "python": "3.11"
+      },
+      "arm64": {
+        "files": [
+          {
+            "filename": "bytecode-0.19.2-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "bytecode",
+            "sha256": "10d6e1735efc5ebbdf6f24430187cf35e1a74cdc63f347a73c391ffe0c731714",
+            "url": "https://files.pythonhosted.org/packages/33/c1/7d13fb7631bfe77d3e13cd20f9e7406ccace5e157c2e5fffccfe3692b3f1/bytecode-0.19.2-py3-none-any.whl",
+            "version": "0.19.2"
+          },
+          {
+            "filename": "ddtrace-4.17.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+            "kind": "wheel",
+            "name": "ddtrace",
+            "sha256": "d2d43e6a78947dec1176c42e0babf88475068885aef7724a17c35aea51b0ee9b",
+            "url": "https://files.pythonhosted.org/packages/f9/f3/39220b252332ba7b7e3473a68e494fc405264e319770c2fab0080a420e39/ddtrace-4.17.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+            "version": "4.17.2"
+          },
+          {
+            "filename": "ddtrace_internal-0.2.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "ddtrace-internal",
+            "sha256": "bafbc6b32c9f274ead3b5b2bb1652b198b4e75fe10e7a3436e05f05711f5fbd8",
+            "url": "https://files.pythonhosted.org/packages/1f/50/8e0029676e6ea68cf4c34eee74deaf51b05ea38385a06d4d800d80b901a1/ddtrace_internal-0.2.0-py3-none-any.whl",
+            "version": "0.2.0"
+          },
+          {
+            "filename": "envier-0.6.1-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "envier",
+            "sha256": "73609040a76be48bbcb97074d9969666484aa0de706183a6e9ef773156a8a6a9",
+            "url": "https://files.pythonhosted.org/packages/56/e9/30493b1cc967f7c07869de4b2ab3929151a58e6bb04495015554d24b61db/envier-0.6.1-py3-none-any.whl",
+            "version": "0.6.1"
+          },
+          {
+            "filename": "googleapis_common_protos-1.76.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "googleapis-common-protos",
+            "sha256": "59e13344a9f3651aa201a03e2bee815a3bf43a4baf1f9ff8a9b62a840ce25fac",
+            "url": "https://files.pythonhosted.org/packages/05/6d/78dc67a9e779e594b49bf62604034d3a6aa428a55afc729cafda4b7333e1/googleapis_common_protos-1.76.0-py3-none-any.whl",
+            "version": "1.76.0"
+          },
+          {
+            "filename": "importlib_metadata-8.7.1-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "importlib-metadata",
+            "sha256": "5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151",
+            "url": "https://files.pythonhosted.org/packages/fa/5e/f8e9a1d23b9c20a551a8a02ea3637b4642e22c2626e3a13a9a29cdea99eb/importlib_metadata-8.7.1-py3-none-any.whl",
+            "version": "8.7.1"
+          },
+          {
+            "filename": "opentelemetry_api-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-api",
+            "sha256": "82dd69331ae74b06f6a874704be0cfaa49a1650e1537d4a813b86ecef7d0ecf9",
+            "url": "https://files.pythonhosted.org/packages/5f/bf/93795954016c522008da367da292adceed71cca6ee1717e1d64c83089099/opentelemetry_api-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_exporter_otlp_proto_common-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-exporter-otlp-proto-common",
+            "sha256": "7081ff453835a82417bf38dccf122c827c3cbc94f2079b03bba02a3165f25149",
+            "url": "https://files.pythonhosted.org/packages/8b/ca/8f122055c97a932311a3f640273f084e738008933503d0c2563cd5d591fc/opentelemetry_exporter_otlp_proto_common-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_exporter_otlp_proto_http-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-exporter-otlp-proto-http",
+            "sha256": "a8d1dab28f504c5d96577d6509f80a8150e44e8f45f82cdbe0e34c99ab040069",
+            "url": "https://files.pythonhosted.org/packages/a0/3a/8865d6754e61c9fb170cdd530a124a53769ee5f740236064816eb0ca7301/opentelemetry_exporter_otlp_proto_http-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_proto-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-proto",
+            "sha256": "266c4385d88923a23d63e353e9761af0f47a6ed0d486979777fe4de59dc9b25f",
+            "url": "https://files.pythonhosted.org/packages/b9/b2/189b2577dde745b15625b3214302605b1353436219d42b7912e77fa8dc24/opentelemetry_proto-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_sdk-1.40.0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-sdk",
+            "sha256": "787d2154a71f4b3d81f20524a8ce061b7db667d24e46753f32a7bc48f1c1f3f1",
+            "url": "https://files.pythonhosted.org/packages/2c/c5/6a852903d8bfac758c6dc6e9a68b015d3c33f2f1be5e9591e0f4b69c7e0a/opentelemetry_sdk-1.40.0-py3-none-any.whl",
+            "version": "1.40.0"
+          },
+          {
+            "filename": "opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "opentelemetry-semantic-conventions",
+            "sha256": "fa530a96be229795f8cef353739b618148b0fe2b4b3f005e60e262926c4d38e2",
+            "url": "https://files.pythonhosted.org/packages/b2/37/cc6a55e448deaa9b27377d087da8615a3416d8ad523d5960b78dbeadd02a/opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl",
+            "version": "0.61b0"
+          },
+          {
+            "filename": "protobuf-6.33.6-cp39-abi3-manylinux2014_aarch64.whl",
+            "kind": "wheel",
+            "name": "protobuf",
+            "sha256": "e2afbae9b8e1825e3529f88d514754e094278bb95eadc0e199751cdd9a2e82a2",
+            "url": "https://files.pythonhosted.org/packages/ee/90/b3c01fdec7d2f627b3a6884243ba328c1217ed2d978def5c12dc50d328a3/protobuf-6.33.6-cp39-abi3-manylinux2014_aarch64.whl",
+            "version": "6.33.6"
+          },
+          {
+            "filename": "wrapt-2.5.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+            "kind": "wheel",
+            "name": "wrapt",
+            "sha256": "594c6d10b9cfb951a09f7338531a41d31194e7eee9dee206c0a8992421682719",
+            "url": "https://files.pythonhosted.org/packages/69/22/8e9ef3a15115f3cc01f2460aaf9aeb04819704fefd218086642c7182be95/wrapt-2.5.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+            "version": "2.5.2"
+          },
+          {
+            "filename": "zipp-4.1.2-py3-none-any.whl",
+            "kind": "wheel",
+            "name": "zipp",
+            "sha256": "b30cb6cd253122169c47de245ca24a86bac2a5d3802ba15bf7ba6414eb9e144d",
+            "url": "https://files.pythonhosted.org/packages/b8/44/7bd2007260da11cccca29ba2d4c345f1287aa663db38ee7cefeabf6386a5/zipp-4.1.2-py3-none-any.whl",
+            "version": "4.1.2"
+          }
+        ],
+        "python": "3.11"
+      }
+    }
+  },
+  "defaultDdtrace": "4.17.2",
+  "dockerfileSha256": "88d178fa984ba434d28dc51e097e3ea593a38a64e1aacba02b2e57cbcf0047cc",
+  "installDdtraceSha256": "39931078cf4c083cc0f5ce358c00a51ac3ade1ecc3db29c0caf8353974d7f3fe",
+  "pipInstalls": [
+    "opentelemetry-exporter-otlp-proto-http==1.40.0"
+  ],
+  "variant": "fastapi"
+}

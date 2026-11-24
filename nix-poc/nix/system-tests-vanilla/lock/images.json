@@ -1,0 +1,55 @@
+{
+  "images": {
+    "datadog/agent:latest": {
+      "digest": "sha256:161a43ad2b290f7527a70e70c8880c1b3d65b39411552a8cb41398049546daf5",
+      "hashes": {
+        "amd64": "sha256-biXpz9LRZd6Nn1SHvYbmlaG09Q6B0GWLJ2M0EiDV734=",
+        "arm64": "sha256-oHhMDMA+qtlPugQXg85mu8lTYyAq8MRxQfbhp+dk8KE="
+      },
+      "variants": {}
+    },
+    "datadog/system-tests:fastapi.base-7f1b67ecf0c2": {
+      "digest": "sha256:6ee0374d82b4cb777189b4e5f9a6ceb8697ee92be2ab455691445b1c86e2df4a",
+      "hashes": {
+        "amd64": "sha256-2llDCCkhmekVXnzbKpP0kPIh4CqQ0IvwCEvmO/am0RA=",
+        "arm64": "sha256-E6MBpaH5nSRbtmlETBEKi0ItHzS0vm/U0QU/aC+3K20="
+      },
+      "variants": {}
+    },
+    "datadog/system-tests:proxy-v1": {
+      "digest": "sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02",
+      "hashes": {
+        "amd64": "sha256-n7S7QWETsuO0VfKHE+sYINOd2Xm+hY1f8zdeWzouO94="
+      },
+      "variants": {}
+    },
+    "demisto/fastapi:0.116.1.4266494": {
+      "digest": "sha256:057fb83c60e7685a35d99229ece21c4cdcc962adfdc50251bf829b5694a95722",
+      "hashes": {
+        "amd64": "sha256-7bxfFDyzoA3eI5TRXuk++C1dgRL30Jyh5mqfegi2jG0="
+      },
+      "variants": {}
+    },
+    "postgres:alpine": {
+      "digest": "sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+      "hashes": {
+        "amd64": "sha256-YOa/roKslkf+0uJ+EwSttA/bnGXTvkGhpEAbRNdBGks=",
+        "arm64": "sha256-/2inypFs85PZGwh0yfdH/8EVzDKOm9y60x7u6Pdh6IM="
+      },
+      "variants": {
+        "arm64": "v8"
+      }
+    }
+  },
+  "scenarios": {
+    "DEFAULT": {
+      "fastapi": [
+        "datadog/agent:latest",
+        "datadog/system-tests:fastapi.base-7f1b67ecf0c2",
+        "datadog/system-tests:proxy-v1",
+        "demisto/fastapi:0.116.1.4266494",
+        "postgres:alpine"
+      ]
+    }
+  }
+}
