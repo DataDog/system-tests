@@ -2,8 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Shared AAP smoke tests verifying payload carriers at backend intake."""
+"""Shared security smoke tests verifying payload carriers at backend intake."""
 
+import json
+from typing import Any
+
+import jsonschema
+
+from tests.appsec.utils import IAST_VULNERABILITY_SCHEMA_PATH
 from utils import context, interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
 from utils.dd_constants import SamplingPriority
@@ -436,3 +442,109 @@ class BaseUserEventsSmokeTests:
                 return
 
         raise AssertionError("Agent spans should include user login event tags")
+
+
+# ---------------------------------------------------------------------------
+# IAST
+# ---------------------------------------------------------------------------
+
+# The harness mounts this directory in every weblog. No traversal or application file is needed.
+_SMOKE_PATH = "/var/log/system-tests"
+_SCHEMA = json.loads(IAST_VULNERABILITY_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+
+def _assert_report(report: dict[str, Any]) -> set[str]:
+    """Check the source/evidence link in this carrier and return the referenced stack IDs."""
+    jsonschema.validate(report, _SCHEMA)
+    source_indices = {
+        i
+        for i, source in enumerate(report.get("sources", []))
+        if source.get("name") == "path" and source.get("value") == _SMOKE_PATH
+    }
+    assert source_indices, "IAST report lost the submitted path source"
+
+    path_findings = [finding for finding in report["vulnerabilities"] if finding["type"] == "PATH_TRAVERSAL"]
+    assert path_findings, "IAST report lost the path finding"
+    # Other path findings on the request may come from other sources; only the one for the submitted path is checked.
+    findings = [
+        finding
+        for finding in path_findings
+        if any(
+            part.get("source") in source_indices and _SMOKE_PATH in part.get("value", "")
+            for part in finding["evidence"].get("valueParts", [])
+        )
+    ]
+    assert findings, "IAST evidence does not point to the submitted path"
+    stack_ids = set()
+    for finding in findings:
+        stack_id = finding["location"].get("stackId")
+        assert isinstance(stack_id, str), "IAST finding lost its stackId"
+        assert stack_id, "IAST finding has an empty stackId"
+        stack_ids.add(stack_id)
+    return stack_ids
+
+
+def _assert_stacks(span: DataDogAgentSpan, expected: set[str]) -> None:
+    stacks = span.get_structured_payloads("_dd.stack")
+    assert stacks, "Backend did not receive the IAST stack carrier"
+    for payload in stacks:
+        seen = set()
+        for stack in payload.get("vulnerability", []):
+            if stack.get("id") in expected:
+                assert isinstance(stack.get("language"), str)
+                assert stack["language"], "IAST stack lost its language"
+                frames = stack.get("frames")
+                assert isinstance(frames, list)
+                assert frames, "IAST stack lost its frames"
+                assert all(isinstance(frame, dict) and frame for frame in frames), "IAST stack has empty frames"
+                seen.add(stack["id"])
+        assert expected <= seen, f"IAST stacks missing for findings: {expected - seen}"
+
+
+def _has_executed_sink_metric() -> bool:
+    # Telemetry metrics carry no request or span ID, so this cannot be tied to the smoke request: other requests in
+    # the scenario that reach a path traversal sink (e.g. /rasp/lfi) emit the same series. It checks that sink
+    # telemetry reaches the intake with the expected namespace, metric and tag, not which request produced it.
+    for data in interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=False):
+        content = data["request"]["content"]
+        if content.get("request_type") != "generate-metrics":
+            continue
+        payload = content["payload"]
+        for series in payload.get("series", []):
+            if (
+                (series.get("namespace") or payload.get("namespace")) == "iast"
+                and series.get("metric") == "executed.sink"
+                and series.get("type", "count") == "count"
+                and "vulnerability_type:path_traversal" in map(str.lower, series.get("tags", []))
+                and any(value > 0 for _, value in series.get("points", []))
+            ):
+                return True
+    return False
+
+
+class BaseIastSmokeTests:
+    """Verify the IAST report, stack and retention carriers of a native smoke request, and that path traversal
+    sink telemetry reaches the intake (scenario-wide, not correlated to the request).
+    """
+
+    def setup_iast_smoke(self) -> None:
+        self.r = weblog.post("/iast/path_traversal/test_insecure", data={"path": _SMOKE_PATH})
+
+    def test_iast_smoke(self) -> None:
+        assert self.r.status_code == 200
+        report_spans = [
+            (span, reports)
+            for _, span in interfaces.mocked_backend.get_spans(self.r)
+            if (reports := span.get_structured_payloads("iast", "_dd.iast.json"))
+        ]
+        assert report_spans, "Backend did not receive an IAST report for this request"
+        for span, reports in report_spans:
+            assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
+            enabled = span.metrics.get("_dd.iast.enabled", span.meta.get("_dd.iast.enabled"))
+            assert not isinstance(enabled, bool)
+            assert enabled in (1, "1"), f"Unexpected _dd.iast.enabled: {enabled!r}"
+            for report in reports:
+                _assert_stacks(span, _assert_report(report))
+        assert _has_executed_sink_metric(), (
+            "Backend did not receive positive IAST executed.sink telemetry for path traversal"
+        )

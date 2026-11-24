@@ -101,7 +101,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats::test_waf_monitoring_smoke: missing_feature (WAF monitoring tags not implemented)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast: irrelevant (The nginx module does not implement IAST)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity: '>=1.19.1'
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: irrelevant (The nginx module does not implement IAST)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig: '>=1.19.1'
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke: missing_feature

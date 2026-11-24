@@ -546,6 +546,10 @@ This endpoint should set a cookie with empty cookie value without SameSite=Stric
 
 This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
 
+### POST /iast/path_traversal/test_insecure
+
+The IAST smoke test sends the weblog’s existing `/var/log/system-tests` directory in the `path` form field. Each request should exercise the filesystem operation and return HTTP 200, including repeated requests for that directory.
+
 ### GET /iast/header_injection/reflected/exclusion
 
 This endpoint should set the header whose name comes in the `reflected` field of the query string, with the reflected value of another header whose name comes in the `origin` field of the query string.
