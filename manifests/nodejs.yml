@@ -3453,6 +3453,7 @@ manifest:
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
     - weblog_declaration:
         express5: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_dd_sdk_mode: missing_feature
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
     - weblog_declaration:
         express5: missing_feature

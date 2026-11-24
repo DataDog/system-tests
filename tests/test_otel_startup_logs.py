@@ -49,6 +49,7 @@ _OTLP_EXPORTER_KEYS = (
     "OTEL_EXPORTER_OTLP_HEADERS",
 )
 _STANDALONE_KEYS = (
+    "DD_SDK_MODE",
     "OTEL_TRACES_EXPORTER",
     "OTEL_LOG_LEVEL",
     "OTEL_SERVICE_NAME",
@@ -148,6 +149,9 @@ class Test_OTEL_Startup_Logs:
 
     def test_otlp_exporter(self) -> None:
         _assert_keys(*_OTLP_EXPORTER_KEYS)
+
+    def test_dd_sdk_mode(self) -> None:
+        _assert_keys("DD_SDK_MODE")
 
     def test_otel_traces_exporter(self) -> None:
         _assert_keys("OTEL_TRACES_EXPORTER")

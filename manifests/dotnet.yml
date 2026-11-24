@@ -1759,6 +1759,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_dd_sdk_mode: missing_feature
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_traces_exporter: v3.58.0-dev
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
