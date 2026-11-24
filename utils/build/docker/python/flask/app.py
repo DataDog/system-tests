@@ -1837,9 +1837,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        span = tracer.current_root_span()
-        if span is not None:
-            span.service = new_service_name
+        tracer.trace("extra.service", service=new_service_name).finish()
     return Response("OK")
 
 

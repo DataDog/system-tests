@@ -1304,9 +1304,7 @@ async def view_iast_xss_secure(param: typing.Annotated[str, Form()]):
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        span = tracer.current_root_span()
-        if span is not None:
-            span.service = serviceName
+        tracer.trace("extra.service", service=serviceName).finish()
     return "OK"
 
 

@@ -890,9 +890,7 @@ class CreateExtraServiceHandler(BaseHandler):
     def get(self) -> None:
         service_name = self.get_argument("serviceName", "")
         if service_name:
-            span = tracer.current_root_span()
-            if span is not None:
-                span.service = service_name
+            tracer.trace("extra.service", service=service_name).finish()
         self.write("OK")
 
 

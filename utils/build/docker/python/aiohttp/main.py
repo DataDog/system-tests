@@ -219,9 +219,7 @@ async def read_file(request: web.Request) -> web.Response:
 async def create_extra_service(request: web.Request) -> web.Response:
     service_name = request.query.get("serviceName", "")
     if service_name:
-        span = tracer.current_root_span()
-        if span is not None:
-            span.service = service_name
+        tracer.trace("extra.service", service=service_name).finish()
     return web.Response(text="OK")
 
 
