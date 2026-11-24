@@ -4341,6 +4341,7 @@ manifest:
     - declaration: bug (APMLP-302)
       component_version: <1.58.2+06122213c8
   tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE: missing_feature
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_enables_otel_tracing_api: incomplete_test_app (the test app always enables the OpenTelemetry tracing API with -Ddd.trace.otel.enabled=true)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.34.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.32.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way:

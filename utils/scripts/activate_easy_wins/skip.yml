@@ -1,5 +1,9 @@
 "*":
   - tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking
+  - tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_sdk_disabled_disables_otel_logs
+  - tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_sdk_disabled_disables_otel_metrics
+  - tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_sdk_disabled_disables_tracing
+  - tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_sdk_disabled_keeps_datadog_protocol
 
 "nodejs":
   - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled
