@@ -19,10 +19,10 @@ import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion, Version
-from utils._context.docker import get_docker_client
+from utils._context.docker import get_docker_client, log_host_diagnostics
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
-from utils.base_images.base_image import base_image_contexts
+from utils.base_images.base_image import base_image_aliases
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
@@ -61,6 +61,12 @@ def create_network() -> Network:
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
+
+# Creating and starting a container usually takes a few seconds. Above that, log the host state.
+_SLOW_CONTAINER_START_SECONDS = 20
+# How long to try to replace a leftover container that holds the name of a container to start
+_CONFLICT_RECOVERY_SECONDS = 60
+_CONFLICT_RETRY_DELAY = 2
 
 
 def create_inject_volume():
@@ -241,7 +247,58 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = get_docker_client().containers.run(
+        started_at = time.monotonic()
+        try:
+            try:
+                self._container = self._run_container(network)
+            except APIError as e:
+                # APIError is a RequestException: it must be handled first
+                if e.status_code != HTTPStatus.CONFLICT:
+                    raise
+                self._container = self._replace_conflicting_container(network, e)
+        except requests.exceptions.RequestException as e:
+            if not isinstance(e, APIError):
+                # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
+                log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
+            raise
+
+        if (duration := time.monotonic() - started_at) > _SLOW_CONTAINER_START_SECONDS:
+            log_host_diagnostics(f"{self.container_name} took {duration:.0f}s to start")
+
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
+
+        self._container.reload()
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
+
+    def _replace_conflicting_container(self, network: Network, error: APIError) -> Container:
+        """The name is taken by a container that the previous checks didn't see: a create request that timed out
+        client-side in a previous scenario, completed by the daemon after that scenario's cleanup. Remove it, and retry.
+        """
+        logger.warning(f"{self.container_name} already exists ({error.explanation}), removing it")
+        # No attempt starts after the deadline. Each docker call is bounded by the docker client timeout.
+        deadline = time.monotonic() + _CONFLICT_RECOVERY_SECONDS
+        while True:
+            try:
+                get_docker_client().api.remove_container(self.container_name, force=True)
+            except APIError as e:
+                # 404: the daemon is still creating it. 409: its removal is already in progress.
+                if e.status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.CONFLICT):
+                    raise
+                logger.info(f"Can't remove {self.container_name} yet ({e.explanation})")
+
+            try:
+                return self._run_container(network)
+            except APIError as e:
+                if e.status_code != HTTPStatus.CONFLICT or time.monotonic() + _CONFLICT_RETRY_DELAY > deadline:
+                    raise
+
+            time.sleep(_CONFLICT_RETRY_DELAY)
+
+    def _run_container(self, network: Network) -> Container:
+        return get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -268,14 +325,6 @@ class TestedContainer:
             cgroupns=self.cgroupns,
             mounts=self.mounts,
         )
-
-        self.healthy = self.wait_for_health()
-        if self.healthy:
-            self.warmup()
-
-        self._container.reload()
-        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
@@ -731,6 +780,18 @@ class ProxyContainer(TestedContainer):
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
 
+    def remove(self):
+        # Proxy writes flows on a background thread (see utils/proxy/_flow_writer.py). Its response hook
+        # acknowledges the tracer as soon as a flow is queued, so writes may still be in flight at teardown.
+        # TestedContainer.remove() calls docker rm --force which sends SIGKILL and skips the proxy's done
+        # hook, losing queued flows. Pre-stop so docker sends SIGTERM first and the done hook flushes.
+        if self._container:
+            try:
+                self._container.stop(timeout=30)
+            except APIError as e:
+                logger.info(f"Fail to stop container {self.name} before remove ({e})")
+        super().remove()
+
 
 class MockedBackendContainer(TestedContainer):
     """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
@@ -923,11 +984,31 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # read from the image, so that the version is known before the agent starts
+        version = self.image.labels.get("org.opencontainers.image.version", "")
+        if not version:
+            pytest.exit(
+                f"The agent image {self.image.name} has no org.opencontainers.image.version label, "
+                "so its version can't be known before it starts. Add this label to the image.",
+                1,
+            )
+        self.agent_version = ComponentVersion("agent", version).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = ComponentVersion("agent", data["version"]).version
+        reported_version = Version(data["version"])
+        # dev images labels have more build metadata than /info: compare without it
+        # e.g. 7.87.0-devel+git.810.4e18469.pipeline.153953738 vs 7.87.0-devel+git.810.4e18469
+        if reported_version.truncate("prerelease") != self.agent_version.truncate("prerelease"):
+            pytest.exit(
+                f"The agent runs {reported_version}, but its image {self.image.name} is labeled {self.agent_version}",
+                1,
+            )
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
@@ -1024,10 +1105,11 @@ class BuddyContainer(TestedContainer):
 
 
 def dockerfile_image_list(dockerfile: Path) -> list[str]:
-    """Return the images referenced in the FROM lines of a Dockerfile.
+    """Return the images pulled by the FROM lines of a Dockerfile.
 
-    system-tests base-image aliases are resolved to their locked reference, and
-    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    ARG defaults are substituted, unresolved placeholders are kept as-is. system-tests
+    base-image aliases are skipped: they are not pulled by the Dockerfile, build.sh supplies
+    them as named build contexts (see utils/base_images/base_image.py).
     """
     result: list[str] = []
     args: dict[str, str] = {}
@@ -1035,14 +1117,15 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
     pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
     arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
     dockerfile_text = dockerfile.read_text()
-    base_contexts = base_image_contexts(dockerfile_text)
+    base_aliases = base_image_aliases(dockerfile_text)
     for line in dockerfile_text.splitlines():
         if match := arg_pattern.match(line):
             args[match.group("arg_name")] = match.group("arg_value")
 
         if match := pattern.match(line):
             image_name = match.group("image_name")
-            image_name = base_contexts.get(image_name, image_name)
+            if image_name in base_aliases:
+                continue
 
             for name, value in args.items():
                 image_name = image_name.replace(f"${name}", value)

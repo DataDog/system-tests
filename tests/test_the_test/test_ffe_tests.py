@@ -375,7 +375,6 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         f"MOCK_FFE_AGENTLESS_{route.upper()}_TOPOLOGY",
-        doc="test",
         exposure_egress=route,
     )
     scenario.weblog_infra.library_container.environment["DD_API_KEY"] = scenario.weblog_api_key

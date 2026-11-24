@@ -32,10 +32,13 @@ MAX_ARTIFACT_FILE_SIZE = 50 * 1024 * 1024
 PUBLISH_ATTEMPTS = 3
 PUBLISH_TIMEOUT_SECONDS = 30
 PUBLISH_RETRY_DELAY_SECONDS = 5
-# The raw log folder is uploaded before large files are removed. Two attempts of 60s, plus a
-# full feature-parity retry, stay inside the runner's 5-minute after_script timeout.
+# The raw log folder is uploaded before large files are removed. Two attempts of 60s stay inside
+# the runner's 5-minute after_script timeout.
 S3_PUBLISH_ATTEMPTS = 2
 S3_PUBLISH_TIMEOUT_SECONDS = 60
+# Two JUnit attempts (65s at most), so an AWS job on system-tests main, which also publishes to S3 (125s at most),
+# still prints its logs inside the 5-minute after_script timeout.
+JUNIT_PUBLISH_ATTEMPTS = 2
 
 
 @dataclass
@@ -55,6 +58,16 @@ class Job:
     @property
     def reports_dir(self) -> Path:
         return self.project_dir / "reports"
+
+    @property
+    def ci_environment(self) -> str:
+        """Environment of the run (prod, dev...): each kind of generated job passes it in its own variable."""
+        return (
+            self.env.get(self.profile.environment_variable)
+            or self.env.get("SYSTEM_TESTS_CI_ENVIRONMENT")
+            or self.env.get("CI_ENVIRONMENT")
+            or "prod"
+        )
 
     @property
     def logs_pattern(self) -> str:
@@ -185,32 +198,10 @@ def collect_logs(job: Job) -> None:
         )
 
 
-def publish_feature_parity(job: Job) -> None:
-    if not job.is_system_tests_main:
-        return
-    url = read_secret("fpd", "fp_import_url")
-    api_key = read_secret("fpd", "fp_api_key")
-    for report in sorted(job.reports_dir.glob(f"logs*/{job.profile.feature_parity_pattern}")):
-        print(f"Processing report: {report}")
-        run_publish(
-            [
-                "curl",
-                "-X",
-                "POST",
-                url,
-                "--fail",
-                "--include",
-                "--header",
-                "Content-Type: application/json",
-                "--header",
-                f"FP_API_KEY: {api_key}",
-                "--data",
-                f"@{report}",
-            ]
-        )
-
-
 def upload_junit_reports(job: Job) -> None:
+    if job.env.get("CI_JOB_STATUS") == "canceled":
+        print("Job canceled; skipping Test Optimization upload of a partial report")
+        return
     reports = sorted(job.reports_dir.glob("logs*/reportJunit.xml"))
     if not reports:
         print("No reports/logs*/reportJunit.xml found; skipping Test Optimization upload")
@@ -231,8 +222,9 @@ def upload_junit_reports(job: Job) -> None:
         ],
         env={
             **job.datadog_env(),
-            "DD_TAGS": f"test.configuration.ci_environment:{job.env.get('CI_ENVIRONMENT', 'prod')}",
+            "DD_TAGS": f"test.configuration.ci_environment:{job.ci_environment}",
         },
+        attempts=JUNIT_PUBLISH_ATTEMPTS,
     )
 
 
@@ -247,36 +239,42 @@ def print_logs(job: Job) -> None:
 @dataclass(frozen=True)
 class Profile:
     scenario_variable: str
+    environment_variable: str
     logs_pattern: str
-    feature_parity_pattern: str
     steps: tuple[Step, ...]
 
 
 PROFILES: dict[str, Profile] = {
     "docker": Profile(
         scenario_variable="SCENARIO",
+        environment_variable="ONBOARDING_FILTER_ENV",
         logs_pattern="logs_{scenario}",
-        feature_parity_pattern="feature_parity.json",
-        steps=(tag_official_workflow, collect_logs, publish_feature_parity, upload_junit_reports, print_logs),
+        steps=(tag_official_workflow, collect_logs, upload_junit_reports, print_logs),
     ),
     "aws": Profile(
         scenario_variable="SCENARIO",
+        environment_variable="ONBOARDING_FILTER_ENV",
         logs_pattern="logs_{scenario}",
-        feature_parity_pattern="*_feature_parity.json",
         steps=(
             tag_official_workflow,
             upload_logs_to_s3,
             delete_large_log_files,
             collect_logs,
-            publish_feature_parity,
+            upload_junit_reports,
             print_logs,
         ),
     ),
     "k8s": Profile(
         scenario_variable="K8S_SCENARIO",
+        environment_variable="REPORT_ENVIRONMENT",
         logs_pattern="logs_*",
-        feature_parity_pattern="feature_parity.json",
-        steps=(tag_official_workflow, delete_kind_clusters, collect_logs, publish_feature_parity, print_logs),
+        steps=(
+            tag_official_workflow,
+            delete_kind_clusters,
+            collect_logs,
+            upload_junit_reports,
+            print_logs,
+        ),
     ),
 }
 

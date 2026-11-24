@@ -101,6 +101,33 @@ def test_reads_chunked_request_bodies(server: MockedBackendServer, tmp_path: Pat
     assert first["request"]["content"] == {"hello": "chunked"}
 
 
+@pytest.mark.parametrize(
+    ("headers", "partial_body"),
+    [
+        (b"Content-Length: 1724\r\n", b'{"trunc'),
+        (b"Transfer-Encoding: chunked\r\n", b'a\r\n{"trunc'),  # a chunk shorter than announced (10 bytes)
+        (b"Transfer-Encoding: chunked\r\n", b'7\r\n{"trunc"\r\n'),  # no terminating chunk
+    ],
+)
+@scenarios.test_the_test
+def test_requests_with_a_truncated_body_are_not_recorded(
+    server: MockedBackendServer, tmp_path: Path, headers: bytes, partial_body: bytes
+):
+    # like the agent stopped while it sends its telemetry: the proxy never records such a request either
+    with socket.create_connection(("127.0.0.1", server.port), timeout=5) as client:
+        client.sendall(b"POST /api/v2/apmtelemetry HTTP/1.1\r\nHost: localhost\r\n" + headers + b"\r\n" + partial_body)
+        client.shutdown(socket.SHUT_WR)
+        # the server closes the connection once it has handled the request
+        while client.recv(1024):
+            pass
+
+    assert list(tmp_path.glob("*.json")) == []
+
+    # and it does not consume a message number
+    assert requests.get(f"{server.base_url}/info", timeout=5).status_code == 200
+    assert [f.name for f in tmp_path.glob("*.json")] == ["000__info.json"]
+
+
 @scenarios.test_the_test
 def test_message_count_is_reflected_in_successive_log_filenames(server: MockedBackendServer, tmp_path: Path):
     for _ in range(3):

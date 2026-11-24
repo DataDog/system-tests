@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils import features, weblog, interfaces, scenarios, rfc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
@@ -228,10 +228,8 @@ class Test_Cmdi_Telemetry_V2:
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
 
-        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
-
         assert any(
-            validate_metric_variant_v2("rasp.rule.match", "command_injection", "exec", s, block_action=block_action)
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "exec", s, block_action="block:success")
             for s in series_match
         ), [s.get("tags") for s in series_match]
 

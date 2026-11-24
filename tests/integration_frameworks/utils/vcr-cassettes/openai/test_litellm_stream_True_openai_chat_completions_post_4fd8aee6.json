@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.30.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.30.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "x64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.18",
+      "X-Stainless-Async": "false",
+      "X-Stainless-Raw-Response": "true",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600.0",
+      "Content-Length": "129",
+      "x-datadog-trace-id": "9836279731761196825",
+      "x-datadog-parent-id": "17722928792634512832",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=12825408224982019120,_dd.p.llmobs_trace_id=142208692077433093507592105921722619436,_dd.p.llmobs_ml_app=test-app,_dd.p.llmobs_sr=1,_dd.p.llmobs_sd=1,_dd.p.tid=6afc65d900000000",
+      "traceparent": "00-6afc65d90000000088817c4d1b002f19-f5f47dd63885d5c0-01",
+      "tracestate": "dd=p:f5f47dd63885d5c0;s:1;t.dm:-0;t.llmobs_parent_id:12825408224982019120;t.llmobs_trace_id:142208692077433093507592105921722619436;t.llmobs_ml_app:test-app;t.llmobs_sr:1;t.llmobs_sd:1;t.tid:6afc65d900000000,ot=rv:57cfc064abed5a;th:0"
+    },
+    "body": "{\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2? Answer with one word.\"}],\"model\":\"gpt-4o-mini\",\"max_tokens\":10,\"stream\":true}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Tue, 17 Nov 2026 14:34:03 GMT",
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-Ray": "a5bf7432bd73e8b5-MAD",
+      "CF-Cache-Status": "DYNAMIC",
+      "Server": "cloudflare",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+      "openai-processing-ms": "340",
+      "openai-project": "proj_REDACTED",
+      "openai-version": "2020-10-01",
+      "x-openai-proxy-wasm": "v0.1",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999990",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_REDACTED",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "data: {\"id\":\"chatcmpl-ElEXyYCvz4UeNwN2EezABBSEIzwlz\",\"object\":\"chat.completion.chunk\",\"created\":1794926042,\"model\":\"gpt-4o-mini-2024-07-18\",\"service_tier\":\"default\",\"system_fingerprint\":\"fp_eb10824ee9\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\",\"refusal\":null},\"logprobs\":null,\"finish_reason\":null}],\"obfuscation\":\"Namhtb\"}\n\ndata: {\"id\":\"chatcmpl-ElEXyYCvz4UeNwN2EezABBSEIzwlz\",\"object\":\"chat.completion.chunk\",\"created\":1794926042,\"model\":\"gpt-4o-mini-2024-07-18\",\"service_tier\":\"default\",\"system_fingerprint\":\"fp_eb10824ee9\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Four\"},\"logprobs\":null,\"finish_reason\":null}],\"obfuscation\":\"Qn1P\"}\n\ndata: {\"id\":\"chatcmpl-ElEXyYCvz4UeNwN2EezABBSEIzwlz\",\"object\":\"chat.completion.chunk\",\"created\":1794926042,\"model\":\"gpt-4o-mini-2024-07-18\",\"service_tier\":\"default\",\"system_fingerprint\":\"fp_eb10824ee9\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\"},\"logprobs\":null,\"finish_reason\":null}],\"obfuscation\":\"4ZS7hnX\"}\n\ndata: {\"id\":\"chatcmpl-ElEXyYCvz4UeNwN2EezABBSEIzwlz\",\"object\":\"chat.completion.chunk\",\"created\":1794926042,\"model\":\"gpt-4o-mini-2024-07-18\",\"service_tier\":\"default\",\"system_fingerprint\":\"fp_eb10824ee9\",\"choices\":[{\"index\":0,\"delta\":{},\"logprobs\":null,\"finish_reason\":\"stop\"}],\"obfuscation\":\"08\"}\n\ndata: [DONE]\n\n"
+  }
+}

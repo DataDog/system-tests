@@ -255,6 +255,11 @@
 - os_type: linux
   os_distro: rpm
   remote-command: |
+    # Amazon Linux cloud-init runs "yum --security upgrade" on every new instance.
+    # Updating docker restarts the daemon and kills containers mid-test.
+    # Baked into the AMI; takes effect on the next boot.
+    sudo mkdir -p /etc/cloud/cloud.cfg.d
+    echo 'repo_upgrade: none' | sudo tee /etc/cloud/cloud.cfg.d/99-disable-repo-upgrade.cfg
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog

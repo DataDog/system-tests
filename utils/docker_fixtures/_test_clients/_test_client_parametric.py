@@ -822,11 +822,15 @@ class ParametricTestClientApi(TestClientApi):
         response.raise_for_status()
         return cast("dict[str, Any]", response.json())
 
-    def ffe_start(self, configuration: dict | None = None, *, flag_selection: object = None) -> bool:
+    def ffe_start(
+        self, configuration: dict | None = None, *, flag_selection: dict[str, list[str]] | None = None
+    ) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
-        flag_selection, unless None, is sent as is in the flag_selection field; None omits the field. The test app must
-        pass it untouched to the SDK's flag selection provider option: only the SDK canonicalizes and validates it.
+        flag_selection is the object {tags?: string[], keyPatterns?: string[]} that the typed SDK APIs take; other
+        shapes are not part of the contract. Unless None, it is sent as is in the flag_selection field; None omits the
+        field. The test app must pass it untouched to the SDK's flag selection provider option: only the SDK
+        canonicalizes and validates it.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
@@ -838,7 +842,7 @@ class ParametricTestClientApi(TestClientApi):
         if flag_selection is not None:
             payload["flag_selection"] = flag_selection
 
-        resp = self._session.post(self._url("/ffe/start"), json=payload)
+        resp = self._session.post(self._url("/ffe/start"), json=payload, timeout=self.timeout)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -868,6 +872,9 @@ class ParametricTestClientApi(TestClientApi):
 
         Returns:
             dict: Evaluation result containing 'value', 'reason', and 'errorCode'.
+                'providerStatus' is the OpenFeature provider status that the SDK reports for the
+                app's client (NOT_READY, READY, STALE, ERROR, or FATAL); apps that cannot read it omit it
+                or return null.
                 When exposure_hooks=True, 'exposureHooks' contains two callback rows,
                 identified by 'hook' (0 or 1), with no required callback order.
                 Each row contains flag, subject, variant, allocationKey, metadata, value, errorCode,
@@ -891,7 +898,7 @@ class ParametricTestClientApi(TestClientApi):
         if fail_after_hook:
             payload["failAfterHook"] = True
 
-        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload, timeout=self.timeout)
         return resp.json()
 
     def otel_get_meter(
@@ -1312,7 +1319,9 @@ class APMLibrary:
         """Fetch and serialize portable rules without initializing a tracer or provider."""
         return self._client.ffe_fetch_rules_configuration(options)
 
-    def ffe_start(self, configuration: dict | None = None, *, flag_selection: object = None) -> bool:
+    def ffe_start(
+        self, configuration: dict | None = None, *, flag_selection: dict[str, list[str]] | None = None
+    ) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
         return self._client.ffe_start(configuration, flag_selection=flag_selection)
 

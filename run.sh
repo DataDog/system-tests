@@ -129,6 +129,24 @@ function is_using_nix() {
     [[ -n "${IN_NIX_SHELL:-}" ]]
 }
 
+function check_python() {
+    local mode="$1"
+
+    # in docker mode, python runs in the runner image
+    [[ "${mode}" == "direct" ]] || return 0
+
+    local version
+    if ! version="$(python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")' 2>&1)"; then
+        die "python can't run: ${version}
+Install python 3.12 (see README.md), then run: rm -rf venv && ./build.sh -i runner"
+    fi
+
+    if [[ "${version}" != "3.12" ]]; then
+        die "system-tests requires python 3.12, but python ${version} is used.
+Install python 3.12 (see README.md), then run: rm -rf venv && ./build.sh -i runner"
+    fi
+}
+
 function activate_venv() {
     # shellcheck disable=SC1091
     source venv/bin/activate
@@ -335,15 +353,7 @@ function main() {
         activate_venv
     fi
 
-    local python_version
-    python_version="$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')"
-    if [[ "$python_version" -lt "312" ]]; then
-        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-        echo "DEPRECRATION WARNING: you're using python ${python_version} to run system-tests."
-        echo "This won't be supported soon. Please install python3.12, then run:"
-        echo "> rm -rf venv && ./build.sh -i runner"
-        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
-    fi
+    check_python "${run_mode}"
 
     # process scenario list
     local scenarios=()

@@ -2,6 +2,10 @@ from ._core import DdTraceEndToEndScenario, scenario_groups
 
 
 class TraceStatsComputation(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, andmay drop some
+    of them
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION",
@@ -13,15 +17,15 @@ class TraceStatsComputation(DdTraceEndToEndScenario):
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
                 "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
             },
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
-                "may drop some of them"
-            ),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationClientDropP0sFalse(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. Tests that
+    tracers correctly disable stats computation when agent doesn't support client-side P0 dropping.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
@@ -35,16 +39,16 @@ class TraceStatsComputationClientDropP0sFalse(DdTraceEndToEndScenario):
                 "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
             },
             client_drop_p0s=False,
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
-                "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 "
-                "dropping."
-            ),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationFutureObfuscationVersion(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 99. Tests that
+    tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version header when the agent
+    advertises an obfuscation version higher than what the SDK supports.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
@@ -59,16 +63,16 @@ class TraceStatsComputationFutureObfuscationVersion(DdTraceEndToEndScenario):
                 "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
             },
             obfuscation_version=99,
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 99. "
-                "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-                "header when the agent advertises an obfuscation version higher than what the SDK supports."
-            ),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationMissingObfuscationVersion(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. Tests that
+    tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version header when the agent
+    does not advertise any obfuscation version.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
@@ -82,16 +86,16 @@ class TraceStatsComputationMissingObfuscationVersion(DdTraceEndToEndScenario):
                 "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
             },
             obfuscation_version="MISSING",
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. "
-                "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-                "header when the agent does not advertise any obfuscation version."
-            ),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationObfuscationVersionZero(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. Tests that
+    tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version header when the agent
+    advertises obfuscation_version=0.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
@@ -105,16 +109,13 @@ class TraceStatsComputationObfuscationVersionZero(DdTraceEndToEndScenario):
                 "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
             },
             obfuscation_version=0,
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. "
-                "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-                "header when the agent advertises obfuscation_version=0."
-            ),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationObfuscationDisabled(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."""
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
@@ -130,12 +131,15 @@ class TraceStatsComputationObfuscationDisabled(DdTraceEndToEndScenario):
             agent_env={
                 "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
             },
-            doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
             scenario_groups=[scenario_groups.appsec],
         )
 
 
 class TraceStatsComputationErrorSampler(DdTraceEndToEndScenario):
+    """End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. Tests that traces containing
+    errors are still sent to the agent even when sampling would drop them.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
@@ -149,9 +153,5 @@ class TraceStatsComputationErrorSampler(DdTraceEndToEndScenario):
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
                 "DD_TRACE_SAMPLE_RATE": "0",
             },
-            doc=(
-                "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
-                "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
-            ),
             scenario_groups=[scenario_groups.appsec],
         )

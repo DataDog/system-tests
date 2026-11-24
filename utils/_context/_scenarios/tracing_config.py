@@ -4,6 +4,8 @@ from utils._context.header_tag_vars import CONFIG_WILDCARD, INVALID_CONFIGS, VAL
 
 
 class TracePropagationStyleW3c(DdTraceEndToEndScenario):
+    """Test W3C trace style"""
+
     def __init__(self) -> None:
         super().__init__(
             "TRACE_PROPAGATION_STYLE_W3C",
@@ -11,26 +13,27 @@ class TracePropagationStyleW3c(DdTraceEndToEndScenario):
                 "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
                 "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
             },
-            doc="Test W3C trace style",
         )
 
 
 class LibraryConfCustomHeaderTags(DdTraceEndToEndScenario):
+    """Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS"""
+
     def __init__(self) -> None:
         super().__init__(
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
             additional_trace_header_tags=(VALID_CONFIGS),
             rc_api_enabled=True,
-            doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
         )
 
 
 class LibraryConfCustomHeaderTagsInvalid(DdTraceEndToEndScenario):
+    """Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject"""
+
     def __init__(self) -> None:
         super().__init__(
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
             additional_trace_header_tags=(INVALID_CONFIGS),
-            doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
         )
 
 
@@ -43,7 +46,6 @@ class TracingConfigEmpty(DdTraceEndToEndScenario):
                 # few test cases that need it
                 "DD_LOGS_INJECTION": "true",
             },
-            doc="",
         )
 
 
@@ -69,12 +71,13 @@ class TracingConfigNondefault(DdTraceEndToEndScenario):
             iast_enabled=False,
             other_weblog_containers=(PostgresContainer, KafkaContainer),
             rc_api_enabled=True,
-            doc="",
             scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
         )
 
 
 class TracingConfigNondefault2(DdTraceEndToEndScenario):
+    """Test tracer configuration when a collection of non-default settings are applied"""
+
     def __init__(self) -> None:
         super().__init__(
             "TRACING_CONFIG_NONDEFAULT_2",
@@ -89,7 +92,6 @@ class TracingConfigNondefault2(DdTraceEndToEndScenario):
                 "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
             },
             other_weblog_containers=(PostgresContainer, KafkaContainer),
-            doc="Test tracer configuration when a collection of non-default settings are applied",
             scenario_groups=[scenario_groups.tracing_config],
         )
 
@@ -111,7 +113,6 @@ class TracingConfigNondefault3(DdTraceEndToEndScenario):
                 "DD_TRACE_COMPUTE_STATS": "true",
             },
             appsec_enabled=False,
-            doc="",
             scenario_groups=[scenario_groups.tracing_config],
         )
 
@@ -131,5 +132,4 @@ class TracingConfigNondefault4(DdTraceEndToEndScenario):
                 "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
                 "DD_TRACE_OTEL_ENABLED": "true",
             },
-            doc="",
         )

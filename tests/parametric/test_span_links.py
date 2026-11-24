@@ -273,7 +273,9 @@ class Test_Span_Links:
         assert len(span_links) == 1
         assert span_links[0]["span_id"] == 777
         # assert that sampling decision is propagated by the span link
-        assert link_w_manual_keep["meta"].get("_dd.p.dm") == "-0"
+        decision_maker = link_w_manual_keep["meta"].get("_dd.p.dm")
+        # V1 cannot distinguish sampling mechanism zero from an unset protobuf field.
+        assert decision_maker == "-0" or (decision_maker is None and test_agent.uses_v1_trace_payloads())
         assert link_w_manual_keep["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         # Span Link generated from tracecontext headers containing manual drop

@@ -843,8 +843,18 @@ def extract_http_headers(headers)
   end
 end
 
-def handle_ffe_start(_req, res)
-  provider = Datadog::OpenFeature::Provider.new
+def handle_ffe_start(req, res)
+  raw = req.body&.read.to_s
+  body = raw.empty? ? {} : JSON.parse(raw)
+  provider = if body.is_a?(Hash) && body.key?('flag_selection')
+    selection = body['flag_selection']
+    if selection.is_a?(Hash)
+      selection = selection.to_h { |k, v| [(k == 'keyPatterns') ? 'key_patterns' : k, v] }
+    end
+    Datadog::OpenFeature::Provider.new(flag_selection: selection)
+  else
+    Datadog::OpenFeature::Provider.new
+  end
   feature_flagging_configured = %w[
     DD_FEATURE_FLAGS_ENABLED
     DD_FEATURE_FLAGS_CONFIGURATION_SOURCE
@@ -893,11 +903,28 @@ def handle_ffe_evaluation(req, res)
       value: details.value,
       reason: details.reason,
       errorCode: details.error_code,
-      flagMetadata: details.flag_metadata
+      flagMetadata: details.flag_metadata,
+      providerStatus: ffe_provider_status(client)
     }.to_json)
   rescue => e
-    res.write({value: args.default_value, reason: 'ERROR', errorCode: 'GENERAL', errorMessage: e.message}.to_json)
+    res.write({
+      value: args.default_value,
+      reason: 'ERROR',
+      errorCode: 'GENERAL',
+      errorMessage: e.message,
+      providerStatus: ffe_provider_status(client)
+    }.to_json)
   end
+end
+
+# The provider status the SDK reports. openfeature-sdk 0.6+ (Ruby 3.4+) has Client#provider_status;
+# this image's Ruby resolves 0.5.1, which keeps it in the private Configuration#provider_state
+# (read for the default provider, which build_client uses).
+def ffe_provider_status(client)
+  return client.provider_status if client.respond_to?(:provider_status)
+
+  configuration = OpenFeature::SDK.configuration
+  configuration.__send__(:provider_state, OpenFeature::SDK.provider) if configuration.respond_to?(:provider_state, true)
 end
 
 # OTel system tests provide times in microseconds, but Ruby OTel

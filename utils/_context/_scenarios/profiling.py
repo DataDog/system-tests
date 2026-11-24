@@ -5,6 +5,8 @@ from ._core import EndToEndScenario, scenario_groups
 
 
 class ProfilingScenario(EndToEndScenario):
+    """Test profiling feature. Not included in default scenario because is quite slow"""
+
     def __init__(self) -> None:
         super().__init__(
             "PROFILING",
@@ -19,7 +21,6 @@ class ProfilingScenario(EndToEndScenario):
                 "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
             },
-            doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],
             weblog_categories=[WeblogCategory.dd_trace],
         )

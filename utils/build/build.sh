@@ -188,20 +188,13 @@ build() {
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
-                    if command -v python3.12 &> /dev/null
+                    if ! command -v python3.12 &> /dev/null
                     then
-                        python3.12 -m venv venv --copies
-                    elif command -v python3.9 &> /dev/null
-                    then
-                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-                        echo "DEPRECRATION WARNING: you are using python3.9 to run system-tests."
-                        echo "This won't be supported soon. Install python 3.12, then run:"
-                        echo "> rm -rf venv && ./build.sh -i runner"
-                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
-                        python3.9 -m venv venv
-                    else
-                        echo "Can't find python3.12, please install it"
+                        echo "ERROR: python3.12 is required to run system-tests, and was not found." >&2
+                        echo "Install python 3.12 (see README.md), then run: ./build.sh -i runner" >&2
+                        exit 1
                     fi
+                    python3.12 -m venv venv --copies
                 fi
                 source venv/bin/activate
                 # remove the completion marker before any change to the venv, it's written back only if the install succeeds

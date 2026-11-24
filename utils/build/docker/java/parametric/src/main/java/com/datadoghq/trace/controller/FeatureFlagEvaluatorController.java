@@ -16,6 +16,7 @@ import dev.openfeature.sdk.OpenFeatureAPI;
 import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
+import dev.openfeature.sdk.exceptions.OpenFeatureError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,28 @@ public class FeatureFlagEvaluatorController {
     private static final boolean CAPTURE_HOOK_FEATURES =
             Boolean.parseBoolean(System.getenv("SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES"));
     private static final ThreadLocal<Object> HOOK_FEATURES = new ThreadLocal<>();
+    private static volatile Object FLAG_SELECTION;
+
+    // Reflection keeps the app building against dd-openfeature versions without FlagSelection.
+    private static void applyFlagSelection(final Provider.Options options, final Object raw) {
+        if (!(raw instanceof Map<?, ?> selection)) {
+            return;
+        }
+        try {
+            final Class<?> selectionClass = Class.forName("com.datadog.openfeature.FlagSelection");
+            Object flagSelection = selectionClass.getConstructor().newInstance();
+            if (selection.containsKey("tags")) {
+                flagSelection = selectionClass.getMethod("tags", List.class).invoke(flagSelection, selection.get("tags"));
+            }
+            if (selection.containsKey("keyPatterns")) {
+                flagSelection = selectionClass.getMethod("keyPatterns", List.class)
+                        .invoke(flagSelection, selection.get("keyPatterns"));
+            }
+            options.getClass().getMethod("flagSelection", selectionClass).invoke(options, flagSelection);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Flag selection tests require the FlagSelection provider option", e);
+        }
+    }
 
     private static void captureHookFeatures(Client client) {
         // Load the optional public API only for tests whose manifest requires it.
@@ -63,6 +86,13 @@ public class FeatureFlagEvaluatorController {
         }
     }
 
+    // dd-openfeature reads no initialization-timeout variable, so the app maps the one other SDKs read.
+    // Unset keeps the short timeout that existing tests rely on.
+    private static long initTimeoutMillis() {
+        final String configured = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS");
+        return configured == null || configured.isBlank() ? 100 : Long.parseLong(configured.trim());
+    }
+
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
 
@@ -77,7 +107,9 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
+                final Provider.Options options = new Provider.Options().initTimeout(initTimeoutMillis(), TimeUnit.MILLISECONDS);
+                applyFlagSelection(options, FLAG_SELECTION);
+                provider = new Provider(options);
             } else {
                 provider = new NoOpProvider() {
                     @Override
@@ -86,7 +118,12 @@ public class FeatureFlagEvaluatorController {
                     }
                 };
             }
-            api.setProviderAndWait(provider);
+            try {
+                api.setProviderAndWait(provider);
+            } catch (OpenFeatureError e) {
+                // Keep the client for the failed provider; /ffe/start reports its state.
+                LOGGER.warn("FFE provider initialization failed", e);
+            }
             Client client = api.getClient();
             if (CAPTURE_HOOK_FEATURES) {
                 captureHookFeatures(client);
@@ -100,7 +137,11 @@ public class FeatureFlagEvaluatorController {
     private Client client;
 
     @PostMapping(value = "/start")
-    public ResponseEntity<Boolean> start() {
+    public ResponseEntity<Boolean> start(@RequestBody(required = false) final Map<String, Object> body) {
+        // The client bean is lazy: record the selection before its first use builds the provider.
+        if (body != null && body.containsKey("flag_selection")) {
+            FLAG_SELECTION = body.get("flag_selection");
+        }
         final ProviderState state = client.getProviderState();
         if (state == ProviderState.READY) {
             return ResponseEntity.ok(true);
@@ -158,6 +199,7 @@ public class FeatureFlagEvaluatorController {
         result.put("errorCode", errorCode);
         result.put("value", value);
         result.put("flagMetadata", flagMetadata);
+        result.put("providerStatus", client.getProviderState().name());
         if (request.isExposureHooks()) {
             result.put("exposureHooks", exposureRows);
         }

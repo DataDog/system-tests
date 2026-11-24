@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json",
+      "dd-ai-guard-version": "4.17.1",
+      "dd-ai-guard-source": "SDK",
+      "dd-ai-guard-language": "python",
+      "Content-Length": "188"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: hello from system-tests\"}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "307",
+      "date": "Fri, 20 Nov 2026 09:17:08 GMT",
+      "x-ratelimit-limit": "700",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "698",
+      "x-ratelimit-reset": "52",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"00000000-0000-4000-8000-000000000005\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"00000000-0000-4000-8000-000000000005\"}],\"global_prob\":0.130859375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

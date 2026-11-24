@@ -12,6 +12,7 @@ from utils.scripts.compute_libraries_and_scenarios import (
     process,
 )
 from utils import scenarios
+from utils._context._scenarios import scenario_groups as all_scenario_groups
 
 
 default_libs_with_prod = [
@@ -158,6 +159,42 @@ class Test_ComputeLibrariesAndScenarios:
 
     def test_gitlab_ssi_title_resolver_file_does_not_select_scenarios(self):
         inputs = build_inputs(["utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_gitignore_does_not_select_scenarios(self):
+        inputs = build_inputs([".gitignore"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_review_learning_files_do_not_select_scenarios(self):
+        inputs = build_inputs(
+            [
+                ".agents/skills/system-tests-review-learn/SKILL.md",
+                ".gitignore",
+                ".claude/skills/system-tests-review-learn/SKILL.md",
+                "docs/ai/review-learning.md",
+                "tests/test_the_test/test_review_learning.py",
+                "utils/scripts/review_learning/collect.py",
+                "utils/scripts/review_learning/filters.yml",
+            ]
+        )
 
         assert_github_processor(
             inputs,
@@ -330,6 +367,21 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    @pytest.mark.parametrize("library", ["cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "rust"])
+    def test_parametric_app_file(self, library: str) -> None:
+        """A change in a parametric app only selects its own library"""
+        inputs = build_inputs([f"utils/build/docker/{library}/parametric/Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [library],
+            [library],
+            300 if library == "nodejs" else 600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
@@ -406,6 +458,35 @@ class Test_ComputeLibrariesAndScenarios:
             "DEFAULT",
             "all",
         )
+
+    def test_gitlab_libraries_config_runs_all_but_ssi(self):
+        inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "end_to_end,exotics,ffe,integration_frameworks,open_telemetry",
+        )
+
+    @pytest.mark.parametrize("pattern", ["utils/scripts/gitlab_libraries.py", "utils/ci/gitlab/*"])
+    def test_gitlab_libraries_config_scenarios(self, pattern: str):
+        """The rules of the GitLab end-to-end pipeline select every scenario of the all group but the SSI ones"""
+        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
+        param = build_inputs([]).impacts[pattern]
+        selected = {
+            scenario.name for group in param.scenario_groups for scenario in all_scenario_groups[group].scenarios
+        }
+        selected |= param.scenarios
+        all_group = all_scenario_groups.all.scenarios
+
+        assert selected >= {scenario.name for scenario in all_group if scenario.github_workflow not in ssi_workflows}
+        assert not selected & {scenario.name for scenario in all_group if scenario.github_workflow in ssi_workflows}
+        # the exotics job of .github/workflows/ci.yml runs on the exotics or all group only
+        assert "exotics" in param.scenario_groups
 
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
@@ -856,6 +937,7 @@ class Test_ComputeLibrariesAndScenarios:
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):
+        # every end-to-end scenario runs the mocked backend behind the agent: all scenarios run
         inputs = build_inputs(modified_files=[file])
         assert_github_processor(
             inputs,
@@ -863,8 +945,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
-            "agentless",
+            "DEFAULT",
+            "all",
         )
 
     def test_end_to_end_scenario_framework_file(self):
@@ -1073,3 +1155,30 @@ class Test_GitLabMode:
         assert 'scenarios_groups="all"' in output
         assert not any(line.startswith("ssi_libraries=") for line in output)
         assert not any(line.startswith("libraries=") for line in output)
+
+
+def get_run_nix(inputs: Inputs) -> str:
+    output = dict(line.split("=", 1) for line in process(inputs))
+    return output["run_nix"]
+
+
+@scenarios.test_the_test
+class Test_ComputeRunNix:
+    @pytest.mark.parametrize(
+        "file",
+        # the paths that used to be the paths filter of .github/workflows/nix.yml
+        ["flake.nix", "shell.nix", "flake.lock", ".github/workflows/nix.yml", "tests/test_the_test/test_foo.py"],
+    )
+    def test_nix_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "true"
+
+    @pytest.mark.parametrize("file", ["README.md", "utils/build/docker/python/flask.Dockerfile", "manifests/java.yml"])
+    def test_other_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "false"
+
+    def test_any_nix_file(self) -> None:
+        assert get_run_nix(build_inputs(["README.md", "flake.lock"])) == "true"
+
+    @set_env("GITHUB_REF", "refs/heads/main")
+    def test_ref_main(self) -> None:
+        assert get_run_nix(build_inputs(["README.md"])) == "true"

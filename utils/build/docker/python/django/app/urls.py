@@ -23,6 +23,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 from moto import mock_aws
 import urllib3
+import yaml
 from iast import (
     weak_cipher,
     weak_cipher_secure_algorithm,
@@ -530,7 +531,12 @@ def view_cmdi_secure(request):
 @csrf_exempt
 def view_iast_path_traversal_insecure(request):
     path = request.POST.get("path", "")
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        # Still exercise mkdir on every request, including for the pre-mounted smoke directory.
+        if not os.path.isdir(path):
+            raise
     return HttpResponse("OK")
 
 
@@ -884,6 +890,17 @@ def view_iast_code_injection_secure(request):
 
     code_string = request.POST.get("code")
     _ = safe_eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
+def view_iast_untrusted_deserialization_insecure(request):
+    name = request.GET.get("name")
+    _ = yaml.unsafe_load(name)
+    return HttpResponse("OK", status=200)
+
+
+def view_iast_untrusted_deserialization_secure(request):
+    _ = yaml.unsafe_load("name: example")
     return HttpResponse("OK", status=200)
 
 
@@ -1351,6 +1368,8 @@ urlpatterns = [
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
+    path("iast/untrusted_deserialization/test_insecure", view_iast_untrusted_deserialization_insecure),
+    path("iast/untrusted_deserialization/test_secure", view_iast_untrusted_deserialization_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("iast/sampling-by-route-method-count/<str:id>", view_iast_sampling_by_route_method),
     path("iast/sampling-by-route-method-count-2/<str:id>", view_iast_sampling_by_route_method_2),

@@ -47,8 +47,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.54.0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.70.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.70.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -388,8 +394,21 @@ manifest:
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: incomplete_test_app (/api_security/optional-params not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        akka-http: '>=1.69.1'
+        play: '>=1.69.1'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Java weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": v1.66.0-SNAPSHOT
@@ -1676,6 +1695,35 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        play, ratpack: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py:
+    - weblog_declaration:
+        "*": v1.60.3
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        play, ratpack: incomplete_test_app (The weblog does not implement the IAST path endpoint)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
+    - weblog_declaration:
+        spring-boot-payara: v1.66.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3: missing_feature (APPSEC-55781)
+        vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents:
+    - weblog_declaration:
+        akka-http: incomplete_test_app (login endpoints not implemented)
+        jersey-grizzly2: incomplete_test_app (login endpoints not implemented)
+        play: incomplete_test_app (login endpoints not implemented)
+        ratpack: incomplete_test_app (login endpoints not implemented)
+        resteasy-netty3: incomplete_test_app (login endpoints not implemented)
+        vertx3: incomplete_test_app (login endpoints not implemented)
+        vertx4: incomplete_test_app (login endpoints not implemented)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v1.65.0-SNAPSHOT
@@ -2304,6 +2352,7 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::setup_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  tests/appsec/test_event_tracking_v2.py::Test_CustomEventV2: incomplete_test_app (The /custom_event_v2 endpoint is not implemented)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": v1.48.0
@@ -3540,8 +3589,10 @@ manifest:
         "*": irrelevant
         spring-boot: v1.63.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
@@ -3885,6 +3936,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.1
+        spring-boot-openliberty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.2  # TODO: a lower version might be supported
+        uds-spring-boot: v1.68.2  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.2  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": irrelevant
@@ -3950,6 +4007,9 @@ manifest:
     - weblog_declaration:
         "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+    - declaration: flaky (IDMPL-1241)
+      component_version: '>=1.67.1'
+      weblog: play
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
@@ -4000,7 +4060,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: v1.60.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
-  : bug (APMAPI-2412)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2412)
+      component_version: <1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
   : bug (APMAPI-2503, APMAPI-2528)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v1.56.0
@@ -4009,23 +4071,30 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v1.62.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  : - component_version: <1.62.0
-      declaration: missing_feature
-    - component_version: '>=1.62.0'
-      declaration: bug (APMAPI-2471)
+  : v1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
-  : bug (APMAPI-2471)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2471)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
-  : bug (APMAPI-2474)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2474)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
-  : bug (APMAPI-2412)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2412)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
-  : bug (APMAPI-2474)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2474)
+      component_version: <1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
-  : bug (APMAPI-2471)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2471)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -4048,17 +4117,25 @@ manifest:
   : irrelevant (Datadog intentionally falls back to 30000 ms)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: v1.60.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
-  : bug (APMAPI-2474)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2474)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
-  : bug (APMAPI-2412)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2412)
+      component_version: <1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : bug (APMAPI-2503, APMAPI-2528)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
-  : bug (APMAPI-2474)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2474)
+      component_version: <1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
-  : bug (APMAPI-2471)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2471)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -4107,10 +4184,14 @@ manifest:
   : irrelevant (Datadog intentionally falls back to 7500 ms)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT::test_empty_falls_back_to_global_endpoint
-  : bug (APMAPI-2412)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2412)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
-  : bug (APMAPI-2474)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2474)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
   : bug (APMAPI-2503)
@@ -4128,21 +4209,25 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (Only otlp and none exporters are implemented)
-  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_empty:
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_empty:  # Easy win for all weblogs and version 1.69.0
     - declaration: missing_feature
       component_version: "<1.62.0"
     - declaration: bug (APMAPI-2485)
       component_version: ">=1.62.0"
-  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_invalid:
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_invalid:  # Easy win for all weblogs and version 1.69.0
     - declaration: missing_feature
       component_version: "<1.62.0"
     - declaration: bug (APMAPI-2485)
       component_version: ">=1.62.0"
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_none: v1.62.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_otlp: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_otlp_in_list:
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_spec_default: v1.62.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero_is_ignored: bug (APMAPI-2462)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2462)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -4152,8 +4237,15 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_console: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
-  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_empty_is_unset: bug (APMAPI-2485)
-  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2485)
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_empty_is_unset:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_otlp_in_list:
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v1.57.0
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
@@ -4167,18 +4259,36 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : v1.66.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v1.54.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v1.54.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_matches_specification: v1.57.0
-  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2412)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name: v1.66.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name_takes_precedence: v1.66.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_metrics_service_name: v1.66.0
@@ -4191,6 +4301,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: bug (APMAPI-2485)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2485)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list:
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v1.57.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -4261,6 +4374,11 @@ manifest:
     - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.64.2
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: v1.65.0
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Requires a release containing dd-trace-java#13267)
+      component_version: <1.69.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : v1.65.0
@@ -4277,6 +4395,8 @@ manifest:
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
   : v1.65.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: v1.69.0-SNAPSHOT
@@ -4330,6 +4450,9 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_context_leak:
     - declaration: missing_feature (Not implemented)
       component_version: <1.36
@@ -5037,14 +5160,43 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: missing_feature (The root HTTP server span does not capture the route template)
-        play: missing_feature (The root HTTP server span does not capture the route template)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-openliberty: '>=1.69.0'
+        vertx3: '>=1.69.0'
+        spring-boot-wildfly: '>=1.69.0'
+        spring-boot-payara: '>=1.69.0'
+        spring-boot-undertow: '>=1.69.0'
+        akka-http: '>=1.69.0'
+        ratpack: '>=1.69.0'
+        resteasy-netty3: '>=1.69.0'
+        jersey-grizzly2: '>=1.69.0'
+        vertx4: '>=1.69.0'
+        spring-boot-3-native: '>=1.69.0'
+        spring-boot-jetty: '>=1.69.0'
+        spring-boot: '>=1.69.0'
+        uds-spring-boot: '>=1.69.0'
+        play: '>=1.69.0'
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
@@ -5408,8 +5560,8 @@ manifest:
         spring-boot: '>=1.60.3'
         vertx4: '>=1.60.3'
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
-  tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
-  tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
+  tests/test_the_test/test_junit_report.py::Test_Mock: v0.2.1
+  tests/test_the_test/test_junit_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature

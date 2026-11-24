@@ -22,6 +22,7 @@ import ddtrace
 import psycopg2
 import stripe
 import xmltodict
+import yaml
 from aiohttp import web
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
@@ -906,46 +907,86 @@ async def iast_source_path_parameter(request: web.Request) -> web.Response:
     return web.Response(text="OK")
 
 
+def _sampling_path_traversal_get(param: object) -> None:
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+
+
+def _sampling_path_traversal_post(param: object) -> None:
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+    with contextlib.suppress(Exception):
+        open(param).close()  # noqa: PTH123
+
+
 @routes.get("/iast/sampling-by-route-method-count/{id}")
 @routes.post("/iast/sampling-by-route-method-count/{id}")
 async def iast_sampling_by_route_method(request: web.Request) -> web.Response:
-    """Report the same path traversal vulnerability from 15 different code locations.
+    """Report the same path traversal vulnerability from 15 different code locations per method.
 
     The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
     then report the next 2 vulnerabilities in subsequent requests.
-    Each open() must stay inline, on its own line, to be a distinct vulnerability location.
+    Each open() must stay inline, on its own line, to be a distinct vulnerability location, and GET and POST
+    use different lines so that each route and method combination reports its own 15 locations.
     """
-    param = request.query.get("param") if request.query else (await request.post()).get("param")
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
-    with contextlib.suppress(Exception):
-        open(param).close()  # noqa: PTH123
+    if request.query:
+        _sampling_path_traversal_get(request.query.get("param"))
+    else:
+        _sampling_path_traversal_post((await request.post()).get("param"))
     return web.Response(text="OK")
 
 
@@ -1121,6 +1162,18 @@ async def iast_code_injection_secure(request: web.Request) -> web.Response:
         raise ValueError(msg)
     a, op, b = code
     _ = ops[op](float(a), float(b))
+    return web.Response(text="OK")
+
+
+@routes.get("/iast/untrusted_deserialization/test_insecure")
+async def iast_untrusted_deserialization_insecure(request: web.Request) -> web.Response:
+    _ = yaml.unsafe_load(request.query.get("name"))
+    return web.Response(text="OK")
+
+
+@routes.get("/iast/untrusted_deserialization/test_secure")
+async def iast_untrusted_deserialization_secure(request: web.Request) -> web.Response:
+    _ = yaml.unsafe_load("name: example")
     return web.Response(text="OK")
 
 

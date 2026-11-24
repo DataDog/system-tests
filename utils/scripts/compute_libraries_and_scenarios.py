@@ -17,6 +17,7 @@ from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
+from utils.scripts.gitlab_libraries import GITLAB_MAIN, GITLAB_PR_LIBRARIES
 
 if TYPE_CHECKING:
     from utils.manifest import ManifestData
@@ -46,28 +47,6 @@ OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentio
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 
-# Libraries run by GitLab end-to-end on PRs. The value is either None, to run the scenarios selected from the diff
-# on every weblog of the library, or a {weblog: [scenario or scenario group, ...]} map, to run only these
-# weblogs/scenarios when the library is activated.
-GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
-    "c": None,
-    # THREAD_CONTEXT_SHARING needs a dedicated runner pool: checks that this setup works. One weblog is enough.
-    "php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]},
-    # GitLab runs containers on the default bridge network: checks that the mocked backend network aliases work there
-    "python": {
-        "flask-poc": [
-            "APM_TRACING_E2E_SINGLE_SPAN",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
-        ]
-    },
-}
-# Libraries run by GitLab end-to-end on main pushes, same format as GITLAB_PR_LIBRARIES
-GITLAB_MAIN: dict[str, dict[str, list[str]] | None] = {
-    "php": GITLAB_PR_LIBRARIES["php"],
-    "python": None,
-}
 GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
 
 
@@ -119,6 +98,7 @@ class Param:
         parameters: dict,
     ):
         self.libraries = _setify(parameters.get("libraries", LIBRARIES))
+        self.nix: bool = parameters.get("nix", False)
 
         if "scenario_groups" not in parameters and "scenarios" not in parameters:  # no instruction -> run all
             self.scenario_groups = {all_scenario_groups.all.name}
@@ -511,6 +491,7 @@ def process(inputs: Inputs) -> list[str]:
         logging.disable()
 
     rebuild_lambda_proxy = False
+    run_nix = True  # without a diff, run everything
 
     if not inputs.selects_scenarios_from_diff():
         scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
@@ -519,6 +500,7 @@ def process(inputs: Inputs) -> list[str]:
     else:
         scenario_processor = ScenarioProcessor()
         library_processor = LibraryProcessor()
+        run_nix = False
 
         scenario_processor.process_manifests(inputs)
         scenario_processor.compute_scenarios_by_files(inputs)
@@ -529,6 +511,7 @@ def process(inputs: Inputs) -> list[str]:
         assert inputs.modified_files is not None
         for file in inputs.modified_files:
             param = match_patterns(file, inputs.impacts)
+            run_nix |= param is not None and param.nix
             scenario_processor.add(file, param)
             library_processor.add(file, param)
 
@@ -568,6 +551,7 @@ def process(inputs: Inputs) -> list[str]:
             library_processor.get_outputs()
             | {"rebuild_lambda_proxy": rebuild_lambda_proxy}
             | scenario_processor.get_outputs()
+            | {"run_nix": run_nix}
         )
 
     return stringify_outputs(outputs)

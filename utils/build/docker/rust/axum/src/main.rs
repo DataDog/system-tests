@@ -179,6 +179,7 @@ fn app(state: AppState) -> Router {
         )
         .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
         .route("/spawn_child", get(spawn_child))
+        .route("/load_dependency", get(load_dependency))
         .route("/log/library", get(log_library))
         .route("/add_event", get(add_event))
         .with_state(state);
@@ -197,6 +198,12 @@ async fn healthcheck() -> Json<serde_json::Value> {
             "version": version,
         }
     }))
+}
+
+/// Rust links dependencies statically, so there is nothing to load: the tracer reports them all,
+/// `axum` included, once it starts.
+async fn load_dependency() -> StatusCode {
+    StatusCode::OK
 }
 
 async fn index() -> Response {
