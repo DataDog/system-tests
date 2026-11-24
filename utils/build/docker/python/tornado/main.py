@@ -16,9 +16,7 @@ import ddtrace
 import httpx
 import psycopg2
 import stripe
-import tornado
 import xmltodict
-from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
 from ddtrace.constants import MANUAL_DROP_KEY, MANUAL_KEEP_KEY
@@ -892,7 +890,9 @@ class CreateExtraServiceHandler(BaseHandler):
     def get(self) -> None:
         service_name = self.get_argument("serviceName", "")
         if service_name:
-            Pin.override(tornado, service=service_name)
+            span = tracer.current_root_span()
+            if span is not None:
+                span.service = service_name
         self.write("OK")
 
 

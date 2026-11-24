@@ -119,15 +119,9 @@ openfeature_client = api.get_client()
 
 
 try:
-    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    try:
-        from ddtrace.trace import Pin
-        from ddtrace.trace import tracer
-    except ImportError:
-        from ddtrace import Pin
-        from ddtrace import tracer
+    from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -1843,7 +1837,9 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name)
+        span = tracer.current_root_span()
+        if span is not None:
+            span.service = new_service_name
     return Response("OK")
 
 

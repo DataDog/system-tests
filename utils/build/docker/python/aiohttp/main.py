@@ -23,7 +23,6 @@ import psycopg2
 import stripe
 import xmltodict
 from aiohttp import web
-from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
 from ddtrace.constants import MANUAL_DROP_KEY, MANUAL_KEEP_KEY
@@ -220,7 +219,9 @@ async def read_file(request: web.Request) -> web.Response:
 async def create_extra_service(request: web.Request) -> web.Response:
     service_name = request.query.get("serviceName", "")
     if service_name:
-        Pin.override(aiohttp, service=service_name)
+        span = tracer.current_root_span()
+        if span is not None:
+            span.service = service_name
     return web.Response(text="OK")
 
 
