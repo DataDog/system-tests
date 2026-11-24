@@ -7,6 +7,8 @@
 #     - Field missing      → select ALL known values in that category.
 #     - Field = null or [] → select NONE.
 #     - Field = [list]     → select exactly those.
+#     - nix: true          → run the Nix workflow (default: false). Keep it on
+#       every rule matching the paths tested in Test_ComputeRunNix.
 #
 # The expressions support Unix shell-style wildcards (for reference see Python's
 # fnmatch function).
@@ -45,6 +47,7 @@ patterns:
 ################################################################################
 
     "*.nix":
+        nix: true
         scenario_groups: null
         libraries: null
     "*.md":
@@ -127,6 +130,7 @@ patterns:
     CHANGELOG.md:
         scenario_groups: null
     flake.lock:
+        nix: true
         scenario_groups: null
     format.sh:
         scenario_groups: null
@@ -194,6 +198,7 @@ patterns:
         scenario_groups: null
         libraries: null
     .github/workflows/nix.yml:
+        nix: true
         scenario_groups: null
         libraries: null
     .github/workflows/run-docker-ssi.yml:
@@ -664,6 +669,7 @@ patterns:
 ################################################################################
 
     tests/test_the_test/*:
+        nix: true
         scenario_groups: null
         libraries: null
 
