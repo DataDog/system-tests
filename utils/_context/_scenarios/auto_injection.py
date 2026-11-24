@@ -9,7 +9,7 @@ from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.ssh_reverse_tunnel import SSHReverseTunnel
 from utils.virtual_machine.ami_candidate import candidate_result_state
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from ._core import Scenario, scenario_groups, ScenarioGroup
+from ._core import FakeDatadogKey, Scenario, scenario_groups, ScenarioGroup
 
 # Port the SSH reverse tunnel binds on the VM loopback to expose the mocked backend
 _MOCKED_BACKEND_VM_PORT = 4901
@@ -148,9 +148,13 @@ class _VirtualMachineScenario(Scenario):
             # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
             # provision configures the agent with it before starting the weblog, no agent restart needed later
             self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{_MOCKED_BACKEND_VM_PORT}")
-            # The agent install script and the agent itself refuse to run without an API key, the mock ignores it
-            if not self.virtual_machine.datadog_config.dd_api_key:
-                self.virtual_machine.datadog_config.dd_api_key = "0" * 32
+            # The agent install script and the agent itself refuse to run without an API key, the mock ignores it.
+            # Never give it the real one: the agent still sends some payloads to the real intake, like the tracer
+            # telemetry, which it only sends over HTTPS, so not through the tunnel. With a fake key, the intake
+            # rejects them instead of storing them in the Datadog organization of the key. Nothing on the VM
+            # needs an app key.
+            self.virtual_machine.datadog_config.dd_api_key = FakeDatadogKey.DEFAULT
+            self.virtual_machine.datadog_config.dd_app_key = None
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))

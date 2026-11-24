@@ -10,7 +10,7 @@ This page covers all local SSI test suites in system-tests.
 | Test suite | Use it to test | Runs on | Validation |
 | --- | --- | --- | --- |
 | Docker SSI | Tracer versions, guardrails, service naming, and other fast checks | Local Docker | APM Test Agent |
-| AWS SSI | Host and container injection on real virtual machines | AWS EC2 | Datadog backend |
+| AWS SSI | Host and container injection on real virtual machines | AWS EC2 | Mocked backend |
 | K8s library injection | Kubernetes injection components | Local Kind or Minikube | APM Test Agent (Datadog backend for Operator) |
 | K8s injector-dev | Changes to the `injector-dev` tool | Local Colima and Minikube | APM Test Agent |
 
@@ -60,8 +60,8 @@ manual command and development details.
 
 ## AWS SSI
 
-AWS SSI creates an EC2 instance and installs SSI on it. It sends telemetry to
-the system-tests Datadog organization.
+AWS SSI creates an EC2 instance and installs SSI on it. It checks what the
+agent sends to the mocked backend.
 
 Complete the [AWS access steps](ssi-access.md#configure-aws-access) and the
 [network access steps](ssi-access.md#configure-network-access-for-aws-ssi).
