@@ -118,6 +118,9 @@ patterns:
         libraries: null
     .gitlab-ci.yml:
         scenario_groups: null
+    .importlinter:
+        scenario_groups: null
+        libraries: null
     .shellcheck:
         scenario_groups: null
     .shellcheckrc:
