@@ -1,0 +1,143 @@
+# RFC status
+
+* Initiated : November 2026
+* Validated : -
+* Implemented : -
+
+### Context
+
+system-tests has no formal boundary between its internals (`utils/`) and the code that uses them. Anything can import anything:
+
+- **Tests** are supposed to use `from utils import ...` and the `utils.pytest` facade, but outside `tests/test_the_test/` about 400 import lines in 209 test files reach into `utils.<submodule>` directly, private ones included (`utils._weblog`, `utils._context.containers`, `utils.docker_fixtures._test_agent`...).
+- **Scenario definitions** (`utils/_context/_scenarios/*.py`) import the containers, the Docker layer, constants, ports and the logger from wherever they live.
+- **Build tooling** (`build.sh`, `utils/scripts`, `utils/ci`, and external consumers such as the Nix package in `dd-trace-ops`) picks whatever internal it needs (`utils.const.COMPONENT_GROUPS`, `utils.base_images.base_image.base_image_contexts`, `utils._context.containers.dockerfile_image_list`...).
+- **`context`** is both the global state scenarios write to and the object tests read from. Tests mostly use it for `context.library` (about 400 uses) and `context.weblog_variant`, but also for `context._scenarios`, `context.containers` and `context.get_container_by_dd_integration_name`.
+
+Import-linter contracts have started to draw lines: tests only import the `utils` root (`utils-public-interface`), `utils` never imports `tests` (`utils-no-tests`), and Docker is fenced into a runtime layer (`docker-sdk-runtime-layer`, `container-layer-orchestration`). Each of them ratchets the existing violations. This RFC describes the target those contracts converge to.
+
+### Issue
+
+- Any refactor of `utils/` can break tests or scenarios in unrelated areas, and reviewers can't tell whether a change touches something users depend on.
+- There is no list of what a test author, a scenario author or a build script is supposed to use. Newcomers and AI agents copy whatever import the neighbouring file uses, so internal usage keeps spreading.
+- Mocks (proxy mocked responses, the mocked backend, remote config payloads) are spread across `utils/proxy`, `utils/mocked_backend` and `utils/interfaces`, with no single owner and no single way for tests to reach them.
+
+### Proposition
+
+Split the Python surface of system-tests into **six public interfaces**, each with its own audience and an explicit list of exported names. Everything else in `utils/` is internal, and import-linter blocks consumers from importing it.
+
+| Interface | Audience | Content |
+|-----------|----------|---------|
+| **Test API** | test authors | `weblog`, assertion helpers, validators, parametric clients and fixtures, the test handles of components (`interfaces.*`, mocks), and `context` |
+| **Metadata API** | test authors, tooling | decorators (`bug`, `missing_feature`, `irrelevant`, `flaky`...), `features`, and a read-only scenario registry (`scenarios.xxx`, `scenario_groups`) |
+| **Runtime info** | test and metadata APIs | the read-only view of what is running: library and version, weblog variant, scenario, component versions. Exposed as `context` |
+| **Scenario API** | scenario authors | what a scenario definition needs to compose components: scenario base classes, component definitions, constants, ports |
+| **Component API** | component authors (framework maintainers, teams adding a side container) | the contract for writing a component: lifecycle and an optional test handle |
+| **Build API** | `build.sh`, CI, external tooling | listing components, weblogs and scenarios, resolving base images and image lists, building images |
+
+`utils.pytest` stays as is: it's the approved subset of pytest and is part of the test API.
+
+#### Layering
+
+```
+tests/ ──────────▶ Test API (utils root) ──re-exports──▶ Metadata API ──▶ Runtime info
+                       │       │                                              ▲
+                       │       └──re-exports──▶ Runtime info                  │ written by
+                       ▼                                                      │
+               component test handles                                   scenario core (internal)
+                       ▲                                                      │
+                       │                                                      │
+scenario definitions ──▶ Scenario API ──▶ components ──▶ Component API ──▶ runtime layer (Docker)
+                                              ▲
+build.sh, CI, tools ──▶ Build API ── builds images of ┘
+```
+
+- **Metadata API** depends on runtime info only, so decorators can evaluate conditions (`@bug(context.library < "java@1.2")`) without importing the test API.
+- **Test API** re-exports the metadata API and runtime info, so test authors keep a single import root (`from utils import ...`) and the 574 existing `from utils import` lines stay valid.
+- **Scenario API** never imports the test API. Scenario definitions import only the scenario API.
+- **Runtime info** is read-only for its consumers. Only the scenario core writes to it, through an internal module.
+
+#### Components
+
+A component is anything a scenario starts next to the library under test: the weblog, the agent, the test agent, the proxy, the mocked backend, postgres, kafka... They all have the same shape:
+
+- a **definition**: image, configuration, lifecycle (build, start, healthcheck, stop), logs. Scenarios use it.
+- an optional **test handle**: what tests use to query what the component received, install mocked responses or assert. Postgres has none. The proxy has a rich one (`interfaces.library`, `interfaces.agent`, mocked tracer responses), and so does the mocked backend.
+
+Mocks are components, not part of the test framework. They have the same status as a postgres container, except that they expose a test handle.
+
+Tests never import a component directly. The test API **re-exports** the handles behind stable names (`interfaces.*` today, plus the mock helpers), so components can be reorganised without touching tests.
+
+#### `context`
+
+`context` is too widely used to remove. It becomes the **runtime info** interface: a read-only view of what is running, re-exported by the test API under its current name.
+
+- Reads stay as they are (`context.library`, `context.weblog_variant`, `context.scenario`...).
+- Writes move to an internal setter used only by the scenario core.
+- Attributes that expose internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields or component handles.
+- Read-only is enforced at the type level (properties, frozen dataclasses) so mypy reports writes. No runtime enforcement.
+
+#### Build API
+
+The build process moves from shell scripts to Python. `utils.build_api` is its entry point, with a single CLI (`python -m utils.build_api <command>`) that shell scripts and external tools call instead of individual scripts. It builds the images of components (weblog, parametric app, proxy...), so its consumers are components and CI, not scenarios.
+
+`utils.build_api` must be importable without the test runtime. Today any `import utils.x` runs `utils/__init__.py`, which creates the weblog, context and scenario singletons (hence the `from _const import *` workaround in `utils/const/__main__.py`). The root re-exports need to become lazy (module `__getattr__`, PEP 562), or the singletons need lazy accessors.
+
+Pro:
+
+- One reviewable list per audience. Adding to an interface is an explicit decision, visible in review.
+- Internals, components and the container backend can be refactored freely as long as the interfaces keep their signatures.
+- Enforced in CI: `./format.sh` already runs `lint-imports`.
+
+Cost:
+
+- A migration of about 400 test import lines plus the scenario definitions, mostly mechanical, spread over several PRs.
+- The interfaces must be maintained: a new public helper needs a re-export.
+
+## Implementation
+
+### Interface modules
+
+- An interface module contains only imports, re-exports and `__all__`. No logic.
+- `__all__` is the contract. Names used only in annotations can be re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py` for `TestAgentAPI`, `DataDogLibrarySpan`...
+- Public submodules are kept to a minimum and listed explicitly in the contracts.
+
+Module names are open (see below). Working names: `utils` (test API), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+
+### Enforcement with import-linter
+
+Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_imports_alerting = error`. Existing violations are listed under `ignore_imports` with a `TODO` comment. The list can only shrink, and adding to it needs a justification in review.
+
+| Boundary | Contract | Status |
+|----------|----------|--------|
+| tests → `utils` root only | `utils-public-interface` (protected) | merged (#8675), ratchet being reduced (#8676) |
+| `utils` never imports `tests` | `utils-no-tests` (forbidden) | merged (#8678) |
+| Docker only in the runtime layer | `docker-sdk-runtime-layer`, `container-layer-orchestration` | merged (#8679) |
+| scenario definitions → scenario API only | protected | in review (#8681) |
+| components → component API, never test or scenario APIs | forbidden | to do |
+| metadata API → runtime info only | forbidden | to do |
+| runtime info written only by the scenario core | protected (internal setter module) | to do |
+| build tooling → build API only | protected | to do |
+
+External consumers (the Nix package in `dd-trace-ops`) can't be enforced from this repo. The build API is documented as the only supported surface for them.
+
+### Migration plan
+
+Every step is shippable on its own and leaves CI green.
+
+1. **Boundaries only.** Add the import-linter contracts above, with today's violations as ratchet ignores. No code moves. This makes the target visible and stops new violations, including new uses of `context` internals and new direct imports of components from tests.
+2. **Centralise re-exports.** Create the interface modules and route consumers through them:
+   - test API: re-export what tests import from internals today (helpers, types, constants, component handles and mocks), then rewrite test imports with a codemod, area by area;
+   - scenario API: re-export the targets scenario definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). That clears every declarative scenario definition. The infrastructure-heavy ones (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
+   - runtime info: split `context` into the read-only view and the internal setter;
+   - build API: create `utils.build_api` and its CLI, and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
+
+   Each move removes ratchet lines.
+3. **Converge components.** Define the component API (lifecycle and test handle) and migrate components one at a time: proxy, mocked backend, agent, test agent, weblog, side containers. Move the build of their images from shell to the build API.
+4. **Document** each interface for its audience (`docs/edit/` for tests and scenarios, `docs/internals/` for components and build), and point the AI rules (`docs/ai/`) at them.
+
+## Open questions
+
+- Module names and layout: flat modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
+- Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one condition format?
+- Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
+- Should `tests/test_the_test/` keep unrestricted access to internals, or only what it needs?
