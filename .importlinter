@@ -31,3 +31,4 @@ ignore_imports =
     tests.test_the_test.test_ffe_tests -> tests.ffe.test_flag_eval_evp
     tests.test_the_test.test_otlp_request_correlation -> tests.otel.test_tracing_otlp
     tests.parametric.otel_env_vars.test_otel_logs_exporter -> tests.parametric.test_otel_logs
+    tests.test_the_test.test_crashtracking_selection -> tests.parametric.test_crashtracking
