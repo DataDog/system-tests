@@ -2364,7 +2364,10 @@ manifest:
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64::test_dsmcontext_injection_base64: irrelevant (fixing node hashing)
-  tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmHttp:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.27.0'
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": *ref_5_62_0
