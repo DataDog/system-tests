@@ -1,11 +1,15 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
-from collections.abc import Callable
 
 from utils import weblog, interfaces, rfc, features
-from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan, DataDogLibraryTrace
+    from collections.abc import Callable
 
 
 def assert_tag_in_span_meta(span: DataDogLibrarySpan, tag: str, expected: str) -> None:

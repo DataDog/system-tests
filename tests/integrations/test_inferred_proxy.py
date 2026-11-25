@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import json
 import time
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 from utils import weblog, scenarios, features, interfaces, logger, context
-from utils.dd_types import DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 DISTRIBUTED_TRACE_ID = 1
 DISTRIBUTED_PARENT_ID = 2

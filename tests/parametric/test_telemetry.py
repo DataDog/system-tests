@@ -1,5 +1,7 @@
 """Test the telemetry that should be emitted from the library."""
 
+from __future__ import annotations
+
 import base64
 import json
 import time
@@ -11,9 +13,12 @@ from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
 from utils import context, scenarios, rfc, features, logger
-from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 from .utils import _mapped_telemetry_name
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
 
 
 def _check_propagation_style_with_inject_and_extract(

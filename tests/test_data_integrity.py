@@ -4,12 +4,17 @@
 
 """Misc checks around data integrity during components' lifetime"""
 
+from __future__ import annotations
+
 import string
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from utils import weblog, interfaces, rfc, features, scenarios, logger
 from utils.dd_constants import SamplingPriority
-from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
+from utils.dd_types import LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
+
+if TYPE_CHECKING:
+    from utils import DataDogLibraryTrace
 
 
 @features.trace_data_integrity

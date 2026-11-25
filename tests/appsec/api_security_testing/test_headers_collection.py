@@ -1,11 +1,15 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2026 Datadog, Inc.
+from __future__ import annotations
 
 import json
 
 from utils import interfaces, rfc, weblog, features, scenarios
-from utils._weblog import HttpResponse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1uR4QQvU8pItEV2zFqr3-L6jO2jxzmvLrFTX_yyvqIOA")

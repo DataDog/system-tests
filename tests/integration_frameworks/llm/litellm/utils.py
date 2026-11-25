@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import time
 
 import requests
 
-from tests.integration_frameworks.llm.utils import LlmObsSpanEvent
 from utils import irrelevant, context
-from utils.docker_fixtures import TestAgentAPI
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.integration_frameworks.llm.utils import LlmObsSpanEvent
 
 
 @irrelevant("litellm" not in context.weblog_variant)

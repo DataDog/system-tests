@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 from utils import interfaces, scenarios, weblog, features
-from utils.dd_types import DataDogLibrarySpan, is_same_boolean
+from utils.dd_types import is_same_boolean
 
 from .utils import BaseFullDenyListTest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 @features.appsec_user_blocking

@@ -1,11 +1,16 @@
 """Prove OTEL_EXPORTER_OTLP_METRICS_COMPRESSION through the encoding of an emitted OTLP request."""
 
+from __future__ import annotations
+
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.utils import generate_default_counter_data_point
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 # Pin HTTP/protobuf because compression is asserted through Content-Encoding

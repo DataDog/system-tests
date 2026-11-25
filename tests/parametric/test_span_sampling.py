@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 import json
 from utils import pytest
@@ -16,8 +18,11 @@ from utils.docker_fixtures.spec.trace import (
 )
 from utils import context, scenarios, features
 
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 def _wait_for_client_side_stats_active(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

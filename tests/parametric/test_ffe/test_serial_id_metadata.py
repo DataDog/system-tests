@@ -22,15 +22,19 @@ This module tests:
 5. Repeated evaluations of the same context return the same serial ID.
 """
 
+from __future__ import annotations
+
 import json
 import time
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import features, pytest, scenarios
 from utils.dd_constants import RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import load_ufc_fixture_for_cases
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"

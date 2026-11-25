@@ -1,9 +1,14 @@
-from tests.parametric.conftest import APMLibrary
+from __future__ import annotations
+
 from tests.parametric.otel_env_vars import utils as otel_env_var_utils
-from tests.parametric.otel_env_vars.conftest import DefaultProtocol
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._test_agent import AgentRequest
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import AgentRequest
+    from utils import TestAgentAPI
+    from tests.parametric.otel_env_vars.conftest import DefaultProtocol
+    from tests.parametric.conftest import APMLibrary
 
 
 VARIABLE = "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"

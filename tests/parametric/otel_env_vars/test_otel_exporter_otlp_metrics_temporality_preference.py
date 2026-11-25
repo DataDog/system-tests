@@ -3,11 +3,11 @@
 https://opentelemetry.io/docs/specs/otel/metrics/sdk_exporters/otlp/
 """
 
-from typing import Final
+from __future__ import annotations
+
+from typing import Final, TYPE_CHECKING
 
 from utils import features, pytest, scenarios
-from tests.parametric.conftest import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
 from .utils import (
     DEFAULT_METER_NAME,
     DEFAULT_METER_VERSION,
@@ -24,6 +24,10 @@ from .utils import (
     find_metric_by_name,
     get_expected_bucket_counts,
 )
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 VARIABLE_NAME = "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE"
 LIBRARY_ENV: Final = {

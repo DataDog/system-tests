@@ -3,16 +3,21 @@
 https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
 """
 
+from __future__ import annotations
+
 from utils import pytest
 from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest
 from google.protobuf.json_format import MessageToDict, ParseDict
 
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.otel_env_vars import utils as otel_env_var_utils
-from tests.parametric.otel_env_vars.conftest import DefaultProtocol
 from tests.parametric.utils import generate_default_counter_data_point
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from tests.parametric.otel_env_vars.conftest import DefaultProtocol
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 
 from utils import pytest
@@ -11,10 +13,13 @@ from utils.docker_fixtures.spec.trace import id_to_int
 from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
-from utils.docker_fixtures import TestAgentAPI
 from utils.dd_types import is_same_boolean
 from utils import features, context, scenarios
-from .conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)

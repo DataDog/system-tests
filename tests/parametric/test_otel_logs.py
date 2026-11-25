@@ -1,17 +1,22 @@
+from __future__ import annotations
+
 import base64
-from collections.abc import Generator
 from urllib.parse import urlparse
 
 from utils import pytest
 
 from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
-from .conftest import APMLibrary
 from .utils import find_log_components, find_log_record
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
+    from collections.abc import Generator
 
 
 def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:

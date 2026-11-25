@@ -12,24 +12,28 @@ retries, timeout, and poll overlap. The mock endpoint is passed through the
 agentless base URL option; it does not introduce a separate custom source mode.
 """
 
-from collections.abc import Callable
+from __future__ import annotations
+
 import json
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry
 from utils import features, scenarios
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
-from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     MockedBackendFFEStatus,
 )
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils.mocked_backend import MockedBackendServer
+    from utils import TestAgentAPI
+    from collections.abc import Callable
 
 parametrize = pytest.mark.parametrize
 

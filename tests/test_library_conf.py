@@ -1,9 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
+
 from utils import pytest
 from utils import weblog, interfaces, scenarios, features
-from utils.dd_types import DataDogAgentSpan
 from utils._context.header_tag_vars import (
     CONFIG_COLON_LEADING,
     CONFIG_COLON_TRAILING,
@@ -30,6 +31,10 @@ from utils._context.header_tag_vars import (
 )
 from utils import remote_config as rc
 import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag

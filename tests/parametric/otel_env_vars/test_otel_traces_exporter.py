@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 SPAN_NAME = "otel-traces-exporter-span"

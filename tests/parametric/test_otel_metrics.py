@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 from urllib.parse import urlparse
 from utils import pytest
 
 from utils import features, scenarios
 
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
 from .otel_env_vars.utils import (
     DEFAULT_METER_NAME,
     DEFAULT_METER_VERSION,
@@ -24,6 +24,11 @@ from .otel_env_vars.utils import (
     find_metric_by_name,
     get_expected_bucket_counts,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 LIFECYCLE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_METRIC_EXPORT_INTERVAL": "3600000"}

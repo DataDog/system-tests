@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 from utils import interfaces, rfc, scenarios, weblog, features
-from utils._weblog import HttpResponse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def assert_llm_span(request: HttpResponse, model: str) -> None:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 
 import msgpack
@@ -7,9 +9,12 @@ from utils import pytest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
 from utils import scenarios, features, logger
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
 from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 

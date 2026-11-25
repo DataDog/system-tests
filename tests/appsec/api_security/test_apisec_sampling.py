@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from utils import (
     features,
     interfaces,
@@ -6,11 +8,14 @@ from utils import (
     weblog,
     logger,
 )
-from utils._weblog import HttpResponse
 
 import random
 import string
 import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def get_schema(request: HttpResponse, address: str):

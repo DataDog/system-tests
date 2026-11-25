@@ -1,8 +1,13 @@
 """The metric reader's effective interval, in milliseconds, including its defaults."""
 
+from __future__ import annotations
+
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 VARIABLE = "OTEL_METRIC_EXPORT_INTERVAL"

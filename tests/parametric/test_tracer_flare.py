@@ -1,18 +1,22 @@
 """Test the tracer flare feature of the APM libraries."""
 
+from __future__ import annotations
+
 import json
 import zipfile
 from base64 import b64decode
 from io import BytesIO
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import uuid4
 
 from utils import pytest
 
 from utils import rfc, scenarios, features, context
 from utils.dd_constants import RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 

@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
 from utils import features, scenarios
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import TOOLS, BaseAnthropicTest
 
 from utils import pytest
 from unittest import mock
 import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 @pytest.fixture

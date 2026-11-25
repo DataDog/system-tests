@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from utils import pytest
 
-from ddapm_test_agent.trace import Span
 from tests.parametric.conftest import APMLibrary, assert_nodejs_telemetry_config
 from utils import features, scenario_crash, scenarios
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from ddapm_test_agent.trace import Span
 
 
 type ResourceAttributes = str | list[str] | dict[str, str]

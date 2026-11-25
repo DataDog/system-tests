@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from utils import pytest
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_span, find_trace
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 @features.partial_flush

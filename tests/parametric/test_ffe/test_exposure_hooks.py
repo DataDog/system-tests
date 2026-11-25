@@ -1,16 +1,20 @@
 """Customer exposure decisions share the Datadog cache, including warehouse-only mode."""
 
+from __future__ import annotations
+
 import base64
 import json
 import time
 from collections import Counter
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from tests.ffe.utils.fixtures import make_ufc_fixture
-from tests.parametric.conftest import APMLibrary
 from utils import features, pytest, scenarios, slow
 from utils.dd_constants import RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 BASE_ENV = {
     "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",

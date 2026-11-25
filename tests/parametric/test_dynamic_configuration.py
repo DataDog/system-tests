@@ -1,10 +1,12 @@
 """Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
+from __future__ import annotations
+
 import json
 import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 import yaml
@@ -16,18 +18,16 @@ from utils import (
     rfc,
     scenarios,
 )
-from utils._context.component_version import ComponentVersion
-from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.docker_fixtures.spec.trace import (
-    Span,
-    assert_trace_has_tags,
-    find_trace,
-    find_first_span_in_trace_payload,
-)
+from utils.docker_fixtures.spec.trace import assert_trace_has_tags, find_trace, find_first_span_in_trace_payload
 from utils.manifest._internal.types import SemverRange
-from .conftest import APMLibrary
 from .utils import _mapped_telemetry_name
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from .conftest import APMLibrary
+    from utils import Span
+    from utils._context.component_version import ComponentVersion
 
 parametrize = pytest.mark.parametrize
 

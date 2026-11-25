@@ -1,8 +1,12 @@
-from collections.abc import Callable
+from __future__ import annotations
 
 from utils import interfaces, remote_config
 from utils._logger import logger
-from utils._weblog import HttpResponse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
+    from collections.abc import Callable
 
 
 def _has_schemas(request: HttpResponse, addresses: tuple[str, ...]) -> bool:

@@ -6,7 +6,9 @@ When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/understand/scenarios/parametric.md#shared-interface
 """
 
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 import time
@@ -22,9 +24,11 @@ from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.parametric import Link, LogLevel
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 from tests.parametric.test_dynamic_configuration import _create_rc_config, _set_rc
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel

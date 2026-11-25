@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 import json
 
@@ -12,7 +13,10 @@ from utils import (
     features,
     HttpResponse,
 )
-from utils.dd_types import DataDogLibrarySpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 def _assert_custom_event_tag_presence(expected_value: str):

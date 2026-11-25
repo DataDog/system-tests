@@ -9,7 +9,8 @@ Feature flag event enrichment encodes serial IDs using delta varint encoding:
 Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base64
 """
 
-from collections.abc import Mapping, Sequence
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
 import base64
 import gzip
@@ -17,10 +18,13 @@ import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.docker_fixtures import ParametricTestClientApi, TestAgentAPI
+
+if TYPE_CHECKING:
+    from utils import ParametricTestClientApi, TestAgentAPI
+    from collections.abc import Mapping, Sequence
 
 # Varint encoding constants
 VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data

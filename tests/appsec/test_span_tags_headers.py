@@ -1,6 +1,11 @@
+from __future__ import annotations
+
 from utils import weblog, interfaces, features, scenarios, logger, rfc
-from utils._weblog import CaseInsensitiveDict
-from utils.dd_types import DataDogLibrarySpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
+    from utils._weblog import CaseInsensitiveDict
 
 
 def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):

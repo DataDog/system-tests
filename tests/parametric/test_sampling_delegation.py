@@ -6,10 +6,15 @@ libraries.
 [1]: https://github.com/DataDog/architecture/tree/master/rfcs/apm/integrations/sampling-delegation
 """
 
+from __future__ import annotations
+
 from utils import pytest
 from utils import features, rfc, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 @features.decisionless_extraction

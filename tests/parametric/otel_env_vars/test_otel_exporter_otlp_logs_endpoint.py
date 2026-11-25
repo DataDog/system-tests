@@ -1,7 +1,12 @@
-from tests.parametric.conftest import APMLibrary
+from __future__ import annotations
+
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 VARIABLE_NAME = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"

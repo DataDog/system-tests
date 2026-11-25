@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import time
 from unittest import mock
@@ -5,10 +7,12 @@ from unittest import mock
 import requests
 
 from utils import context
-from utils.docker_fixtures import TestAgentAPI
 
-from collections.abc import Callable
-from typing import Any, TypedDict
+from typing import Any, TypedDict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from utils import TestAgentAPI
 
 
 class LlmObsSpanEvent(TypedDict, total=False):

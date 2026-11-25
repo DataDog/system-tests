@@ -48,40 +48,20 @@ ignore_imports =
     # tests of the framework itself test its internals
     tests.test_the_test.** -> utils.**
     # TODO: existing imports of internals, to migrate to `from utils import ...`
-    tests.ai_guard.test_ai_guard_sdk -> utils._weblog
     tests.ai_guard.test_ai_guard_sdk -> utils.dd_constants
     tests.ai_guard.test_ai_guard_sdk -> utils.dd_types
-    tests.apm_tracing_e2e.test_otel -> utils.dd_types
     tests.apm_tracing_e2e.test_process_tags -> utils.interfaces._library.miscs
     tests.apm_tracing_e2e.test_single_span -> utils.dd_constants
-    tests.apm_tracing_e2e.test_single_span -> utils.dd_types
-    tests.appsec.api_security.test_api_security_rc -> utils._weblog
-    tests.appsec.api_security.test_apisec_sampling -> utils._weblog
-    tests.appsec.api_security.test_custom_data_classification -> utils._weblog
     tests.appsec.api_security.test_custom_data_classification -> utils.dd_constants
     tests.appsec.api_security.test_endpoint_discovery -> utils.telemetry
-    tests.appsec.api_security.test_endpoint_fallback -> utils._weblog
-    tests.appsec.api_security.test_endpoints -> utils._weblog
-    tests.appsec.api_security.test_schemas -> utils._weblog
-    tests.appsec.api_security.test_schemas_auth -> utils._weblog
     tests.appsec.api_security.utils -> utils._logger
-    tests.appsec.api_security.utils -> utils._weblog
-    tests.appsec.api_security_testing.test_headers_collection -> utils._weblog
-    tests.appsec.api_security_testing.test_normalized_route -> utils._weblog
-    tests.appsec.iast.source.test_kafka_key -> utils._weblog
-    tests.appsec.iast.source.test_kafka_value -> utils._weblog
     tests.appsec.iast.test_sampling_by_route_method_count -> utils._logger
-    tests.appsec.iast.test_security_controls -> utils._weblog
-    tests.appsec.iast.utils -> utils._weblog
-    tests.appsec.rasp.test_api10 -> utils.dd_types
     tests.appsec.rasp.test_cmdi -> utils.dd_constants
     tests.appsec.rasp.test_lfi -> utils.dd_constants
     tests.appsec.rasp.test_shi -> utils.dd_constants
     tests.appsec.rasp.test_sqli -> utils.dd_constants
     tests.appsec.rasp.test_ssrf -> utils.dd_constants
-    tests.appsec.rasp.utils -> utils._weblog
     tests.appsec.smoke_tests.test_apm_standalone -> utils._decorators
-    tests.appsec.smoke_tests.utils -> utils._weblog
     tests.appsec.smoke_tests.utils -> utils.dd_constants
     tests.appsec.smoke_tests.utils -> utils.dd_types
     tests.appsec.test_asm_standalone -> utils._weblog
@@ -90,46 +70,26 @@ ignore_imports =
     tests.appsec.test_asm_standalone -> utils.telemetry_utils
     tests.appsec.test_automated_login_events -> utils.dd_constants
     tests.appsec.test_automated_login_events -> utils.dd_types
-    tests.appsec.test_automated_payment_events -> utils._weblog
-    tests.appsec.test_automated_payment_events -> utils.dd_types
-    tests.appsec.test_blocking_addresses -> utils.dd_types
-    tests.appsec.test_client_ip -> utils.dd_types
-    tests.appsec.test_conf -> utils.dd_types
     tests.appsec.test_conf -> utils.tools
     tests.appsec.test_event_tracking -> utils.dd_types
     tests.appsec.test_event_tracking_v2 -> utils.dd_types
     tests.appsec.test_extended_data_collection -> utils.dd_constants
     tests.appsec.test_extended_data_collection -> utils.dd_types
-    tests.appsec.test_extended_header_collection -> utils._weblog
-    tests.appsec.test_extended_request_body_collection -> utils._weblog
     tests.appsec.test_extended_request_body_collection -> utils.dd_types
-    tests.appsec.test_fingerprinting -> utils._weblog
     tests.appsec.test_fingerprinting -> utils.dd_constants
-    tests.appsec.test_identify -> utils.dd_types
-    tests.appsec.test_inferred_spans -> utils.dd_types
     tests.appsec.test_lambda_sdk -> utils.dd_types
     tests.appsec.test_metastruct -> utils.dd_types
     tests.appsec.test_rate_limiter -> utils.dd_constants
     tests.appsec.test_remote_config_rule_changes -> utils.dd_constants
-    tests.appsec.test_remote_config_rule_changes -> utils.dd_types
-    tests.appsec.test_reports -> utils._weblog
-    tests.appsec.test_reports -> utils.dd_types
     tests.appsec.test_runtime_activation -> utils.dd_constants
-    tests.appsec.test_shell_execution -> utils._weblog
     tests.appsec.test_shell_execution -> utils.dd_types
     tests.appsec.test_span_tags_headers -> utils._weblog
-    tests.appsec.test_span_tags_headers -> utils.dd_types
     tests.appsec.test_trace_tagging -> utils.dd_constants
-    tests.appsec.test_trace_tagging -> utils.dd_types
     tests.appsec.test_traces -> utils.dd_constants
     tests.appsec.test_traces -> utils.dd_types
     tests.appsec.test_traces -> utils.tools
     tests.appsec.test_user_blocking_full_denylist -> utils.dd_types
     tests.appsec.utils -> utils.dd_constants
-    tests.appsec.utils -> utils.dd_types
-    tests.appsec.waf.test_addresses -> utils.dd_types
-    tests.appsec.waf.test_blocking -> utils.dd_types
-    tests.appsec.waf.test_reports -> utils.dd_types
     tests.auto_inject.test_auto_inject_chaos -> utils.onboarding.wait_for_tcp_port
     tests.auto_inject.test_auto_inject_chaos -> utils.onboarding.weblog_interface
     tests.auto_inject.test_auto_inject_chaos -> utils.virtual_machine.virtual_machines
@@ -144,57 +104,29 @@ ignore_imports =
     tests.auto_inject.utils -> utils.virtual_machine.vm_logger
     tests.cws.utils -> utils._logger
     tests.debugger.test_debugger_exception_replay -> utils.dd_types
-    tests.debugger.test_debugger_inproduct_enablement -> utils.dd_types
     tests.debugger.test_debugger_probe_snapshot -> utils.interfaces._library.miscs
     tests.debugger.test_debugger_rc_unsubscribe -> utils._context._scenarios
     tests.debugger.test_debugger_rc_unsubscribe -> utils.dd_constants
     tests.debugger.test_debugger_telemetry -> utils.telemetry
-    tests.debugger.utils -> utils._weblog
     tests.debugger.utils -> utils.dd_constants
-    tests.debugger.utils -> utils.dd_types
-    tests.external_processing.test_apim_callout -> utils._weblog
-    tests.external_processing.test_apim_callout -> utils.dd_types
     tests.ffe.test_agentless_configuration -> utils.mocked_backend.ffe
     tests.ffe.test_dynamic_evaluation -> utils.proxy.mocked_response
     tests.ffe.test_exposure_egress -> utils._context._scenarios.agentless_endtoend
     tests.ffe.test_flag_eval_evp -> utils._context._scenarios.agentless_endtoend
     tests.ffe.utils.evp -> utils._context._scenarios.agentless_endtoend
     tests.ffe.utils.evp -> utils._context.containers
-    tests.ffe.utils.exposures -> utils._weblog
     tests.fuzzer.core -> utils._context.containers
     tests.fuzzer.main -> utils._context._scenarios._core
     tests.fuzzer.main -> utils._context.containers
     tests.fuzzer.main -> utils._logger
     tests.fuzzer.request_mutator -> utils._context.containers
     tests.integration_frameworks.conftest -> utils.docker_fixtures
-    tests.integration_frameworks.llm.anthropic.test_anthropic_ai_guard -> utils.docker_fixtures
-    tests.integration_frameworks.llm.anthropic.test_anthropic_ai_guard_mcp -> utils.docker_fixtures
-    tests.integration_frameworks.llm.anthropic.test_anthropic_apm -> utils.docker_fixtures
-    tests.integration_frameworks.llm.anthropic.test_anthropic_llmobs -> utils.docker_fixtures
-    tests.integration_frameworks.llm.google_genai.test_google_genai_apm -> utils.docker_fixtures
-    tests.integration_frameworks.llm.google_genai.test_google_genai_llmobs -> utils.docker_fixtures
-    tests.integration_frameworks.llm.litellm.test_litellm_llmobs -> utils.docker_fixtures
-    tests.integration_frameworks.llm.litellm.utils -> utils.docker_fixtures
-    tests.integration_frameworks.llm.openai.test_openai_ai_guard -> utils.docker_fixtures
-    tests.integration_frameworks.llm.openai.test_openai_ai_guard_mcp -> utils.docker_fixtures
-    tests.integration_frameworks.llm.openai.test_openai_apm -> utils.docker_fixtures
-    tests.integration_frameworks.llm.openai.test_openai_llmobs -> utils.docker_fixtures
-    tests.integration_frameworks.llm.utils -> utils.docker_fixtures
     tests.integrations.crossed_integrations.test_kafka -> utils.buddies
-    tests.integrations.crossed_integrations.test_kafka -> utils.dd_types
     tests.integrations.crossed_integrations.test_kinesis -> utils.buddies
-    tests.integrations.crossed_integrations.test_kinesis -> utils.dd_types
     tests.integrations.crossed_integrations.test_rabbitmq -> utils.buddies
-    tests.integrations.crossed_integrations.test_rabbitmq -> utils.dd_types
     tests.integrations.crossed_integrations.test_sns_to_sqs -> utils.buddies
-    tests.integrations.crossed_integrations.test_sns_to_sqs -> utils.dd_types
     tests.integrations.crossed_integrations.test_sqs -> utils.buddies
-    tests.integrations.crossed_integrations.test_sqs -> utils.dd_types
-    tests.integrations.test_db_integrations_sql -> utils.dd_types
-    tests.integrations.test_dbm -> utils._weblog
     tests.integrations.test_dbm -> utils.dd_types
-    tests.integrations.test_inferred_proxy -> utils.dd_types
-    tests.integrations.utils -> utils.dd_types
     tests.k8s_injector_dev.test_k8s_injector_dev -> utils.injector_dev.harness
     tests.k8s_lib_injection.test_k8s_lib_injection -> utils.onboarding.backend_interface
     tests.k8s_lib_injection.test_k8s_lib_injection -> utils.onboarding.wait_for_tcp_port
@@ -214,182 +146,93 @@ ignore_imports =
     tests.parametric.conftest -> utils.mocked_backend
     tests.parametric.otel_env_vars.conftest -> utils.docker_fixtures
     tests.parametric.otel_env_vars.conftest -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_compression -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_endpoint -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_headers -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_headers -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_compression -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_compression -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_endpoint -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_endpoint -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_headers -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_headers -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_protocol -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_protocol -> utils.docker_fixtures.parametric
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_logs_timeout -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_metrics_compression -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_metrics_endpoint -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_metrics_headers -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_metrics_protocol -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_metrics_temporality_preference -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_protocol -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_exporter_otlp_protocol -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_traces_endpoint -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_traces_headers -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_traces_headers -> utils.docker_fixtures._test_agent
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_traces_protocol -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_exporter_otlp_traces_protocol -> utils.docker_fixtures._test_agent
-    tests.parametric.otel_env_vars.test_otel_log_level -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_logs_exporter -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_logs_exporter -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_metric_export_interval -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_metric_export_timeout -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_metrics_exporter -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_propagators -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_resource_attributes -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_resource_attributes -> utils.docker_fixtures.spec.trace
-    tests.parametric.otel_env_vars.test_otel_sdk_disabled -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_sdk_disabled -> utils.docker_fixtures.parametric
-    tests.parametric.otel_env_vars.test_otel_service_name -> utils.docker_fixtures
     tests.parametric.otel_env_vars.test_otel_service_name -> utils.docker_fixtures.parametric
     tests.parametric.otel_env_vars.test_otel_service_name -> utils.docker_fixtures.spec.trace
-    tests.parametric.otel_env_vars.test_otel_traces_exporter -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_traces_sampler -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.test_otel_traces_sampler_arg -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.utils -> utils.docker_fixtures
-    tests.parametric.otel_env_vars.utils -> utils.docker_fixtures._test_agent
     tests.parametric.otel_env_vars.utils -> utils.docker_fixtures.parametric
-    tests.parametric.test_128_bit_traceids -> utils.docker_fixtures
     tests.parametric.test_128_bit_traceids -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_config_consistency -> utils.docker_fixtures
     tests.parametric.test_config_consistency -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_crashtracking -> utils.docker_fixtures
     tests.parametric.test_dynamic_configuration -> utils._context.component_version
     tests.parametric.test_dynamic_configuration -> utils.dd_constants
-    tests.parametric.test_dynamic_configuration -> utils.docker_fixtures
     tests.parametric.test_dynamic_configuration -> utils.docker_fixtures.spec.trace
     tests.parametric.test_dynamic_configuration -> utils.manifest._internal.types
-    tests.parametric.test_extract_behavior -> utils.docker_fixtures
     tests.parametric.test_extract_behavior -> utils.docker_fixtures.spec.trace
     tests.parametric.test_ffe.test_configuration_sources -> utils.dd_constants
-    tests.parametric.test_ffe.test_configuration_sources -> utils.docker_fixtures
     tests.parametric.test_ffe.test_configuration_sources -> utils.mocked_backend
     tests.parametric.test_ffe.test_configuration_sources -> utils.mocked_backend.ffe
-    tests.parametric.test_ffe.test_dependent_flags_rc -> utils.docker_fixtures
     tests.parametric.test_ffe.test_dynamic_evaluation -> utils.dd_constants
-    tests.parametric.test_ffe.test_dynamic_evaluation -> utils.docker_fixtures
     tests.parametric.test_ffe.test_exposure_hooks -> utils.dd_constants
-    tests.parametric.test_ffe.test_exposure_hooks -> utils.docker_fixtures
     tests.parametric.test_ffe.test_flag_selection -> utils.mocked_backend
     tests.parametric.test_ffe.test_flag_selection -> utils.mocked_backend.ffe
-    tests.parametric.test_ffe.test_rules_configuration -> utils.docker_fixtures
     tests.parametric.test_ffe.test_rules_configuration -> utils.mocked_backend
     tests.parametric.test_ffe.test_rules_configuration -> utils.mocked_backend.ffe
     tests.parametric.test_ffe.test_serial_id_metadata -> utils.dd_constants
-    tests.parametric.test_ffe.test_serial_id_metadata -> utils.docker_fixtures
     tests.parametric.test_ffe.test_span_enrichment -> utils.dd_constants
-    tests.parametric.test_ffe.test_span_enrichment -> utils.docker_fixtures
     tests.parametric.test_ffe.utils -> utils.dd_constants
-    tests.parametric.test_ffe.utils -> utils.docker_fixtures
-    tests.parametric.test_headers_b3 -> utils.docker_fixtures
     tests.parametric.test_headers_b3 -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_headers_b3multi -> utils.docker_fixtures
     tests.parametric.test_headers_b3multi -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_headers_baggage -> utils.docker_fixtures
     tests.parametric.test_headers_baggage -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_headers_datadog -> utils.docker_fixtures
     tests.parametric.test_headers_datadog -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_headers_none -> utils.docker_fixtures
     tests.parametric.test_headers_none -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_headers_opm -> utils.docker_fixtures
-    tests.parametric.test_headers_precedence -> utils.docker_fixtures
     tests.parametric.test_headers_precedence -> utils.docker_fixtures.spec.tracecontext
-    tests.parametric.test_headers_tracecontext -> utils.docker_fixtures
     tests.parametric.test_headers_tracecontext -> utils.docker_fixtures.spec.trace
     tests.parametric.test_headers_tracecontext -> utils.docker_fixtures.spec.tracecontext
     tests.parametric.test_headers_tracestate_dd -> utils.docker_fixtures.spec.tracecontext
-    tests.parametric.test_library_tracestats -> utils.docker_fixtures
     tests.parametric.test_library_tracestats -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_llm_observability.test_llm_observability -> utils.docker_fixtures
     tests.parametric.test_llm_observability.test_llm_observability -> utils.docker_fixtures.spec.llm_observability
-    tests.parametric.test_llm_observability.test_llm_observability_dne -> utils.docker_fixtures
     tests.parametric.test_llm_observability.test_llm_observability_dne -> utils.docker_fixtures.spec.llm_observability
     tests.parametric.test_otel_api_interoperability -> utils.dd_types
-    tests.parametric.test_otel_api_interoperability -> utils.docker_fixtures
     tests.parametric.test_otel_api_interoperability -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_otel_env_vars -> utils.docker_fixtures
     tests.parametric.test_otel_env_vars -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_otel_logs -> utils.docker_fixtures
     tests.parametric.test_otel_logs -> utils.docker_fixtures.parametric
     tests.parametric.test_otel_logs -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_otel_metrics -> utils.docker_fixtures
     tests.parametric.test_otel_span_methods -> utils.dd_types
-    tests.parametric.test_otel_span_methods -> utils.docker_fixtures
     tests.parametric.test_otel_span_methods -> utils.docker_fixtures.parametric
     tests.parametric.test_otel_span_methods -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_otel_tracer -> utils.docker_fixtures
     tests.parametric.test_otel_tracer -> utils.docker_fixtures.spec.trace
     tests.parametric.test_otel_tracestate_sampling -> utils.dd_constants
-    tests.parametric.test_otel_tracestate_sampling -> utils.docker_fixtures
     tests.parametric.test_otel_tracestate_sampling -> utils.docker_fixtures.spec.trace
     tests.parametric.test_otel_tracestate_sampling -> utils.docker_fixtures.spec.tracecontext
-    tests.parametric.test_otlp_trace_metrics -> utils.docker_fixtures
-    tests.parametric.test_otlp_trace_metrics -> utils.docker_fixtures._test_agent
     tests.parametric.test_otlp_trace_metrics -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_parametric_endpoints -> utils.docker_fixtures
     tests.parametric.test_parametric_endpoints -> utils.docker_fixtures.parametric
     tests.parametric.test_parametric_endpoints -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_partial_flushing -> utils.docker_fixtures
     tests.parametric.test_partial_flushing -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_sampling_delegation -> utils.docker_fixtures
     tests.parametric.test_sampling_manual -> utils.dd_constants
-    tests.parametric.test_sampling_manual -> utils.docker_fixtures
     tests.parametric.test_sampling_manual -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_sampling_span_tags -> utils.docker_fixtures
     tests.parametric.test_sampling_span_tags -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_span_events -> utils.docker_fixtures
     tests.parametric.test_span_events -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_span_links -> utils.docker_fixtures
     tests.parametric.test_span_links -> utils.docker_fixtures.spec.trace
     tests.parametric.test_span_links -> utils.docker_fixtures.spec.tracecontext
-    tests.parametric.test_span_sampling -> utils.docker_fixtures
     tests.parametric.test_span_sampling -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_telemetry -> utils.docker_fixtures
     tests.parametric.test_telemetry -> utils.telemetry_utils
-    tests.parametric.test_trace_filters -> utils.docker_fixtures
-    tests.parametric.test_trace_sampling -> utils.docker_fixtures
     tests.parametric.test_trace_sampling -> utils.docker_fixtures.spec.trace
-    tests.parametric.test_tracer -> utils.docker_fixtures
     tests.parametric.test_tracer -> utils.docker_fixtures.spec.trace
     tests.parametric.test_tracer_flare -> utils.dd_constants
-    tests.parametric.test_tracer_flare -> utils.docker_fixtures
     tests.schemas.utils.schemas_validators -> utils.interfaces._core
-    tests.serverless.span_pointers.aws.test_s3_span_pointers -> utils._weblog
-    tests.serverless.span_pointers.utils -> utils.dd_types
     tests.test_data_integrity -> utils.cgroup_info
     tests.test_data_integrity -> utils.dd_constants
     tests.test_data_integrity -> utils.dd_types
     tests.test_distributed -> utils.dd_types
     tests.test_graphql -> utils.dd_types
-    tests.test_identify -> utils.dd_types
     tests.test_library_conf -> utils._context.header_tag_vars
-    tests.test_library_conf -> utils.dd_types
-    tests.test_otel_http_semantics -> utils._weblog
     tests.test_otel_http_semantics -> utils.dd_constants
     tests.test_otel_startup_logs -> utils._context._scenarios.otel_semantics
     tests.test_otel_tracestate_sampling -> utils.dd_constants
     tests.test_otel_tracestate_sampling -> utils.docker_fixtures.spec.tracecontext
     tests.test_profiling -> utils.interfaces._library.miscs
-    tests.test_resource_renaming -> utils._weblog
-    tests.test_sampling_manual -> utils._weblog
     tests.test_sampling_manual -> utils.dd_constants
     tests.test_sampling_rate_capping -> utils.proxy.mocked_response
     tests.test_sampling_rates -> utils.dd_constants
-    tests.test_sampling_rates -> utils.dd_types
     tests.test_sampling_rules_agent_rate -> utils.proxy.mocked_response
-    tests.test_scrubbing -> utils.dd_types
-    tests.test_semantic_conventions -> utils.dd_types
-    tests.test_standard_tags -> utils._weblog
     tests.test_telemetry -> utils.interfaces._misc_validators
     tests.test_telemetry -> utils.telemetry
     tests.test_telemetry -> utils.telemetry_utils

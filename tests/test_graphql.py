@@ -1,10 +1,11 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 import copy
 import json
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from utils import (
     interfaces,
     rfc,
@@ -12,8 +13,11 @@ from utils import (
     features,
     scenarios,
 )
-from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
+from utils.dd_types import LibraryTraceFormat
 from collections import defaultdict
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
     lambda: defaultdict(lambda: {"operation_name": "graphql.execute", "has_location": True})

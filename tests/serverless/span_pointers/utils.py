@@ -1,9 +1,13 @@
-from collections.abc import Callable
+from __future__ import annotations
+
 from hashlib import sha256
-from typing import NewType
+from typing import NewType, TYPE_CHECKING
 
 from utils import logger
-from utils.dd_types import DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
+    from collections.abc import Callable
 
 PointerHash = NewType("PointerHash", str)
 

@@ -3,10 +3,15 @@
 https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-via-environment-variables
 """
 
-from tests.parametric.conftest import APMLibrary
+from __future__ import annotations
+
 from tests.parametric.utils import generate_default_counter_data_point
 from utils import features, scenarios, pytest
-from utils.docker_fixtures import TestAgentAPI
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_HEADERS"

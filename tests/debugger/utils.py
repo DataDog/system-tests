@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 import json
 import re
@@ -9,13 +10,15 @@ import os.path
 from pathlib import Path
 import uuid
 from urllib.parse import parse_qs
-from typing import Any, Literal, TypedDict
-from collections.abc import Iterator
+from typing import Any, Literal, TypedDict, TYPE_CHECKING
 
 from utils import interfaces, remote_config, weblog, context, logger
-from utils._weblog import HttpResponse
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
-from utils.dd_types import DataDogAgentSpan
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
+    from collections.abc import Iterator
+    from utils import DataDogAgentSpan
 
 # Agent paths
 _CONFIG_PATH = "/v0.7/config"

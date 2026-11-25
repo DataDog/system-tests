@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 from utils import weblog, scenarios, interfaces, features
-from utils.dd_types import DataDogAgentSpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan
 
 
 @features.otel_api

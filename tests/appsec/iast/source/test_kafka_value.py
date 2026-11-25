@@ -1,10 +1,14 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 from utils import features, scenarios
-from utils._weblog import HttpResponse
 from tests.appsec.iast.utils import BaseSourceTest, get_all_iast_events, get_iast_sources
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 @features.iast_source_kafka_value

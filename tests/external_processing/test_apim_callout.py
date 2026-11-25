@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import re
 from collections import defaultdict
 from pathlib import Path
 
 from utils import context, features, interfaces, irrelevant, weblog
-from utils._weblog import HttpResponse
-from utils.dd_types import DataDogLibrarySpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
+    from utils import HttpResponse
 
 
 CALLOUT_LOG_PATTERN = re.compile(

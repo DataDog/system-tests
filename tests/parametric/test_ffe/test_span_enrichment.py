@@ -19,20 +19,24 @@ This module tests:
 12. Delta varint encoding correctness (unit tests)
 """
 
+from __future__ import annotations
+
 import json
 from utils import pytest
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import (
     decode_delta_varint,
     encode_delta_varint,
     hash_targeting_key,
     load_ufc_fixture_for_cases,
 )
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 RC_PRODUCT = "FFE_FLAGS"

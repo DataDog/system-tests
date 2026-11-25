@@ -1,4 +1,5 @@
-from collections.abc import Callable
+from __future__ import annotations
+
 import hmac
 import json
 import time
@@ -10,8 +11,12 @@ from utils import (
     weblog,
 )
 from utils import remote_config as rc
-from utils._weblog import HttpResponse
-from utils.dd_types import DataDogLibrarySpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
+    from utils import HttpResponse
+    from collections.abc import Callable
 
 WEBHOOK_SECRET = b"whsec_FAKE"
 

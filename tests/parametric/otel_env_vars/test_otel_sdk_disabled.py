@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary
-from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
 from tests.parametric.otel_env_vars.utils import generate_default_counter_data_point
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
+    from tests.parametric.conftest import APMLibrary
 
 
 COUNTER = "otel_sdk_disabled_probe"

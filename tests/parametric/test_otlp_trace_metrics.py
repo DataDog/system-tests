@@ -54,21 +54,25 @@ can also carry. Status-code and boolean metric attributes must be typed OTLP val
 boolValue); _dd.stats_computed is a string-valued Datadog convention.
 """
 
+from __future__ import annotations
+
 import base64
 import json
 import time
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils import context, features, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import ORIGIN
-from .conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from .conftest import APMLibrary
+    from utils import AgentRequest
 
 
 SPAN_DURATION_METRIC = "traces.span.sdk.metrics.duration"

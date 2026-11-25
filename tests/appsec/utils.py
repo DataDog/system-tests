@@ -1,11 +1,16 @@
-from collections.abc import Generator, Iterable
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
-from utils.dd_types import DataDogLibrarySpan
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
+    from collections.abc import Generator, Iterable
 
 IAST_VULNERABILITY_SCHEMA_PATH = Path(__file__).parent / "utils" / "vulnerability_schema.json"
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from utils import pytest
@@ -10,8 +12,11 @@ from utils.docker_fixtures.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import SAMPLING_RULE_PRIORITY_RATE
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 UNSET = -420
 

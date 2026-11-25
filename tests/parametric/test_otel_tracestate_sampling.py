@@ -1,16 +1,16 @@
 """Cross-tracer conformance for OpenTelemetry consistent probability sampling (ot.th / ot.rv) on the wire."""
 
+from __future__ import annotations
+
 import json
 
 from utils import pytest
 
 from utils import features, scenarios
 from utils.dd_constants import SamplingPriority
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, find_trace
 from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracecontext
 
-from .conftest import APMLibrary
 from tests.otel.utils import (
     FORWARD_RV,
     FORWARD_TH,
@@ -22,6 +22,11 @@ from tests.otel.utils import (
     SAMPLING_RATE_0_99,
     TH_BY_RATE,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 def _traceparent(trace_id: int, *, sampled: bool) -> str:
