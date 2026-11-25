@@ -70,9 +70,8 @@ from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import ORIGIN
 
 if TYPE_CHECKING:
-    from utils import TestAgentAPI
+    from utils import TestAgentAPI, AgentRequest
     from .conftest import APMLibrary
-    from utils import AgentRequest
 
 
 SPAN_DURATION_METRIC = "traces.span.sdk.metrics.duration"

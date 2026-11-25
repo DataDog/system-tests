@@ -215,9 +215,6 @@ ignore = [
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
-"utils/__init__.py" = [
-    "TC004",    # runtime-import-in-type-checking-block: re-exports for type checking only, which is the purpose of this block
-]
 "utils/_context/_scenarios/auto_injection.py" = [
     "PLC0415",  # import-outside-top-level TODO
 ]

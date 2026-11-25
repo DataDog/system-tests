@@ -24,9 +24,8 @@ from utils.manifest._internal.types import SemverRange
 from .utils import _mapped_telemetry_name
 
 if TYPE_CHECKING:
-    from utils import TestAgentAPI
+    from utils import TestAgentAPI, Span
     from .conftest import APMLibrary
-    from utils import Span
     from utils._context.component_version import ComponentVersion
 
 parametrize = pytest.mark.parametrize

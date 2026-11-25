@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Generator
 from contextlib import AbstractContextManager, contextmanager
+from typing import TYPE_CHECKING
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.otel_env_vars.utils import wait_for_otlp_export_requests
@@ -9,7 +10,6 @@ from tests.parametric.utils import generate_default_counter_data_point
 from utils import pytest, scenarios
 from utils.docker_fixtures import new_test_id
 from utils.docker_fixtures.parametric import LogLevel
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

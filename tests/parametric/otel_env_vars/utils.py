@@ -12,8 +12,7 @@ from utils import context
 from utils.docker_fixtures.parametric import LogLevel
 
 if TYPE_CHECKING:
-    from utils import AgentRequest
-    from utils import TestAgentAPI
+    from utils import AgentRequest, TestAgentAPI
     from tests.parametric.conftest import APMLibrary
 
 

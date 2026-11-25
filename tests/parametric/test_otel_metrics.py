@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from urllib.parse import urlparse
+from typing import TYPE_CHECKING
 from utils import pytest
 
 from utils import features, scenarios
@@ -24,7 +25,6 @@ from .otel_env_vars.utils import (
     find_metric_by_name,
     get_expected_bucket_counts,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

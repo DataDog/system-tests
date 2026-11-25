@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 
 from utils import features, pytest, scenarios
 from tests.parametric.conftest import APMLibrary, nodejs_startup_config
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
@@ -15,7 +16,6 @@ from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.dd_types import is_same_boolean
 from utils import features, context, scenarios
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 from urllib.parse import urlparse
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
@@ -11,7 +12,6 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .utils import find_log_components, find_log_record
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

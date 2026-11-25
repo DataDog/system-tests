@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 
 import requests
 
 from utils import irrelevant, context
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

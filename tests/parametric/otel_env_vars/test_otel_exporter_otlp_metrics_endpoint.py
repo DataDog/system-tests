@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from utils import features, pytest, scenarios
 from typing import TYPE_CHECKING
+
+from utils import features, pytest, scenarios
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

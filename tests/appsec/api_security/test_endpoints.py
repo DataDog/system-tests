@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from utils import interfaces, rfc, scenarios, weblog, features
 from typing import TYPE_CHECKING
+
+from utils import interfaces, rfc, scenarios, weblog, features
 
 if TYPE_CHECKING:
     from utils import HttpResponse

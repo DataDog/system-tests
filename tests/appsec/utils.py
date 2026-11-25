@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

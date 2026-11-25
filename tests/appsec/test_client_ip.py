@@ -3,8 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 from __future__ import annotations
 
-from utils import weblog, interfaces, scenarios, features
 from typing import TYPE_CHECKING
+
+from utils import weblog, interfaces, scenarios, features
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

@@ -3,8 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 from __future__ import annotations
 
-from utils import context, interfaces, rfc, weblog, features, scenarios
 from typing import TYPE_CHECKING
+
+from utils import context, interfaces, rfc, weblog, features, scenarios
 
 if TYPE_CHECKING:
     from utils import HttpResponse

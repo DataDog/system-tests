@@ -3,13 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
-from utils import context, interfaces, weblog, features, irrelevant, rfc
-from utils.dd_types import is_same_boolean
 from typing import TYPE_CHECKING
 
+from utils import context, interfaces, weblog, features, irrelevant, rfc
+from utils.dd_types import is_same_boolean
+
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")

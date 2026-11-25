@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import json
+from typing import TYPE_CHECKING
 from utils import pytest
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
@@ -17,8 +18,6 @@ from utils.docker_fixtures.spec.trace import (
     find_first_span_in_trace_payload,
 )
 from utils import context, scenarios, features
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

@@ -3,6 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import context
 from utils import features
 from utils import interfaces
@@ -12,7 +14,6 @@ from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

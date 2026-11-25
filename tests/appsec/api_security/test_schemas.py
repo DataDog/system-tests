@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import interfaces, rfc, scenarios, weblog, features, logger
 from tests.appsec.api_security.utils import send_until_schema, get_sampled_response
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from types import EllipsisType

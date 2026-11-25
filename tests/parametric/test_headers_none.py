@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils import scenarios, features
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

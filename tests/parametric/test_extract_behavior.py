@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios
 from utils.docker_fixtures.spec.trace import find_span, find_trace, retrieve_span_links, span_has_no_parent
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

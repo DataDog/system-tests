@@ -3,12 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
-from utils import weblog, interfaces, scenarios, rfc, features
 from typing import TYPE_CHECKING
 
+from utils import weblog, interfaces, scenarios, rfc, features
+
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, HttpResponse
 
 
 @features.security_events_metadata

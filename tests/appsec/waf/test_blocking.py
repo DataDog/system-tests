@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from utils import interfaces, scenarios, weblog, rfc, features
 from .test_blocking_security_response_id import (
@@ -8,7 +9,6 @@ from .test_blocking_security_response_id import (
     extract_security_response_id_from_json,
     extract_security_response_id_from_html,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

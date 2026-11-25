@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import re
 from urllib.parse import urlparse
+from typing import TYPE_CHECKING
 
 from utils import context, interfaces, features, scenarios, logger
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

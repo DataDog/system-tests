@@ -16,9 +16,8 @@ from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 if TYPE_CHECKING:
-    from utils import HttpResponse
+    from utils import HttpResponse, DataDogAgentSpan
     from collections.abc import Iterator
-    from utils import DataDogAgentSpan
 
 # Agent paths
 _CONFIG_PATH = "/v0.7/config"

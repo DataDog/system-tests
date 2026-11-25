@@ -5,10 +5,11 @@ https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-v
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from tests.parametric.utils import find_log_record
 from utils import features, scenarios, pytest
 from utils.docker_fixtures.parametric import LogLevel
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

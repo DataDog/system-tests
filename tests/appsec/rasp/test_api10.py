@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
 
@@ -12,7 +13,6 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant_v2_exists,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

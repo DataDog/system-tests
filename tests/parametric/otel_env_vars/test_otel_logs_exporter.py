@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
 from tests.parametric.test_otel_logs import find_log_record
 from utils import features, scenarios
 from utils.docker_fixtures.parametric import LogLevel
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

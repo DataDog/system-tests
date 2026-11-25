@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, rfc, features, logger
 from tests.serverless.span_pointers.utils import (
@@ -8,7 +9,6 @@ from tests.serverless.span_pointers.utils import (
     make_single_span_link_validator,
     standard_hashing_function,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

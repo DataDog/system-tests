@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
@@ -22,7 +23,6 @@ from tests.otel.utils import (
     SAMPLING_RATE_0_99,
     TH_BY_RATE,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

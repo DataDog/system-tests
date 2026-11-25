@@ -6,13 +6,13 @@ from __future__ import annotations
 import copy
 import re
 import os
+from typing import TYPE_CHECKING
 import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
 from utils import features, logger, scenarios, slow
 from utils.dd_types import AgentTraceFormat
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogAgentSpan

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from utils import weblog, interfaces, context, logger
 from typing import TYPE_CHECKING
+from utils import weblog, interfaces, context, logger
 
 if TYPE_CHECKING:
     from utils import HttpResponse

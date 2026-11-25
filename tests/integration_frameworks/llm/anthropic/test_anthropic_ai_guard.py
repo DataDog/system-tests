@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios
@@ -14,7 +16,6 @@ from tests.integration_frameworks.llm.utils import (
     assert_assistant_tool_calls_forwarded,
 )
 from .utils import TOOLS, BaseAnthropicTest
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import FrameworkTestClientApi, TestAgentAPI

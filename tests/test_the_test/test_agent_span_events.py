@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import base64
 import json
+from typing import TYPE_CHECKING
 
 from utils import pytest
 from utils.proxy.traces.trace_v1 import _uncompress_agent_v1_trace
 from utils.dd_types import DataDogAgentTrace
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogAgentSpan

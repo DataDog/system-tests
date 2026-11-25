@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils.buddies import java_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, logger
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

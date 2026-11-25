@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

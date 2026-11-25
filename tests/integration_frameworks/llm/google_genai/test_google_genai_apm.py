@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import features, scenarios
 
 from utils import pytest
 
 from .utils import BaseGoogleGenaiTest
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import FrameworkTestClientApi, TestAgentAPI

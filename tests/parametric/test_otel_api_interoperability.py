@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import scenarios, features
 from opentelemetry.trace import SpanKind
 from utils.docker_fixtures.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI, ParametricTestClientApi as APMLibrary

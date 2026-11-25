@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from utils import weblog, interfaces, features, scenarios, logger, rfc
 from typing import TYPE_CHECKING
+
+from utils import weblog, interfaces, features, scenarios, logger, rfc
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

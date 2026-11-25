@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import uuid
+from typing import TYPE_CHECKING
 
 from utils import pytest
 import yaml
@@ -15,7 +16,6 @@ from utils.docker_fixtures import ParametricTestClientApi as APMLibrary, docker_
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._core import get_host_port
 from utils.mocked_backend import MockedBackendServer
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils.docker_fixtures._test_agent_pool import WorkerAgentPool

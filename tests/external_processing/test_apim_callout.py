@@ -3,13 +3,12 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-
-from utils import context, features, interfaces, irrelevant, weblog
 from typing import TYPE_CHECKING
 
+from utils import context, features, interfaces, irrelevant, weblog
+
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, HttpResponse
 
 
 CALLOUT_LOG_PATTERN = re.compile(

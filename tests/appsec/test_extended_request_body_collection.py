@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import weblog, interfaces, scenarios, rfc, features, context
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

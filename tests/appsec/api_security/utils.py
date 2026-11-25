@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import interfaces, remote_config
 from utils._logger import logger
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

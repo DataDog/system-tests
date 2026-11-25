@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from tests.parametric.conftest import APMLibrary, assert_nodejs_telemetry_config
 from utils import features, scenario_crash, scenarios
 from utils.docker_fixtures.spec.trace import find_only_span
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

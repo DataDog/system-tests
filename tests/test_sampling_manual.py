@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_constants import SamplingPriority
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

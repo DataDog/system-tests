@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import features, pytest, scenarios
 from utils.docker_fixtures.parametric import LogLevel
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

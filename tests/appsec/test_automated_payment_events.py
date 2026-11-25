@@ -3,6 +3,7 @@ from __future__ import annotations
 import hmac
 import json
 import time
+from typing import TYPE_CHECKING
 from utils import (
     features,
     interfaces,
@@ -11,11 +12,9 @@ from utils import (
     weblog,
 )
 from utils import remote_config as rc
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, HttpResponse
     from collections.abc import Callable
 
 WEBHOOK_SECRET = b"whsec_FAKE"

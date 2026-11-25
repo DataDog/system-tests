@@ -3,10 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import interfaces, rfc, scenarios, weblog, features, logger
 from utils.dd_constants import Capabilities
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

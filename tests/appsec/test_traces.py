@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import (
     weblog,
     context,
@@ -14,7 +16,6 @@ from utils import (
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

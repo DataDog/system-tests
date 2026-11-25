@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 from utils import context, scenarios, features
 from utils.docker_fixtures.spec.trace import find_only_span
 from .conftest import APMLibrary, assert_nodejs_telemetry_config, nodejs_telemetry_value
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

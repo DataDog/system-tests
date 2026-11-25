@@ -17,8 +17,7 @@ from utils.dd_constants import SamplingPriority
 from utils.dd_types import is_same_boolean
 
 if TYPE_CHECKING:
-    from utils import DataDogAgentSpan
-    from utils import HttpResponse
+    from utils import DataDogAgentSpan, HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
 SMOKE_RC_RASP_RULE_ID = "rasp-930-100"

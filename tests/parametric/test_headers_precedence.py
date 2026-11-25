@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import scenarios, features
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 from utils import pytest
 
 from utils import scenarios, features, rfc
 from utils.docker_fixtures.spec.trace import find_span, find_trace
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

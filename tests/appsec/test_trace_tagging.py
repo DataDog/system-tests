@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import (
     interfaces,
     scenarios,
@@ -10,7 +12,6 @@ from utils import (
     features,
 )
 from utils.dd_constants import Capabilities, SamplingPriority
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

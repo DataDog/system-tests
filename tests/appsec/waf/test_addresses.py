@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from utils import pytest
 from utils import weblog, interfaces, rfc, scenarios, features, logger
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogLibrarySpan

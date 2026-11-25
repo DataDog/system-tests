@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from tests.parametric.otel_env_vars import utils as otel_env_var_utils
-from utils import features, pytest, scenarios
 from typing import TYPE_CHECKING
 
+from tests.parametric.otel_env_vars import utils as otel_env_var_utils
+from utils import features, pytest, scenarios
+
 if TYPE_CHECKING:
-    from utils import AgentRequest
-    from utils import TestAgentAPI
+    from utils import AgentRequest, TestAgentAPI
     from tests.parametric.otel_env_vars.conftest import DefaultProtocol
     from tests.parametric.conftest import APMLibrary
 

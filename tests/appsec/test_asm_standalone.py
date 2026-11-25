@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 import time
+from typing import TYPE_CHECKING
 
 from requests.structures import CaseInsensitiveDict
 
@@ -11,12 +12,10 @@ from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SAMPLING_PRIORITY_K
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, logger
 from utils.dd_types import LibraryTraceFormat, is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan, DataDogLibraryTrace
+    from utils import DataDogLibrarySpan, DataDogLibraryTrace, HttpResponse
     from utils._weblog import _Weblog
-    from utils import HttpResponse
     from collections.abc import Callable
 
 USER = "test"

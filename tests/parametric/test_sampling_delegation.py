@@ -8,9 +8,10 @@ libraries.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 from utils import features, rfc, scenarios
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from utils import weblog, scenarios, interfaces, features
 from typing import TYPE_CHECKING
+
+from utils import weblog, scenarios, interfaces, features
 
 if TYPE_CHECKING:
     from utils import DataDogAgentSpan

@@ -22,11 +22,11 @@ RFC: https://docs.google.com/document/d/1SzZWivVWT79lJe80ZulEra6AARszjEYVEwWJ7Ih
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios, rfc
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

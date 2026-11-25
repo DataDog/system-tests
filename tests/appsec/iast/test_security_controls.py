@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import HttpResponse

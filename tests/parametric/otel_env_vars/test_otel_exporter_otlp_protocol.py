@@ -5,6 +5,8 @@ https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest
 from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import ExportLogsServiceRequest
@@ -15,7 +17,6 @@ from utils.docker_fixtures.parametric import LogLevel
 from tests.parametric.otel_env_vars import utils as otel_env_var_utils
 from tests.parametric.utils import find_log_record
 from tests.parametric.utils import generate_default_counter_data_point
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tests.parametric.otel_env_vars.conftest import DefaultProtocol

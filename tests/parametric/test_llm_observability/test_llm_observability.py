@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import scenarios, features
@@ -8,7 +10,6 @@ from utils.docker_fixtures.spec.llm_observability import (
     LlmObsAnnotationRequest,
     LlmObsAnnotationContextRequest,
 )
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..conftest import APMLibrary  # noqa: TID252

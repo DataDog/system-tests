@@ -6,14 +6,13 @@ from __future__ import annotations
 
 import json
 import re
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, HttpResponse
 
 
 def remove_traceparent(s: str) -> str:

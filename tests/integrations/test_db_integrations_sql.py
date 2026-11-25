@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 from utils import context, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogAgentSpan

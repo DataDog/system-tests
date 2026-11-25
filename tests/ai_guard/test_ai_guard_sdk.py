@@ -4,16 +4,15 @@ import json
 import math
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
 from utils.dd_types import is_same_boolean
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from utils import DataDogLibrarySpan, DataDogLibraryTrace
-    from utils import HttpResponse
+    from utils import DataDogLibrarySpan, DataDogLibraryTrace, HttpResponse
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {

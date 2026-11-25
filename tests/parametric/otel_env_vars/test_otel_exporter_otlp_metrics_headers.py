@@ -5,9 +5,10 @@ https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-v
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from tests.parametric.utils import generate_default_counter_data_point
 from utils import features, scenarios, pytest
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

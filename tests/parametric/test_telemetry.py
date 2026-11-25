@@ -6,6 +6,7 @@ import base64
 import json
 import time
 import uuid
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
@@ -15,7 +16,6 @@ from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, logger
 from .conftest import APMLibrary
 from .utils import _mapped_telemetry_name
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI

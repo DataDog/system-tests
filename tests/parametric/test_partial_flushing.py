@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_span, find_trace
 from utils import features, scenarios
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary

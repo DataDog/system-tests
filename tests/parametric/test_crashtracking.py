@@ -5,11 +5,11 @@ from __future__ import annotations
 import base64
 import json
 import time
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
 from utils import features, scenarios, logger
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import TestAgentAPI, ParametricTestClientApi as APMLibrary

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import struct
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, logger, HttpResponse
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils import DataDogAgentSpan, DataDogLibrarySpan

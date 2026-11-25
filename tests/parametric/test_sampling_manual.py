@@ -8,18 +8,18 @@ Manual keep sampling should take precedence over any other sampling decision.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from utils import pytest
 from utils import features, rfc, scenarios
 from utils.dd_constants import SamplingMechanism
 from utils.dd_constants import SamplingPriority
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import SAMPLING_DECISION_MAKER_KEY
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .conftest import APMLibrary
-    from utils import Span
-    from utils import TestAgentAPI
+    from utils import Span, TestAgentAPI
 
 
 @features.ensure_that_sampling_is_consistent_across_languages
