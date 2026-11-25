@@ -1,15 +1,17 @@
-import io
-import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+import textwrap
+
 from utils import pytest
-from utils import scenarios, missing_feature, logger
+from utils import scenarios
+from utils.proxy.scrubber import SecretInEnvironmentError, check_no_secret_in_env, get_secret_env_names
 
 
 FILENAME = "tests/test_the_test/test_scrubber.py"
 
-scrubbed_names = {
+secret_names = {
     "DD_API_KEY": "secret_value_1",
     "DD_API_KEY_2": "secret_value_C",
     "DD_API_KEY_3": "secret_value_D",
@@ -31,145 +33,112 @@ scrubbed_names = {
     "DOCKER_LOGIN_PASS": "secret_value_onboarding_5",
 }
 
+not_secret_names = {
+    "AWS_VAULT_KEYCHAIN_NAME": "a_keychain_name",  # explicitly excluded name
+    "ONBOARDING_AWS_INFRA_KEY_PATH": "/path/to/key.pem",  # explicitly excluded name
+    "ONBOARDING_AWS_INFRA_KEYPAIR_NAME": "a_keypair_name",  # explicitly excluded name
+    "SOME_PASSWORD": "datadog",  # explicitly excluded value
+    "SHORT_TOKEN": "  123456  ",  # too short once stripped
+    "DD_SITE": "datad0g.com",  # name does not match
+}
+
 
 @scenarios.test_the_test
-def test_log_scrubber():
+def test_secrets_are_detected():
+    assert get_secret_env_names(secret_names | not_secret_names) == sorted(secret_names)
+
+
+@scenarios.test_the_test
+def test_name_filter_is_case_insensitive():
+    assert get_secret_env_names({"my_api_key": "a_long_value", "Docker_Login": "a_long_value"}) == [
+        "Docker_Login",
+        "my_api_key",
+    ]
+
+
+@scenarios.test_the_test
+def test_no_secret_does_not_raise():
+    check_no_secret_in_env(not_secret_names)
+
+
+@scenarios.test_the_test
+def test_error_names_variables_but_never_values():
+    with pytest.raises(SecretInEnvironmentError) as exc_info:
+        check_no_secret_in_env(secret_names | not_secret_names)
+
+    message = str(exc_info.value)
+    assert exc_info.value.names == sorted(secret_names)
+    for name in secret_names:
+        assert name in message
+    for value in (secret_names | not_secret_names).values():
+        assert value not in message
+
+
+def _env_without_secrets() -> dict[str, str]:
+    return {name: value for name, value in os.environ.items() if name not in get_secret_env_names()}
+
+
+@scenarios.test_the_test
+def test_runner_fails_fast():
     cmd = ["./run.sh", "MOCK_THE_TEST", FILENAME]
-    subprocess.run(cmd, env=scrubbed_names | os.environ, text=True, capture_output=True, check=False)
+    result = subprocess.run(cmd, env=_env_without_secrets() | secret_names, text=True, capture_output=True, check=False)
 
-    redacted_count = 0
+    output = result.stdout + result.stderr
+    assert result.returncode != 0, output
+    assert "look like secrets" in output, output
+    for name in secret_names:
+        assert name in output
+    for secret in secret_names.values():
+        assert secret not in output, f"{secret} found in run.sh output"
 
-    for root, _, files in os.walk("logs_mock_the_test"):
-        for file in files:
-            file_path = os.path.join(root, file)
-
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = f.read()
-
-            redacted_count += data.count("--redacted--")
-            for secret in scrubbed_names.values():
-                assert secret not in data, f"{secret} found in {file_path}"
-
-    # extra protection to make sure we redacted all secrets
-    assert redacted_count != 0, "No secrets were redacted"
-
-
-@scenarios.mock_the_test
-def test_leaks():
-    logger.info(os.environ)
-    print(os.environ)  # noqa: T201
+    # nothing ran, so nothing could leak in the logs
+    for path in Path("logs_mock_the_test").rglob("*"):
+        if path.is_file():
+            data = path.read_text(encoding="utf-8", errors="replace")
+            for secret in secret_names.values():
+                assert secret not in data, f"{secret} found in {path}"
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize(("write_mode", "read_mode", "file_extension"), [("w", "r", "txt"), ("wb", "rb", "bin")])
-def test_file_writer_scrubber(write_mode: str, read_mode: str, file_extension: str):
-    secrets = []
+def test_proxy_write_scrubber(tmp_path: Path):
+    """The proxy still redacts env secrets from what it writes. Run in a subprocess: it patches builtins"""
 
-    for name, value in scrubbed_names.items():
-        os.environ[name] = value
-        secrets.append(bytearray(value, "utf-8") if write_mode == "wb" else value)
+    script = textwrap.dedent(
+        """
+        import io, json, sys
+        from pathlib import Path
+        from utils.proxy.scrubber import install_write_scrubber
 
-    log_file = f"{scenarios.test_the_test.host_log_folder}/leak.{file_extension}"
-    with open(log_file, write_mode) as f:
-        for secret in secrets:
-            f.write(secret)
-            f.writelines([secret, secret])
+        install_write_scrubber()
 
-    with open(log_file, read_mode) as f:
-        data = f.read()
+        folder = Path(sys.argv[1])
+        secret = "datad0g_secret"
+        content = f"/var/log/{secret} {secret}_preload_hook"
 
-    for secret in secrets:
-        assert secret not in data
+        with open(folder / "str.txt", "w") as f:
+            f.write(content)
+            f.writelines([content, content])
+        with open(folder / "json.json", "w") as f:
+            json.dump({"str": secret, "int": 123456789}, f)
+        with open(folder / "bytes.bin", "wb") as f:
+            assert f.write(content.encode()) == len(content)
+        with Path(folder / "pathlib.txt").open("w") as f:
+            f.write(content)
+        with io.FileIO(folder / "fileio.bin", "w") as f:
+            f.write(content.encode())
+        """
+    )
 
+    env = _env_without_secrets() | {"PYTHONPATH": ".", "A_SECRET": "datad0g_secret", "INT_KEY": "123456789"}
+    subprocess.run([sys.executable, "-c", script, str(tmp_path)], env=env, check=True)
 
-@scenarios.test_the_test
-def test_binary_file_writer_scrubber_preserves_size() -> None:
-    secret_name = "BINARY_SECRET"
-    secret = "datad0g"
-    content = f"/var/log/{secret} {secret}_preload_hook".encode()
-    log_file = f"{scenarios.test_the_test.host_log_folder}/binary_size.log"
+    files = list(tmp_path.iterdir())
+    assert len(files) == 5
+    for file in files:
+        data = file.read_text(encoding="utf-8")
+        assert "datad0g_secret" not in data, file
+        assert "123456789" not in data, file
 
-    os.environ[secret_name] = secret
-    try:
-        with open(log_file, "wb") as f:
-            written = f.write(content)
-    finally:
-        del os.environ[secret_name]
-
-    with open(log_file, "rb") as f:
-        data = f.read()
-
-    assert written == len(content)
-    assert len(data) == len(content)
-    assert secret.encode() not in data
-
-
-@scenarios.test_the_test
-def test_jsonweird():
-    secret = 123456789
-    os.environ["KEY_SCRUBBED"] = f"{secret}"
-
-    log_file = "logs_test_the_test/json_weird.json"
-    with open(log_file, "w") as f:
-        json.dump({"int": secret, "str": f"{secret}"}, f)
-
-    del os.environ["KEY_SCRUBBED"]
-
-    with open(log_file, "r") as f:
-        data = f.read()
-
-    assert f"{secret}" not in data
-
-
-@scenarios.test_the_test
-def test_pathlib():
-    secret = 123456789
-    os.environ["KEY_SCRUBBED"] = f"{secret}"
-
-    log_file = "logs_test_the_test/pathlib.txt"
-    with Path(log_file).open("w") as f:
-        json.dump({"int": secret, "str": f"{secret}"}, f)
-        f.writelines([f"{secret}"])
-
-    del os.environ["KEY_SCRUBBED"]
-
-    with open(log_file, "r") as f:
-        data = f.read()
-
-    assert f"{secret}" not in data
-
-
-@scenarios.test_the_test
-@missing_feature(condition=True, reason="Not supported")
-def test_os_open():
-    secret = 123456789
-    os.environ["KEY_SCRUBBED"] = f"{secret}"
-
-    log_file = "logs_test_the_test/os_open.txt"
-    fd = os.open(log_file, os.O_WRONLY | os.O_CREAT)
-    os.write(fd, f"{secret}".encode())
-    os.close(fd)
-
-    del os.environ["KEY_SCRUBBED"]
-
-    with open(log_file, "r") as f:
-        data = f.read()
-
-    assert f"{secret}" not in data
-
-
-@scenarios.test_the_test
-def test_io_file():
-    secret = 123456789
-    os.environ["KEY_SCRUBBED"] = f"{secret}"
-
-    log_file = "logs_test_the_test/io_fileio.txt"
-    with io.FileIO(log_file, "w") as f:
-        f.write(f"{secret}".encode())
-
-    del os.environ["KEY_SCRUBBED"]
-
-    with open(log_file, "r") as f:
-        data = f.read()
-
-    assert f"{secret}" not in data
+    # binary writes keep the size
+    assert len((tmp_path / "bytes.bin").read_bytes()) == len("/var/log/datad0g_secret datad0g_secret_preload_hook")
+    assert "--redacted--" in (tmp_path / "str.txt").read_text(encoding="utf-8")
