@@ -108,6 +108,10 @@ VALID_CI_WORKFLOWS = {
 
 
 class Scenario:
+    needs_secrets_on_runner: bool = False
+    """ True if the test runner itself needs secrets (e.g. to provision VMs or K8s clusters). In CI, other scenarios
+    fail fast if the runner environment holds a secret, see utils/proxy/scrubber.py """
+
     def __init__(
         self,
         name: str,

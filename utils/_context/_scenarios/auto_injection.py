@@ -18,6 +18,8 @@ _MOCKED_BACKEND_VM_PORT = 4901
 class _VirtualMachineScenario(Scenario):
     """Scenario that tests virtual machines"""
 
+    needs_secrets_on_runner = True  # DD_*_KEY_ONBOARDING, DOCKER_LOGIN(_PASS), AWS credentials to provision the VMs
+
     def __init__(
         self,
         name: str,

@@ -24,7 +24,12 @@ from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.manifest import Manifest
-from utils.proxy.scrubber import SecretInEnvironmentError, check_no_secret_in_env
+from utils.proxy.scrubber import (
+    SecretInEnvironmentError,
+    check_no_secret_in_env,
+    get_runner_secret_policy,
+    install_write_scrubber,
+)
 from utils.properties_serialization import SetupProperties
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
@@ -161,12 +166,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    # No secret must reach the test runner: fail fast, before anything is started or written
-    try:
-        check_no_secret_in_env()
-    except SecretInEnvironmentError as e:
-        raise pytest.UsageError(str(e)) from None
-
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -215,6 +214,8 @@ def pytest_configure(config: pytest.Config) -> None:
             break
 
     if current_scenario is not None:
+        # before anything is started or written
+        _protect_secrets(config, current_scenario)
         current_scenario.pytest_configure(config)
         context.scenario = current_scenario
     else:
@@ -225,6 +226,22 @@ def pytest_configure(config: pytest.Config) -> None:
 
     configure_decorators(config)
     logger.info(f"Force execute: {config.option.force_execute}")
+
+
+def _protect_secrets(config: pytest.Config, scenario: Scenario) -> None:
+    """In CI, no secret must reach the test runner: fail fast. Excluded runs redact secrets from what they write"""
+    exclusion_reason = get_runner_secret_policy(
+        needs_secrets_on_runner=scenario.needs_secrets_on_runner,
+        generate_cassettes=config.option.generate_cassettes,
+    )
+
+    if exclusion_reason is None:
+        try:
+            check_no_secret_in_env()
+        except SecretInEnvironmentError as e:
+            raise pytest.UsageError(str(e)) from None
+    else:
+        install_write_scrubber()
 
 
 # Called at the very begening

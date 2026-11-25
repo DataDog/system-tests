@@ -1,14 +1,17 @@
-"""Detection of secrets in the environment.
+"""Protection against secrets leaking in the logs.
 
-The test runner must never hold a secret: `check_no_secret_in_env` is called at startup and fails fast,
-naming the offending variables (never their values).
+Test runner (see `get_runner_secret_policy`, called by conftest.py at startup):
+* strict mode, the default in CI: the runner must not hold any secret. If an env var looks like a secret, the
+  run fails fast, naming the offending variables (never their values).
+* excluded runs, that legitimately need secrets on the runner: local runs (outside CI), scenarios that set
+  `needs_secrets_on_runner` (SSI: AWS onboarding, K8s lib injection), and cassette recording
+  (--generate-cassettes). Those runs keep the write-time redaction, see `install_write_scrubber`.
 
-The proxy is different: it sits between the agent and the real Datadog backend in some scenarios, so real API
-keys flow through it (in request headers), and it receives DD_API_KEY/DD_APP_KEY in its environment. For this
-reason it still redacts those values from everything it writes, see `install_write_scrubber`.
+Proxy: it gets DD_API_KEY/DD_APP_KEY from the runner env, so that they are redacted from what it writes (real keys
+may flow through it, in request headers). It always installs the write-time redaction, a no-op without secrets.
 
-Those modules are shared by the runner and the proxy container (that only mounts utils/proxy), so they must
-only depend on the standard library.
+This module is shared by the runner and the proxy container (that only mounts utils/proxy), so it must only
+depend on the standard library.
 """
 
 import builtins
@@ -54,10 +57,31 @@ class SecretInEnvironmentError(Exception):
         self.names = names
         super().__init__(
             "The following environment variables look like secrets and must not be present in the test runner "
-            f"environment: {', '.join(names)}. Unset them before running system-tests. "
+            f"environment in CI: {', '.join(names)}. Unset them for the run.sh step. "
             f"(A variable is considered as a secret if its name matches /{_name_filter.pattern}/i and its "
             f"value is longer than {_MINIMUM_SECRET_LENGTH} characters, see utils/proxy/scrubber.py)"
         )
+
+
+def is_ci(environ: Mapping[str, str] | None = None) -> bool:
+    """CI is set to true by both GitHub Actions and GitLab CI. GITHUB_ACTIONS/GITLAB_CI cover an unset CI"""
+    environ = os.environ if environ is None else environ
+    return any(environ.get(name, "").strip().lower() == "true" for name in ("CI", "GITHUB_ACTIONS", "GITLAB_CI"))
+
+
+def get_runner_secret_policy(
+    *, needs_secrets_on_runner: bool, generate_cassettes: bool, environ: Mapping[str, str] | None = None
+) -> str | None:
+    """Return None if the runner must run in strict mode (no secret allowed in its environment). Otherwise, the
+    reason why this run is excluded from the strict mode, and must redact secrets from what it writes.
+    """
+    if not is_ci(environ):
+        return "local run"
+    if needs_secrets_on_runner:
+        return "the scenario needs secrets on the runner"
+    if generate_cassettes:
+        return "cassette recording"
+    return None
 
 
 def check_no_secret_in_env(environ: Mapping[str, str] | None = None) -> None:
@@ -67,7 +91,7 @@ def check_no_secret_in_env(environ: Mapping[str, str] | None = None) -> None:
         raise SecretInEnvironmentError(names)
 
 
-# --- write-time scrubbing, only used by the proxy ---
+# --- write-time redaction: proxy, and runs excluded from the strict mode ---
 
 
 def _get_secrets() -> set[str]:
@@ -100,11 +124,19 @@ def _instrument_write_methods_bytes(f: Any, secrets: set[str]) -> None:  # noqa:
     f.write = write
 
 
+_write_scrubber_installed = False
+
+
 def install_write_scrubber() -> None:
     """Redact secrets found in the environment from any file written with open, Path.open or io.FileIO.
 
-    The secret list is computed once: the proxy's environment does not change after startup.
+    The secret list is computed once, here: secrets added to the environment later are not redacted.
     """
+    global _write_scrubber_installed  # noqa: PLW0603
+    if _write_scrubber_installed:
+        return
+    _write_scrubber_installed = True
+
     secrets = _get_secrets()
     if not secrets:
         return

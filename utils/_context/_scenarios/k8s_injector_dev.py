@@ -22,6 +22,8 @@ class K8sInjectorDevSingleService(Scenario):
     Scenario that tests kubernetes lib injection using the injector-dev tool
     """
 
+    needs_secrets_on_runner = True  # PRIVATE_DOCKER_REGISTRY_TOKEN, to pull images in the cluster
+
     def __init__(self) -> None:
         super().__init__(
             "K8S_INJECTOR_DEV_SINGLE_SERVICE",

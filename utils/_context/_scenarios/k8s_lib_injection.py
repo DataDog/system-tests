@@ -28,6 +28,8 @@ class K8sScenarioWithClusterProvider:
 class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that tests kubernetes lib injection"""
 
+    needs_secrets_on_runner = True  # PRIVATE_DOCKER_REGISTRY_TOKEN, to pull images in the cluster
+
     def __init__(
         self,
         name: str,
