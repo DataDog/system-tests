@@ -23,18 +23,19 @@ Import-linter contracts have started to draw lines: tests only import the `utils
 
 ### Proposition
 
-Split the Python surface of system-tests into **six public interfaces**, each with its own audience and an explicit list of exported names. Everything else in `utils/` is internal, and import-linter blocks consumers from importing it.
+Split the Python surface of system-tests into **seven public interfaces**, each with its own audience and an explicit list of exported names. Everything else in `utils/` is internal, and import-linter blocks consumers from importing it.
 
 | Interface | Audience | Content |
 |-----------|----------|---------|
-| **Test API** | test authors | `weblog`, assertion helpers, validators, parametric clients and fixtures, the test handles of components (`interfaces.*`, mocks), and `context` |
+| **Setup API** | test authors, in `setup_*` methods | actions that produce data: `weblog` requests, remote config updates, installing mocked responses, the action side of component handles |
+| **Assertion API** | test authors, in `test_*` methods | checks on collected data: validators (`interfaces.*`), span and trace helpers, `ValidationError`, the query side of component handles |
 | **Metadata API** | test authors, tooling | decorators (`bug`, `missing_feature`, `irrelevant`, `flaky`...), `features`, and a read-only scenario registry (`scenarios.xxx`, `scenario_groups`) |
 | **Runtime info** | test and metadata APIs | the read-only view of what is running: library and version, weblog variant, scenario, component versions. Exposed as `context` |
 | **Scenario API** | scenario authors | what a scenario definition needs to compose components: scenario base classes, component definitions, constants, ports |
 | **Component API** | component authors (framework maintainers, teams adding a side container) | the contract for writing a component: lifecycle and an optional test handle |
 | **Build API** | `build.sh`, CI, external tooling | listing components, weblogs and scenarios, resolving base images and image lists, building images |
 
-`utils.pytest` stays as is: it's the approved subset of pytest and is part of the test API.
+The setup and assertion APIs together form the **test API**, exposed at the `utils` root. `utils.pytest` stays as is: it's the approved subset of pytest and is part of the test API.
 
 #### Layering
 
@@ -53,6 +54,7 @@ build.sh, CI, tools ──▶ Build API ── builds images of ┘
 
 - **Metadata API** depends on runtime info only, so decorators can evaluate conditions (`@bug(context.library < "java@1.2")`) without importing the test API.
 - **Test API** re-exports the metadata API and runtime info, so test authors keep a single import root (`from utils import ...`) and the 574 existing `from utils import` lines stay valid.
+- **Setup API** and **assertion API** don't import each other. Both can read runtime info.
 - **Scenario API** never imports the test API. Scenario definitions import only the scenario API.
 - **Runtime info** is read-only for its consumers. Only the scenario core writes to it, through an internal module.
 
@@ -66,6 +68,24 @@ A component is anything a scenario starts next to the library under test: the we
 Mocks are components, not part of the test framework. They have the same status as a postgres container, except that they expose a test handle.
 
 Tests never import a component directly. The test API **re-exports** the handles behind stable names (`interfaces.*` today, plus the mock helpers), so components can be reorganised without touching tests.
+
+#### Setup and test functions
+
+End-to-end tests run in two phases. All `setup_*` methods run first, while the scenario is up, and their results (`self.r = weblog.get(...)`) are stored. Then the scenario stops, and the `test_*` methods assert on what the components collected. With `--replay`, setup methods don't run: their stored results are restored, and the tests run against the logs of a previous run.
+
+So the two phases need different things, and mixing them breaks something:
+
+- an action in a `test_*` method (a weblog request, a remote config update) happens after the components stopped collecting, and doesn't happen at all in replay mode;
+- an assertion in a `setup_*` method fails before the data it checks has been collected.
+
+The test API is therefore split in two: a **setup API** for actions and an **assertion API** for checks. Component handles are split the same way. The proxy handle, for example, exposes "send these mocked responses" on the setup side and "these spans were received" on the assertion side.
+
+Import-linter can't enforce this split, because both phases live in the same file. Two options, not exclusive:
+
+- a phase guard at runtime: setup API calls raise when made outside a setup method, and assertion API calls raise when made inside one;
+- a static check (a ruff plugin or a small AST check run by `./format.sh`) that `setup_*` methods only call the setup API and `test_*` methods only call the assertion API, with a ratchet for existing violations.
+
+Parametric tests (`docker_fixtures`) don't have two phases: one test function drives the library through its fixtures and asserts on the result. They use both APIs and are out of scope for the phase checks.
 
 #### `context`
 
@@ -101,7 +121,7 @@ Cost:
 - `__all__` is the contract. Names used only in annotations can be re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py` for `TestAgentAPI`, `DataDogLibrarySpan`...
 - Public submodules are kept to a minimum and listed explicitly in the contracts.
 
-Module names are open (see below). Working names: `utils` (test API), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+Module names are open (see below). Working names: `utils` (test API, re-exporting `utils.setup_api` and `utils.assertion_api`), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
 
 ### Enforcement with import-linter
 
@@ -126,7 +146,7 @@ Every step is shippable on its own and leaves CI green.
 
 1. **Boundaries only.** Add the import-linter contracts above, with today's violations as ratchet ignores. No code moves. This makes the target visible and stops new violations, including new uses of `context` internals and new direct imports of components from tests.
 2. **Centralise re-exports.** Create the interface modules and route consumers through them:
-   - test API: re-export what tests import from internals today (helpers, types, constants, component handles and mocks), then rewrite test imports with a codemod, area by area;
+   - test API: re-export what tests import from internals today (helpers, types, constants, component handles and mocks), sorted into the setup and assertion APIs, then rewrite test imports with a codemod, area by area. Add the phase checks with a ratchet;
    - scenario API: re-export the targets scenario definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). That clears every declarative scenario definition. The infrastructure-heavy ones (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
    - build API: create `utils.build_api` and its CLI, and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
@@ -136,6 +156,8 @@ Every step is shippable on its own and leaves CI green.
 4. **Document** each interface for its audience (`docs/edit/` for tests and scenarios, `docs/internals/` for components and build), and point the AI rules (`docs/ai/`) at them.
 
 ## Open questions
+
+- Phase checks: runtime guard, static check, or both? Should tests import from `utils.setup_api` and `utils.assertion_api` explicitly, or keep the single `utils` root?
 
 - Module names and layout: flat modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
 - Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one condition format?
