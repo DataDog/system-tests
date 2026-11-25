@@ -1956,6 +1956,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (missing /security/thread_context_sharing endpoint)
         rails80: v2.47.0
+        uds-rails: v2.49.0  # TODO: a lower version might be supported
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
