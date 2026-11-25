@@ -6,7 +6,7 @@ DD_METRICS_OTEL_ENABLED and DD_LOGS_OTEL_ENABLED. These settings still win when 
 OTEL_SDK_DISABLED=true still turns off OpenTelemetry mode.
 """
 
-from typing import Final
+from typing import Any, Final
 
 from utils import features, pytest, scenarios
 
@@ -68,13 +68,26 @@ def _emit_log(library: APMLibrary) -> None:
     library.otel_logs_flush()
 
 
+def _telemetry_configurations(test_agent: TestAgentAPI) -> dict[str, list[dict[str, Any]]]:
+    """The configurations reported in telemetry, each with the last reported entry first."""
+    runtime_id = test_agent.wait_for_telemetry_runtime_id()
+    return test_agent.wait_for_telemetry_configurations(runtime_id=runtime_id)
+
+
+def _assert_reported(configurations: dict[str, list[dict[str, Any]]], name: str, value: str, origin: str) -> None:
+    entries = configurations.get(name)
+    assert entries, f"{name} isn't in the configuration telemetry"
+    effective = entries[0]
+    assert str(effective.get("value")).lower() == value, f"{name}: expected {value!r}, got {effective}"
+    assert effective.get("origin") == origin, f"{name}: expected the {origin} origin, got {effective}"
+
+
 def _assert_sdk_mode_supported(test_agent: TestAgentAPI) -> None:
     """Fail unless the SDK supports DD_SDK_MODE, which it then reports in its configuration telemetry.
 
     Tests that only check that the mode changes nothing would otherwise pass with an SDK that ignores DD_SDK_MODE.
     """
-    runtime_id = test_agent.wait_for_telemetry_runtime_id()
-    configurations = test_agent.wait_for_telemetry_configurations(runtime_id=runtime_id)
+    configurations = _telemetry_configurations(test_agent)
     assert test_agent.get_telemetry_config_by_origin(configurations, "DD_SDK_MODE", "env_var") is not None, (
         "DD_SDK_MODE isn't in the configuration telemetry: the SDK doesn't support it"
     )
@@ -83,7 +96,14 @@ def _assert_sdk_mode_supported(test_agent: TestAgentAPI) -> None:
 @scenarios.parametric
 @features.not_reported  # TODO: use the DD_SDK_MODE feature once it exists in the Feature Parity Dashboard
 class Test_DD_SDK_MODE:
-    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            pytest.param({**OTEL_MODE_ENV}, id="otel"),
+            pytest.param({**OTEL_MODE_ENV, "DD_SDK_MODE": "OTEL"}, id="otel-uppercase"),
+            pytest.param({**OTEL_MODE_ENV, "DD_SDK_MODE": " otel "}, id="otel-whitespace"),
+        ],
+    )
     @pytest.mark.usefixtures("otlp_endpoints")
     def test_otel_exports_traces_over_otlp(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -125,10 +145,33 @@ class Test_DD_SDK_MODE:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, LOGGER, LOG_MESSAGE) is not None
 
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV}])
+    def test_otel_mode_defaults_are_reported_as_calculated(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        with test_library:
+            configurations = _telemetry_configurations(test_agent)
+
+        _assert_reported(configurations, "OTEL_TRACES_EXPORTER", "otlp", "calculated")
+        _assert_reported(configurations, "DD_TRACE_OTEL_SEMANTICS_ENABLED", "true", "calculated")
+        _assert_reported(configurations, "DD_METRICS_OTEL_ENABLED", "true", "calculated")
+        _assert_reported(configurations, "DD_LOGS_OTEL_ENABLED", "true", "calculated")
+
+    # Separate from the other defaults, as some test apps set DD_TRACE_OTEL_ENABLED themselves (see the manifests)
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV}])
+    def test_otel_mode_tracing_api_default_is_reported_as_calculated(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        with test_library:
+            configurations = _telemetry_configurations(test_agent)
+
+        _assert_reported(configurations, "DD_TRACE_OTEL_ENABLED", "true", "calculated")
+
     @pytest.mark.parametrize(
         "library_env",
         [
             pytest.param({**MODE_SETTINGS_UNSET}, id="unset"),
+            pytest.param({**MODE_SETTINGS_UNSET, "DD_SDK_MODE": ""}, id="empty"),
             pytest.param({**MODE_SETTINGS_UNSET, "DD_SDK_MODE": "datadog"}, id="datadog"),
             pytest.param({**MODE_SETTINGS_UNSET, "DD_SDK_MODE": "DATADOG"}, id="datadog-uppercase"),
             pytest.param({**MODE_SETTINGS_UNSET, "DD_SDK_MODE": "invalid"}, id="invalid"),
@@ -141,6 +184,32 @@ class Test_DD_SDK_MODE:
 
         assert test_agent.wait_for_num_traces(num=1)
         assert not wait_for_otlp_export_requests(test_agent, "traces", timeout=1)
+
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_TRACE_OTEL_ENABLED": "false"}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_explicit_tracing_api_setting_takes_precedence(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        with test_library as library:
+            configurations = _telemetry_configurations(test_agent)
+            _emit_span(library)
+
+        # Control: the mode still exports traces over OTLP, so it isn't ignored
+        assert wait_for_otlp_export_requests(test_agent, "traces"), "DD_SDK_MODE=otel didn't export traces over OTLP"
+        _assert_reported(configurations, "DD_TRACE_OTEL_ENABLED", "false", "env_var")
+
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "false"}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_explicit_semantics_setting_takes_precedence(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        with test_library as library:
+            configurations = _telemetry_configurations(test_agent)
+            _emit_span(library)
+
+        # Control: the mode still exports traces over OTLP, so it isn't ignored
+        assert wait_for_otlp_export_requests(test_agent, "traces"), "DD_SDK_MODE=otel didn't export traces over OTLP"
+        _assert_reported(configurations, "DD_TRACE_OTEL_SEMANTICS_ENABLED", "false", "env_var")
 
     @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_METRICS_OTEL_ENABLED": "false"}])
     @pytest.mark.usefixtures("otlp_endpoints")
