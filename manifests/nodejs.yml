@@ -359,9 +359,16 @@ manifest:
         "*": missing_feature
         express5: *ref_6_10_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <6.27.0
+      weblog: [express5]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [express5]
   ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
-  : incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
+  : - declaration: incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
+    - weblog_declaration:
+        express5: missing_feature (RFC-1125 not implemented yet)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
@@ -372,10 +379,10 @@ manifest:
       excluded_weblog: [express5]
   ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
   : - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
+        express5: v6.27.0  # TODO: a lower version might be supported
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
     - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
+        express5: v6.27.0  # TODO: a lower version might be supported
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Node.js weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Node.js weblogs)
