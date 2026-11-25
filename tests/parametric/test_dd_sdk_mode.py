@@ -131,12 +131,11 @@ def _assert_reported(configurations: dict[str, list[dict[str, Any]]], name: str,
 
 
 def _assert_sdk_mode_supported(test_agent: TestAgentAPI) -> None:
-    """Fail unless the SDK supports DD_SDK_MODE, which it then reports in its configuration telemetry.
+    """Fail unless the SDK supports DD_SDK_MODE, which it then reports in its configuration telemetry, set or not.
 
-    Tests that only check that the mode changes nothing would otherwise pass with an SDK that ignores DD_SDK_MODE.
+    Tests that check what the mode doesn't change would otherwise pass with an SDK that ignores DD_SDK_MODE.
     """
-    configurations = _telemetry_configurations(test_agent)
-    assert test_agent.get_telemetry_config_by_origin(configurations, "DD_SDK_MODE", "env_var") is not None, (
+    assert _telemetry_configurations(test_agent).get("DD_SDK_MODE"), (
         "DD_SDK_MODE isn't in the configuration telemetry: the SDK doesn't support it"
     )
 
@@ -227,6 +226,7 @@ class Test_DD_SDK_MODE:
     @pytest.mark.usefixtures("otlp_endpoints")
     def test_datadog_mode_keeps_datadog_protocol(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library as library:
+            _assert_sdk_mode_supported(test_agent)
             _emit_span(library)
 
         assert test_agent.wait_for_num_traces(num=1)
