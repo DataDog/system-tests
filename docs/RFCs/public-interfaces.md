@@ -80,10 +80,19 @@ So the two phases need different things, and mixing them breaks something:
 
 The test API is therefore split in two: a **setup API** for actions and an **assertion API** for checks. Component handles are split the same way. The proxy handle, for example, exposes "send these mocked responses" on the setup side and "these spans were received" on the assertion side.
 
-Import-linter can't enforce this split, because both phases live in the same file. Two options, not exclusive:
+The two APIs live in `utils.tests_api.setup` and `utils.tests_api.assertion`. At first the `utils` root keeps re-exporting both, so existing tests don't change. Importing from the two modules explicitly comes in a later step. Each public name should belong to exactly one phase: the more that holds, the simpler the checks below. Names that belong to neither (constants, enums, types, `context`) are neutral and usable in both.
 
-- a phase guard at runtime: setup API calls raise when made outside a setup method, and assertion API calls raise when made inside one;
-- a static check (a ruff plugin or a small AST check run by `./format.sh`) that `setup_*` methods only call the setup API and `test_*` methods only call the assertion API, with a ratchet for existing violations.
+Import-linter can't enforce this split, because both phases live in the same file. It's enforced by a static check, backed by a runtime guard.
+
+**Static check.** A small AST checker run by `./format.sh` (ruff has no plugin system), with a ratchet file for existing violations:
+
+- the interfaces declare the phase of each name, the checker doesn't: membership of `utils.tests_api.setup` or `utils.tests_api.assertion`, plus a decorator (`@setup_only`, `@assertion_only`) on the members of handles that serve both phases, such as `interfaces.agent.wait_for`, which waits in a setup method for data to arrive;
+- for each test class, the checker classifies `setup_*` and `test_*` methods by name, resolves every name used to its import and follows attribute chains (`interfaces.agent.wait_for`) to the declared member;
+- helpers defined in the same file (module functions, other methods, base classes in the file) inherit the phases of their callers. Helpers in other files are not a concern: tests can't import other tests (`no-cross-test-imports`), and helpers in `utils` are part of an API, so they are already classified.
+
+A prototype on today's end-to-end tests (1,102 setup and 1,446 test methods) found no `weblog` call in a test method. Classifying by top-level name only (`weblog`, `remote_config` = setup; `interfaces` = assertion) gives 12 hits, all false positives (`interfaces.agent.wait_for` in setup methods, the `remote_config.ApplyState` enum in a test method). That's why phases are declared per member, not per name.
+
+**Runtime guard.** What the checker can't see (`getattr`, handles passed around as values, lambdas) is caught when the test runs: setup API calls raise outside a setup method, and assertion API calls raise inside one.
 
 Parametric tests (`docker_fixtures`) don't have two phases: one test function drives the library through its fixtures and asserts on the result. They use both APIs and are out of scope for the phase checks.
 
@@ -121,7 +130,7 @@ Cost:
 - `__all__` is the contract. Names used only in annotations can be re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py` for `TestAgentAPI`, `DataDogLibrarySpan`...
 - Public submodules are kept to a minimum and listed explicitly in the contracts.
 
-Module names are open (see below). Working names: `utils` (test API, re-exporting `utils.setup_api` and `utils.assertion_api`), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+Module names are open (see below). Working names: `utils` (test API, re-exporting `utils.tests_api.setup` and `utils.tests_api.assertion`), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
 
 ### Enforcement with import-linter
 
@@ -153,12 +162,12 @@ Every step is shippable on its own and leaves CI green.
 
    Each move removes ratchet lines.
 3. **Converge components.** Define the component API (lifecycle and test handle) and migrate components one at a time: proxy, mocked backend, agent, test agent, weblog, side containers. Move the build of their images from shell to the build API.
-4. **Document** each interface for its audience (`docs/edit/` for tests and scenarios, `docs/internals/` for components and build), and point the AI rules (`docs/ai/`) at them.
+4. **Explicit phase imports.** Tests import from `utils.tests_api.setup` and `utils.tests_api.assertion` instead of the `utils` root (codemod), and the root re-exports of the two APIs are deprecated.
+5. **Document** each interface for its audience (`docs/edit/` for tests and scenarios, `docs/internals/` for components and build), and point the AI rules (`docs/ai/`) at them.
 
 ## Open questions
 
-- Phase checks: runtime guard, static check, or both? Should tests import from `utils.setup_api` and `utils.assertion_api` explicitly, or keep the single `utils` root?
-
+- Is the runtime guard worth its cost once the static check exists, or is a ratchet on the static check enough?
 - Module names and layout: flat modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
 - Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one condition format?
 - Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
