@@ -407,3 +407,55 @@ ignore_imports =
     tests.test_telemetry -> utils.telemetry_utils
     tests.test_v1_payloads -> utils.dd_constants
     tests.test_v1_payloads -> utils.dd_types
+
+# The next two contracts fence Docker into a runtime layer, isolating the container backend
+# from the user-facing interface (scenarios, weblogs, tests).
+# `TODO` ignores are a ratchet: remove them as the code is routed through the runtime layer,
+# never add new ones.
+
+[importlinter:contract:docker-sdk-runtime-layer]
+name = Only the runtime layer imports the docker SDK
+type = protected
+protected_modules =
+    docker
+allowed_importers =
+    # the runtime layer
+    utils._context.docker
+    utils._context.containers
+unmatched_ignore_imports_alerting = error
+ignore_imports =
+    # docker-inherent: Docker SSI tests Docker itself, permanent exception
+    utils._context._scenarios.docker_ssi -> docker
+    # tests of the framework itself test its internals
+    tests.test_the_test.** -> docker
+    # TODO: route through the runtime layer
+    utils._context._scenarios._core.docker_fixtures -> docker
+    utils._context._scenarios._core.endtoend -> docker
+    utils._context._scenarios.agentless_endtoend -> docker
+    utils._context._scenarios.thread_context_sharing -> docker
+    utils.docker_fixtures._core -> docker
+    utils.docker_fixtures._test_clients._core -> docker
+    utils.docker_fixtures._test_clients._test_client_parametric -> docker
+
+[importlinter:contract:container-layer-orchestration]
+name = Only scenarios/orchestration import the container layer
+type = protected
+protected_modules =
+    utils._context.containers
+    utils._context.docker
+allowed_importers =
+    # the layer itself (each protected module is checked separately, so they must allow each other)
+    utils._context.containers
+    utils._context.docker
+    # orchestration
+    utils._context._scenarios
+    utils._context.weblog_infrastructure
+unmatched_ignore_imports_alerting = error
+ignore_imports =
+    # This contract focuses on utils: imports from tests are already ratcheted by
+    # the utils-public-interface contract, no need to duplicate them here
+    tests.** -> utils._context.containers
+    # TODO: route through the scenarios/orchestration layer
+    utils._context.core -> utils._context.containers
+    utils.docker_fixtures._core -> utils._context.docker
+    utils.k8s.k8s_component_image -> utils._context.docker
