@@ -407,3 +407,114 @@ ignore_imports =
     tests.test_telemetry -> utils.telemetry_utils
     tests.test_v1_payloads -> utils.dd_constants
     tests.test_v1_payloads -> utils.dd_types
+
+[importlinter:contract:scenario-definitions-api]
+name = Scenario definitions only import utils through the scenario-building API (utils._context._scenarios._core)
+type = forbidden
+source_modules =
+    utils._context._scenarios
+# Overlapping modules are skipped by forbidden contracts: `utils._context` and `utils._context._scenarios`
+# contain the source package, so these wildcards forbid every other module of utils, including future ones.
+forbidden_modules =
+    utils.*
+    utils._context.*
+# Only direct imports are checked: _core itself relies on internals
+allow_indirect_imports = True
+unmatched_ignore_imports_alerting = error
+ignore_imports =
+    # _core is the scenario-building API, not a scenario definition
+    utils._context._scenarios._core.** -> utils.**
+    # TODO: existing imports of internals, to expose through the scenario-building API
+    utils._context._scenarios -> utils.tools
+    utils._context._scenarios.agentless_endtoend -> utils._context.containers
+    utils._context._scenarios.agentless_endtoend -> utils._context.docker
+    utils._context._scenarios.agentless_endtoend -> utils._logger
+    utils._context._scenarios.agentless_endtoend -> utils._weblog
+    utils._context._scenarios.agentless_endtoend -> utils.interfaces
+    utils._context._scenarios.agentless_endtoend -> utils.mocked_backend.ffe
+    utils._context._scenarios.ai_guard -> utils._context.constants
+    utils._context._scenarios.ai_guard -> utils._context.containers
+    utils._context._scenarios.ai_guard -> utils._logger
+    utils._context._scenarios.apm_tracing -> utils.proxy.ports
+    utils._context._scenarios.appsec -> utils._context.constants
+    utils._context._scenarios.appsec -> utils._context.containers
+    utils._context._scenarios.appsec_auto_events -> utils._context.containers
+    utils._context._scenarios.appsec_rasp -> utils._context.constants
+    utils._context._scenarios.appsec_rasp -> utils._context.containers
+    utils._context._scenarios.auto_injection -> utils._context.component_version
+    utils._context._scenarios.auto_injection -> utils._logger
+    utils._context._scenarios.auto_injection -> utils.interfaces
+    utils._context._scenarios.auto_injection -> utils.onboarding.debug_vm
+    utils._context._scenarios.auto_injection -> utils.virtual_machine.ami_candidate
+    utils._context._scenarios.auto_injection -> utils.virtual_machine.ssh_reverse_tunnel
+    utils._context._scenarios.auto_injection -> utils.virtual_machine.virtual_machine_provider
+    utils._context._scenarios.auto_injection -> utils.virtual_machine.virtual_machine_provisioner
+    utils._context._scenarios.auto_injection -> utils.virtual_machine.virtual_machines
+    utils._context._scenarios.aws_lambda -> utils._context.constants
+    utils._context._scenarios.aws_lambda -> utils._context.containers
+    utils._context._scenarios.aws_lambda -> utils._logger
+    utils._context._scenarios.aws_lambda -> utils.interfaces
+    utils._context._scenarios.aws_lambda -> utils.interfaces._core
+    utils._context._scenarios.debugger -> utils._context.constants
+    utils._context._scenarios.debugger -> utils._logger
+    utils._context._scenarios.default -> utils._context.constants
+    utils._context._scenarios.default -> utils._context.containers
+    utils._context._scenarios.docker_ssi -> utils._context.component_version
+    utils._context._scenarios.docker_ssi -> utils._context.containers
+    utils._context._scenarios.docker_ssi -> utils._context.docker
+    utils._context._scenarios.docker_ssi -> utils._logger
+    utils._context._scenarios.docker_ssi -> utils.docker_ssi.base_image_tag
+    utils._context._scenarios.docker_ssi -> utils.docker_ssi.docker_ssi_matrix_utils
+    utils._context._scenarios.docker_ssi -> utils.interfaces
+    utils._context._scenarios.docker_ssi -> utils.virtual_machine.vm_logger
+    utils._context._scenarios.graphql -> utils._context.constants
+    utils._context._scenarios.integration_frameworks -> utils._context.component_version
+    utils._context._scenarios.integration_frameworks -> utils._context.constants
+    utils._context._scenarios.integration_frameworks -> utils._context.docker
+    utils._context._scenarios.integration_frameworks -> utils._logger
+    utils._context._scenarios.integration_frameworks -> utils.docker_fixtures
+    utils._context._scenarios.integrations -> utils._context.constants
+    utils._context._scenarios.integrations -> utils._context.containers
+    utils._context._scenarios.ipv6 -> utils._context.constants
+    utils._context._scenarios.ipv6 -> utils._logger
+    utils._context._scenarios.k8s_injector_dev -> utils._context.component_version
+    utils._context._scenarios.k8s_injector_dev -> utils._logger
+    utils._context._scenarios.k8s_injector_dev -> utils.injector_dev.injector_client
+    utils._context._scenarios.k8s_injector_dev -> utils.injector_dev.scenario_provision_parser
+    utils._context._scenarios.k8s_injector_dev -> utils.k8s.k8s_component_image
+    utils._context._scenarios.k8s_injector_dev -> utils.k8s_lib_injection.k8s_cluster_provider
+    utils._context._scenarios.k8s_lib_injection -> utils._context.component_version
+    utils._context._scenarios.k8s_lib_injection -> utils._logger
+    utils._context._scenarios.k8s_lib_injection -> utils.interfaces
+    utils._context._scenarios.k8s_lib_injection -> utils.k8s.k8s_component_image
+    utils._context._scenarios.k8s_lib_injection -> utils.k8s.k8s_components_parser
+    utils._context._scenarios.k8s_lib_injection -> utils.k8s_lib_injection.k8s_cluster_provider
+    utils._context._scenarios.k8s_lib_injection -> utils.k8s_lib_injection.k8s_datadog_kubernetes
+    utils._context._scenarios.k8s_lib_injection -> utils.k8s_lib_injection.k8s_weblog
+    utils._context._scenarios.open_telemetry -> utils._context.component_version
+    utils._context._scenarios.open_telemetry -> utils._context.constants
+    utils._context._scenarios.open_telemetry -> utils._context.containers
+    utils._context._scenarios.open_telemetry -> utils._logger
+    utils._context._scenarios.open_telemetry -> utils.interfaces
+    utils._context._scenarios.open_telemetry -> utils.interfaces._core
+    utils._context._scenarios.open_telemetry -> utils.mocked_backend
+    utils._context._scenarios.open_telemetry -> utils.proxy.ports
+    utils._context._scenarios.otel_collector -> utils._context.component_version
+    utils._context._scenarios.otel_collector -> utils._context.containers
+    utils._context._scenarios.otel_collector -> utils._logger
+    utils._context._scenarios.otel_collector -> utils.interfaces
+    utils._context._scenarios.otel_collector -> utils.proxy.ports
+    utils._context._scenarios.otel_semantics -> utils.proxy.ports
+    utils._context._scenarios.parametric -> utils._context.component_version
+    utils._context._scenarios.parametric -> utils._context.constants
+    utils._context._scenarios.parametric -> utils._context.docker
+    utils._context._scenarios.parametric -> utils._logger
+    utils._context._scenarios.parametric -> utils.docker_fixtures
+    utils._context._scenarios.profiling -> utils._context.constants
+    utils._context._scenarios.runtime_metrics -> utils.proxy.ports
+    utils._context._scenarios.test_the_test -> utils._context.component_version
+    utils._context._scenarios.thread_context_sharing -> utils._context.constants
+    utils._context._scenarios.thread_context_sharing -> utils._logger
+    utils._context._scenarios.thread_context_sharing -> utils.interfaces
+    utils._context._scenarios.tracing_config -> utils._context.containers
+    utils._context._scenarios.tracing_config -> utils._context.header_tag_vars
