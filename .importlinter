@@ -32,6 +32,18 @@ ignore_imports =
     tests.test_the_test.test_otlp_request_correlation -> tests.otel.test_tracing_otlp
     tests.parametric.otel_env_vars.test_otel_logs_exporter -> tests.parametric.test_otel_logs
 
+[importlinter:contract:utils-no-tests]
+name = utils does not import tests
+type = forbidden
+source_modules =
+    utils
+forbidden_modules =
+    tests
+unmatched_ignore_imports_alerting = error
+ignore_imports =
+    # TODO: move cws_self_test_succeeded out of tests/
+    utils._context._scenarios.thread_context_sharing -> tests.cws.utils
+
 [importlinter:contract:utils-public-interface]
 name = Tests only import utils through its public interface (utils/__init__.py)
 type = protected
