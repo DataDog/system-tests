@@ -39,10 +39,6 @@ source_modules =
     utils
 forbidden_modules =
     tests
-unmatched_ignore_imports_alerting = error
-ignore_imports =
-    # TODO: move cws_self_test_succeeded out of tests/
-    utils._context._scenarios.thread_context_sharing -> tests.cws.utils
 
 [importlinter:contract:utils-public-interface]
 name = Tests only import utils through its public interface (utils/__init__.py)
@@ -154,7 +150,6 @@ ignore_imports =
     tests.auto_inject.utils -> utils.onboarding.weblog_interface
     tests.auto_inject.utils -> utils.virtual_machine.virtual_machines
     tests.auto_inject.utils -> utils.virtual_machine.vm_logger
-    tests.cws.utils -> utils._logger
     tests.debugger.test_debugger_exception_replay -> utils.dd_types
     tests.debugger.test_debugger_inproduct_enablement -> utils.dd_types
     tests.debugger.test_debugger_probe_snapshot -> utils.interfaces._library.miscs

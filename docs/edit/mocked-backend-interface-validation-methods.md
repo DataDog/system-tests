@@ -56,6 +56,9 @@ for data in interfaces.mocked_backend.get_data("/api/v2/apmtelemetry", with_api_
 - `get_sketches(*, with_api_key=None)`: `(data, point)` for every sketch sent to `/api/beta/sketches` or `/api/intake/metrics/v3/sketches`
 - `get_stats(resource="", *, with_api_key=None)`: APM stats sent to `/api/v0.2/stats`, optionally only those of a resource (or a list of resources)
 - `get_dsm_data(*, with_api_key=None)`: Data Streams Monitoring payloads sent to `/api/v0.1/pipeline_stats`
+- `get_cws_events(*, with_api_key=None)`: `(data, event)` for every CWS (Cloud Workload Security) event sent to `/api/v2/secruntime`, unwrapped from its intake envelope
+- `wait_for_cws_event(predicate, timeout)`: wait until `predicate(event)` is true for a CWS event, during the setup. Returns whether it happened
+- `wait_for_cws_self_test(timeout)`: wait until the agent reports a CWS self test with every test passing (CWS drops events generated before). Returns whether it happened
 
 ### Headers
 

@@ -47,7 +47,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
     each tracer's implementation lands.
 
     CWS security events are observed in what the agent sends to the mocked backend
-    (`/api/v2/secruntime`), decoded via `tests/cws/utils.py`.
+    (`/api/v2/secruntime`), decoded by interfaces.mocked_backend.get_cws_events().
 
     When /vm-host exists, the scenario assumes it runs inside a Kata VM's docker-in-docker
     container, where the kernel filesystems of the VM are mounted under /vm-host by the CI
@@ -74,7 +74,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENABLED"] = "true"
 
         # span_tracking makes system-probe read the tracer's thread context; the self test is
-        # the readiness signal the tests wait on (see tests/cws/utils.py).
+        # the readiness signal the tests wait on (interfaces.mocked_backend.wait_for_cws_self_test).
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_SPAN_TRACKING_ENABLED"] = "true"
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_SELF_TEST_ENABLED"] = "true"
 
@@ -175,13 +175,9 @@ class ThreadContextSharingScenario(EndToEndScenario):
             raise RuntimeError(message) from e
 
     def _agent_warmup_then_wait_for_cws(self) -> None:
-        # Imported lazily, so that utils (which loads every scenario) does not depend on the
-        # tests package at import time; this is the same readiness predicate the tests use.
-        from tests.cws.utils import cws_self_test_succeeded  # noqa: PLC0415
-
         self._agent_warmup()
 
-        if not interfaces.mocked_backend.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
+        if not interfaces.mocked_backend.wait_for_cws_self_test(timeout=CWS_READINESS_TIMEOUT):
             message = (
                 f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
             )

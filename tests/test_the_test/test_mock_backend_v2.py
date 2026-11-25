@@ -8,6 +8,7 @@ import threading
 import ssl
 import json
 from collections.abc import Generator
+from typing import Any
 from pathlib import Path
 import subprocess
 import sys
@@ -637,3 +638,73 @@ def test_serves_remote_config_by_default(server: MockedBackendServer):
 
     server.client.set_mocked_responses([MockedBackendResponse("/api/v0.1/configurations", b"from a test")])
     assert requests.post(f"{server.base_url}/api/v0.1/configurations", timeout=5).content == b"from a test"
+
+
+def _cws_request(*messages: object) -> list[dict]:
+    """A CWS intake batch: each event is sent as a JSON string in the "message" field of its envelope"""
+    return [
+        {"message": m if isinstance(m, str) else json.dumps(m), "ddsource": "runtime-security-agent"} for m in messages
+    ]
+
+
+def _mocked_backend_with_cws_requests(tmp_path: Path, batches: list[list[Any]]) -> _MockedBackendInterfaceValidator:
+    interface = _MockedBackendInterfaceValidator()
+    interface.configure(str(tmp_path), replay=False)
+    for i, batch in enumerate(batches):
+        file = Path(interface.log_folder) / f"{i:03}__api_v2_secruntime.json"
+        data = {
+            "log_filename": str(file),
+            "path": "/api/v2/secruntime",
+            "request": {"headers": [], "content": batch},
+            "response": {},
+        }
+        file.write_text(json.dumps(data))
+        interface.ingest_file(str(file))
+    return interface
+
+
+@scenarios.test_the_test
+def test_mocked_backend_get_cws_events_unwraps_the_message_envelope(tmp_path: Path):
+    interface = _mocked_backend_with_cws_requests(
+        tmp_path,
+        [
+            _cws_request({"evt": {"name": "open"}}, "not json", {"evt": {"name": "exec"}}),
+            [{"no_message": True}, "not a dict"],
+        ],
+    )
+
+    events = [event for _, event in interface.get_cws_events()]
+
+    assert events == [{"evt": {"name": "open"}}, {"evt": {"name": "exec"}}]
+
+
+@scenarios.test_the_test
+def test_mocked_backend_ignores_other_paths_for_cws_events(tmp_path: Path):
+    interface = _mocked_backend_with_requests(tmp_path, [("000__agent.json", "agent-key")])
+
+    assert list(interface.get_cws_events()) == []
+    assert not interface.wait_for_cws_event(lambda _: True, timeout=0)
+
+
+@scenarios.test_the_test
+def test_mocked_backend_wait_for_cws_event(tmp_path: Path):
+    interface = _mocked_backend_with_cws_requests(tmp_path, [_cws_request({"file": "/tmp/canary-1"})])
+
+    assert interface.wait_for_cws_event(lambda event: event.get("file") == "/tmp/canary-1", timeout=0)
+    assert not interface.wait_for_cws_event(lambda event: event.get("file") == "/tmp/canary-2", timeout=0)
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("self_test", "expected"),
+    [
+        ({"agent": {"rule_id": "self_test"}, "succeeded_tests": ["open"], "failed_tests": []}, True),
+        ({"agent": {"rule_id": "self_test"}, "succeeded_tests": ["open"], "failed_tests": ["exec"]}, False),
+        ({"agent": {"rule_id": "self_test"}, "succeeded_tests": []}, False),
+        ({"agent": {"rule_id": "another_rule"}, "succeeded_tests": ["open"]}, False),
+    ],
+)
+def test_mocked_backend_wait_for_cws_self_test(tmp_path: Path, self_test: dict, expected: bool):  # noqa: FBT001
+    interface = _mocked_backend_with_cws_requests(tmp_path, [_cws_request({"evt": {"name": "open"}}, self_test)])
+
+    assert interface.wait_for_cws_self_test(timeout=0) is expected

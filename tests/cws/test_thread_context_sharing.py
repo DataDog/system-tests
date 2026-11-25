@@ -7,7 +7,9 @@ import uuid
 
 from utils import features, interfaces, scenarios, weblog
 
-from .utils import CWS_EVENTS_PATH, cws_event_mentioning, cws_self_test_succeeded
+
+def _mentions(event: dict, marker: str) -> bool:
+    return marker in json.dumps(event)
 
 
 @features.thread_context_sharing
@@ -22,16 +24,13 @@ class Test_ThreadContextSharing:
     def setup_open_file_carries_trace_context(self):
         # CWS drops events generated before its pipeline is live, so hold the request back
         # until the agent's self test reports success.
-        self.cws_ready = interfaces.mocked_backend.wait_for(cws_self_test_succeeded, timeout=50)
+        self.cws_ready = interfaces.mocked_backend.wait_for_cws_self_test(timeout=50)
 
         self.canary_path = f"/tmp/system-tests-thread-context-sharing-{uuid.uuid4()}"
         self.response = weblog.get("/security/thread_context_sharing", params={"path": self.canary_path})
 
         # unique per request so we can pick out this test's own event among concurrent tests
-        interfaces.mocked_backend.wait_for(
-            lambda data: cws_event_mentioning(data, self.canary_path) is not None,
-            timeout=35,
-        )
+        interfaces.mocked_backend.wait_for_cws_event(lambda event: _mentions(event, self.canary_path), timeout=35)
 
     def test_open_file_carries_trace_context(self):
         assert self.cws_ready, "CWS never reported a successful self test, so no security event can be expected"
@@ -42,11 +41,10 @@ class Test_ThreadContextSharing:
         expected_trace_id = format(int(body["trace_id"]), "x")
         expected_span_id = str(body["span_id"])
 
-        event = None
-        for data in interfaces.mocked_backend.get_data(CWS_EVENTS_PATH):
-            event = cws_event_mentioning(data, self.canary_path)
-            if event is not None:
-                break
+        event = next(
+            (event for _, event in interfaces.mocked_backend.get_cws_events() if _mentions(event, self.canary_path)),
+            None,
+        )
 
         assert event is not None, f"No CWS event observed for {self.canary_path} within the timeout"
 

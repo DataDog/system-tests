@@ -9,6 +9,7 @@ scenarios), in the pytest process (see start_mocked_backend).
 
 from collections.abc import Callable, Generator, Iterable
 import copy
+import json
 from pathlib import Path
 import threading
 from typing import Any
@@ -19,6 +20,15 @@ from utils.dd_types import DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils.mocked_backend import MockedBackendServer
+
+# The security agent ships its CWS (Cloud Workload Security) events to runtime-security-http-intake.logs.<DD_SITE>,
+# which the mocked backend records under this path, as a batch (JSON array) of objects shaped like:
+#
+#     {"message": "<the event JSON, escaped as a string>", "ddsource": ..., "ddtags": ...,
+#      "service": ..., "hostname": ..., "timestamp": ..., "status": ...}
+#
+# The CWS methods below unwrap that "message" envelope to get back the original event body.
+CWS_EVENTS_PATH = "/api/v2/secruntime"
 
 
 class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -258,3 +268,61 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if not resources or "" in resources or client_grouped_stat["Resource"] in resources:
                             yield client_grouped_stat
+
+    @staticmethod
+    def _decode_cws_events(data: dict[str, Any]) -> Generator[dict[str, Any], None, None]:
+        """Every decoded CWS event body carried by one recorded request (see CWS_EVENTS_PATH)"""
+        if data["path"] != CWS_EVENTS_PATH:
+            return
+
+        content = data["request"].get("content")
+        if not isinstance(content, list):
+            return
+
+        for entry in content:
+            if not isinstance(entry, dict) or "message" not in entry:
+                continue
+
+            try:
+                yield json.loads(entry["message"])
+            except (TypeError, ValueError):
+                logger.debug(f"Could not decode a {CWS_EVENTS_PATH} entry as a CWS event: {entry}")
+
+    def get_cws_events(
+        self, *, with_api_key: str | None = None
+    ) -> Generator[tuple[dict[str, Any], dict[str, Any]], None, None]:
+        """CWS (Cloud Workload Security) security events the agent sent to the mocked backend, unwrapped from their
+        intake envelope. Yields (data, event) tuples.
+        """
+        for data in self.get_data(path_filters=CWS_EVENTS_PATH, with_api_key=with_api_key):
+            for event in self._decode_cws_events(data):
+                yield data, event
+
+    def wait_for_cws_event(self, predicate: Callable[[dict[str, Any]], bool], timeout: int) -> bool:
+        """Wait until the mocked backend receives a CWS event for which predicate(event) is true. Returns whether it
+        happened.
+        """
+        return self.wait_for(lambda data: any(predicate(event) for event in self._decode_cws_events(data)), timeout)
+
+    def wait_for_cws_self_test(self, timeout: int) -> bool:
+        """Wait until the agent reports a CWS self test with every test passing. Returns whether it happened.
+
+        This is the agent's own end-to-end proof that the CWS pipeline is live: rules evaluate, events are generated,
+        and they reach the intake. CWS drops events generated before, so wait for it before triggering any.
+        """
+        return self.wait_for(self._cws_self_test_succeeded, timeout)
+
+    @classmethod
+    def _cws_self_test_succeeded(cls, data: dict[str, Any]) -> bool:
+        """True if data carries the agent's CWS self test result, with every test passing"""
+        for event in cls._decode_cws_events(data):
+            if event.get("agent", {}).get("rule_id") != "self_test":
+                continue
+
+            if event.get("failed_tests"):
+                logger.error(f"CWS self test reported failures: {event['failed_tests']}")
+                return False
+
+            return bool(event.get("succeeded_tests"))
+
+        return False
