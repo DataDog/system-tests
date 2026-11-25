@@ -396,8 +396,8 @@ ignore_imports =
     tests.test_v1_payloads -> utils.dd_constants
     tests.test_v1_payloads -> utils.dd_types
 
-# The next two contracts fence Docker into a runtime layer, so that it can later be swapped
-# for another runtime (process, VM...) without touching scenarios, weblogs or tests.
+# The next two contracts fence Docker into a runtime layer, isolating the container backend
+# from the user-facing interface (scenarios, weblogs, tests).
 # `TODO` ignores are a ratchet: remove them as the code is routed through the runtime layer,
 # never add new ones.
 
