@@ -87,6 +87,12 @@ jobs:
       fail-fast: false
       matrix:
         job_instance: ${{ fromJson( inputs.job_matrix ) }}
+    defaults:
+      run:
+        # The test runner fails if it finds a secret in its environment: run steps don't get the OIDC request token
+        # (set by id-token: write, only needed by the datadog_ci action, whose steps set their own shell).
+        # Same as the default shell (bash -e {0}) otherwise.
+        shell: env -u ACTIONS_ID_TOKEN_REQUEST_TOKEN -u ACTIONS_ID_TOKEN_REQUEST_URL bash -e {0}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

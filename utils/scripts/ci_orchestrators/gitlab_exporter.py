@@ -347,7 +347,8 @@ def print_docker_ssi_gitlab_pipeline(
                         # run summary (pipefail keeps run.sh's real exit code).
                         # PYTHONPATH selects this checkout over the copy baked into the image.
                         "set -o pipefail\n"
-                        'PYTHONPATH="${PWD}" timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
+                        'PYTHONPATH="${PWD}" timeout 1200s utils/ci/without_ci_secrets.sh ./run.sh $SCENARIO '
+                        '--ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
                         "--ssi-env $ONBOARDING_FILTER_ENV"
