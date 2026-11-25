@@ -109,7 +109,21 @@ Parametric tests (`docker_fixtures`) don't have two phases: one test function dr
 
 The build process moves from shell scripts to Python. `utils.build_api` is its entry point, with a single CLI (`python -m utils.build_api <command>`) that shell scripts and external tools call instead of individual scripts. It builds the images of components (weblog, parametric app, proxy...), so its consumers are components and CI, not scenarios.
 
-`utils.build_api` must be importable without the test runtime. Today any `import utils.x` runs `utils/__init__.py`, which creates the weblog, context and scenario singletons (hence the `from _const import *` workaround in `utils/const/__main__.py`). The root re-exports need to become lazy (module `__getattr__`, PEP 562), or the singletons need lazy accessors.
+`utils.build_api` must be importable without the test runtime, which follows from the next rule.
+
+#### Imports have no side effects
+
+Importing any public interface, or any module behind it, only makes symbols available. It doesn't open sockets or files, start threads or processes, read or change the environment, configure logging, allocate ports or build runtime objects. Anything with an effect happens in an explicit call: scenario setup, a fixture, a CLI command.
+
+Today `import utils` breaks this rule:
+
+- `utils/__init__.py` creates the `weblog`, `context` and `scenarios` singletons and the `interfaces.*` validators. Creating `scenarios` builds every scenario object and, through them, their container objects.
+- The four Docker SSI scenarios each bind a socket at import to pick a free agent port (`_get_free_port()` in `_DockerSSIScenario.__init__`, `utils/_context/_scenarios/docker_ssi.py`).
+- Build tooling works around it: `utils/const/__main__.py` does `from _const import *` to avoid importing `utils` at all.
+
+Singletons become lazy: module `__getattr__` (PEP 562) on the interface modules, or accessors that build the object on first use. Scenarios register a description at import and build their containers and resources only when selected and set up.
+
+This is checked by a test that imports each interface module in a fresh interpreter under a Python audit hook (PEP 578, `sys.addaudithook`). It fails on `socket.*`, `subprocess.*`, file writes, `os.putenv`/`os.unsetenv`, `_thread.start_new_thread` and the like, and also checks that the thread count and root logging handlers are unchanged. Effects of third-party packages (urllib3 binds `::1` at import to detect IPv6) and today's own violations are allow-listed, and the allow-list only shrinks. Effects without an audit event (building a large object graph, reading `os.environ`) are left to review and to the laziness above.
 
 Pro:
 
@@ -126,7 +140,7 @@ Cost:
 
 ### Interface modules
 
-- An interface module contains only imports, re-exports and `__all__`. No logic.
+- An interface module contains only imports, re-exports and `__all__`. No logic, and no side effect at import (see above).
 - `__all__` is the contract. Names used only in annotations can be re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py` for `TestAgentAPI`, `DataDogLibrarySpan`...
 - Public submodules are kept to a minimum and listed explicitly in the contracts.
 
@@ -153,11 +167,12 @@ External consumers (the Nix package in `dd-trace-ops`) can't be enforced from th
 
 Every step is shippable on its own and leaves CI green.
 
-1. **Boundaries only.** Add the import-linter contracts above, with today's violations as ratchet ignores. No code moves. This makes the target visible and stops new violations, including new uses of `context` internals and new direct imports of components from tests.
+1. **Boundaries only.** Add the import-linter contracts above, with today's violations as ratchet ignores. No code moves. This makes the target visible and stops new violations, including new uses of `context` internals and new direct imports of components from tests. Add the import side-effect test with today's effects allow-listed.
 2. **Centralise re-exports.** Create the interface modules and route consumers through them:
    - test API: re-export what tests import from internals today (helpers, types, constants, component handles and mocks), sorted into the setup and assertion APIs, then rewrite test imports with a codemod, area by area. Add the phase checks with a ratchet;
    - scenario API: re-export the targets scenario definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). That clears every declarative scenario definition. The infrastructure-heavy ones (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
+   - side effects: make the singletons lazy and move resource allocation (such as the Docker SSI free port) to scenario setup, shrinking the allow-list of the import test;
    - build API: create `utils.build_api` and its CLI, and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
 
    Each move removes ratchet lines.
