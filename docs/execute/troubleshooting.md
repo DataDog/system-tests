@@ -23,6 +23,23 @@ AWS SSI can keep an EC2 instance running for inspection. See
 K8s library injection can keep its cluster running. See
 [debug a running cluster](../understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-at-runtime).
 
+## Environment variables look like secrets
+
+The run fails at startup with `The following environment variables look like secrets and must not be present in the
+test runner environment in CI: ...`.
+
+Any environment variable whose name contains `key`, `token`, `secret`, `pass` or `docker_login` (case insensitive),
+with a value longer than 6 characters, is considered as a secret (see `utils/proxy/scrubber.py`). In CI, the test
+runner must not hold any secret: unset the listed variables for the `run.sh` step. The secrets injected by the CI
+platform itself (job tokens, OIDC tokens) can be removed with `utils/ci/without_ci_secrets.sh ./run.sh ...`.
+
+Runs that legitimately need secrets on the test runner are excluded from this check, and instead redact the
+secrets from the files they write:
+
+* local runs (outside CI, detected with the `CI` environment variable)
+* SSI scenarios that provision VMs or K8s clusters (AWS SSI, K8s lib injection, K8s injector-dev)
+* cassette recording (`--generate-cassettes`)
+
 ## macOS: missing `timeout` command
 
 If `build.sh` fails with a missing `timeout` command, install GNU coreutils:
