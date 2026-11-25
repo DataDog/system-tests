@@ -53,7 +53,7 @@ jobs:
 | `library`                        | Library to test                                                                                 | string  | true     | —             |
 | `parametric_job_count`           | How many jobs should be used to run PARAMETRIC scenario                                         | number  | false    | 1             |
 | `_experimental_parametric_runs_on` | JSON-encoded runner label, label array, or runner group definition for PARAMETRIC              | string  | false    | `{"group":"APM Larger Runners"}` |
-| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Fetches credentials automatically via dd-sts   | boolean | false    | false         |
+| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Fetches credentials automatically via Datadog Workload Identity Federation | boolean | false    | false         |
 | `test_optimization_datadog_site` | DataDog site to use for test optimization                                                       | string  | false    | datadoghq.com |
 | `ref`                            | system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo) | string  | false    | main          |
 | `scenarios`                      | Comma-separated list scenarios to run                                                           | string  | false    | DEFAULT       |
@@ -61,7 +61,7 @@ jobs:
 | `skip_empty_scenarios`           | Skip scenarios that contain only xfail or irrelevant tests                                      | boolean | false    | false         |
 
 
-Note: if `test_optimization_datadog_site` is set to `true`, then the calling repo must be referenced in [dd-sts](https://github.com/DataDog/dd-source/blob/main/domains/seceng/sit/apps/apis/dd-sts/config/policies/us1.ddbuild.io/system-tests.yaml).
+Note: the calling repo must be allowed by the `system-tests` Datadog Workload Identity Federation [intake mappings](https://app.datadoghq.com/organization-settings/workload-identity-federation/intake-mappings). Otherwise, jobs are not tagged with `ci.framework.name:system-tests`, and results are not pushed to Test Optimization even if `push_to_test_optimization` is `true` (both are best effort, and never fail the job). Ask in [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) to be added.
 
 ### Parametric runners and parallelism
 
@@ -90,7 +90,7 @@ The following permissions are always required:
 | Permission       | Reason                                                      |
 | ---------------- | ----------------------------------------------------------- |
 | `contents: read` | Checkout the repository                                     |
-| `id-token: write` | Required by downstream workflows to fetch Datadog credentials via dd-sts. GitHub validates this upfront, so it must be granted even if test optimization is disabled |
+| `id-token: write` | Required by downstream workflows to fetch Datadog credentials via Datadog Workload Identity Federation. GitHub validates this upfront, so it must be granted even if test optimization is disabled |
 
 ## Secrets
 

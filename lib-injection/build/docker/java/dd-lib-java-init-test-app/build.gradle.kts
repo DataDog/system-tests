@@ -5,7 +5,7 @@ import java.util.Base64
 
 buildscript {
     repositories {
-        mavenCentral()
+        System.getenv("MAVEN_REPOSITORY_PROXY")?.let { maven(it) } ?: mavenCentral()
     }
     dependencies {
         classpath(platform("software.amazon.awssdk:bom:2.20.121"))
@@ -32,10 +32,11 @@ dependencies {
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://repo.spring.io/milestone")
-    maven("https://repo.spring.io/snapshot")
+    System.getenv("MAVEN_REPOSITORY_PROXY")?.let { maven(it) } ?: mavenCentral()
+    // spring-fu is only published to the Spring milestone repository.
+    maven("https://repo.spring.io/milestone") {
+        content { includeGroup("org.springframework.fu") }
+    }
 }
 
 tasks.withType<Test> {

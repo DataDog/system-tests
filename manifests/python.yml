@@ -335,20 +335,49 @@ manifest:
         fastapi: v4.11.0-rc1
         *flask : v4.11.0-rc1
         tornado: v4.12.0-rc1
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
+  : incomplete_test_app (/api_security/three-params not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <4.17.2
+      weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        django-poc: missing_feature (RFC-1125 not implemented yet)
+        django-py3.13: missing_feature (RFC-1125 not implemented yet)
+        python3.12: missing_feature (RFC-1125 not implemented yet)
+        tornado: missing_feature (RFC-1125 not implemented yet)
+        uds-flask: missing_feature (RFC-1125 not implemented yet)
+        fastapi: missing_feature (RFC-1125 not implemented yet)
+        uwsgi-poc: missing_feature (RFC-1125 not implemented yet)
+        flask-poc: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
     - weblog_declaration:
-        "*": missing_feature
-        *django : v4.12.0-rc1
-        fastapi: v4.11.0-rc1
-        *flask : v4.11.0-rc1
-        tornado: v4.12.0-rc1
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
-    - weblog_declaration:
-        "*": missing_feature
-        *django : v4.12.0-rc1
-        fastapi: v4.11.0-rc1
-        *flask : v4.11.0-rc1
-        tornado: v4.12.0-rc1
+        django-poc: missing_feature (RFC-1125 not implemented yet)
+        django-py3.13: missing_feature (RFC-1125 not implemented yet)
+        python3.12: missing_feature (RFC-1125 not implemented yet)
+        tornado: missing_feature (RFC-1125 not implemented yet)
+        uds-flask: missing_feature (RFC-1125 not implemented yet)
+        fastapi: missing_feature (RFC-1125 not implemented yet)
+        uwsgi-poc: missing_feature (RFC-1125 not implemented yet)
+        flask-poc: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <4.17.2
+      weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [tornado, fastapi, uwsgi-poc, django-poc, uds-flask, django-py3.13, python3.12, flask-poc]
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Python weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Python weblogs)
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -662,9 +691,9 @@ manifest:
         tornado: missing_feature
     - weblog_declaration:
         aiohttp: v4.18.0-rc1 (IAST sources are tainted for aiohttp from this version)
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
-  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
+  tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: v4.18.0-rc1 (implemented in v3.15.0, reported as UNTRUSTED_SERIALIZATION before APPSEC-71849)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature
@@ -830,7 +859,7 @@ manifest:
         *flask : v3.11.0.dev
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
-  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema:
+  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.17.2
     - declaration: missing_feature
       component_version: '<3.8.0-dev'
     - declaration: bug (APPSEC-71849)
@@ -1154,10 +1183,18 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py: v4.6.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -2410,8 +2447,6 @@ manifest:
     - weblog_declaration:
         "*": v4.18.0-rc1
         anthropic-py@0.75.0: "irrelevant (anthropic<0.84.0 has no MCP tool helpers)"
-  ? tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard_mcp.py::Test_AnthropicAiGuardMcp::test_ai_guard_anthropic_mcp_command_path
-  : "missing_feature (stdio commands are reported with their full path until DataDog/dd-trace-py#21929)"
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error:  # TODO: a lower version might be supported
@@ -3200,6 +3235,10 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
   : 'missing_feature (Requires a release containing dd-trace-py#21548)'
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release; dd-trace-py PR 21346)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC:
+    - declaration: irrelevant (Legacy coverage is pinned to Python 4.16.0)
+      component_version: '<4.16.0 || >4.16.0'
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

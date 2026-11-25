@@ -390,34 +390,55 @@ manifest:
         sinatra14: '>=2.37.0'
         sinatra32: '>=2.37.0'
         rails72: '>=2.37.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        uds-rails: '>=2.37.0'
-        sinatra41: '>=2.37.0'
-        rails80: '>=2.37.0'
-        uds-sinatra: '>=2.37.0'
-        rails42: '>=2.37.0'
-        rails52: '>=2.37.0'
-        sinatra22: '>=2.37.0'
-        rails61: '>=2.37.0'
-        sinatra14: '>=2.37.0'
-        sinatra32: '>=2.37.0'
-        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
+  : incomplete_test_app (/api_security/three-params not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Ruby weblogs)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <2.49.0
+      weblog: [sinatra22, rails61, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [sinatra22, rails61, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        rails80: missing_feature (RFC-1125 not implemented yet)
+        rails61: missing_feature (RFC-1125 not implemented yet)
+        sinatra22: missing_feature (RFC-1125 not implemented yet)
+        uds-rails: missing_feature (RFC-1125 not implemented yet)
+        rails72: missing_feature (RFC-1125 not implemented yet)
+        rails52: missing_feature (RFC-1125 not implemented yet)
+        rails42: missing_feature (RFC-1125 not implemented yet)
+        uds-sinatra: missing_feature (RFC-1125 not implemented yet)
+        sinatra41: missing_feature (RFC-1125 not implemented yet)
+        sinatra32: missing_feature (RFC-1125 not implemented yet)
+        sinatra14: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
     - weblog_declaration:
-        '*': missing_feature
-        uds-rails: '>=2.37.0'
-        sinatra41: '>=2.37.0'
-        rails80: '>=2.37.0'
-        uds-sinatra: '>=2.37.0'
-        rails42: '>=2.37.0'
-        rails52: '>=2.37.0'
-        sinatra22: '>=2.37.0'
-        rails61: '>=2.37.0'
-        sinatra14: '>=2.37.0'
-        sinatra32: '>=2.37.0'
-        rails72: '>=2.37.0'
+        rails80: missing_feature (RFC-1125 not implemented yet)
+        rails61: missing_feature (RFC-1125 not implemented yet)
+        sinatra22: missing_feature (RFC-1125 not implemented yet)
+        uds-rails: missing_feature (RFC-1125 not implemented yet)
+        rails72: missing_feature (RFC-1125 not implemented yet)
+        rails52: missing_feature (RFC-1125 not implemented yet)
+        rails42: missing_feature (RFC-1125 not implemented yet)
+        uds-sinatra: missing_feature (RFC-1125 not implemented yet)
+        sinatra41: missing_feature (RFC-1125 not implemented yet)
+        sinatra32: missing_feature (RFC-1125 not implemented yet)
+        sinatra14: missing_feature (RFC-1125 not implemented yet)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      component_version: <2.49.0
+      weblog: [sinatra22, rails61, rack, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+    - declaration: missing_feature (RFC-1125 not implemented yet)
+      excluded_weblog: [sinatra22, rails61, rack, rails52, rails72, sinatra32, sinatra14, sinatra41, rails42, uds-sinatra, rails80, uds-rails]
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Ruby weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Ruby weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1274,7 +1295,9 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py: v2.30.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:
@@ -1929,7 +1952,11 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.19.0
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - weblog_declaration:
+        "*": incomplete_test_app (missing /security/thread_context_sharing endpoint)
+        rails80: v2.47.0
+        uds-rails: v2.49.0  # TODO: a lower version might be supported
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
@@ -2751,6 +2778,8 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.46.0-dev
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

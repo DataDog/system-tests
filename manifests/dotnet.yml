@@ -56,7 +56,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: v2.46.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.50.0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
+  tests/appsec/api_security/test_apisecurity_telemetry.py: v3.59.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -100,8 +100,17 @@ manifest:
         poc: '>=3.58.0'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v3.45.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: incomplete_test_app (/api_security/optional-params not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in .NET weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in .NET weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -650,7 +659,8 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v1.28.6
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v3.37.0
-  tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: v3.59.0
+  tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature (body containers cut by ObjectExtractor don't report their truncation, APPSEC-71871)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v3.36.0
@@ -1275,6 +1285,8 @@ manifest:
   :  # TODO: a lower version might be supported
     - declaration: bug (FFL-3325)
       component_version: <3.55.0
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
