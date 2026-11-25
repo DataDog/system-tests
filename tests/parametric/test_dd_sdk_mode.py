@@ -6,7 +6,12 @@ DD_METRICS_OTEL_ENABLED and DD_LOGS_OTEL_ENABLED. These settings still win when 
 OTEL_SDK_DISABLED=true still turns off OpenTelemetry mode.
 """
 
+import base64
+import json
 from typing import Any, Final
+
+from google.protobuf.json_format import MessageToDict
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils import features, pytest, scenarios
 
@@ -25,6 +30,10 @@ COUNTER: Final = "dd_sdk_mode_probe"
 LOGGER: Final = "dd_sdk_mode_probe"
 LOG_MESSAGE: Final = "Test log for DD_SDK_MODE"
 SPAN_NAME: Final = "dd-sdk-mode-span"
+# Set on each span to the API that created it: "datadog" or "otel"
+API_ATTRIBUTE: Final = "dd_sdk_mode.api"
+# The resource attribute where the SDK records the semantics it applied to exported traces: "otel" or "datadog"
+SEMANTICS_ATTRIBUTE: Final = "datadog.sdk.semantics"
 
 # The test client sets DD_TRACE_OTEL_ENABLED=true by default. Unset it, and the other settings that DD_SDK_MODE
 # replaces, so that the mode decides their values. Some test apps still enable the OpenTelemetry tracing API themselves.
@@ -50,13 +59,13 @@ def otlp_endpoints(
 
 
 def _emit_span(library: APMLibrary) -> None:
-    with library.dd_start_span(name=SPAN_NAME):
+    with library.dd_start_span(name=SPAN_NAME, tags=[(API_ATTRIBUTE, "datadog")]):
         pass
     library.dd_flush()
 
 
 def _emit_otel_span(library: APMLibrary) -> None:
-    with library.otel_start_span(SPAN_NAME):
+    with library.otel_start_span(SPAN_NAME, attributes={API_ATTRIBUTE: "otel"}):
         pass
     library.otel_flush(1)
 
@@ -66,6 +75,45 @@ def _emit_log(library: APMLibrary) -> None:
     assert library.write_log(LOGGER, LogLevel.INFO, LOG_MESSAGE)
     # A disabled SDK may have no logger provider to flush
     library.otel_logs_flush()
+
+
+def _otlp_resource_spans(test_agent: TestAgentAPI) -> list[dict[str, Any]]:
+    """The resource spans exported over OTLP, waiting for the first export."""
+    requests = wait_for_otlp_export_requests(test_agent, "traces")
+    assert requests, "DD_SDK_MODE=otel didn't export traces over OTLP"
+    resource_spans: list[dict[str, Any]] = []
+    for request in requests:
+        body = base64.b64decode(request["body"])
+        headers = {name.lower(): value for name, value in request["headers"].items()}
+        if "json" in headers.get("content-type", ""):
+            payload = json.loads(body)
+        else:
+            payload = MessageToDict(ExportTraceServiceRequest.FromString(body))
+        resource_spans.extend(payload.get("resourceSpans", []))
+    return resource_spans
+
+
+def _string_attributes(item: dict[str, Any]) -> dict[str, str | None]:
+    """The string attributes of an OTLP resource or span."""
+    return {attribute["key"]: attribute["value"].get("stringValue") for attribute in item.get("attributes", [])}
+
+
+def _exported_semantics(test_agent: TestAgentAPI) -> set[str | None]:
+    """The semantics the SDK applied to the traces it exported over OTLP."""
+    return {
+        _string_attributes(resource_spans.get("resource", {})).get(SEMANTICS_ATTRIBUTE)
+        for resource_spans in _otlp_resource_spans(test_agent)
+    }
+
+
+def _exported_span_apis(test_agent: TestAgentAPI) -> set[str | None]:
+    """The API that created each span exported over OTLP."""
+    return {
+        _string_attributes(span).get(API_ATTRIBUTE)
+        for resource_spans in _otlp_resource_spans(test_agent)
+        for scope_spans in resource_spans.get("scopeSpans", [])
+        for span in scope_spans.get("spans", [])
+    }
 
 
 def _telemetry_configurations(test_agent: TestAgentAPI) -> dict[str, list[dict[str, Any]]]:
@@ -123,6 +171,14 @@ class Test_DD_SDK_MODE:
             "DD_SDK_MODE=otel didn't capture OpenTelemetry spans"
         )
 
+    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_otel_enables_otel_semantics(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            _emit_span(library)
+
+        assert _exported_semantics(test_agent) == {"otel"}, "DD_SDK_MODE=otel didn't apply OpenTelemetry semantics"
+
     @pytest.mark.parametrize(
         "library_env",
         # Keep runtime metrics out, and leave the exports to the explicit flushes, as other OTel metrics tests do
@@ -153,19 +209,10 @@ class Test_DD_SDK_MODE:
             configurations = _telemetry_configurations(test_agent)
 
         _assert_reported(configurations, "OTEL_TRACES_EXPORTER", "otlp", "calculated")
+        _assert_reported(configurations, "DD_TRACE_OTEL_ENABLED", "true", "calculated")
         _assert_reported(configurations, "DD_TRACE_OTEL_SEMANTICS_ENABLED", "true", "calculated")
         _assert_reported(configurations, "DD_METRICS_OTEL_ENABLED", "true", "calculated")
         _assert_reported(configurations, "DD_LOGS_OTEL_ENABLED", "true", "calculated")
-
-    # Separate from the other defaults, as some test apps set DD_TRACE_OTEL_ENABLED themselves (see the manifests)
-    @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV}])
-    def test_otel_mode_tracing_api_default_is_reported_as_calculated(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        with test_library:
-            configurations = _telemetry_configurations(test_agent)
-
-        _assert_reported(configurations, "DD_TRACE_OTEL_ENABLED", "true", "calculated")
 
     @pytest.mark.parametrize(
         "library_env",
@@ -190,13 +237,15 @@ class Test_DD_SDK_MODE:
     def test_explicit_tracing_api_setting_takes_precedence(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
+        # The Datadog span comes last, so an OpenTelemetry span would be exported with it or before it
         with test_library as library:
-            configurations = _telemetry_configurations(test_agent)
+            _emit_otel_span(library)
             _emit_span(library)
 
-        # Control: the mode still exports traces over OTLP, so it isn't ignored
-        assert wait_for_otlp_export_requests(test_agent, "traces"), "DD_SDK_MODE=otel didn't export traces over OTLP"
-        _assert_reported(configurations, "DD_TRACE_OTEL_ENABLED", "false", "env_var")
+        apis = _exported_span_apis(test_agent)
+        # Control: the mode still exports Datadog spans over OTLP, so it isn't ignored
+        assert "datadog" in apis, "DD_SDK_MODE=otel didn't export the Datadog span over OTLP"
+        assert "otel" not in apis, "DD_TRACE_OTEL_ENABLED=false didn't turn off the OpenTelemetry tracing API"
 
     @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "false"}])
     @pytest.mark.usefixtures("otlp_endpoints")
@@ -204,12 +253,12 @@ class Test_DD_SDK_MODE:
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         with test_library as library:
-            configurations = _telemetry_configurations(test_agent)
             _emit_span(library)
 
-        # Control: the mode still exports traces over OTLP, so it isn't ignored
-        assert wait_for_otlp_export_requests(test_agent, "traces"), "DD_SDK_MODE=otel didn't export traces over OTLP"
-        _assert_reported(configurations, "DD_TRACE_OTEL_SEMANTICS_ENABLED", "false", "env_var")
+        # The mode still exports traces over OTLP, so it isn't ignored, but with Datadog semantics
+        assert _exported_semantics(test_agent) == {"datadog"}, (
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED=false didn't turn off OpenTelemetry semantics"
+        )
 
     @pytest.mark.parametrize("library_env", [{**OTEL_MODE_ENV, "DD_METRICS_OTEL_ENABLED": "false"}])
     @pytest.mark.usefixtures("otlp_endpoints")
