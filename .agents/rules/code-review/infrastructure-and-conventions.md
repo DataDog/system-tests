@@ -1,0 +1,93 @@
+### INFRA-001: Environment Variables at Scenario Level, Not in Dockerfiles
+- Severity: P1
+- Flag: Env vars that modify tracer/agent behavior should be set at the scenario level (`weblog_env`, `agent_env`), not in weblog Dockerfiles. Setting them in Dockerfiles affects all scenarios, not just the intended one.
+- Ref: [Scenarios](../../../utils/_context/_scenarios/__init__.py)
+
+### INFRA-002: Use Existing Utilities
+- Severity: P1
+- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`.
+- Ref: [Datadog constants](../../../utils/dd_constants.py), [Features](../../../utils/_features.py), [Using logger](../../../docs/edit/README.md#using-logger)
+
+### INFRA-003: Unique Weblog Names
+- Severity: P0
+- Flag: When adding a new weblog, verify the name is unique across all languages. Search existing weblogs under `utils/build/docker/` before using a name.
+- Ref: [Build documentation](../../../docs/execute/build.md)
+
+### INFRA-004: No Cross-Test-File Imports
+- Severity: P0
+- Flag: A `test_*.py` file must never import from another `test_*.py` file. If logic is shared between test files, it must be moved to a non-test utility module instead. Flag any PR that adds a cross-test import or a new exception to `.importlinter`.
+- Detect: A PR adds a cross-test import or a new exception to `.importlinter`.
+- Ref: [Repository structure rules](../repository-structure.md)
+
+### INFRA-005: Run cleanup when the job fails, not when it is cancelled.
+- Old_id: claude-08
+- Severity: P1
+- Flag: A tag, upload, or cleanup that must run after a failure uses `if: ${{ !cancelled() }}`, a quoted equivalent, or a shell trap. Do not use `if: always()` unless that step must also run after a cancel. A missing `if` means `success()`, so a failed job skips the step. A tag may run before the work it names.
+- Detect: A required upload, tag, or cleanup has no `if`, or it uses `if: always()`. In one `set -e` script it follows a command that can fail, and no trap runs it.
+- Not when: The step must also run after a cancellation.
+- ✅ Use `if: ${{ !cancelled() }}`, or a shell trap.
+- ❌ Leave the upload step without an `if`, so a failed build skips it. Use `if: always()`, so a cancelled job still uploads.
+- Ref: [Official workflow tagging rules](../tag-official-workflows.md)
+
+### INFRA-006: Register a new base image in the CI mirror.
+- Old_id: codex-01
+- Severity: P0
+- Flag: If the mirror script skips a new image used by the build, extend that discovery in the same pull request.
+- Detect: A new `FROM` image has no mirror entry, or the build bypasses the mirror.
+- Not when: The image comes from `registry.ddbuild.io`.
+- ✅ Run `python utils/scripts/update_mirror_images.py` and commit the new mirror entry in the same pull request.
+- ❌ Add `FROM python:3.12` with the mirror enabled and no mirror entry.
+- Ref: [Update Docker images](../../../docs/edit/update-docker-images.md)
+
+### INFRA-007: Keep registry calls off the CI critical path.
+- Old_id: claude-12
+- Severity: P1
+- Flag: Use a base image so the job does not call a registry. If a base image cannot provide what the job needs, use a mirror. If a mirror is not possible, add a retry policy on the brittle command.
+- Detect: A CI step pulls or installs from a registry on every run, and a base image already has those files. The pull skips a mirror that exists. The remaining registry command has no retry.
+- ✅ Put the packages in the base image. If the job must fetch them, use the mirror. If no mirror exists, retry that command.
+- ❌ Run `npm install` against the public registry in every job.
+
+### INFRA-008: Build test apps from locked dependency versions.
+- Old_id: claude-15
+- Severity: P0
+- Flag: A weblog or test-app image must install the dependencies it does not test from a committed lockfile or from exact pins. This also applies to transitive packages that the app uses directly. When the dependency inputs are unchanged, the build must not resolve new versions. A PR that adds or updates a dependency resolves it and commits the updated lock.
+- Detect: A Dockerfile runs `bundle lock --update` or `npm update`. A manifest pins a package but leaves a related package open, and the lockfile does not lock it.
+- Not when: A package follows the version of the SDK under test, or a range stays open on purpose to detect upstream drift, and a comment explains the exception.
+- ✅ Lock both `opentelemetry-sdk` and `opentelemetry-metrics-sdk`.
+- ❌ Pin `opentelemetry-sdk`, leave `opentelemetry-metrics-sdk` open, and omit it from the lockfile.
+
+### INFRA-009: Give new tooling paths a CI selection rule.
+- Severity: P1
+- Flag: A new folder or file that no test uses needs a rule in `utils/scripts/libraries_and_scenarios_rules.yml`. Without a rule, the CI selects every library and every scenario group for that path.
+- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups.
+- Not when: The new files are framework code that tests use, such as `utils/_context/` or `utils/interfaces/`. Then the full run is the intended behavior.
+- ✅ Add `utils/scripts/<tool>/*` with `scenario_groups: null` and `libraries: null`, and add a test in `tests/test_the_test/test_compute_libraries_and_scenarios.py`.
+- ❌ Add `utils/scripts/<tool>/` with no rule, so the pull request runs the whole end-to-end CI.
+- Ref: [libraries_and_scenarios_rules.yml](../../../utils/scripts/libraries_and_scenarios_rules.yml)
+
+### INFRA-010: Keep the weblog specifications in sync with the code.
+- Severity: P1
+- Flag: A change to the interface of a weblog must update its specification in `docs/understand/weblogs/` in the same pull request. The code is the source of truth. The specifications are `end-to-end_weblog.md` (end-to-end endpoints), `parametric_weblog.md` (parametric HTTP interface), `graphql_weblog.md` (GraphQL weblogs), and `weblog-metadata.md` (`weblog_metadata.yml` format). An interface change adds, removes, or renames an endpoint. It also changes a request parameter, a response field, a status code, or an expected behavior.
+- Detect: The diff changes an endpoint in a weblog under `utils/build/docker/<library>/`, in the parametric client `utils/docker_fixtures/_test_clients/_test_client_parametric.py`, or in the `weblog_metadata.yml` parser `utils/_context/weblog_metadata.py`, but not the matching specification. A test calls a new weblog endpoint that the specification does not list. The diff changes a specification so that it no longer matches the code.
+- Not when: The change keeps the interface: an internal refactoring, a dependency bump, or a fix that makes a weblog follow its specification.
+- ✅ Add the `/new_endpoint` route to the weblogs and its section to `end-to-end_weblog.md` in the same pull request.
+- ❌ Add a field to the response of a parametric endpoint, and leave `parametric_weblog.md` unchanged.
+- Ref: [Weblogs](../../../docs/understand/weblogs/README.md)
+
+### INFRA-011: Do not hide shell errors that select what is tested.
+- Severity: P0
+- Flag: A shell command whose result decides what is built or tested must not hide its errors. If it fails, the script must stop with a message. It must not fall back to a default, such as the latest release instead of the jar in `binaries/`. A build image can lack a tool that another image has: the GraalVM image has no `find`. The error was hidden, the jar count was 0, and the dev job tested the release.
+- Detect: The script discards stderr (`2>/dev/null`, `&>/dev/null`) or ignores a failure (`|| true`) on a command whose output is counted, parsed, or tested, and an error then looks like an empty result. A pipeline drops the failure of its first command because `pipefail` is off, as in `cmd 2>/dev/null | wc -l` or `cmd | jq`. A failed check goes silently to a fallback branch. A command runs under `if !` with its stderr discarded, so the failure message loses the cause.
+- Not when: The check tests only whether a tool or option exists (`command -v`, `curl --retry-all-errors --version`), and the code after it fails loudly if needed. The step is best-effort cleanup or log collection that cannot change what is tested.
+- ✅ Look up files with a bash glob (`shopt -s nullglob`), or let `set -euo pipefail` stop the script. If a fallback is intended, print why it runs.
+- ❌ `count=$(find /binaries/ -name "dd-java-agent*.jar" 2>/dev/null | wc -l)`, then download the latest release when `count` is 0.
+- Ref: [Code format standards](../code-format-standards.md)
+
+### INFRA-012: Put fixed weblog installs in a base image.
+- Severity: P1
+- Flag: A new weblog must keep third-party installs out of the main CI build. Put OS packages and fixed app dependencies in a base image. A base image is a Docker image that CI builds once and reuses. Add `<name>.base.Dockerfile` and a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. Fixed packages do not change when the tested library version changes. Leave the tested library version, and `install_ddtrace.sh`, in the weblog Dockerfile. Update `base-images.lock.json` only after the GitLab publish job finishes.
+- Detect: Report a new weblog Dockerfile under `utils/build/docker/` when it runs a fixed install. A fixed install uses apt-get, apk, yum, or dnf. It also uses pip install, npm install, pnpm, yarn, or bundle install. It also uses composer install, mvn, gradle, go mod download, or dotnet restore. A curl or wget of a remote URL is a fixed install too. Also report a new `<name>.base.Dockerfile` when the library `docker-bake.hcl` has no target for it.
+- Not when: If the install is only the framework version under test, do not report it. If the command only runs the tracer installer `install_ddtrace.sh`, do not report it. If the Dockerfile installs nothing, do not report it.
+- ✅ See `utils/build/docker/python/openai-py.base.Dockerfile`. It installs curl and the pinned Python packages. `utils/build/docker/python/docker-bake.hcl` has an `openai-py` target. `openai-py.Dockerfile` starts with `FROM system_tests_base_python_openai_py`. That file only installs the OpenAI version under test.
+- ❌ A new weblog Dockerfile starts with `FROM python:3.11-slim`. The same file runs `apt-get` and `pip install`.
+- Ref: [Update Docker images](../../../docs/edit/update-docker-images.md), [Base image dependencies](../../../docs/understand/weblogs/weblog-metadata.md#base-image-dependencies)

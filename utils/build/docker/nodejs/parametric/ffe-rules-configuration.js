@@ -9,6 +9,7 @@ const {
 async function main () {
   const { abort = false, abortAfterMs, ...options } = JSON.parse(process.argv[2])
   const controller = new AbortController()
+  const diagnostics = []
   if (abort) controller.abort()
   const abortTimer = abortAfterMs === undefined
     ? undefined
@@ -17,6 +18,7 @@ async function main () {
   try {
     const configuration = await fetchRulesConfiguration({
       ...options,
+      logger: { error: message => diagnostics.push(message) },
       signal: controller.signal,
       // Exercise real HTTP while keeping generated paths, headers, and fetch options intact.
       fetch: (url, init) => {
@@ -24,11 +26,12 @@ async function main () {
         return fetch(`${process.env.SYSTEM_TESTS_FFE_RULES_BASE_URL}${pathname}${search}`, init)
       }
     })
-    process.stdout.write(JSON.stringify({ wire: configurationToString(configuration) }))
+    process.stdout.write(JSON.stringify({ wire: configurationToString(configuration), diagnostics }))
   } catch (error) {
     if (!(error instanceof ConfigurationFetchError)) throw error
     process.stdout.write(JSON.stringify({
-      error: { name: error.name, code: error.code, message: error.message, status: error.status }
+      error: { name: error.name, code: error.code, message: error.message, status: error.status },
+      diagnostics
     }))
   } finally {
     clearTimeout(abortTimer)

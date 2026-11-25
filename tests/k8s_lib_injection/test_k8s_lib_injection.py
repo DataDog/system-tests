@@ -1,4 +1,4 @@
-from utils import scenarios, features, context, bug, logger
+from utils import scenarios, features, logger
 from tests.k8s_lib_injection.utils import (
     get_dev_agent_traces,
     get_cluster_info,
@@ -18,8 +18,6 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 class TestK8sLibInjection:
     """Test K8s lib injection"""
 
-    @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
-    @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
         traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
@@ -44,8 +42,6 @@ class TestK8sLibInjection:
 class TestK8sLibInjection_operator:
     """Test K8s lib injection using the operator"""
 
-    @bug(context.library > "python@2.21.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
-    @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
         cluster_info = get_cluster_info()
         context_url = f"http://{cluster_info.cluster_host_name}:{cluster_info.get_weblog_port()}/"

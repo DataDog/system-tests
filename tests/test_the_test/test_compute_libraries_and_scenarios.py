@@ -5,8 +5,14 @@ from pathlib import Path
 from functools import wraps
 
 from utils import pytest
-from utils.scripts.compute_libraries_and_scenarios import Inputs, process
+from utils.scripts.compute_libraries_and_scenarios import (
+    Inputs,
+    get_gitlab_ssi_libraries,
+    get_gitlab_ssi_library,
+    process,
+)
 from utils import scenarios
+from utils._context._scenarios import scenario_groups as all_scenario_groups
 
 
 default_libs_with_prod = [
@@ -151,6 +157,55 @@ class Test_ComputeLibrariesAndScenarios:
             "docker_ssi",
         )
 
+    def test_gitlab_ssi_title_resolver_file_does_not_select_scenarios(self):
+        inputs = build_inputs(["utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_gitignore_does_not_select_scenarios(self):
+        inputs = build_inputs([".gitignore"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_review_learning_files_do_not_select_scenarios(self):
+        inputs = build_inputs(
+            [
+                ".agents/skills/system-tests-review-learn/SKILL.md",
+                ".gitignore",
+                ".claude/skills/system-tests-review-learn/SKILL.md",
+                "docs/ai/review-learning.md",
+                "tests/test_the_test/test_review_learning.py",
+                "utils/scripts/review_learning/collect.py",
+                "utils/scripts/review_learning/filters.yml",
+            ]
+        )
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
     def test_multiple_file_changes(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml", "README.md"])
 
@@ -188,6 +243,83 @@ class Test_ComputeLibrariesAndScenarios:
             "false",
             "DEFAULT",
             "end_to_end,integration_frameworks,open_telemetry",
+        )
+
+    def test_aws_java_weblog_file(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/java/provision_test-app-java.yml"])
+
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "onboarding",
+        )
+
+    @pytest.mark.parametrize(
+        ("library", "file", "scenario_groups"),
+        [
+            (
+                "dotnet",
+                "lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "java",
+                "lib-injection/build/docker/java/dd-lib-java-init-test-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "nodejs",
+                "lib-injection/build/docker/nodejs/sample-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            ("php", "lib-injection/build/docker/php/dd-lib-php-init-test-app/Dockerfile", "lib_injection"),
+            (
+                "python",
+                "lib-injection/build/docker/python/dd-lib-python-init-test-django/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "ruby",
+                "lib-injection/build/docker/ruby/dd-lib-ruby-init-test-rails/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+        ],
+    )
+    def test_lib_injection_weblog_file(self, library: str, file: str, scenario_groups: str) -> None:
+        inputs = build_inputs([file])
+
+        assert_github_processor(
+            inputs,
+            [library],
+            [library],
+            300 if library == "nodejs" else 600,
+            "false",
+            "DEFAULT",
+            scenario_groups,
+        )
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "lib-injection/build/build_lib_injection_images.sh",
+            "lib-injection/build/build_lib_injection_weblog.sh",
+        ],
+    )
+    def test_lib_injection_build_script(self, file: str) -> None:
+        inputs = build_inputs([file])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "lib_injection",
         )
 
     def test_integration_frameworks_docker_file(self):
@@ -230,6 +362,21 @@ class Test_ComputeLibrariesAndScenarios:
             ["php"],
             ["php"],
             600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
+    @pytest.mark.parametrize("library", ["cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "rust"])
+    def test_parametric_app_file(self, library: str) -> None:
+        """A change in a parametric app only selects its own library"""
+        inputs = build_inputs([f"utils/build/docker/{library}/parametric/Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [library],
+            [library],
+            300 if library == "nodejs" else 600,
             "false",
             "DEFAULT,PARAMETRIC",
             "",
@@ -311,6 +458,35 @@ class Test_ComputeLibrariesAndScenarios:
             "DEFAULT",
             "all",
         )
+
+    def test_gitlab_libraries_config_runs_all_but_ssi(self):
+        inputs = build_inputs(["utils/scripts/gitlab_libraries.py"])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "end_to_end,exotics,ffe,integration_frameworks,open_telemetry",
+        )
+
+    @pytest.mark.parametrize("pattern", ["utils/scripts/gitlab_libraries.py", "utils/ci/gitlab/*"])
+    def test_gitlab_libraries_config_scenarios(self, pattern: str):
+        """The rules of the GitLab end-to-end pipeline select every scenario of the all group but the SSI ones"""
+        ssi_workflows = {"aws_ssi", "dockerssi", "libinjection", "k8s_injector_dev"}
+        param = build_inputs([]).impacts[pattern]
+        selected = {
+            scenario.name for group in param.scenario_groups for scenario in all_scenario_groups[group].scenarios
+        }
+        selected |= param.scenarios
+        all_group = all_scenario_groups.all.scenarios
+
+        assert selected >= {scenario.name for scenario in all_group if scenario.github_workflow not in ssi_workflows}
+        assert not selected & {scenario.name for scenario in all_group if scenario.github_workflow in ssi_workflows}
+        # the exotics job of .github/workflows/ci.yml runs on the exotics or all group only
+        assert "exotics" in param.scenario_groups
 
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
@@ -461,6 +637,27 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agent_tooling_files(self):
+        for file in (
+            ".agents/config.json",
+            ".claude/settings.json",
+            ".cursor/mcp.json",
+            ".promptfoo/tests_overview.yaml",
+            "format.sh",
+            "utils/scripts/check_agent_instructions.py",
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                default_libs_with_prod,
+                default_libs_with_dev,
+                3600,
+                "false",
+                "DEFAULT",
+                "",
+            )
+
     def test_nix_workflow(self):
         inputs = build_inputs([".github/workflows/nix.yml"])
 
@@ -485,9 +682,103 @@ class Test_ComputeLibrariesAndScenarios:
         assert strings_out == [
             'CI_PIPELINE_SOURCE="pull_request"',
             'CI_COMMIT_REF_NAME=""',
+            'ssi_libraries=""',
             'scenarios="DEFAULT"',
             'scenarios_groups=""',
         ]
+
+    @pytest.mark.parametrize(
+        ("pr_title", "expected"),
+        [
+            ("", None),
+            ("[nodejs] Test Node.js", "nodejs"),
+            ("[java] Test Java", "java"),
+            ("[dotnet] Test .NET", "dotnet"),
+            ("[PYTHON] Test Python", "python"),
+            ("[php] Test PHP", "php"),
+            ("[ruby] Test Ruby", "ruby"),
+            ("[golang] Test Go", None),
+            ("[java@feature] Test a Java branch", None),
+            ("Test Java [java]", None),
+        ],
+    )
+    def test_gitlab_ssi_library_title(self, pr_title: str, expected: str | None):
+        assert get_gitlab_ssi_library(pr_title) == expected
+
+    @pytest.mark.parametrize(
+        ("pr_title", "impacted_libraries", "expected"),
+        [
+            ("", {"java"}, {"java"}),
+            ("", {"java", "python_lambda"}, {"java"}),
+            ("", {"golang"}, set()),
+            ("[nodejs] Test Node.js", {"java"}, {"nodejs"}),
+            ("[java@feature] Test a Java branch", {"python"}, {"python"}),
+        ],
+    )
+    def test_gitlab_ssi_libraries(
+        self,
+        pr_title: str,
+        impacted_libraries: set[str],
+        expected: set[str],
+    ) -> None:
+        assert get_gitlab_ssi_libraries(pr_title, impacted_libraries) == expected
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "pull_request")
+    @set_env("CI_COMMIT_REF_NAME", "")
+    @set_env("GITHUB_PR_TITLE", "[java] Test Java")
+    def test_gitlab_ssi_library_output(self):
+        inputs = build_inputs(["README.md"])
+
+        assert 'ssi_libraries="java"' in process(inputs)
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/aws-java-weblog")
+    def test_gitlab_ssi_libraries_from_aws_weblog(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/java/provision_test-app-java.yml"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="java"' in output
+        assert 'scenarios_groups="onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/k8s-nodejs-weblog")
+    def test_gitlab_ssi_libraries_from_lib_injection_weblog(self):
+        inputs = build_inputs(["lib-injection/build/docker/nodejs/sample-app/Dockerfile"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="nodejs"' in output
+        assert 'scenarios_groups="docker_ssi,lib_injection,onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/common-aws-weblog")
+    def test_gitlab_ssi_libraries_from_common_file(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/common/pull_agent_image.sh"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in output
+        assert 'scenarios_groups="onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/docker-ssi-scenario")
+    def test_gitlab_ssi_libraries_from_scenario(self):
+        inputs = build_inputs(["utils/_context/_scenarios/docker_ssi.py"])
+
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in process(inputs)
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/golang-weblog")
+    def test_gitlab_ssi_libraries_empty_for_unsupported_library(self):
+        inputs = build_inputs(["lib-injection/build/docker/golang/sample-app/Dockerfile"])
+
+        output = process(inputs)
+        assert 'ssi_libraries=""' in output
+        assert 'scenarios_groups="lib_injection"' in output
 
     def test_manifest_no_edit(self):
         inputs = build_inputs(
@@ -646,6 +937,7 @@ class Test_ComputeLibrariesAndScenarios:
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):
+        # every end-to-end scenario runs the mocked backend behind the agent: all scenarios run
         inputs = build_inputs(modified_files=[file])
         assert_github_processor(
             inputs,
@@ -653,8 +945,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
-            "agentless",
+            "DEFAULT",
+            "all",
         )
 
     def test_end_to_end_scenario_framework_file(self):
@@ -756,7 +1048,31 @@ class Test_GitLabMode:
 
         assert 'libraries="c"' in process(inputs)
 
-    def test_main_push_ignores_weblog_map(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    @staticmethod
+    def _library_weblog_scenarios(output: list[str]) -> dict | None:
+        line = next((line for line in output if line.startswith("library_weblog_scenarios=")), None)
+        return None if line is None else json.loads(json.loads(line.split("=", 1)[1]))
+
+    @pytest.mark.parametrize("source", ["merge_request_event", "push"])
+    def test_pr_pipeline_selects_php_weblog_map(self, monkeypatch: pytest.MonkeyPatch, source: str) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/php")
+        inputs = build_inputs(modified_files=["utils/build/docker/php/apache-mod-8.0.Dockerfile"])
+
+        output = process(inputs)
+        assert self._library_weblog_scenarios(output) == {"php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]}}
+        assert not any(line.startswith("libraries=") for line in output)
+
+    def test_pr_pipeline_does_not_select_php_if_not_impacted(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/c")
+        inputs = build_inputs(modified_files=["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert self._library_weblog_scenarios(process(inputs)) is None
+
+    def test_main_push_uses_main_weblog_maps(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
         monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
@@ -764,7 +1080,8 @@ class Test_GitLabMode:
 
         output = process(inputs)
         assert 'libraries="python"' in output
-        assert not any(line.startswith("library_weblog_scenarios=") for line in output)
+        # python runs all its weblogs on main, php only its weblog map
+        assert self._library_weblog_scenarios(output) == {"php": {"apache-mod-8.0": ["THREAD_CONTEXT_SHARING"]}}
 
     @pytest.mark.parametrize(
         ("source", "ref"),
@@ -792,6 +1109,7 @@ class Test_GitLabMode:
         output = process(inputs)
         assert 'libraries="python"' in output
         assert 'scenarios_groups="all"' in output
+        assert not any(line.startswith("ssi_libraries=") for line in output)
 
     def test_main_push_with_opt_in_selects_only_impacted_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
@@ -804,6 +1122,7 @@ class Test_GitLabMode:
 
         output = process(inputs)
         assert 'libraries="python"' in output
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in output
         assert 'scenarios_groups="onboarding"' in output
         assert 'scenarios_groups="all"' not in output
 
@@ -834,4 +1153,32 @@ class Test_GitLabMode:
 
         output = process(inputs)
         assert 'scenarios_groups="all"' in output
+        assert not any(line.startswith("ssi_libraries=") for line in output)
         assert not any(line.startswith("libraries=") for line in output)
+
+
+def get_run_nix(inputs: Inputs) -> str:
+    output = dict(line.split("=", 1) for line in process(inputs))
+    return output["run_nix"]
+
+
+@scenarios.test_the_test
+class Test_ComputeRunNix:
+    @pytest.mark.parametrize(
+        "file",
+        # the paths that used to be the paths filter of .github/workflows/nix.yml
+        ["flake.nix", "shell.nix", "flake.lock", ".github/workflows/nix.yml", "tests/test_the_test/test_foo.py"],
+    )
+    def test_nix_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "true"
+
+    @pytest.mark.parametrize("file", ["README.md", "utils/build/docker/python/flask.Dockerfile", "manifests/java.yml"])
+    def test_other_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "false"
+
+    def test_any_nix_file(self) -> None:
+        assert get_run_nix(build_inputs(["README.md", "flake.lock"])) == "true"
+
+    @set_env("GITHUB_REF", "refs/heads/main")
+    def test_ref_main(self) -> None:
+        assert get_run_nix(build_inputs(["README.md"])) == "true"

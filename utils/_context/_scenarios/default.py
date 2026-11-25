@@ -55,6 +55,8 @@ _iast_security_controls_map = {
 
 
 class DefaultScenario(EndToEndScenario):
+    """Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests"""
+
     def __init__(self) -> None:
         super().__init__(
             "DEFAULT",
@@ -78,7 +80,6 @@ class DefaultScenario(EndToEndScenario):
             other_weblog_containers=(PostgresContainer, InternalServerContainer),
             scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
             weblog_categories=[WeblogCategory.dd_trace],
-            doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 
     def configure(self, config: pytest.Config):

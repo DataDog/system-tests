@@ -197,6 +197,8 @@ docker run --rm --platform "$PLATFORM" \
 # permission errors.
 cat >"$OUT/Dockerfile" <<EOF
 FROM $BASE_IMAGE
+# system-tests reads the agent version from this label, before the agent starts
+LABEL org.opencontainers.image.version="$AGENT_VERSION"
 COPY trace-agent /opt/datadog-agent/embedded/bin/trace-agent
 EOF
 

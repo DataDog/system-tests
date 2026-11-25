@@ -99,6 +99,9 @@ class Test_Mock_FFE_Rules_Backend:
             ("json", "delayed_body"),
             ("json", "disconnect"),
             ("json", "truncated_body"),
+            ("json", "selection_ignored_empty"),
+            ("json", "selection_ignored_tag_load_failed"),
+            ("json", "selection_ignored_unknown"),
             ("protobuf", "unauthorized"),
             ("protobuf", "not_modified"),
             ("protobuf", "delayed_valid"),
@@ -169,6 +172,42 @@ class Test_Mock_FFE_Rules_Backend:
             assert extra_hosts_for_environment({"SYSTEM_TESTS_FFE_RULES_BASE_URL": server.ffe_library_base_url}) == (
                 HOST_GATEWAY_EXTRA_HOSTS
             )
+        finally:
+            server.close()
+
+    @pytest.mark.parametrize("channel", ["client", "server"])
+    def test_selection_ignored_responses(self, channel: str) -> None:
+        server = MockedBackendServer(port=0)
+        try:
+            url = f"{server.base_url}{RULES_CONFIG_PATH}/{channel}"
+            cases = [
+                ("valid", None),
+                ("selection_ignored_empty", ""),
+                ("selection_ignored_tag_load_failed", "tag_load_failed"),
+                ("selection_ignored_unknown", "future_reason"),
+                ("valid", None),
+            ]
+            server.client.ffe_set_responses([mode for mode, _ in cases], response_format="protobuf")
+            for _, reason in cases:
+                response = requests.get(
+                    url,
+                    params={"dd_env": "test", "selected_flag_key_patterns": "non-matching-*"},
+                    headers={"Accept": "application/protobuf"},
+                    timeout=5,
+                )
+                assert response.status_code == 200
+                assert response.headers.get("DD-Flag-Selection-Ignored") == reason
+                assert response.headers["Content-Type"] == "application/protobuf"
+                assert response.headers["ETag"] == WIRE_FIXTURE["rules"]["etag"]
+                assert response.content == base64.b64decode(WIRE_FIXTURE["rules"]["response"])
+            assert len(server.ffe_get_requests()) == len(cases)
+            assert server.client.ffe_get_status()["status_codes"] == [200] * len(cases)
+
+            server.client.ffe_set_response("selection_ignored_tag_load_failed", response_format="protobuf")
+            server.client.ffe_reset()
+            response = requests.get(url, headers={"Accept": "application/protobuf"}, timeout=5)
+            assert "DD-Flag-Selection-Ignored" not in response.headers
+            assert len(server.ffe_get_requests()) == 1
         finally:
             server.close()
 

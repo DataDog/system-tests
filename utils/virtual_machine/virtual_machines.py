@@ -4,11 +4,14 @@ import json
 import hashlib
 
 import paramiko
+from retry import retry
 
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
 
 # The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).
 _MAX_CACHE_NAME_LENGTH = 120
+# Paramiko stops an SSH login after 30 seconds by default. A busy VM can take longer.
+_SSH_TIMEOUT_SECONDS = 60
 
 
 class AWSInfraConfig:
@@ -78,15 +81,27 @@ class _SSHConfig:
     def set_pkey(self, pkey: str):
         self.pkey = pkey
 
-    def get_ssh_connection(self):
+    @retry(delay=5, tries=5)
+    def get_ssh_connection(self) -> paramiko.SSHClient:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
+        connect_kwargs = {
+            "timeout": _SSH_TIMEOUT_SECONDS,
+            "banner_timeout": _SSH_TIMEOUT_SECONDS,
+            "auth_timeout": _SSH_TIMEOUT_SECONDS,
+        }
         if self.pkey_path is not None:
             if self.pkey is None:
                 self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
-            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey)
+            ssh.connect(self.hostname, port=self.port, username=self.username, pkey=self.pkey, **connect_kwargs)
         else:
-            ssh.connect(self.hostname, port=self.port, username=self.username, key_filename=self.key_filename)
+            ssh.connect(
+                self.hostname,
+                port=self.port,
+                username=self.username,
+                key_filename=self.key_filename,
+                **connect_kwargs,
+            )
         return ssh
 
 

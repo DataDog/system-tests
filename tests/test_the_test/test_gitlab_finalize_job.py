@@ -22,7 +22,7 @@ def commands(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     """Record the commands run by the steps instead of running them."""
     recorded: list[list[str]] = []
 
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         recorded.append(command)
 
     monkeypatch.setattr(finalizer, "run", run)
@@ -46,9 +46,8 @@ def _write(path: Path, content: str = "") -> Path:
 
 
 @scenarios.test_the_test
-def test_docker_profile_publishes_reports_on_system_tests_main(tmp_path: Path, commands: list[list[str]]):
+def test_docker_profile_uploads_the_junit_report(tmp_path: Path, commands: list[list[str]]):
     logs = tmp_path / "system-tests" / "logs_docker_ssi"
-    _write(logs / "feature_parity.json", "{}")
     _write(logs / "reportJunit.xml", "<testsuites/>")
     job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_PROJECT_NAME="system-tests", CI_COMMIT_BRANCH="main")
 
@@ -58,20 +57,9 @@ def test_docker_profile_publishes_reports_on_system_tests_main(tmp_path: Path, c
     assert (reports / "reportJunit.xml").is_file()
     assert [command[:3] for command in commands] == [
         ["datadog-ci", "tag", "--level"],
-        ["curl", "-X", "POST"],
         ["datadog-ci", "junit", "upload"],
         ["bash", str(tmp_path / "system-tests" / "utils" / "scripts" / "gitlab_print_logs.sh")],
     ]
-    assert f"@{reports / 'feature_parity.json'}" in commands[1]
-
-
-@scenarios.test_the_test
-def test_feature_parity_is_only_published_on_system_tests_main(tmp_path: Path, commands: list[list[str]]):
-    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "feature_parity.json", "{}")
-    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_PROJECT_NAME="dd-trace-java", CI_COMMIT_BRANCH="main")
-
-    assert finalizer.finalize(job) == 0
-    assert not [command for command in commands if command[0] == "curl"]
 
 
 @scenarios.test_the_test
@@ -80,8 +68,7 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
 ):
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     logs = tmp_path / "system-tests" / "logs_simple_installer_auto_injection"
-    _write(logs / "vm_feature_parity.json", "{}")
-    _write(logs / "feature_parity.json", "{}")
+    logs.mkdir(parents=True)
     with (logs / "large.log").open("wb") as large_file:
         large_file.truncate(finalizer.MAX_ARTIFACT_FILE_SIZE + 1)
     job = _job(
@@ -103,8 +90,6 @@ def test_aws_profile_uploads_to_s3_and_keeps_large_files_out_of_the_artifacts(
     assert (tmp_path / "home" / ".aws" / "config").read_text() == "apm-ecosystems-reliability-profile/config\n"
     reports = tmp_path / "project" / "reports" / "logs_simple_installer_auto_injection"
     assert not (reports / "large.log").exists()
-    uploaded = [command[-1] for command in commands if command[0] == "curl"]
-    assert uploaded == [f"@{reports / 'vm_feature_parity.json'}"]
 
 
 @scenarios.test_the_test
@@ -118,6 +103,56 @@ def test_k8s_profile_deletes_clusters_and_collects_every_log_folder(tmp_path: Pa
     assert commands[1] == ["kind", "delete", "clusters", "--all"]
     reports = tmp_path / "project" / "reports"
     assert sorted(path.name for path in reports.iterdir()) == ["logs_k8s_lib_injection", "logs_other"]
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "env"),
+    [
+        ("aws", {"SCENARIO": "SIMPLE_INSTALLER_AUTO_INJECTION", "VM": "Ubuntu_22_amd64", "WEBLOG": "test-app-java"}),
+        ("k8s", {"K8S_SCENARIO": "K8S_LIB_INJECTION"}),
+    ],
+)
+def test_ssi_profiles_upload_junit_reports_from_any_repository(
+    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, profile: str, env: dict[str, str]
+):
+    """Test failures must reach Test Optimization, else Green CI counts them as infra failures."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    folder = f"logs_{(env.get('SCENARIO') or env['K8S_SCENARIO']).lower()}"
+    _write(tmp_path / "system-tests" / folder / "reportJunit.xml", "<testsuites/>")
+    job = _job(
+        profile, tmp_path, CI_PIPELINE_ID="42", CI_PROJECT_NAME="dd-trace-java", CI_COMMIT_BRANCH="master", **env
+    )
+
+    assert finalizer.finalize(job) == 0
+
+    uploads = [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
+    assert len(uploads) == 1
+    assert str(tmp_path / "project" / "reports" / folder / "reportJunit.xml") in uploads[0]
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("profile", "variable"),
+    [("docker", "ONBOARDING_FILTER_ENV"), ("aws", "ONBOARDING_FILTER_ENV"), ("k8s", "REPORT_ENVIRONMENT")],
+)
+def test_junit_reports_are_labelled_with_the_generated_job_environment(
+    tmp_path: Path, profile: str, variable: str
+) -> None:
+    assert _job(profile, tmp_path, **{variable: "dev"}).ci_environment == "dev"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="custom").ci_environment == "custom"
+    assert _job(profile, tmp_path, CI_ENVIRONMENT="prod", SYSTEM_TESTS_CI_ENVIRONMENT="dev").ci_environment == "dev"
+    assert _job(profile, tmp_path, SYSTEM_TESTS_CI_ENVIRONMENT="prod", **{variable: "dev"}).ci_environment == "dev"
+    assert _job(profile, tmp_path).ci_environment == "prod"
+
+
+@scenarios.test_the_test
+def test_canceled_jobs_do_not_upload_junit_reports(tmp_path: Path, commands: list[list[str]]):
+    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "reportJunit.xml", "<testsuites/>")
+    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI", CI_JOB_STATUS="canceled")
+
+    assert finalizer.finalize(job) == 0
+    assert not [command for command in commands if command[:3] == ["datadog-ci", "junit", "upload"]]
 
 
 @scenarios.test_the_test
@@ -139,7 +174,7 @@ def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[l
 def test_a_failing_step_does_not_stop_the_next_ones(
     tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
 ):
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         if command[0] == "datadog-ci":
             raise subprocess.CalledProcessError(1, command)
         commands.append(command)

@@ -315,8 +315,14 @@ class TestAgentAPI:
         self._write_log("metrics", resp_json)
         return cast("list[Any]", resp_json)
 
-    def set_remote_config(self, path: str, payload: dict):
-        resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
+    def set_remote_config(self, path: str, payload: dict, *, version: int | None = None) -> None:
+        if version is None:
+            resp = self._session.post(
+                self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload}
+            )
+        else:
+            response = self._build_config_path_response([{"path": path, "msg": payload}], version=version)
+            resp = self._session.post(self._url("/test/session/responses/config"), data=response)
         assert resp.status_code == HTTPStatus.ACCEPTED
 
     def get_remote_config(self):
@@ -339,7 +345,7 @@ class TestAgentAPI:
         assert resp.status_code == HTTPStatus.ACCEPTED
 
     @staticmethod
-    def _build_config_path_response(config: list) -> str:
+    def _build_config_path_response(config: list, *, version: int = 0) -> str:
         expires_date = datetime.datetime.strftime(
             datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
@@ -380,7 +386,7 @@ class TestAgentAPI:
             }
             target_files.append(tf)
             targets_tmp[item["path"]] = {
-                "custom": {"c": [""], "v": 0},
+                "custom": {"c": [""], "v": version},
                 "hashes": {"sha256": hashlib.sha256(item["msg_enc"]).hexdigest()},
                 "length": len(item["msg_enc"]),
             }
@@ -393,7 +399,7 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
-                "version": 0,
+                "version": version,
             },
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
@@ -436,6 +442,16 @@ class TestAgentAPI:
         resp_json = resp.json()
         self._write_log("requests", resp_json)
         return resp_json
+
+    def uses_v1_trace_payloads(self) -> bool:
+        """Whether every captured trace request uses the V1 intake protocol.
+
+        The normalized spans do not retain their original encoding. Keep legacy
+        requirements when requests are absent or include a legacy trace payload.
+        """
+        paths = [urllib.parse.urlsplit(request["url"]).path for request in self.requests()]
+        trace_paths = [path for path in paths if path.endswith("/traces")]
+        return bool(trace_paths) and all(path == "/v1.0/traces" for path in trace_paths)
 
     def rc_requests(self, *, post_only: bool = False):
         reqs = self.requests()
@@ -748,21 +764,22 @@ class TestAgentAPI:
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(
-        self, *, service: str | None = None, clear: bool = False, wait_loops: int = 100
-    ) -> dict[str, list[dict]]:
+        self,
+        *,
+        service: str | None = None,
+        runtime_id: str | None = None,
+        clear: bool = False,
+        wait_loops: int = 100,
+    ) -> dict[str, list[dict[str, Any]]]:
         """Waits for and returns configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
-        The function ensures that at least one telemetry event is captured before processing.
         Returns a dictionary where keys are configuration names and values are lists of
         configuration dictionaries, allowing for multiple entries per configuration name
         with different origins.
         """
-        events = []
-        configurations: dict[str, list[dict]] = {}
-        # Poll until telemetry is captured instead of sleeping a fixed delay: returns as soon as
-        # app-started arrives (usually within a heartbeat) and retries the empty-read window that
-        # a single fixed-delay read can land in.
+        events: list[dict[str, Any]] = []
+        configurations: dict[str, list[dict[str, Any]]] = {}
         for _ in range(wait_loops):
             with contextlib.suppress(requests.exceptions.RequestException):
                 events = self.telemetry(clear=False)
@@ -772,32 +789,42 @@ class TestAgentAPI:
         else:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
-        # Sort events by tracer_time to ensure configurations are processed in order
-        events.sort(key=lambda r: r["tracer_time"])
-
-        # Extract configuration data from relevant telemetry events
+        events.sort(key=lambda event: event["tracer_time"])
         for event in events:
+            if runtime_id is not None and event.get("runtime_id") != runtime_id:
+                continue
             if service is not None and event["application"]["service_name"] != service:
                 continue
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store all configurations, allowing multiple entries per name with different origins
-                        config_name = config["name"]
-                        if config_name not in configurations:
-                            configurations[config_name] = []
-                        configurations[config_name].append(config)
-        if configurations:
-            # Checking if we need to sort due to multiple sources being sent for the same config
-            sample_key = next(iter(configurations))
-            if "seq_id" in configurations[sample_key][0] and configurations[sample_key][0]["seq_id"] is not None:
-                # Sort seq_id for each config from highest to lowest
-                for payload in configurations.values():
-                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
+                        configurations.setdefault(config["name"], []).append(config)
+        for payload in configurations.values():
+            payload.sort(key=lambda item: item.get("seq_id") or 0, reverse=True)
         if clear:
             self.clear()
         return configurations
+
+    def wait_for_telemetry_runtime_id(self, *, exclude: str | None = None, wait_loops: int = 400) -> str:
+        observed_runtime_ids: set[str] = set()
+        for _ in range(wait_loops):
+            events: list[dict[str, Any]] = []
+            with contextlib.suppress(requests.exceptions.RequestException):
+                events = self.telemetry(clear=False)
+            events.sort(key=lambda event: event["tracer_time"], reverse=True)
+            for event in events:
+                telemetry_event = self._get_telemetry_event(event, "app-started")
+                if telemetry_event is None:
+                    continue
+                runtime_id = telemetry_event.get("runtime_id") or event.get("runtime_id")
+                if runtime_id is None:
+                    continue
+                observed_runtime_ids.add(runtime_id)
+                if runtime_id != exclude:
+                    return runtime_id
+            time.sleep(0.01)
+        raise AssertionError(f"No telemetry runtime ID found excluding {exclude}. Observed: {observed_runtime_ids}")
 
     def get_telemetry_config_by_origin(
         self,

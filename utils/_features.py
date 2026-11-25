@@ -2757,6 +2757,11 @@ class _Features:
         return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_configuration_filtering(test_object):
+        """Feature Flags configuration filtering (flag selection by tags and key patterns)"""
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
@@ -3699,6 +3704,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=647
         """
         return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
+
+    @staticmethod
+    def llm_observability_litellm_gateway(test_object):
+        """LLM Observability marks LiteLLM proxy LLM spans with their gateway
+
+        https://feature-parity.us1.prod.dog/#/?feature=651
+        """
+        return _mark_test_object(test_object, feature_id=651, owner=_Owner.ml_observability)
 
 
 features = _Features()

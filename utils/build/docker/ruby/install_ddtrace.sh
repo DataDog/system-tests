@@ -67,3 +67,6 @@ fi
 bundle config set --local without test development
 
 bundle install
+
+# read by build.sh, to label the image with it, like the healthcheck reports it
+ruby -rbundler/setup -e "print((Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']).version.to_s)" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

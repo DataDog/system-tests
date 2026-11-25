@@ -1,14 +1,18 @@
 import argparse
 import json
 import re
+from pathlib import Path
 import yaml
 
 from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, DockerScenario
+from utils._context._image_mirror import mirror_enabled, mirror_image
+from utils._context.containers import dockerfile_image_list
 from utils._context.docker import get_docker_client
+from utils.base_images.base_image import base_image_contexts
 
 
-def main(scenarios: list[str], library: str, weblog: str) -> None:
+def main(scenarios: list[str], library: str, weblog: str, output: str | None = None) -> None:
     images = set("")
 
     existing_tags = []
@@ -22,12 +26,31 @@ def main(scenarios: list[str], library: str, weblog: str) -> None:
     # remove images that will be built locally
     images = {image for image in images if not image.startswith("system_tests/")}
 
+    dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+    if library and weblog and dockerfile.is_file():
+        if mirror_enabled():
+            # build.sh then builds the weblog with the system-tests-mirror BuildKit builder, that has its own image
+            # store and pulls the FROM images (and base images) itself: pulled in the docker daemon, they would never
+            # be used
+            images -= set(dockerfile_image_list(dockerfile))
+        elif not Path(f"binaries/{library}-{weblog}-weblog.tar.zst").is_file():
+            # build.sh supplies the base images as named build contexts: pull them with the FROM images, unless the
+            # weblog image is loaded from binaries/ (see WeblogContainer.get_image_list)
+            images.update(base_image_contexts(dockerfile.read_text()).values())
+
+    # with USE_IMAGE_MIRROR, pulled from the mirror, like the session does
+    images = {mirror_image(image) for image in images}
+
     # remove images that exists locally (they may not exists in the registry, ex: buddies)
     images = {image for image in images if image not in existing_tags}
 
     compose_data = {"services": {re.sub(r"[/:\.@]", "-", image): {"image": image} for image in sorted(images)}}
 
-    print(yaml.dump(compose_data, default_flow_style=False))
+    compose = yaml.dump(compose_data, default_flow_style=False)
+    if output:
+        Path(output).write_text(compose, encoding="utf-8")
+    else:
+        print(compose)
 
 
 if __name__ == "__main__":
@@ -45,6 +68,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")
+    parser.add_argument("--output", "-o", type=str, help="Write the compose file there instead of stdout")
 
     args = parser.parse_args()
 
@@ -57,4 +81,5 @@ if __name__ == "__main__":
         json.loads(args.scenarios) if args.scenarios.startswith("[") else args.scenarios.split(","),
         library=args.library,
         weblog=args.weblog,
+        output=args.output,
     )

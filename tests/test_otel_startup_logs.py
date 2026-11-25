@@ -9,6 +9,7 @@ settings have their own test. Key order and existing startup fields are unconstr
 import json
 from pathlib import Path
 import re
+from urllib.parse import urlsplit
 
 from utils import context, features, interfaces, pytest, scenarios
 from utils._context._scenarios.otel_semantics import OTEL_STARTUP_LOGS_ENV
@@ -48,7 +49,7 @@ _OTLP_EXPORTER_KEYS = (
     "OTEL_EXPORTER_OTLP_HEADERS",
 )
 _STANDALONE_KEYS = (
-    "OTEL_ENABLED",
+    "OTEL_TRACES_EXPORTER",
     "OTEL_LOG_LEVEL",
     "OTEL_SERVICE_NAME",
     "OTEL_RESOURCE_ATTRIBUTES",
@@ -116,6 +117,9 @@ class Test_OTEL_Startup_Logs:
             # Our tracers do not support parent-based samplers, so falling back
             # to the corresponding non-parent-based sampler (always_on) is expected.
             accepted_values.append("always_on")
+        if config_name.endswith("_ENDPOINT") and not urlsplit(expected).path:
+            # HTTP clients render an empty URL path as "/", e.g. "http://agent:4318/".
+            accepted_values.append(expected + "/")
 
         for index, configuration in enumerate(_get_startup_configurations()):
             assert config_name in configuration, f"Startup configuration #{index + 1} is missing {config_name}"
@@ -145,8 +149,8 @@ class Test_OTEL_Startup_Logs:
     def test_otlp_exporter(self) -> None:
         _assert_keys(*_OTLP_EXPORTER_KEYS)
 
-    def test_otel_enabled(self) -> None:
-        _assert_keys("OTEL_ENABLED")
+    def test_otel_traces_exporter(self) -> None:
+        _assert_keys("OTEL_TRACES_EXPORTER")
 
     def test_otel_log_level(self) -> None:
         _assert_keys("OTEL_LOG_LEVEL")

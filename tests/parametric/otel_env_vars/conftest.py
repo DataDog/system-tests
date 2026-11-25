@@ -1,12 +1,11 @@
 from collections.abc import Callable, Generator
 from contextlib import AbstractContextManager, contextmanager
-import time
 
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.otel_env_vars.utils import wait_for_otlp_export_requests
 from tests.parametric.utils import generate_default_counter_data_point
 from utils import pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI, new_test_id
-from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.parametric import LogLevel
 
 
@@ -79,15 +78,6 @@ def _export(library: APMLibrary, signal: str) -> None:
         generate_default_counter_data_point(library, "default_protocol_counter")
 
 
-def _export_requests(test_agent: TestAgentAPI, signal: str) -> list[AgentRequest]:
-    deadline = time.monotonic() + 5
-    while True:
-        requests = [request for request in test_agent.requests() if request["url"].endswith(f"/v1/{signal}")]
-        if requests or time.monotonic() > deadline:
-            return requests
-        time.sleep(0.1)
-
-
 @pytest.fixture
 def default_protocol(
     test_agent: TestAgentAPI,
@@ -114,7 +104,7 @@ def default_protocol(
         endpoint = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}"
         with test_library_factory({**env, "OTEL_EXPORTER_OTLP_ENDPOINT": endpoint}) as library:
             _export(library, signal)
-        if requests := _export_requests(test_agent, signal):
+        if requests := wait_for_otlp_export_requests(test_agent, signal):
             headers = {name.lower(): value for name, value in requests[0]["headers"].items()}
             content_type = headers.get("content-type", "").split(";")[0]
             assert content_type in CONTENT_TYPE_PROTOCOLS, headers
@@ -125,7 +115,7 @@ def default_protocol(
         endpoint = f"http://{test_agent.container_name}:{test_agent_otlp_grpc_port}"
         with test_library_factory({**env, "OTEL_EXPORTER_OTLP_ENDPOINT": endpoint}) as library:
             _export(library, signal)
-        return "grpc" if _export_requests(test_agent, signal) else None
+        return "grpc" if wait_for_otlp_export_requests(test_agent, signal) else None
 
     def get(signal: str) -> str:
         if signal not in _default_protocols:

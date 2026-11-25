@@ -31,7 +31,7 @@ function epilogue {
   fi
 
   echo "DataDog/nginx-datadog version: ${module_version}"
-  echo "$module_version" | tr -d v > SYSTEM_TESTS_LIBRARY_VERSION
+  echo "$module_version" | tr -d v > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
   rm -f /etc/nginx/nginx.conf
   if version_first_is_greater "$module_version" "v1.1.0"; then
@@ -40,7 +40,7 @@ function epilogue {
     ln -s nginx.conf.no-waf /etc/nginx/nginx.conf
   fi
 
-  printf '{"status":"ok","library":{"name":"cpp_nginx","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
+  printf '{"status":"ok","library":{"name":"cpp_nginx","version":"%s"}}' "$(< /binaries/SYSTEM_TESTS_LIBRARY_VERSION)" \
     > healthcheck.json
 }
 

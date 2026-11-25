@@ -65,7 +65,6 @@ class ParametricScenario(DockerFixturesScenario):
     def __init__(self) -> None:
         super().__init__(
             "PARAMETRIC",
-            doc="WIP",
             github_workflow="parametric",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             weblog_categories=[WeblogCategory.parametric],

@@ -29,7 +29,7 @@ else
     ZIP_NAME="datadog_lambda_node${NODE_VERSION}.zip"
     DOWNLOAD_URL="https://github.com/DataDog/datadog-lambda-js/releases/latest/download/${ZIP_NAME}"
     echo "Downloading ${DOWNLOAD_URL}"
-    curl -fsSLO --retry 3 "${DOWNLOAD_URL}"
+    curl -fsSLO --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors "${DOWNLOAD_URL}"
 
     if [ ! -f "${ZIP_NAME}" ]; then
         echo "Failed to download ${ZIP_NAME}"
@@ -38,3 +38,6 @@ else
 
     unzip -o "${ZIP_NAME}" -d /opt
 fi
+
+# read by build.sh, to label the image with it, like the healthcheck reports it
+node -p "require('/opt/nodejs/node_modules/datadog-lambda-js/package.json').version" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

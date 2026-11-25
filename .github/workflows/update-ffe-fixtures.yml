@@ -77,7 +77,7 @@ jobs:
 
             ## Changes
 
-            Refresh the checked-in snapshot to [${{ steps.fixtures.outputs.source_commit }}](https://github.com/DataDog/ffe-system-test-data/commit/${{ steps.fixtures.outputs.source_commit }}), containing ${{ steps.fixtures.outputs.fixture_count }} evaluation cases.
+            Refresh the checked-in snapshot to [${{ steps.fixtures.outputs.source_commit }}](https://github.com/DataDog/ffe-system-test-data/commit/${{ steps.fixtures.outputs.source_commit }}), containing ${{ steps.fixtures.outputs.fixture_count }} evaluation cases and ${{ steps.fixtures.outputs.selection_fixture_count }} selection SDK cases.
 
             Ordinary test runs use the snapshot without network access. Resolve newly exposed evaluator failures before merging; correct shared expectations upstream only when they are wrong. Scheduled updates leave an existing update PR untouched to preserve review and fixes.
 

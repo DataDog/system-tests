@@ -38,7 +38,6 @@ class _OpenTelemetryScenario(DockerScenario):
         self,
         name: str,
         *,
-        doc: str,
         weblog_env: dict | None = None,
         include_agent: bool = True,
         include_collector: bool = True,
@@ -47,22 +46,18 @@ class _OpenTelemetryScenario(DockerScenario):
     ) -> None:
         super().__init__(
             name,
-            doc=doc,
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
             extra_containers=extra_containers,
         )
-        self.use_proxy_for_agent = False
-        """The agent sends to the mocked backend: interfaces.agent is not used"""
         if include_agent:
             # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
             self.mocked_backend_container = MockedBackendContainer(tls=True)
             self._containers.append(self.mocked_backend_container)
             self.agent_container = AgentContainer(
                 dd_api_key=FakeDatadogKey.DEFAULT,
-                use_proxy=False,
                 # the mocked backend serves remote config, signed with the TUF roots set by rc_backend_enabled
                 rc_backend_enabled=True,
                 mocked_backend=True,
@@ -108,7 +103,8 @@ class _OpenTelemetryScenario(DockerScenario):
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
 
-        self.warmups.append(self._set_components)
+        # agent and library versions are read from their images, they are known before the containers start
+        self._set_components()
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
@@ -218,6 +214,11 @@ class _OpenTelemetryScenario(DockerScenario):
 
 
 class OtelIntegrations(_OpenTelemetryScenario):
+    """We use the open telemetry library to automatically instrument the weblogs instead of using the DD library.This
+    scenario represents this case in the integration with different external systems, for example the interaction
+    with sql database.
+    """
+
     def __init__(self) -> None:
         super().__init__(
             "OTEL_INTEGRATIONS",
@@ -237,11 +238,5 @@ class OtelIntegrations(_OpenTelemetryScenario):
                 MongoContainer,
                 CassandraContainer,
                 PostgresContainer,
-            ),
-            doc=(
-                "We use the open telemetry library to automatically instrument the weblogs instead of using the DD "
-                "library."
-                "This scenario represents this case in the integration with different external systems, for example "
-                "the interaction with sql database."
             ),
         )

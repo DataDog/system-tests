@@ -32,6 +32,10 @@ FRAMEWORKS: dict[str, dict[str, str | list[str]]] = {
         "fastapi": "fastapi",
         "aiohttp": "aiohttp",
     },
+    "dotnet": {
+        "poc": "aspnet_core",
+        "uds": "aspnet_core",
+    },
     "golang": {
         "chi": "github.com/go-chi/chi/v5",
         "echo": "github.com/labstack/echo/v4",

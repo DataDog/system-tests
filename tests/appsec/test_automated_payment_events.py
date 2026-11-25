@@ -49,7 +49,7 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[DataDogLibr
             return False
 
         assert span["meta"]["appsec.events.payments.integration"] == "stripe"
-        assert span["metrics"]["_sampling_priority_v1"] == 2
+        assert span.get_sampling_priority() == 2
 
         return validator(span)
 

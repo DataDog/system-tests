@@ -112,13 +112,11 @@ class Scenario:
         self,
         name: str,
         github_workflow: str | None,
-        doc: str,
         weblog_categories: list[WeblogCategory] | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
         self.name = name
         self.replay = False
-        self.doc = doc
         self.rc_api_enabled = False
         self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
@@ -231,9 +229,6 @@ class Scenario:
 
     def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         return {"scenario": self.name}
-
-    def customize_feature_parity_dashboard(self, result: dict):
-        pass
 
     def get_libraries(self) -> set[str] | None:
         """Some scenarios are valid only with a subset of libraries."""

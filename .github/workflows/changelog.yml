@@ -71,13 +71,14 @@ jobs:
           policy: self.changelog
 
       - name: Push signed commits
-        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
+        uses: Asana/push-signed-commits@418a702ed822d75f534f2913c5b60e4e5242dd57
         with:
           github-token: ${{ steps.octo-sts.outputs.token }}
           repo: DataDog/system-tests
           local_branch_name: ${{ steps.vars.outputs.branch_name }}
           remote_name: origin
           remote_branch_name: ${{ steps.vars.outputs.branch_name }}
+          python-version: "3.12"
 
       - name: Create Pull Request
         run: |

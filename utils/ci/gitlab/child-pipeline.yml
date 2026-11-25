@@ -24,12 +24,22 @@ setup:
   extends: .system_tests_base
   tags: ["arch:amd64"]
   script:
-    - datadog-ci tag --level pipeline --tags "system-tests:true" || true
+    # dd_ci_retry: see templates.yml
+    - dd_ci_retry --allow-failure 15 datadog-ci tag --level pipeline --tags "system-tests:true"
 
 .push_to_test_optimization:
   after_script:
     # after_script runs in a fresh shell, from $CI_PROJECT_DIR
     - cd system-tests && python3 utils/ci/gitlab/run_job.py push_to_test_optimization
+
+.kube_requests:
+  variables:
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_MEMORY_REQUEST: 0.5Gi
+    KUBERNETES_SERVICE_CPU_REQUEST: 1
+    KUBERNETES_SERVICE_MEMORY_REQUEST: 3Gi
+    KUBERNETES_HELPER_CPU_REQUEST: 50m
+    KUBERNETES_HELPER_MEMORY_REQUEST: 25Mi
 
 .system_tests_build:
   extends: .system_tests_base
@@ -40,11 +50,12 @@ setup:
       - binaries/
 
 .system_tests_run:
-  extends: .system_tests_base
-  timeout: 15 minutes
-  variables:
-    KUBERNETES_CPU_REQUEST: 0.5
-    KUBERNETES_MEMORY_REQUEST: 1.3Gi
+  extends:
+    - .system_tests_base
+    - .kube_requests
+  # longer than the ~15m pod start timeout of the runners, so that a pod that never starts fails as a
+  # runner_system_failure, which is retried, rather than as a job timeout, which isn't
+  timeout: 20 minutes
   script:
     - python utils/ci/gitlab/run_job.py run_scenario
   artifacts:
@@ -53,7 +64,11 @@ setup:
       - system-tests/logs*
 
 .system_tests_parametric:
-  extends: .system_tests_base
+  extends:
+    - .system_tests_base
+    - .kube_requests
+  variables:
+    KUBERNETES_MEMORY_REQUEST: 3Gi
   script:
     - python utils/ci/gitlab/run_job.py run_parametric
   artifacts:

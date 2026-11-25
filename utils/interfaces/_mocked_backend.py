@@ -10,6 +10,7 @@ scenarios), in the pytest process (see start_mocked_backend).
 from collections.abc import Callable, Generator, Iterable
 import copy
 from pathlib import Path
+import threading
 from typing import Any
 
 from utils._logger import logger
@@ -24,6 +25,11 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("mocked_backend")
         self._mock_server: MockedBackendServer | None = None
+        self.ready = threading.Event()
+
+    def ingest_file(self, src_path: str):
+        self.ready.set()
+        return super().ingest_file(src_path)
 
     def ingest_all_files(self) -> None:
         """Ingest every recorded file not seen yet by the watchdog. To call once the mocked backend is stopped.
@@ -159,13 +165,8 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         self, request: HttpResponse, *, with_api_key: str | None = None
     ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
         for data, span in self.get_spans(request, with_api_key=with_api_key):
-            json_data = span.meta.get("_dd.appsec.json")
-            if json_data is not None:
-                yield data, span, json_data
-            elif (legacy_metastruct_data := span.get("metaStruct", {}).get("appsec")) is not None:
-                yield data, span, legacy_metastruct_data
-            elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
-                yield data, span, v1_metastruct_data
+            for report in span.get_structured_payloads("appsec", "_dd.appsec.json"):
+                yield data, span, report
 
     def get_profiling_data(self, *, with_api_key: str | None = None):
         yield from self.get_data(path_filters="/api/v2/profile", with_api_key=with_api_key)

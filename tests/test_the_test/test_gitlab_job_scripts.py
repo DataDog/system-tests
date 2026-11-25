@@ -1,7 +1,9 @@
 """Tests for the scripts run by the jobs of the generated GitLab child pipeline (utils/ci/gitlab/jobs/)."""
 
+import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from utils import pytest
@@ -17,11 +19,29 @@ def _trace(name: str, tags: list[str], *command: str) -> list[str]:
 TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_type:run"]
 
 
+def _image_list(scenario: str, library: str, weblog: str) -> list[str]:
+    return [
+        "env",
+        "PYTHONPATH=.",
+        "python",
+        "utils/scripts/get-image-list.py",
+        scenario,
+        f"--library={library}",
+        f"--weblog={weblog}",
+        "--output=compose.yaml",
+    ]
+
+
 @pytest.fixture
 def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]:
     """Record commands instead of running them, from a fake system-tests clone in $CI_PROJECT_DIR."""
     recorded: list[list[str]] = []
-    monkeypatch.setattr(_common, "run", lambda command, **_: recorded.append(command))
+
+    def record(command: list[str], **_: object) -> int:
+        recorded.append(command)
+        return 0
+
+    monkeypatch.setattr(_common, "run", record)
 
     clone = tmp_path / "system-tests"
     (clone / "binaries").mkdir(parents=True)
@@ -36,6 +56,130 @@ def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]
     return recorded
 
 
+@pytest.fixture
+def run_calls(
+    commands: list[list[str]],  # noqa: ARG001 - for its fake system-tests clone and environment
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[list[str], dict[str, object]]]:
+    """Like commands, with the keyword arguments of each run() call."""
+    recorded: list[tuple[list[str], dict[str, object]]] = []
+
+    def record(command: list[str], **kwargs: object) -> int:
+        recorded.append((command, kwargs))
+        return 0
+
+    monkeypatch.setattr(_common, "run", record)
+    return recorded
+
+
+@pytest.fixture
+def subprocess_calls(monkeypatch: pytest.MonkeyPatch) -> tuple[list[list[str]], list[int], list[float]]:
+    """Make the subprocesses started by run() return the exit codes appended to the 2nd list, record the commands
+    in the 1st one, and the pauses between attempts in the 3rd one.
+    """
+    commands: list[list[str]] = []
+    returncodes: list[int] = []
+    sleeps: list[float] = []
+
+    def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[bytes]:
+        commands.append(command)
+        return subprocess.CompletedProcess(command, returncodes.pop(0))
+
+    monkeypatch.setattr(_common.subprocess, "run", fake_run)
+    monkeypatch.setattr(_common.time, "sleep", sleeps.append)
+    return commands, returncodes, sleeps
+
+
+TIMEOUT_TAG = ["timeout", "--kill-after=10s", "15s", "datadog-ci", "tag"]
+
+
+@scenarios.test_the_test
+class Test_GitlabRunHelper:
+    def test_command_without_timeout_is_run_once(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.append(3)
+
+        assert _common.run(["false"], check=False) == 3
+        assert commands == [["false"]]
+        assert sleeps == []
+
+    def test_failed_attempt_is_retried(self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.extend([124, 0])
+
+        assert _common.run(["datadog-ci", "tag"], timeout=15, attempts=3) == 0
+        assert commands == [TIMEOUT_TAG, TIMEOUT_TAG]
+        assert sleeps == [5]
+
+    def test_allowed_failure_after_all_attempts(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        commands, returncodes, sleeps = subprocess_calls
+        returncodes.extend([124, 1, 137])
+
+        assert _common.run(["datadog-ci", "tag"], allow_failure=True, timeout=15, attempts=3) == 137
+        assert commands == [TIMEOUT_TAG] * 3
+        assert sleeps == [5, 10]
+
+    def test_failure_after_all_attempts_exits(
+        self, subprocess_calls: tuple[list[list[str]], list[int], list[float]]
+    ) -> None:
+        _, returncodes, _ = subprocess_calls
+        returncodes.extend([1, 124])
+
+        with pytest.raises(SystemExit) as exc:
+            _common.run(["datadog-ci", "tag"], timeout=15, attempts=2)
+        assert exc.value.code == 124
+
+    def test_hung_command_is_killed(self) -> None:
+        """A real hung command: coreutils timeout stops it, and its children, with exit code 124."""
+        if not shutil.which("timeout"):
+            pytest.skip("coreutils timeout is not installed")
+        start = time.monotonic()
+        # the sleep is a child of sh, like datadog-ci is a child of dd-sts exchange
+        assert _common.run(["sh", "-c", "sleep 30; true"], timeout=1, check=False) == 124
+        assert time.monotonic() - start < 10
+
+    def test_datadog_ci_metadata_calls_are_bounded(
+        self, run_calls: list[tuple[list[str], dict[str, object]]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME", "0")
+
+        _common.tag_job("run")
+        _common.emit_execution_time_metric()
+
+        assert [command[:2] for command, _ in run_calls] == [["datadog-ci", "tag"], ["datadog-ci", "measure"]]
+        for _, kwargs in run_calls:
+            # best-effort, as before
+            assert kwargs == {"allow_failure": True, "timeout": 15, "attempts": 3}
+
+    def test_datadog_ci_trace_is_not_bounded(
+        self, run_calls: list[tuple[list[str], dict[str, object]]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """datadog-ci trace wraps build.sh / run.sh, which legitimately run for minutes."""
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+
+        _common.traced("run python DEFAULT", ["./run.sh", "DEFAULT"])
+
+        assert run_calls == [
+            (_trace("run python DEFAULT", ["system-tests.library:python"], "./run.sh", "DEFAULT"), {"check": True})
+        ]
+
+    def test_junit_upload_is_bounded(self, run_calls: list[tuple[list[str], dict[str, object]]]) -> None:
+        Path("logs_default").mkdir()
+        Path("logs_default/reportJunit.xml").write_text("<testsuites/>")
+
+        push_to_test_optimization.main()
+
+        assert run_calls[0] == (["dd-sts", "debug"], {"timeout": 15})
+        command, kwargs = run_calls[1]
+        assert command[5:8] == ["datadog-ci", "junit", "upload"]
+        # not allowed to fail, as before
+        assert kwargs == {"timeout": 90, "attempts": 2}
+
+
 @scenarios.test_the_test
 class Test_GitlabJobScripts:
     def test_run_scenario_with_upstream_binaries(
@@ -45,7 +189,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "upstream" / "lib.tgz").write_text("lib")
         monkeypatch.setenv("TEST_LIBRARY", "golang")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "envoy")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "GO_PROXIES_DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "GO_PROXIES_DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
         monkeypatch.setenv("SYSTEM_TESTS_BINARIES_ARTIFACT_PATH", "upstream")
         monkeypatch.setenv("SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME", "0")
@@ -55,8 +199,9 @@ class Test_GitlabJobScripts:
         assert Path("binaries/lib.tgz").read_text() == "lib"
         assert commands[0] == ["ls", "-la", "binaries/"]
         assert commands[1] == TAG_RUN
+        assert commands[2] == _image_list("GO_PROXIES_DEFAULT", "golang", "envoy")
         # weblog and library are passed through the environment, not on the command line
-        assert commands[2] == _trace(
+        assert commands[3] == _trace(
             "run golang GO_PROXIES_DEFAULT envoy",
             [
                 "system-tests.library:golang",
@@ -66,8 +211,8 @@ class Test_GitlabJobScripts:
             "./run.sh",
             "GO_PROXIES_DEFAULT",
         )
-        assert commands[3][:5] == ["datadog-ci", "measure", "--level", "job", "--measures"]
-        assert len(commands) == 4
+        assert commands[4][:5] == ["datadog-ci", "measure", "--level", "job", "--measures"]
+        assert len(commands) == 5
 
     def test_run_scenario_loads_weblog_built_by_build_job(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -76,7 +221,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "binaries" / "python-flask-weblog.tar.zst").write_text("image")
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
 
         run_scenario.main()
@@ -86,6 +231,7 @@ class Test_GitlabJobScripts:
         assert commands == [
             TAG_RUN,
             _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
+            _image_list("DEFAULT", "python", "flask"),
             _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
 
@@ -97,7 +243,7 @@ class Test_GitlabJobScripts:
         (tmp_path / "upstream" / "nodejs-load-from-npm").write_text("dd-trace")
         monkeypatch.setenv("TEST_LIBRARY", "nodejs")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "express4")
-        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
         monkeypatch.setenv("SYSTEM_TESTS_BINARIES_ARTIFACT_PATH", "upstream")
 
@@ -109,8 +255,83 @@ class Test_GitlabJobScripts:
             ["ls", "-la", "binaries/"],
             TAG_RUN,
             _trace("build nodejs express4", tags, "./build.sh", "-i", "weblog", "-w", "express4"),
+            _image_list("DEFAULT", "nodejs", "express4"),
             _trace("run nodejs DEFAULT express4", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
+
+    def test_run_scenario_pulls_images_before_running(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Like the GitHub workflow: the images listed by get-image-list.py are pulled before run.sh."""
+
+        def record(command: list[str], **_: object) -> int:
+            commands.append(command)
+            if "utils/scripts/get-image-list.py" in command:
+                Path("compose.yaml").write_text("services:\n  agent:\n    image: datadog/agent:latest\n")
+            return 0
+
+        monkeypatch.setattr(_common, "run", record)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
+
+        run_scenario.main()
+
+        assert commands[:3] == [
+            TAG_RUN,
+            _image_list("DEFAULT", "python", "flask"),
+            [".github/actions/pull_images/main.sh"],
+        ]
+
+    def test_run_scenario_runs_several_scenarios(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Grouped scenarios: the weblog is built once, then each scenario is run, one after the other."""
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT,SAMPLING")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
+
+        run_scenario.main()
+
+        tags = ["system-tests.library:python", "system-tests.weblog:flask"]
+        assert commands == [
+            TAG_RUN,
+            _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
+            _image_list("DEFAULT", "python", "flask"),
+            _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
+            _image_list("SAMPLING", "python", "flask"),
+            _trace("run python SAMPLING flask", [*tags, "system-tests.scenario:SAMPLING"], "./run.sh", "SAMPLING"),
+        ]
+
+    def test_run_scenario_runs_next_scenarios_after_a_failure(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Like the GitHub workflow: a failing scenario doesn't prevent the next ones from running."""
+
+        def record(command: list[str], **_: object) -> int:
+            commands.append(command)
+            if command[-2:] == ["./run.sh", "DEFAULT"]:
+                return 3
+            if "utils/scripts/get-image-list.py" in command and "SAMPLING" in command:
+                return 4
+            return 0
+
+        monkeypatch.setattr(_common, "run", record)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", "DEFAULT,SAMPLING,IPV6")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "false")
+
+        with pytest.raises(SystemExit) as exc:
+            run_scenario.main()
+
+        # exit code of the first failure
+        assert exc.value.code == 3
+        run_commands = [command[-1] for command in commands if command[-2:-1] == ["./run.sh"]]
+        # images of SAMPLING could not be listed: it is not run, but IPV6 is
+        assert run_commands == ["DEFAULT", "IPV6"]
 
     def test_build_weblog(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("TEST_LIBRARY", "python")
@@ -158,11 +379,23 @@ class Test_GitlabJobScripts:
         ]
 
     def test_missing_input_fails(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("SYSTEM_TESTS_SCENARIO", raising=False)
+        monkeypatch.delenv("SYSTEM_TESTS_SCENARIOS", raising=False)
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
 
-        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIO"):
+        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIOS"):
+            run_scenario.main()
+        assert commands == []
+
+    @pytest.mark.parametrize("value", [",", " , "])
+    def test_empty_scenario_list_fails(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, value: str
+    ) -> None:
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIOS", value)
+        monkeypatch.setenv("TEST_LIBRARY", "python")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
+
+        with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIOS does not list any scenario"):
             run_scenario.main()
         assert commands == []
 

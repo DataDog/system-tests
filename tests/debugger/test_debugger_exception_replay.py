@@ -54,10 +54,26 @@ def normalize_approval_data(data: object) -> object:
     versions, so exclude them from both sides of the approval comparison too.
     """
     if isinstance(data, dict):
+        if isinstance(data.get("attributes"), dict):
+            # Native v1 promotes these tags to span fields; converted legacy payloads
+            # may also retain copies in attributes. Compare the shared top-level values.
+            promoted_attributes = {"env": "envRef", "version": "versionRef", "span.kind": "kind"}
+            data = {
+                **data,
+                "attributes": {
+                    key: value for key, value in data["attributes"].items() if promoted_attributes.get(key) not in data
+                },
+            }
         return {
             key: normalize_approval_data(value)
             for key, value in data.items()
-            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export", "_dd.appsec.normalized_route"}
+            if key
+            not in {
+                "_dd.convertedv1",
+                "_dd.sdk.otlp_export",
+                "_dd.appsec.normalized_route",
+                "componentRef",  # native v1 component metadata is unrelated to exception replay
+            }
         }
 
     if isinstance(data, list):
@@ -552,7 +568,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
-                    return [{"function": method}]
+                    # When the recursion is deeper than the max captured frames, a tracer capturing the innermost
+                    # frames (e.g. Java) has no snapshot for the entry method: it is only present in the stack.
+                    stack_frames = [
+                        {"function": frame.get("function", "").split(".")[-1]} for frame in snapshot.get("stack", [])
+                    ]
+                    return [{"function": method}, *stack_frames]
 
             return snapshot.get("stack", [])
 

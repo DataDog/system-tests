@@ -18,6 +18,8 @@ from ._core import DockerFixturesScenario, scenario_groups as groups
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
+    """Tests for third-party integration frameworks"""
+
     _test_client_factory: FrameworkTestClientFactory
     _required_cassette_generation_api_keys: dict[str, list[str]] = {
         # DD_API_KEY / DD_APP_KEY are needed by the AI Guard client, which calls the real
@@ -28,12 +30,12 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         "openai": ["OPENAI_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "anthropic": ["ANTHROPIC_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "google_genai": ["GEMINI_API_KEY"],
+        "litellm": ["OPENAI_API_KEY"],
     }
 
     def __init__(self) -> None:
         super().__init__(
             "INTEGRATION_FRAMEWORKS",
-            doc="Tests for third-party integration frameworks",
             github_workflow="endtoend",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             scenario_groups=(groups.integration_frameworks,),
@@ -141,6 +143,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     @property
     def library(self):
         return self._library
+
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        result = super().get_junit_properties()
+
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
+
+        return result
 
     def _check_and_set_api_keys(self, framework: str, *, generate_cassettes: bool = False) -> None:
         required_api_keys = self._required_cassette_generation_api_keys.get(framework, [])

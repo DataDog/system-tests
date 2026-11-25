@@ -43,6 +43,10 @@ logger = _LOGGER
 
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 
+# Other errors fail fast (e.g. unauthorized), unless they are transient (e.g. Docker Hub CDN): retried a few times
+_UNEXPECTED_ERROR_ATTEMPTS = 3
+_UNEXPECTED_ERROR_RETRY_DELAY = 10
+
 
 def _metadata_weblogs(metadata_lines: list[str]) -> tuple[set[str], dict[str, set[str]]]:
     weblogs: set[str] = set()
@@ -138,6 +142,7 @@ def main() -> None:
     logger.info("Waiting for %s to be available on Docker Hub (timeout: %ss)", image_tag, args.timeout)
 
     deadline = time.monotonic() + args.timeout
+    unexpected_errors = 0
     while True:
         result = subprocess.run(
             ["docker", "manifest", "inspect", image_tag],
@@ -151,10 +156,22 @@ def main() -> None:
             return
 
         if not any(missing_manifest_error in error.lower() for missing_manifest_error in _MISSING_MANIFEST_ERRORS):
+            unexpected_errors += 1
             logger.error("Error: failed to inspect %s", image_tag)
             if error:
                 logger.error("%s", error)
-            sys.exit(1)
+            if unexpected_errors >= _UNEXPECTED_ERROR_ATTEMPTS:
+                sys.exit(1)
+            logger.info(
+                "Retrying in %ss (%s/%s)...",
+                _UNEXPECTED_ERROR_RETRY_DELAY,
+                unexpected_errors,
+                _UNEXPECTED_ERROR_ATTEMPTS - 1,
+            )
+            time.sleep(_UNEXPECTED_ERROR_RETRY_DELAY)
+            continue
+
+        unexpected_errors = 0
 
         if time.monotonic() >= deadline:
             logger.error("Error: timed out waiting for %s", image_tag)

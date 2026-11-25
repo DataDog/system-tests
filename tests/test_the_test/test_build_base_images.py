@@ -12,11 +12,13 @@ from utils import pytest
 
 from utils import scenarios
 from utils.base_images import build_base_images
+from utils._context.containers import dockerfile_image_list
 from utils.base_images.base_image import (
     BaseImageLockError,
     base_image_contexts,
     base_image_ref,
     load_base_image_lock,
+    mirror_base_image,
 )
 from utils.base_images.build_base_images import (
     _changed_libraries,
@@ -36,6 +38,9 @@ from utils.base_images.build_base_images import (
 )
 from utils.base_images import wait_for_base_image
 from utils.base_images.wait_for_base_image import _base_image_tag
+
+
+MIRROR = "registry.ddbuild.io/system-tests/mirror"
 
 
 def _write_dockerfile(tmp_path: Path, content: str) -> Path:
@@ -712,7 +717,10 @@ class Test_ComputeHash:
 
 @scenarios.test_the_test
 class Test_BuildAndPush:
-    def test_build_and_push_streams_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    @pytest.mark.parametrize(("platform", "arch"), [("linux/amd64", "amd64"), ("linux/arm64", "arm64")])
+    def test_build_and_push_streams_output(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, platform: str, arch: str
+    ) -> None:
         calls: list[tuple[list[str], dict[str, object]]] = []
 
         def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess:
@@ -727,7 +735,7 @@ class Test_BuildAndPush:
             "datadog/system-tests:test.base-123456789abc",
             tmp_path / "build",
             "Dockerfile",
-            "linux/arm64",
+            platform,
         )
 
         assert calls == [
@@ -745,7 +753,9 @@ class Test_BuildAndPush:
                     "--set",
                     "target.dockerfile=Dockerfile",
                     "--set",
-                    "target.platform=linux/arm64",
+                    f"target.platform={platform}",
+                    "--set",
+                    f"target.args.TARGETARCH={arch}",
                     "-f",
                     str(tmp_path / "docker-bake.hcl"),
                     "target",
@@ -919,7 +929,7 @@ class Test_WaitForBaseImage:
         assert exit_info.value.code == 1
         assert calls == 1
 
-    def test_non_missing_error_fails_immediately(self, monkeypatch: pytest.MonkeyPatch):
+    def test_non_missing_error_fails_after_a_few_attempts(self, monkeypatch: pytest.MonkeyPatch):
         calls = 0
 
         def unauthorized(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
@@ -939,7 +949,28 @@ class Test_WaitForBaseImage:
             wait_for_base_image.main()
 
         assert exit_info.value.code == 1
-        assert calls == 1
+        # well before the timeout: it's not a missing image
+        assert calls == wait_for_base_image._UNEXPECTED_ERROR_ATTEMPTS  # noqa: SLF001
+
+    def test_transient_error_is_retried(self, monkeypatch: pytest.MonkeyPatch):
+        results = iter(
+            [
+                subprocess.CompletedProcess(
+                    [], 1, stdout="", stderr='Get "https://production.cloudfront.docker.com/...'
+                ),
+                subprocess.CompletedProcess([], 0, stdout="{}", stderr=""),
+            ]
+        )
+
+        monkeypatch.setattr(wait_for_base_image.subprocess, "run", lambda *_args, **_kwargs: next(results))
+        monkeypatch.setattr(wait_for_base_image.time, "sleep", lambda _seconds: None)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "express4", "--timeout", "900", "--poll-interval", "30"],
+        )
+
+        wait_for_base_image.main()
 
 
 @scenarios.test_the_test
@@ -947,6 +978,7 @@ class Test_MultiArch:
     """The per-platform build step and the manifest-list merge step. Registry and docker calls are mocked."""
 
     tag = "datadog/system-tests:test.base-123456789abc"
+    mirror_tag = f"{MIRROR}/{tag}"
 
     def _target(self, tmp_path: Path) -> tuple:
         return ("nodejs", tmp_path / "docker-bake.hcl", "t", self.tag, tmp_path / "build", "df")
@@ -966,36 +998,117 @@ class Test_MultiArch:
             (tmp_path / "docker-bake.hcl", "t", f"{self.tag}-arm64", tmp_path / "build", "df", "linux/arm64")
         ]
 
-    @pytest.mark.parametrize("existing", ["", "-arm64"])
+    @pytest.mark.parametrize("existing", [tag, f"{tag}-arm64", f"{MIRROR}/{tag}"])
     def test_build_platform_skips_published_images(
         self, existing: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == f"{self.tag}{existing}")
+        """The multi-arch image in either registry is enough: --merge copies it to the other one."""
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == existing)
         monkeypatch.setattr(build_base_images, "build_and_push", lambda *_a: pytest.fail("must not build"))
 
         build_platform(*self._target(tmp_path), platform="linux/arm64")
 
-    def test_merge_creates_the_manifest_list(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def _mock_merge(self, monkeypatch: pytest.MonkeyPatch, existing: set[str]) -> tuple[list[tuple], list[str]]:
         merges: list[tuple] = []
-        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag != self.tag)
+        signed: list[str] = []
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag in existing)
         monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *args: merges.append(args))
+        monkeypatch.setattr(build_base_images, "ensure_signed", signed.append)
+        return merges, signed
+
+    def test_merge_pushes_the_manifest_list_to_both_registries(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        merges, signed = self._mock_merge(monkeypatch, {f"{self.tag}-amd64", f"{self.tag}-arm64"})
 
         merge_platforms(*self._target(tmp_path))
 
-        assert merges == [(self.tag, [f"{self.tag}-amd64", f"{self.tag}-arm64"])]
+        assert merges == [([self.tag, self.mirror_tag], [f"{self.tag}-amd64", f"{self.tag}-arm64"])]
+        assert signed == [self.mirror_tag]
 
-    def test_merge_skips_published_image(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == self.tag)
-        monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *_a: pytest.fail("must not merge"))
+    def test_merge_copies_docker_hub_image_to_the_mirror(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        merges, signed = self._mock_merge(monkeypatch, {self.tag})
 
         merge_platforms(*self._target(tmp_path))
+
+        assert merges == [([self.mirror_tag], [self.tag])]
+        assert signed == [self.mirror_tag]
+
+    def test_merge_copies_mirror_image_to_docker_hub(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        merges, signed = self._mock_merge(monkeypatch, {self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert merges == [([self.tag], [self.mirror_tag])]
+        assert signed == [self.mirror_tag]  # the mirror copy may have been left unsigned by the failed run
+
+    def test_merge_skips_the_push_of_published_image_but_checks_its_signature(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        merges, signed = self._mock_merge(monkeypatch, {self.tag, self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert merges == []
+        assert signed == [self.mirror_tag]
 
     def test_merge_fails_when_a_platform_is_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == f"{self.tag}-amd64")
-        monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *_a: pytest.fail("must not merge"))
+        merges, signed = self._mock_merge(monkeypatch, {f"{self.tag}-amd64"})
 
         with pytest.raises(RuntimeError, match=r"-arm64"):
             merge_platforms(*self._target(tmp_path))
+
+        assert merges == []
+        assert signed == []
+
+    digest = "sha256:" + "a" * 64
+    signature = f"{MIRROR}/datadog/system-tests:sha256-{'a' * 64}.sig"
+
+    def _fake_registry(self, monkeypatch: pytest.MonkeyPatch, existing: set[str]) -> list[list[str]]:
+        """Fake docker/ddsign: ``existing`` holds the published references, mutating commands are recorded."""
+        mutations: list[list[str]] = []
+
+        def fake_run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+            if cmd[:3] == ["docker", "manifest", "inspect"]:
+                if cmd[3] in existing:
+                    return subprocess.CompletedProcess(cmd, 0, stdout="{}", stderr="")
+                return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="manifest unknown")
+            if cmd[:4] == ["docker", "buildx", "imagetools", "inspect"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps({"digest": self.digest}), stderr="")
+            if cmd[:2] == ["ddsign", "resolve"]:
+                assert cmd[2] == f"{MIRROR}/datadog/system-tests@{self.digest}"
+                return subprocess.CompletedProcess(cmd, 0, stdout=f"{self.signature}\n", stderr="")
+            if cmd[:2] == ["ddsign", "sign"] or cmd[:4] == ["docker", "buildx", "imagetools", "create"]:
+                mutations.append(cmd)
+                return subprocess.CompletedProcess(cmd, 0)
+            raise AssertionError(f"unexpected command {cmd}")
+
+        monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
+        return mutations
+
+    def test_rerun_after_a_sign_failure_signs_the_mirror_copy(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mutations = self._fake_registry(monkeypatch, {self.tag, self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == [["ddsign", "sign", f"{MIRROR}/datadog/system-tests@{self.digest}"]]
+
+    def test_rerun_after_a_partial_push_completes_it_and_signs_the_mirror_copy(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        mutations = self._fake_registry(monkeypatch, {self.mirror_tag})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == [
+            ["docker", "buildx", "imagetools", "create", "--tag", self.tag, self.mirror_tag],
+            ["ddsign", "sign", f"{MIRROR}/datadog/system-tests@{self.digest}"],
+        ]
+
+    def test_already_signed_mirror_copy_is_not_signed_again(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mutations = self._fake_registry(monkeypatch, {self.tag, self.mirror_tag, self.signature})
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert mutations == []
 
     def test_create_manifest_list_command(self, monkeypatch: pytest.MonkeyPatch):
         calls: list[list[str]] = []
@@ -1006,11 +1119,68 @@ class Test_MultiArch:
 
         monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
 
-        build_base_images.create_manifest_list(self.tag, [f"{self.tag}-amd64", f"{self.tag}-arm64"])
+        build_base_images.create_manifest_list([self.tag, self.mirror_tag], [f"{self.tag}-amd64", f"{self.tag}-arm64"])
 
         assert calls == [
-            ["docker", "buildx", "imagetools", "create", "--tag", self.tag, f"{self.tag}-amd64", f"{self.tag}-arm64"]
+            [
+                "docker",
+                "buildx",
+                "imagetools",
+                "create",
+                "--tag",
+                self.tag,
+                "--tag",
+                self.mirror_tag,
+                f"{self.tag}-amd64",
+                f"{self.tag}-arm64",
+            ]
         ]
+
+    def test_report_target_tolerates_an_unreachable_registry(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        def image_exists(tag: str) -> bool:
+            if tag == self.mirror_tag:
+                raise RuntimeError("unauthorized")
+            return True
+
+        messages: list[str] = []
+        monkeypatch.setattr(build_base_images, "image_exists", image_exists)
+        monkeypatch.setattr(build_base_images.logger, "info", lambda message, *args: messages.append(message % args))
+
+        build_base_images.report_target(*self._target(tmp_path))
+
+        assert messages == [f"nodejs/t: {self.tag} ({self.tag}: exists, {self.mirror_tag}: unknown)"]
+
+
+@scenarios.test_the_test
+class Test_MirrorBaseImage:
+    """Base images are pushed to the mirror where BuildKit's docker.io mirror (buildkitd.toml) resolves them."""
+
+    tag = "datadog/system-tests:test.base-123456789abc"
+
+    def test_mirror_path_matches_the_buildkit_docker_io_mirror(self):
+        buildkitd = Path("utils/build/docker/buildkitd.toml").read_text()
+        docker_io_mirror = re.search(r'\[registry\."docker\.io"\]\s*mirrors = \["([^"]+)"\]', buildkitd)
+        assert docker_io_mirror is not None
+
+        assert mirror_base_image(self.tag) == f"{docker_io_mirror.group(1)}/{self.tag}"
+
+    def test_dockerfile_image_list_skips_base_image_aliases(self, tmp_path: Path):
+        """They are named build contexts, not pulled by the Dockerfile: the mirror list never sees them."""
+        dockerfile = _write_dockerfile(
+            tmp_path,
+            """\
+            FROM system_tests_base_nodejs_express4 AS base
+            ARG VERSION=22
+            FROM node:$VERSION
+            """,
+        )
+
+        assert dockerfile_image_list(dockerfile) == ["node:22"]
+
+    def test_mirror_lock_has_no_base_image(self):
+        """build_base_images.py pushes them to the mirror, mirror_images must not copy them again."""
+        mirrored = Path("mirror_images.yaml").read_text() + Path("mirror_images.lock.yaml").read_text()
+        assert ".base-" not in mirrored
 
 
 @scenarios.test_the_test
@@ -1201,7 +1371,12 @@ class Test_BuildScriptBaseImageContexts:
         fake_bin.mkdir()
         capture = tmp_path / "docker-args"
         docker = fake_bin / "docker"
-        docker.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$CAPTURE"\n')
+        # records the build command: build.sh then runs the image to read its tracer version, and labels it with another
+        # build reading its Dockerfile from stdin, they are not recorded
+        docker.write_text(
+            '#!/usr/bin/env bash\n[ "$1" = run ] && echo 1.2.3 && exit 0\n[ "${*: -1}" = - ] && exit 0\n'
+            'printf "%s\\n" "$@" > "$CAPTURE"\n'
+        )
         docker.chmod(0o755)
         token = tmp_path / "github-token"
         token.write_text("secret")

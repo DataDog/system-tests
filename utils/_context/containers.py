@@ -19,15 +19,15 @@ import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion, Version
-from utils._context.docker import get_docker_client
+from utils._context.docker import get_docker_client, log_host_diagnostics
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
-from utils.base_images.base_image import base_image_contexts
+from utils.base_images.base_image import base_image_aliases
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
-from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.mocked_backend.ffe import EVALUATION_SUITES_RELATIVE_PATH, UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -38,11 +38,6 @@ from utils.proxy.mocked_response import (
     SetObfuscationVersion,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
-)
-from utils.proxy.rc_response_builder import (
-    build_rc_configurations_protobuf,
-    build_org_data_protobuf,
-    build_org_status_protobuf,
 )
 from utils._logger import logger
 from utils._weblog import weblog
@@ -66,6 +61,12 @@ def create_network() -> Network:
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
+
+# Creating and starting a container usually takes a few seconds. Above that, log the host state.
+_SLOW_CONTAINER_START_SECONDS = 20
+# How long to try to replace a leftover container that holds the name of a container to start
+_CONFLICT_RECOVERY_SECONDS = 60
+_CONFLICT_RETRY_DELAY = 2
 
 
 def create_inject_volume():
@@ -246,7 +247,58 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = get_docker_client().containers.run(
+        started_at = time.monotonic()
+        try:
+            try:
+                self._container = self._run_container(network)
+            except APIError as e:
+                # APIError is a RequestException: it must be handled first
+                if e.status_code != HTTPStatus.CONFLICT:
+                    raise
+                self._container = self._replace_conflicting_container(network, e)
+        except requests.exceptions.RequestException as e:
+            if not isinstance(e, APIError):
+                # e.g. ReadTimeout: the daemon did not answer in time (it may still create the container)
+                log_host_diagnostics(f"{self.container_name} failed after {time.monotonic() - started_at:.0f}s")
+            raise
+
+        if (duration := time.monotonic() - started_at) > _SLOW_CONTAINER_START_SECONDS:
+            log_host_diagnostics(f"{self.container_name} took {duration:.0f}s to start")
+
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
+
+        self._container.reload()
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
+
+    def _replace_conflicting_container(self, network: Network, error: APIError) -> Container:
+        """The name is taken by a container that the previous checks didn't see: a create request that timed out
+        client-side in a previous scenario, completed by the daemon after that scenario's cleanup. Remove it, and retry.
+        """
+        logger.warning(f"{self.container_name} already exists ({error.explanation}), removing it")
+        # No attempt starts after the deadline. Each docker call is bounded by the docker client timeout.
+        deadline = time.monotonic() + _CONFLICT_RECOVERY_SECONDS
+        while True:
+            try:
+                get_docker_client().api.remove_container(self.container_name, force=True)
+            except APIError as e:
+                # 404: the daemon is still creating it. 409: its removal is already in progress.
+                if e.status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.CONFLICT):
+                    raise
+                logger.info(f"Can't remove {self.container_name} yet ({e.explanation})")
+
+            try:
+                return self._run_container(network)
+            except APIError as e:
+                if e.status_code != HTTPStatus.CONFLICT or time.monotonic() + _CONFLICT_RETRY_DELAY > deadline:
+                    raise
+
+            time.sleep(_CONFLICT_RETRY_DELAY)
+
+    def _run_container(self, network: Network) -> Container:
+        return get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -273,14 +325,6 @@ class TestedContainer:
             cgroupns=self.cgroupns,
             mounts=self.mounts,
         )
-
-        self.healthy = self.wait_for_health()
-        if self.healthy:
-            self.warmup()
-
-        self._container.reload()
-        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
@@ -665,7 +709,8 @@ class ProxyContainer(TestedContainer):
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
-        rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
+        rc_backend_enabled: Whether the agent gets remote config from the (mocked) backend, instead of the proxy
+            mocking the tracer remote config
 
         """
 
@@ -715,34 +760,6 @@ class ProxyContainer(TestedContainer):
                     StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
                 )
 
-        # Backend mocked responses (create responses from scratch)
-        self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
-
-        if rc_backend_enabled:
-            # Set up internal backend mocks for backend endpoints
-            self.internal_mocked_backend_responses = [
-                MockedBackendResponse(
-                    path="/api/v0.1/org",
-                    content=build_org_data_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/status",
-                    content=build_org_status_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.2/echo-test",
-                    content=b"ok",
-                    content_type="text/plain",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/configurations",
-                    content=build_rc_configurations_protobuf(None),
-                    content_type="application/x-protobuf",
-                ),
-            ]
-
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -750,11 +767,6 @@ class ProxyContainer(TestedContainer):
         tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
         with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
-
-        # Write backend mocked responses JSON
-        backend_mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
-        with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
-            json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
         # in any info printed in stdout, log filename should be the same as the host.
         # In the host, they are accessible in ./logs_<scenario_name>
@@ -767,10 +779,18 @@ class ProxyContainer(TestedContainer):
 
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
-        self.volumes[backend_mocks_path] = {
-            "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
-            "mode": "ro",
-        }
+
+    def remove(self):
+        # Proxy writes flows on a background thread (see utils/proxy/_flow_writer.py). Its response hook
+        # acknowledges the tracer as soon as a flow is queued, so writes may still be in flight at teardown.
+        # TestedContainer.remove() calls docker rm --force which sends SIGKILL and skips the proxy's done
+        # hook, losing queued flows. Pre-stop so docker sends SIGTERM first and the done hook flushes.
+        if self._container:
+            try:
+                self._container.stop(timeout=30)
+            except APIError as e:
+                logger.info(f"Fail to stop container {self.name} before remove ({e})")
+        super().remove()
 
 
 class MockedBackendContainer(TestedContainer):
@@ -807,6 +827,11 @@ class MockedBackendContainer(TestedContainer):
                 "./utils/proxy": {"bind": "/app/utils/proxy", "mode": "ro"},
                 # served as the FFE agentless configuration
                 f"./{UFC_FIXTURE_RELATIVE_PATH}": {"bind": f"/app/{UFC_FIXTURE_RELATIVE_PATH}", "mode": "ro"},
+                # served instead with client.ffe_use_suite, with the tags its flag selection matches against
+                f"./{EVALUATION_SUITES_RELATIVE_PATH}": {
+                    "bind": f"/app/{EVALUATION_SUITES_RELATIVE_PATH}",
+                    "mode": "ro",
+                },
             },
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},
@@ -913,7 +938,6 @@ class AgentContainer(TestedContainer):
         self,
         *,
         dd_api_key: str,
-        use_proxy: bool = True,
         rc_backend_enabled: bool = False,
         mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
@@ -932,19 +956,11 @@ class AgentContainer(TestedContainer):
             }
         )
 
-        if use_proxy:
-            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
-            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
-
-        # Configure backend mode via environment variables
-        # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
-        # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
+        # Remote config from the backend: the TUF roots validate the responses of the mocked backend
         if rc_backend_enabled:
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            if use_proxy:
-                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
@@ -968,11 +984,31 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # read from the image, so that the version is known before the agent starts
+        version = self.image.labels.get("org.opencontainers.image.version", "")
+        if not version:
+            pytest.exit(
+                f"The agent image {self.image.name} has no org.opencontainers.image.version label, "
+                "so its version can't be known before it starts. Add this label to the image.",
+                1,
+            )
+        self.agent_version = ComponentVersion("agent", version).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = ComponentVersion("agent", data["version"]).version
+        reported_version = Version(data["version"])
+        # dev images labels have more build metadata than /info: compare without it
+        # e.g. 7.87.0-devel+git.810.4e18469.pipeline.153953738 vs 7.87.0-devel+git.810.4e18469
+        if reported_version.truncate("prerelease") != self.agent_version.truncate("prerelease"):
+            pytest.exit(
+                f"The agent runs {reported_version}, but its image {self.image.name} is labeled {self.agent_version}",
+                1,
+            )
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
@@ -1069,10 +1105,11 @@ class BuddyContainer(TestedContainer):
 
 
 def dockerfile_image_list(dockerfile: Path) -> list[str]:
-    """Return the images referenced in the FROM lines of a Dockerfile.
+    """Return the images pulled by the FROM lines of a Dockerfile.
 
-    system-tests base-image aliases are resolved to their locked reference, and
-    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    ARG defaults are substituted, unresolved placeholders are kept as-is. system-tests
+    base-image aliases are skipped: they are not pulled by the Dockerfile, build.sh supplies
+    them as named build contexts (see utils/base_images/base_image.py).
     """
     result: list[str] = []
     args: dict[str, str] = {}
@@ -1080,14 +1117,15 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
     pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
     arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
     dockerfile_text = dockerfile.read_text()
-    base_contexts = base_image_contexts(dockerfile_text)
+    base_aliases = base_image_aliases(dockerfile_text)
     for line in dockerfile_text.splitlines():
         if match := arg_pattern.match(line):
             args[match.group("arg_name")] = match.group("arg_value")
 
         if match := pattern.match(line):
             image_name = match.group("image_name")
-            image_name = base_contexts.get(image_name, image_name)
+            if image_name in base_aliases:
+                continue
 
             for name, value in args.items():
                 image_name = image_name.replace(f"${name}", value)
@@ -1099,6 +1137,10 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
 
 class WeblogContainer(TestedContainer):
     stdout_interface: LibraryStdoutInterface
+
+    # properties set during configure()
+    weblog_variant: str
+    _library: ComponentVersion
 
     def __init__(
         self,
@@ -1197,9 +1239,6 @@ class WeblogContainer(TestedContainer):
         self.tracer_sampling_rate = tracer_sampling_rate
         self.additional_trace_header_tags = additional_trace_header_tags
 
-        self.weblog_variant = ""
-        self._library: ComponentVersion | None = None
-
     def start(self, network: Network) -> Container:
         _add_environment_extra_hosts(self)
         return super().start(network)
@@ -1233,6 +1272,8 @@ class WeblogContainer(TestedContainer):
 
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
+        library = self.image.labels["system-tests-library"]
+        self._library = ComponentVersion(library, self.image.labels["system-tests-library-version"])
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
@@ -1241,8 +1282,6 @@ class WeblogContainer(TestedContainer):
             weblog.set_request_default_retry(5)
 
         self._set_aws_auth_environment()
-
-        library = self.image.labels["system-tests-library"]
 
         metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
         if metadata is not None and metadata.request_timeout is not None:
@@ -1294,6 +1333,8 @@ class WeblogContainer(TestedContainer):
                         "bind": "/volumes/dd-trace-js",
                         "mode": "rw",
                     }
+                    package = json.loads((Path(path_str) / "package.json").read_text(encoding="utf-8"))
+                    self._library = ComponentVersion(library, package["version"])
             except Exception:
                 logger.info("No local dd-trace-js found")
 
@@ -1305,6 +1346,13 @@ class WeblogContainer(TestedContainer):
                     resolved_path = Path(source).resolve()
                     self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
                     self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+                    # set by `pip install -e .` in the checkout, it's what ddtrace.__version__ reports
+                    pkg_info = resolved_path / "ddtrace.egg-info" / "PKG-INFO"
+                    if pkg_info.exists():
+                        for line in pkg_info.read_text(encoding="utf-8").splitlines():
+                            if line.startswith("Version: "):
+                                self._library = ComponentVersion(library, line.removeprefix("Version: ").strip())
+                                break
             except FileNotFoundError:
                 logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
@@ -1355,7 +1403,13 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
+        reported_library = ComponentVersion(lib["name"], lib["version"])
+        if reported_library.name != self._library.name or reported_library.version != self._library.version:
+            pytest.exit(
+                f"The weblog runs {reported_library}, but its image was built with {self._library}",
+                1,
+            )
+        self._library = reported_library
 
         logger.stdout(f"Library: {self.library}")
 
@@ -1405,15 +1459,18 @@ class LambdaWeblogContainer(WeblogContainer):
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": "datad0g.com",
+            # like the agent: every intake hostname is derived from it, and is an alias of the mocked backend
+            "DD_SITE": MOCKED_BACKEND_DOMAIN,
             "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+            # the extension only trusts its compiled-in roots: add the bundle mounted below, with the CA signing
+            # the mocked backend certificate
+            "DD_TLS_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}
 
-        environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
         environment["DD_LOG_LEVEL"] = "debug"
         volumes.update(
             {

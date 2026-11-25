@@ -186,7 +186,9 @@ manifest:
   tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics_browser: missing_feature (A non-root span carry user agent informations)
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
-  tests/test_ipv6.py: missing_feature (APMAPI-869)
+  tests/test_ipv6.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-869)
+      component_version: <1.1.0
   tests/test_library_conf.py: irrelevant
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
@@ -196,6 +198,7 @@ manifest:
   tests/test_otel_http_semantics.py: missing_feature (httpd-datadog does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature (runtime metrics are not implemented)
   tests/test_profiling.py: missing_feature (missing profiling module in weblog)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

@@ -9,7 +9,8 @@ function initRaspEndpoints (fastify) {
   const pool = new pg.Pool()
 
   fastify.get('/rasp/ssrf', (request, reply) => {
-    const clientRequest = http.get(`http://${request.query.domain}`, () => {
+    const clientRequest = http.get(`http://${request.query.domain}`, (response) => {
+      response.resume()
       reply.send('end')
     })
     clientRequest.on('error', (e) => {
@@ -22,7 +23,8 @@ function initRaspEndpoints (fastify) {
   })
 
   fastify.post('/rasp/ssrf', (request, reply) => {
-    const clientRequest = http.get(`http://${request.body.domain}`, () => {
+    const clientRequest = http.get(`http://${request.body.domain}`, (response) => {
+      response.resume()
       reply.send('end')
     })
     clientRequest.on('error', (e) => {

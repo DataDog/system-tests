@@ -219,7 +219,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_EVP(_TelemetryContract):
 
     def test_counts(self) -> None:
         self.assert_evaluations()
-        captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
+        captures = list(interfaces.mocked_backend.get_data(path_filters="/api/v2/flagevaluation"))
         for (flag, subject), expected_count in self.expected_totals("subject").items():
             assert subject is not None
             assert_count(
@@ -239,7 +239,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
 
     def test_counts(self) -> None:
         self.assert_evaluations()
-        metrics = [metric for _, metric in interfaces.agent.get_metrics()]
+        metrics = [metric for _, metric in interfaces.mocked_backend.get_metrics()]
         for (flag, allocation_key), expected_count in self.expected_totals("allocation_key").items():
             assert_metric_activity(
                 metrics,
@@ -259,7 +259,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
 
     def test_unchanged(self) -> None:
         self.assert_evaluations()
-        captures = list(interfaces.agent.get_data(path_filters="/api/v2/exposures"))
+        captures = list(interfaces.mocked_backend.get_data(path_filters="/api/v2/exposures"))
         for case in self.cases:
             if case["expected_exposures"] is None:
                 continue

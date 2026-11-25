@@ -1,14 +1,9 @@
 name: Test Nix
 
 on: # yamllint disable-line rule:truthy
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '*.nix'
-      - 'flake.*'
-      - '.github/workflows/nix.yml'
-      - 'tests/test_the_test/*'
+  # On PRs, called by ci.yml when needed (see nix: true in utils/scripts/libraries_and_scenarios_rules.yml):
+  # a workflow skipped by a paths filter leaves its required checks pending forever
+  workflow_call: {}
   workflow_dispatch: {}
   schedule:
     - cron: "00 04 * * 0-6"

@@ -16,9 +16,9 @@ from typing import Any, Literal, TypedDict
 import pytest
 from _pytest.junitxml import xml_key
 from pluggy._result import _Result as Result
-from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
+from utils._context.junit_parameters import fingerprint_parameters
 from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
@@ -28,9 +28,6 @@ from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
-
-# Monkey patch JSON-report plugin to avoid noise in report
-JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items: list[pytest.Item] = []
@@ -220,7 +217,6 @@ def pytest_configure(config: pytest.Config) -> None:
         pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     if not config.option.replay and not config.option.collectonly:
-        config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
@@ -256,7 +252,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         for key, value in flatten(properties, {}).items():
             xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
 
-        xml.add_global_property("dd_tags[test.parameters]", json.dumps(properties))
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(fingerprint_parameters(properties)))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -341,7 +337,9 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     all_declarations = {}
 
     def iter_markers(self: pytest.Item, name: str | None = None):
-        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
+        # declarations are also excluded: a forced test is executed, it must be reported as a normal test
+        excluded = ("skip", "skipif", "xfail", "declaration")
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in excluded)
 
     must_pass_item_count = 0
     for item in items:
@@ -522,15 +520,17 @@ def pytest_fixture_setup(
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:
+    if call.when == "setup":
+        _collect_item_metadata(item)
+
     # Run all other hooks to get the report object
     outcome = yield
     rep: pytest.TestReport = outcome.get_result()
 
     if rep.when == "call":  # only attach outcome after test call
         # rep.outcome is one of: passed, failed, skipped
-        # but json_report also distinguishes xfailed/xpassed
-        # via rep.wasxfail and outcome
+        # xfailed/xpassed are distinguished via rep.wasxfail and outcome
         value = rep.outcome
         if getattr(rep, "wasxfail", None):
             if rep.outcome == "skipped":
@@ -553,21 +553,6 @@ def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]
 
     user_properties.append(("dd_tags[systest.case.outcome]", outcome))  # legacy
     user_properties.append(("dd_tags[test.final_status]", final_status))
-
-
-@pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> dict | None:
-    if call.when != "setup":
-        return {}
-
-    return _collect_item_metadata(item)
-
-
-def pytest_json_modifyreport(json_report: dict) -> None:
-    # add usefull data for reporting
-    json_report["context"] = context.serialize()
-
-    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -642,48 +627,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                         testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
 
             junit_report.write(session.config.option.xmlpath)
-
-        try:
-            data = session.config._json_report.report  # noqa: SLF001
-            export_feature_parity_dashboard(session, data)
-        except Exception:
-            logger.exception("Fail to export reports", exc_info=True)
-
-
-def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
-    tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
-
-    result = {
-        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
-        "runDate": data["created"],
-        "environment": session.config.option.report_environment or "local",
-        "testSource": "systemtests",
-        "language": context.library.name,
-        "variant": context.weblog_variant,
-        "testedDependencies": [
-            {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
-        ],
-        "configuration": context.configuration,
-        "scenario": context.scenario.name,
-        "tests": [test for test in tests if test is not None],
-    }
-    context.scenario.customize_feature_parity_dashboard(result)
-    with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2)
-
-
-def convert_test_to_feature_parity_model(test: dict) -> dict | None:
-    result = {
-        "path": test["nodeid"],
-        "lineNumber": test["lineno"],
-        "outcome": test["outcome"],
-        "testDeclaration": test["metadata"]["testDeclaration"],
-        "details": test["metadata"]["details"],
-        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
-    }
-
-    # exclude test without a feature (they may have been flagged as not reported)
-    return result if len(result["features"]) != 0 else None
 
 
 ## Fixtures corners

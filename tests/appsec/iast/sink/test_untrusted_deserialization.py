@@ -22,6 +22,7 @@ class TestUntrustedDeserialization(BaseSinkTest):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.DeserializationExamples",
         "nodejs": get_nodejs_iast_file_paths(),
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
 

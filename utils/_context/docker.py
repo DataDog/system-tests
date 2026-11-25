@@ -34,3 +34,28 @@ def get_docker_client() -> docker.DockerClient:
             pytest.exit("Connection refused to docker daemon, is it running?", 1)
 
         raise
+
+
+# (command, keep the last lines instead of the first ones)
+_HOST_DIAGNOSTIC_COMMANDS: list[tuple[list[str], bool]] = [
+    (["uptime"], False),
+    (["free", "-m"], False),
+    (["df", "-h", "/"], False),
+    (["ps", "aux", "--sort=-%mem"], False),
+    (["sudo", "-n", "dmesg", "-T"], True),
+    (["docker", "ps", "-a"], False),
+]
+
+
+def log_host_diagnostics(reason: str) -> None:
+    """Log the host state when the docker daemon is slow, to tell memory/CPU starvation from a daemon issue."""
+    logger.warning(f"Host diagnostics ({reason}):")
+    for command, keep_last in _HOST_DIAGNOSTIC_COMMANDS:
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=20, check=False)
+            output = (result.stdout + result.stderr).splitlines()
+        except (OSError, subprocess.TimeoutExpired) as e:
+            output = [f"failed: {e}"]
+
+        lines = output[-40:] if keep_last else output[:40]
+        logger.warning(f"$ {' '.join(command)}\n" + "\n".join(lines))
