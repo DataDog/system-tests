@@ -7,6 +7,7 @@
 from utils import features, scenarios
 
 from tests.appsec.smoke_tests.utils import (
+    BaseAiGuardSmokeTests,
     BaseApiSecuritySmokeTests,
     BaseIastSmokeTests,
     BaseRaspSmokeTests,
@@ -121,4 +122,16 @@ class Test_AppSecStandaloneAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
 @scenarios.appsec_standalone_apm_standalone
 @scenarios.iast_standalone
 class Test_Standalone_Iast(BaseIastSmokeTests):
+    pass
+
+
+# --- AI Guard across all standalone scenarios -----------------------------
+
+
+@apm_standalone_rfc
+@features.ai_guard_standalone
+@scenarios.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+@scenarios.ai_guard_standalone
+class Test_Standalone_AiGuard(BaseAiGuardSmokeTests):
     pass

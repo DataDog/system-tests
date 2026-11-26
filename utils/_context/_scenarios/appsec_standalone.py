@@ -1,4 +1,7 @@
-from ._core import DdTraceEndToEndScenario, scenario_groups
+from utils._context.constants import ContainerPorts
+from utils._context.containers import VCRCassettesContainer
+
+from ._core import DdTraceEndToEndScenario, FakeDatadogKey, scenario_groups
 
 
 class AppsecStandalone(DdTraceEndToEndScenario):
@@ -31,8 +34,13 @@ class AppsecApmStandalone(DdTraceEndToEndScenario):
         super().__init__(
             "APPSEC_APM_STANDALONE",
             rc_api_enabled=True,
+            other_weblog_containers=(VCRCassettesContainer,),
             weblog_env={
                 "DD_APM_TRACING_ENABLED": "true",
+                "DD_AI_GUARD_ENABLED": "true",
+                "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+                "DD_API_KEY": FakeDatadogKey.AI_GUARD_API,
+                "DD_APP_KEY": FakeDatadogKey.AI_GUARD_APP,
                 "DD_TELEMETRY_METRICS_ENABLED": "true",
                 "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
                 "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
@@ -52,8 +60,13 @@ class AppsecStandaloneApmStandalone(DdTraceEndToEndScenario):
         super().__init__(
             "APPSEC_STANDALONE_APM_STANDALONE",
             rc_api_enabled=True,
+            other_weblog_containers=(VCRCassettesContainer,),
             weblog_env={
                 "DD_APM_TRACING_ENABLED": "false",
+                "DD_AI_GUARD_ENABLED": "true",
+                "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+                "DD_API_KEY": FakeDatadogKey.AI_GUARD_API,
+                "DD_APP_KEY": FakeDatadogKey.AI_GUARD_APP,
                 "DD_TELEMETRY_METRICS_ENABLED": "true",
                 "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
                 "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",

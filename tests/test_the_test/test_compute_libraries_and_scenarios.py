@@ -884,6 +884,36 @@ class Test_ComputeLibrariesAndScenarios:
         inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/fake_datadog_keys.py"])
         assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
 
+    def test_ai_guard_allow_cassette_file(self):
+        """The ALLOW cassette is replayed by both AI Guard and the security smoke scenarios"""
+        inputs = build_inputs(
+            modified_files=["utils/build/docker/vcr/cassettes/aiguard/aiguard_evaluate_post_8919fde6.json"]
+        )
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "APPSEC_APM_STANDALONE,APPSEC_STANDALONE_APM_STANDALONE,DEFAULT,SECURITY_SMOKE",
+            "ai_guard",
+        )
+
+    def test_ai_guard_other_cassette_file(self):
+        """Other AI Guard cassettes only impact the ai_guard scenario group"""
+        inputs = build_inputs(
+            modified_files=["utils/build/docker/vcr/cassettes/aiguard/aiguard_evaluate_post_other.json"]
+        )
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "ai_guard",
+        )
+
     @pytest.mark.parametrize(
         "file",
         [
