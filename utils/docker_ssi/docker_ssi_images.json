@@ -1,6 +1,11 @@
 {
   "docker_ssi_images": [
     {
+      "name": "Passenger_Ruby33_amd64",
+      "image": "phusion/passenger-ruby33:3.1.11@sha256:cab480a3e87c77993e7b2486eb1cfe66df362e9a816d053fd3e9188c46880ad2",
+      "architecture": "linux/amd64"
+    },
+    {
       "name": "Ubuntu_22_amd64",
       "image": "public.ecr.aws/lts/ubuntu:22.04",
       "architecture": "linux/amd64"
