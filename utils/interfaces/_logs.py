@@ -130,6 +130,28 @@ class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
         ]
 
 
+def _add_java_patterns(validator: _LogsInterfaceValidator) -> None:
+    p = "(?P<{}>{})".format
+
+    validator._skipped_patterns += [  # noqa: SLF001
+        re.compile(r"^[ /\\_,''.()=`|]*$"),  # Java Spring ASCII art
+        re.compile(r"^ +:: Spring Boot :: +\(v\d+.\d+.\d+(-SNAPSHOT)?\)$"),
+    ]
+    validator._new_log_line_pattern = re.compile(r"^(\[dd.trace )?\d{4}-\d\d-\d\d")  # noqa: SLF001
+
+    source = p("source", r"[a-z\.]+")
+    timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d:\d\d\d [+\-]0000")
+    thread = p("thread", r"[^\]]+")
+    level = p("level", r"\w+")
+    klass = p("klass", r"[\w\.$]+")
+    message = p("message", r".*")
+    validator._parsers.append(re.compile(rf"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))  # noqa: SLF001
+
+    timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
+    klass = p("klass", r"[\w\.$\[\]/]+")
+    validator._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))  # noqa: SLF001
+
+
 class _LibraryStdout(_StdoutLogsInterfaceValidator):
     def __init__(self):
         super().__init__("weblog")
@@ -145,23 +167,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         ]
 
         if library == "java":
-            self._skipped_patterns += [
-                re.compile(r"^[ /\\_,''.()=`|]*$"),  # Java Spring ASCII art
-                re.compile(r"^ +:: Spring Boot :: +\(v\d+.\d+.\d+(-SNAPSHOT)?\)$"),
-            ]
-            self._new_log_line_pattern = re.compile(r"^(\[dd.trace )?\d{4}-\d\d-\d\d")
-
-            source = p("source", r"[a-z\.]+")
-            timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d:\d\d\d [+\-]0000")
-            thread = p("thread", r"[^\]]+")
-            level = p("level", r"\w+")
-            klass = p("klass", r"[\w\.$]+")
-            message = p("message", r".*")
-            self._parsers.append(re.compile(rf"^\[{source} {timestamp}\] \[{thread}\] {level} {klass} - {message}"))
-
-            timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
-            klass = p("klass", r"[\w\.$\[\]/]+")
-            self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
+            _add_java_patterns(self)
         elif library == "cpp_nginx":
             self._new_log_line_pattern = re.compile(r".")
             timestamp = p("timestamp", r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}")
@@ -195,6 +201,29 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             return level.upper()
 
         return super()._get_standardized_level(level)
+
+
+JAVA_TRACER_LOG_FILENAME = "dd-java-tracer.log"
+
+
+class _LibraryJavaTracer(_LogsInterfaceValidator):
+    """Java tracer logs, written to a dedicated file so that the weblog's other loggers can't interleave with them"""
+
+    def __init__(self):
+        super().__init__("Java tracer logs")
+        _add_java_patterns(self)
+
+    def _get_files(self) -> list[Path]:
+        weblog_folder = Path(f"{self.host_log_folder}/docker/weblog")
+        tracer_log_file = weblog_folder / "logs" / JAVA_TRACER_LOG_FILENAME
+
+        if tracer_log_file.is_file():
+            return [tracer_log_file]
+
+        # Weblogs not started by the java launcher (native images) don't read JDK_JAVA_OPTIONS,
+        # so their tracer keeps logging to the console
+        logger.info(f"{tracer_log_file} not found, reading Java tracer logs from the weblog console output")
+        return [weblog_folder / "stdout.log", weblog_folder / "stderr.log"]
 
 
 class _LibraryDotnetManaged(_LogsInterfaceValidator):

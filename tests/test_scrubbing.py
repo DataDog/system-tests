@@ -115,4 +115,5 @@ class Test_EnvVar:
     def test_logs(self):
         interfaces.library_stdout.assert_absence("leaked-env-var")
         interfaces.library_dotnet_managed.assert_absence("leaked-env-var")
+        interfaces.library_java_tracer.assert_absence("leaked-env-var")
         interfaces.agent_stdout.assert_absence("leaked-env-var")
