@@ -2180,7 +2180,8 @@ manifest:
       component_version: <4.3.1
       weblog: [uds-flask, uwsgi-poc, flask-poc]
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
-  : bug (DEBUG-5959)
+  : - declaration: bug (DEBUG-5959)
+      component_version: '<4.14.0-rc1'
   tests/debugger/test_debugger_probe_budgets.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
