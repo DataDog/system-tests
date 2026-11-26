@@ -497,13 +497,8 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "path")
 
 
-# Redaction scenarios and the matching VCR cassettes are generated together by
-# utils/scripts/gen_redaction_cassettes.py. Each entry keeps the messages we send, the exact
-# redaction_replacements the backend returns, the messages expected once redaction has been
-# applied and the expected value of the redacted tags, so the tests below and the cassettes
-# never drift. Regenerate both after editing.
-# Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], with key "stdio|uvx|mcp-example".
-MCP_SERVER_ID = "mcp_0f2f11f8cafdbcc5"
+# The ID only joins the tool calls of one request to their mcp_servers entry: the SDK sends the caller's ID as is.
+MCP_SERVER_ID = "mcp_1"
 MCP_SERVERS: list[dict] = [
     {
         "id": MCP_SERVER_ID,
@@ -559,6 +554,11 @@ class Test_MCP_ToolCalls:
         interfaces.library.validate_one_span(self.r, validator=validate, full_trace=True)
 
 
+# Redaction scenarios and the matching VCR cassettes are generated together by
+# utils/scripts/gen_redaction_cassettes.py. Each entry keeps the messages we send, the exact
+# redaction_replacements the backend returns, the messages expected once redaction has been
+# applied and the expected value of the redacted tags, so the tests below and the cassettes
+# never drift. Regenerate both after editing.
 REDACTION_SCENARIOS: dict = json.loads((Path(__file__).parent / "redaction_scenarios.json").read_text())
 
 REDACTED_TAG = "ai_guard.redacted"

@@ -38,18 +38,17 @@ from tests.integration_frameworks.llm.utils import (
 from .utils import BaseOpenaiTest
 
 
-# Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], key as documented next to each ID.
-# key "url|https://mcp.example.com" (also the RFC reference vector)
-EXAMPLE_SERVER_ID = "mcp_b77bc22583ac5006"
-# key "connector|connector_dropbox"
-DROPBOX_SERVER_ID = "mcp_abe2e7cd19597a09"
+# The ID only joins the tool calls of one request to their mcp_servers entry: the tracer numbers the
+# hosted servers of a request in declaration order, so the first one is mcp_1.
+EXAMPLE_SERVER_ID = "mcp_1"
+DROPBOX_SERVER_ID = "mcp_1"
 
 # The mcp_servers entries sent to AI Guard, and reported in meta_struct.ai_guard.mcp_servers.
 EXAMPLE_SERVER = {
     "id": EXAMPLE_SERVER_ID,
     "managed_by": "provider",
     "name": "example",
-    "url": "https://mcp.example.com",
+    "url": "https://mcp.example.com/mcp",
     "transport": "unknown",
     "tools": {"ask_question": "ask_question"},
 }
@@ -61,16 +60,16 @@ DROPBOX_SERVER = {
     "tools": {"search": "search"},
 }
 
-# The RFC host canonicalization vectors, shared by every tracer: server_label, configured server_url,
-# the url origin reported in mcp_servers (None: omitted, so the name key is used) and the expected ID.
+# The RFC URL vectors, shared by every tracer: server_label, configured server_url, the url reported in
+# mcp_servers as the WHATWG URL Standard serializes it, path included, and the ID of its position.
 HOST_VECTORS: list[tuple[str, str, str | None, str]] = [
-    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1", "mcp_bb3842ff8c77d25d"),
-    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080", "mcp_b339e608ea2ddcc1"),
-    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000", "mcp_cc35033de8004f7e"),
-    ("percent_host", "http://%65xample.com/mcp", "http://example.com", "mcp_35da95b0ebe35a00"),
-    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example", "mcp_2607363cabc2eebc"),
-    # An IDN host has no url: key "name|idn_host".
-    ("idn_host", "http://bücher.example/mcp", None, "mcp_905c59cb4ec642b0"),
+    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1/mcp", "mcp_1"),
+    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080/mcp", "mcp_2"),
+    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000/mcp", "mcp_3"),
+    ("percent_host", "http://%65xample.com/mcp", "http://example.com/mcp", "mcp_4"),
+    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example/mcp", "mcp_5"),
+    # An IDN host has no url.
+    ("idn_host", "http://bücher.example/mcp", None, "mcp_6"),
 ]
 
 # The request constants below are the ones the cassettes were generated for: keep them in sync with
@@ -84,14 +83,13 @@ EXAMPLE_TOOL = {
     "server_url": "https://mcp.example.com/mcp",
     "require_approval": "never",
 }
-# Every credential-bearing part carries LEAK_MARKER, which must never reach AI Guard.
+# Every credential-bearing part carries LEAK_MARKER, which must never reach AI Guard. The path is part
+# of the server URL, so it is sent.
 LEAK_MARKER = "s3cr3t"
 EXAMPLE_TOOL_WITH_SECRETS = {
     "type": "mcp",
     "server_label": "example",
-    "server_url": (
-        "https://user:s3cr3t-userinfo@MCP.Example.com:443/mcp/s3cr3t-path-token?token=s3cr3t-query#s3cr3t-fragment"
-    ),
+    "server_url": "https://user:s3cr3t-userinfo@MCP.Example.com:443/mcp?token=s3cr3t-query#s3cr3t-fragment",
     "require_approval": "never",
     "headers": {"Authorization": "Bearer s3cr3t-header"},
 }
@@ -211,13 +209,13 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
     def test_ai_guard_openai_mcp_call_server_url_sanitized(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
     ):
-        """A server_url with userinfo, path, query and fragment is reduced to its origin, so it gets the
-        ID of the bare origin, and no credential of the tool declaration reaches AI Guard.
+        """A server_url is sent as the WHATWG URL Standard serializes it, without userinfo, query nor
+        fragment, and no credential of the tool declaration reaches AI Guard.
         """
         with test_agent.vcr_context():
             _create_response(test_client, EXAMPLE_PROMPT, [EXAMPLE_TOOL_WITH_SECRETS])
 
-        # The matched payload carries url "https://mcp.example.com" in mcp_servers, nothing else.
+        # The matched payload carries url "https://mcp.example.com/mcp" in mcp_servers, nothing else.
         spans, span = _matched_evaluations(test_agent, request, [EXAMPLE_SERVER])
         assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
         for guard_span in spans:
@@ -227,7 +225,7 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
     def test_ai_guard_openai_mcp_call_connector(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
     ):
-        """A connector_id server gets the connector key ID, and its mcp_servers entry has no url."""
+        """A connector_id server is referenced like any other server, and its mcp_servers entry has no url."""
         with test_agent.vcr_context():
             _create_response(test_client, "Search my dropbox for the quarterly report.", [DROPBOX_TOOL])
 
@@ -253,11 +251,11 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
         assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
         assert "mcp" not in _tool_call(span, "get_weather")
 
-    def test_ai_guard_openai_mcp_server_id_host_vectors(
+    def test_ai_guard_openai_mcp_server_url_host_vectors(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
     ):
-        """Each server_url host is canonicalized with the WHATWG rules before the ID is computed, so
-        every tracer reports the RFC vector ID. An IDN host has no url and gets the ID of its name key.
+        """Each server_url is serialized with the WHATWG URL Standard, host canonicalized and path kept,
+        so every tracer reports the RFC vector url. An IDN host has no url.
         """
         tools = [
             {"type": "mcp", "server_label": label, "server_url": url, "require_approval": "never"}
@@ -267,21 +265,21 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
             _create_response(test_client, "Run the lookup tool of every MCP server.", tools)
 
         expected_servers = []
-        for label, _, origin, expected_id in HOST_VECTORS:
+        for label, _, url, expected_id in HOST_VECTORS:
             server: dict[str, Any] = {"id": expected_id, "managed_by": "provider", "name": label}
-            if origin is not None:
-                server["url"] = origin
+            if url is not None:
+                server["url"] = url
             server.update(transport="unknown", tools={f"{label}_lookup": f"{label}_lookup"})
             expected_servers.append(server)
         _, span = _matched_evaluations(test_agent, request, expected_servers)
         for label, _, _, expected_id in HOST_VECTORS:
             assert _tool_call(span, f"{label}_lookup")["mcp"] == {"server_id": expected_id}, label
 
-    def test_ai_guard_openai_mcp_servers_sharing_an_id_merge(
+    def test_ai_guard_openai_mcp_servers_on_one_host(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest
     ):
-        """Two servers on one origin with different paths share an ID, so they are reported as one
-        mcp_servers entry: the first label's fields, with the tools of both labels.
+        """Two servers on one host with different paths are two servers, each with its own mcp_servers
+        entry and ID.
         """
         sse_tool = {
             "type": "mcp",
@@ -294,10 +292,17 @@ class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
                 test_client, "Ask the example MCP server about the RFC, then read its docs.", [EXAMPLE_TOOL, sse_tool]
             )
 
-        merged = {**EXAMPLE_SERVER, "tools": {"ask_question": "ask_question", "read_docs": "read_docs"}}
-        _, span = _matched_evaluations(test_agent, request, [merged])
+        sse_server = {
+            "id": "mcp_2",
+            "managed_by": "provider",
+            "name": "example_sse",
+            "url": "https://mcp.example.com/sse",
+            "transport": "unknown",
+            "tools": {"read_docs": "read_docs"},
+        }
+        _, span = _matched_evaluations(test_agent, request, [EXAMPLE_SERVER, sse_server])
         assert _tool_call(span, "ask_question")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
-        assert _tool_call(span, "read_docs")["mcp"] == {"server_id": EXAMPLE_SERVER_ID}
+        assert _tool_call(span, "read_docs")["mcp"] == {"server_id": "mcp_2"}
 
     def test_ai_guard_openai_mcp_approval_request_blocked(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, request: pytest.FixtureRequest

@@ -8,9 +8,9 @@
       "dd-ai-guard-source": "SDK",
       "dd-ai-guard-language": "python",
       "datadog-entity-id": "in-28262",
-      "Content-Length": "798"
+      "Content-Length": "557"
     },
-    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"In a single turn, call both tools in parallel: echo exactly this text: hello from system-tests, and get the weather in San Francisco, CA.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_011AHto6HFCmgEn7VxoRovPL\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_9d097fe19379c0dd\"}}, {\"id\": \"toolu_013Qo3KoMXSLjRacAwtayKU6\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"location\\\": \\\"San Francisco, CA\\\"}\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_9d097fe19379c0dd\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"tools\": {\"echo\": \"echo\"}, \"command\": \"python\", \"args\": [\"integration_frameworks.mcp_echo_server\"]}]}}}"
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"In a single turn, call both tools in parallel: echo exactly this text: hello from system-tests, and get the weather in San Francisco, CA.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_011AHto6HFCmgEn7VxoRovPL\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}}, {\"id\": \"toolu_013Qo3KoMXSLjRacAwtayKU6\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"location\\\": \\\"San Francisco, CA\\\"}\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
   },
   "response": {
     "status": {

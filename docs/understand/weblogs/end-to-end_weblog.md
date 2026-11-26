@@ -1535,14 +1535,14 @@ This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method fr
         {
           "id": "call_mcp_1",
           "function": { "name": "local_search", "arguments": "{\"query\":\"APPSEC\"}" },
-          "mcp": { "server_id": "mcp_0f2f11f8cafdbcc5" }
+          "mcp": { "server_id": "mcp_1" }
         }
       ]
     }
   ],
   "mcp_servers": [
     {
-      "id": "mcp_0f2f11f8cafdbcc5",
+      "id": "mcp_1",
       "managed_by": "client",
       "transport": "stdio",
       "command": "uvx",

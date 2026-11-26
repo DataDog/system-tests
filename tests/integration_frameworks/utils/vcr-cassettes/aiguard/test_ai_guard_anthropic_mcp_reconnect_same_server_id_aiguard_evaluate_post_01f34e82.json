@@ -7,9 +7,9 @@
       "dd-ai-guard-version": "4.17.1",
       "dd-ai-guard-source": "SDK",
       "dd-ai-guard-language": "python",
-      "Content-Length": "596"
+      "Content-Length": "355"
     },
-    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: hello from system-tests\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_017L3c9psqNq3hGL1ZEBmma6\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_9d097fe19379c0dd\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_9d097fe19379c0dd\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"tools\": {\"echo\": \"echo\"}, \"command\": \"python\", \"args\": [\"integration_frameworks.mcp_echo_server\"]}]}}}"
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: hello from system-tests\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_017L3c9psqNq3hGL1ZEBmma6\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
   },
   "response": {
     "status": {
