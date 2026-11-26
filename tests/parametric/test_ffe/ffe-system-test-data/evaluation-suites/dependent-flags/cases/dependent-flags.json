@@ -311,18 +311,69 @@
     "flag": "dependent-atomic-error-root",
     "result": {
       "reason": "ERROR",
+      "errorCode": "GENERAL",
       "value": "atomic-default"
     },
     "targetingKey": "dependent-atomic-error",
-    "variationType": "STRING"
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-missing-prerequisite",
+          "errorCode": "FLAG_NOT_FOUND"
+        },
+        {
+          "flag": "dependent-atomic-error-root",
+          "errorCode": "GENERAL"
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
   },
   {
-    "description": "With maxDependencyDepth 2, a third dependency edge aborts the graph and returns the caller default.",
+    "description": "A missing prerequisite under a configured parent aborts the graph. The missing prerequisite reports FLAG_NOT_FOUND, and the configured parent and the requested root report GENERAL.",
+    "attributes": {},
+    "defaultValue": "transitive-error-default",
+    "flag": "dependent-transitive-error-root",
+    "result": {
+      "reason": "ERROR",
+      "errorCode": "GENERAL",
+      "value": "transitive-error-default"
+    },
+    "targetingKey": "dependent-transitive-error",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-missing-prerequisite",
+          "errorCode": "FLAG_NOT_FOUND"
+        },
+        {
+          "flag": "dependent-transitive-error-parent",
+          "errorCode": "GENERAL"
+        },
+        {
+          "flag": "dependent-transitive-error-root",
+          "errorCode": "GENERAL"
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
+    "description": "With maxDependencyDepth 2, a third dependency edge aborts the graph and returns the caller default. evaluatorParams also carries unknownEvaluatorField, which must not change maxDependencyDepth.",
     "attributes": {},
     "defaultValue": "depth-default",
     "flag": "dependent-depth-three-root",
     "result": {
       "reason": "ERROR",
+      "errorCode": "GENERAL",
       "value": "depth-default"
     },
     "targetingKey": "dependent-over-depth",
@@ -335,9 +386,51 @@
     "flag": "dependent-cycle-a",
     "result": {
       "reason": "ERROR",
+      "errorCode": "GENERAL",
       "value": "cycle-default"
     },
     "targetingKey": "dependent-cycle",
     "variationType": "STRING"
+  },
+  {
+    "description": "The unknownFlagEvaluationField key inside flagEvaluation must be ignored; only 'key' selects the prerequisite. The unknownConditionField key must also be ignored, preserving the normal assignment and telemetry.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-unknown-fields-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "direct-match"
+    },
+    "targetingKey": "dependent-unknown-fields",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [
+        {
+          "_count": 1,
+          "allocation": "leaf-static",
+          "flag": "dependent-leaf-on",
+          "variant": "on"
+        },
+        {
+          "_count": 1,
+          "allocation": "dependent-match",
+          "flag": "dependent-unknown-fields-root",
+          "variant": "matched"
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1,
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "_count": 1,
+          "flag": "dependent-unknown-fields-root",
+          "errorCode": null
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
   }
 ]
