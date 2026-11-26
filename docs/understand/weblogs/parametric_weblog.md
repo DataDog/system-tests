@@ -1002,6 +1002,12 @@ Called by `ParametricTestClientApi.ffe_fetch_rules_configuration()`. Fetch and s
 **Not implemented by the Python reference server**. The request body is the `options` object of the test: see
 [Standalone Rules Configuration](../scenarios/parametric.md#standalone-rules-configuration).
 
+#### `POST /ffe/precompute-configuration`
+
+Called by `ParametricTestClientApi.ffe_precompute_configuration()`. Precompute portable rules for one or more contexts in a fresh process without tracer/provider initialization.
+
+**Not implemented by the Python reference server**. See [Standalone Precomputation](../scenarios/parametric.md#standalone-precomputation) for the request payload, typed errors, and observed request/exposure counts. Input validation failures expect zero requests; HTTP fetch failures expect one request and include `error.status`.
+
 #### `POST /ffe/start`
 
 Called by `ParametricTestClientApi.ffe_start()`. Initialize the FFE (Feature Flagging & Experimentation) provider.
