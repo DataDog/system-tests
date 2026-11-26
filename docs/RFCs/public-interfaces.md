@@ -23,36 +23,38 @@ Import-linter contracts have started to draw lines: tests only import the `utils
 
 ### Proposition
 
-Split the Python surface of system-tests into **six public interfaces**, each with its own audience and an explicit list of exported names. Everything else in `utils/` is internal, and import-linter blocks consumers from importing it.
+Split the Python surface of system-tests into **seven public interfaces**, each with its own audience and an explicit list of exported names. Everything else in `utils/` is internal, and import-linter blocks consumers from importing it.
 
 | Interface | Audience | Content |
 |-----------|----------|---------|
-| **Test API** | test authors | the test handles of components, each split into a **live** interface and a **record** (see below), plus helpers on collected data, `ValidationError`, and the re-exports of the metadata API and runtime info |
+| **Live API** | test authors, in `setup_*` methods and parametric tests | the parts of component test handles that need the component running: weblog and parametric app requests, remote config, mocked responses, test agent queries, waits |
+| **Record API** | test authors, in `test_*` methods | the parts of component test handles that only read what components persisted: captured payloads (`interfaces.*` today), stdout, setup results, helpers on collected data, `ValidationError` |
 | **Metadata API** | test authors, tooling | decorators (`bug`, `missing_feature`, `irrelevant`, `flaky`...), `features`, and a read-only scenario registry (`scenarios.xxx`, `scenario_groups`) |
 | **Runtime info** | test and metadata APIs | the read-only view of what is running: library and version, weblog variant, scenario, component versions. Exposed as `context` |
 | **Scenario API** | scenario authors | what a scenario definition needs to compose components: scenario base classes, component definitions, constants, ports |
 | **Component API** | component authors (framework maintainers, teams adding a side container) | the contract for writing a component: lifecycle and an optional test handle |
 | **Build API** | `build.sh`, CI, external tooling | listing components, weblogs and scenarios, resolving base images and image lists, building images |
 
-The test API is exposed at the `utils` root. `utils.pytest` stays as is: it's the approved subset of pytest and is part of the test API.
+The live and record APIs together form the **test API**. They are two separate modules, `utils.live` and `utils.record`, and the `utils` root does not re-export them: the import line says whether a test interacts with a running component or only reads what was recorded. The `utils` root keeps what is neither: the metadata API, runtime info, constants, enums and types. `utils.pytest` stays as is: it's the approved subset of pytest and is part of the test API.
 
 #### Layering
 
 ```
-tests/ ──────────▶ Test API (utils root) ──re-exports──▶ Metadata API ──▶ Runtime info
-                       │       │                                              ▲
-                       │       └──re-exports──▶ Runtime info                  │ written by
-                       ▼                                                      │
-               component test handles                                   scenario core (internal)
-                       ▲                                                      │
-                       │                                                      │
+tests/ ──┬──▶ utils root ──re-exports──▶ Metadata API ──▶ Runtime info ◀── written by ──┐
+         │        └──────re-exports─────────────────────────▲                           │
+         ├──▶ Live API (utils.live) ──────┐                                             │
+         └──▶ Record API (utils.record) ──┤                                 scenario core (internal)
+                                          ▼                                             │
+                                component test handles                                  │
+                                          ▲                                             │
 scenario definitions ──▶ Scenario API ──▶ components ──▶ Component API ──▶ runtime layer (Docker)
-                                              ▲
-build.sh, CI, tools ──▶ Build API ── builds images of ┘
+                                          ▲
+build.sh, CI, tools ──▶ Build API ── builds images of
 ```
 
 - **Metadata API** depends on runtime info only, so decorators can evaluate conditions (`@bug(context.library < "java@1.2")`) without importing the test API.
-- **Test API** re-exports the metadata API and runtime info, so test authors keep a single import root (`from utils import ...`) and the 574 existing `from utils import` lines stay valid.
+- The **`utils` root** re-exports the metadata API and runtime info, so `from utils import features, scenarios, context, bug` stays valid.
+- **Live API** and **record API** don't import each other. Both can read runtime info.
 - **Scenario API** never imports the test API. Scenario definitions import only the scenario API.
 - **Runtime info** is read-only for its consumers. Only the scenario core writes to it, through an internal module.
 
@@ -65,7 +67,7 @@ A component is anything a scenario starts next to the library under test: the we
 
 Mocks are components, not part of the test framework. They have the same status as a postgres container, except that they expose a test handle.
 
-Tests never import a component directly. The test API **re-exports** the handles behind stable names (`interfaces.*` today, plus the mock helpers), so components can be reorganised without touching tests.
+Tests never import a component directly. The live and record APIs **re-export** the two parts of the handles behind stable names, so components can be reorganised without touching tests.
 
 Each component keeps its own vocabulary. The weblog drives user-level behaviour over HTTP (an attack, a distant call), and the parametric app calls the tracer API (start a span, set a tag). A shared action vocabulary would be the small intersection of the two. Today end-to-end and parametric tests share almost no helper beyond the metadata API (five data helpers, each used by one or two files on one side), and no method name is common to `interfaces.*` and the test agent. Consistency comes from the shape of the handles instead:
 
@@ -74,9 +76,9 @@ Each component keeps its own vocabulary. The weblog drives user-level behaviour 
 
 #### Live interface and record
 
-A test handle has up to two parts, split by the lifecycle of its component:
+A test handle has up to two parts, split by the lifecycle of its component. They are separate objects exported by separate modules: a component with both parts, such as the proxy, appears once in `utils.live` and once in `utils.record`, and no object mixes the two.
 
-- the **live** interface needs the component running: sending requests to the weblog or the parametric app, updating remote config, installing mocked responses, querying the test agent, waiting for data to arrive (`interfaces.agent.wait_for`);
+- the **live** interface needs the component running: sending requests to the weblog or the parametric app, updating remote config, installing mocked responses, querying the test agent, waiting for data to arrive (`interfaces.agent.wait_for` today);
 - the **record** only reads what the component persisted to the log folder, so it works after the component stopped and in replay mode: what the proxy and the mocked backend captured (`interfaces.library.get_spans(r)`), the stdout of the library and the agent.
 
 | Component | Live | Record |
@@ -97,23 +99,23 @@ Parametric tests run while their containers are up and use the live interfaces. 
 
 What a setup method keeps for its test methods (`self.r = weblog.get(...)`) is part of the record. This already works: `SetupProperties` (`utils/properties_serialization.py`) dumps the public attributes of each test instance to `setup_properties.json` in the log folder, and `--replay` restores them. Most of that is what no component captures: the responses seen by the test runner (`HttpResponse`, `GrpcResponse`), remote config apply states, and values computed in setup (ids, timestamps). Moving the requests and responses into the weblog's record would make `self.r` a reference into it and leave the generic dump to ad-hoc values. This is optional.
 
-Names that are neither live nor record (constants, enums, types, `context`) are neutral and usable everywhere.
+Names that are neither live nor record (constants, enums, types, `context`) are neutral, come from the `utils` root and are usable everywhere.
 
 Import-linter can't enforce this split, because both phases live in the same file. It's enforced by a static check, backed by replay.
 
 **Static check.** A small AST checker run by `./format.sh` (ruff has no plugin system), with a ratchet file for existing violations:
 
-- the handles declare whether each member is live or record, the checker doesn't guess from names;
-- for each test class, the checker classifies `setup_*` and `test_*` methods by name, resolves every name used to its import and follows attribute chains (`interfaces.agent.wait_for`) to the declared member;
+- the module a name is imported from gives its phase: `utils.live` or `utils.record`. Since no object mixes the two, the checker doesn't need to classify individual members or follow attribute chains;
+- for each test class, the checker classifies `setup_*` and `test_*` methods by name and resolves every name used to its import: a `utils.live` name in a `test_*` method or a `utils.record` name in a `setup_*` method is a violation;
 - helpers defined in the same file (module functions, other methods, base classes in the file) inherit the phases of their callers. Helpers in other files are not a concern: tests can't import other tests (`no-cross-test-imports`), and helpers in `utils` are part of an API, so they are already classified.
 
-A prototype on today's end-to-end tests (1,102 setup and 1,446 test methods) found no `weblog` call in a test method. Classifying by top-level name only (`weblog`, `remote_config` = setup; `interfaces` = test) gives 12 hits, all false positives: `interfaces.agent.wait_for` in setup methods, which is live, and the `remote_config.ApplyState` enum in a test method, which is neutral. Both disappear once members are classified.
+A prototype on today's end-to-end tests (1,102 setup and 1,446 test methods) found no `weblog` call in a test method. Classifying by top-level name only (`weblog`, `remote_config` = setup; `interfaces` = test) gives 12 hits, all false positives: `interfaces.agent.wait_for` in setup methods, which is live, and the `remote_config.ApplyState` enum in a test method, which is neutral. Both disappear once `wait_for` moves to the live API and the enum to the root.
 
 **Replay.** What the checker can't see (`getattr`, handles passed around as values, lambdas) shows up in replay mode: there, test methods only have the record, so a test that reaches a live interface fails. Running some end-to-end scenarios in replay mode in CI (`utils/scripts/replay_scenarios.sh` exists, CI doesn't run it) checks the split at runtime without a dedicated guard.
 
 #### `context`
 
-`context` is too widely used to remove. It becomes the **runtime info** interface: a read-only view of what is running, re-exported by the test API under its current name.
+`context` is too widely used to remove. It becomes the **runtime info** interface: a read-only view of what is running, re-exported by the `utils` root under its current name.
 
 - Reads stay as they are (`context.library`, `context.weblog_variant`, `context.scenario`...).
 - Writes move to an internal setter used only by the scenario core.
@@ -159,7 +161,7 @@ Cost:
 - `__all__` is the contract. Names used only in annotations can be re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py` for `TestAgentAPI`, `DataDogLibrarySpan`...
 - Public submodules are kept to a minimum and listed explicitly in the contracts.
 
-Module names are open (see below). Working names: `utils` (test API), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+Module names are open (see below). Working names: `utils.live` and `utils.record` (test API), `utils` (root re-exports), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
 
 ### Enforcement with import-linter
 
@@ -167,7 +169,7 @@ Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_im
 
 | Boundary | Contract | Status |
 |----------|----------|--------|
-| tests → `utils` root only | `utils-public-interface` (protected) | merged (#8675), ratchet being reduced (#8676) |
+| tests → `utils` root, `utils.live`, `utils.record` only | `utils-public-interface` (protected) | merged for the root (#8675), ratchet being reduced (#8676) |
 | `utils` never imports `tests` | `utils-no-tests` (forbidden) | merged (#8678) |
 | Docker only in the runtime layer | `docker-sdk-runtime-layer`, `container-layer-orchestration` | merged (#8679) |
 | scenario definitions → scenario API only | protected | in review (#8681) |
@@ -184,7 +186,7 @@ Every step is shippable on its own and leaves CI green.
 
 1. **Boundaries only.** Add the import-linter contracts above, with today's violations as ratchet ignores. No code moves. This makes the target visible and stops new violations, including new uses of `context` internals and new direct imports of components from tests. Add the import side-effect test with today's effects allow-listed.
 2. **Centralise re-exports.** Create the interface modules and route consumers through them:
-   - test API: re-export what tests import from internals today (helpers, types, constants, component handles and mocks), then rewrite test imports with a codemod, area by area. Classify the members of the existing handles as live or record, add the static check with a ratchet, and run some scenarios in replay mode in CI;
+   - test API: create `utils.live` and `utils.record`, split the existing handles between them (`weblog`, `remote_config`, mocks and `wait_for` to live; `interfaces.*` queries to record) and re-export there what tests import from internals today. Rewrite test imports with a codemod, area by area. The root re-exports of handles (`from utils import weblog, interfaces`) stay only for existing tests: the static check forbids new ones, with a ratchet. Add the phase check and run some scenarios in replay mode in CI;
    - scenario API: re-export the targets scenario definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). That clears every declarative scenario definition. The infrastructure-heavy ones (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
    - side effects: make the singletons lazy and move resource allocation (such as the Docker SSI free port) to scenario setup, shrinking the allow-list of the import test;
@@ -192,13 +194,12 @@ Every step is shippable on its own and leaves CI green.
 
    Each move removes ratchet lines.
 3. **Converge components.** Define the component API (lifecycle for a scenario or a single test, and a test handle with a live interface and a record) and migrate components one at a time: proxy, mocked backend, agent, test agent, weblog, parametric app, side containers. Move the build of their images from shell to the build API.
-4. **Explicit live and record access.** Handles expose their two parts explicitly (working form: `proxy.live.*` and `proxy.record.*`), tests move to it with a codemod, and the flat access is deprecated.
+4. **Drop the root re-exports of handles** once their ratchet is empty, so `utils.live` and `utils.record` are the only way to reach a component from a test.
 5. **Document** each interface for its audience (`docs/edit/` for tests and scenarios, `docs/internals/` for components and build), and point the AI rules (`docs/ai/`) at them.
 
 ## Open questions
 
 - Which scenarios should run in replay mode in CI, and is that enough without a runtime guard?
-- How do handles expose the live interface and the record: `live` and `record` namespaces on each handle, or separate re-export modules?
 - Should the weblog's record hold the requests and responses seen by the test runner, so that setup results become references into it?
 - Module names and layout: flat modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
 - Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one condition format?
