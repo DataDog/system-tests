@@ -71,6 +71,7 @@ class Test_NoExceptions:
         compiled_allowed_paterns = [re.compile(p, re.MULTILINE | re.DOTALL) for p in allowed_patterns]
         compiled_disallowed_paterns = [re.compile(p, re.MULTILINE | re.DOTALL) for p in disallowed_patterns]
         logs = list(interfaces.library_java_tracer.get_data())
+        assert logs, "No Java tracer logs found, nothing to check"
         logs = list({log["raw"] for log in logs})
         logs = [log for log in logs if matches_any(compiled_disallowed_paterns, log)]
         logs = [log for log in logs if not matches_any(compiled_allowed_paterns, log)]
