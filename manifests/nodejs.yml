@@ -117,6 +117,7 @@ refs:
   - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
   - &ref_6_26_0 '>=6.26.0 || ^5.137.0'
   - &ref_6_27_0 '>=6.27.0 || ^5.138.0'
+  - &ref_6_28_0 '>=6.28.0 || ^5.139.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -359,50 +360,62 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0

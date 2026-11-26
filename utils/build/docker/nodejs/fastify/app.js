@@ -126,6 +126,34 @@ fastify.get('/api_security_sampling/:i', async (request, reply) => {
   return 'OK'
 })
 
+// RFC-1125 routes. find-my-way only allows an optional param at the end of the path,
+// so other optional parts are declared as one route per variant.
+const rfc1125Routes = [
+  '/api_security/multi-params-in-segment/:id.:format',
+  '/api_security/optional-params/:id.:format',
+  '/api_security/optional-params/:id',
+  '/api_security/three-params/:a-:b-:c',
+  '/api_security/static-text/user-:id',
+  '/api_security/version/v:version/items',
+  '/api_security/files/:name.json',
+  '/api_security/optional-segment/:id/:tab?',
+  '/api_security/search',
+  '/api_security/search.:format',
+  '/api_security/optional-chain',
+  '/api_security/optional-chain/:x',
+  '/api_security/optional-chain/:x/:y',
+  '/api_security/catch-all/*',
+  '/api_security/encoded/café',
+  '/api_security/param-names/:user+id/:user_id',
+  '/api_security/drafts',
+  '/api_security/drafts/preview'
+]
+for (const route of rfc1125Routes) {
+  fastify.get(route, async (request, reply) => {
+    return 'ok'
+  })
+}
+
 fastify.get('/params/:value', async (request, reply) => {
   return 'OK'
 })
