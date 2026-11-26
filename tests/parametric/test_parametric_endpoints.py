@@ -321,6 +321,8 @@ class Test_Parametric_DDTrace_Crash:
         """
         assert test_library.is_alive()
         test_library.crash()
+        # The crash request can return before the process exits.
+        test_library.container.wait(timeout=10)
         assert not test_library.is_alive()
 
 
