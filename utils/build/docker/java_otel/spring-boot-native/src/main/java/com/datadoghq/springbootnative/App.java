@@ -61,16 +61,6 @@ public class App {
                     .addHeader("dd-otlp-path", "agent")
                     .build());
         }
-        if (isIntakeEnabled()) {
-            spanExporters.add(
-                OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8127/api/v0.2/traces")  // port is defined in utils/proxy/ports.py
-                    .addHeader("dd-protocol", "otlp")
-                    .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
-                    .addHeader("dd-otlp-path", "intake-traces")
-                    .addHeader("dd-otlp-source", "datadog")
-                    .build());
-        }
         if (isCollectorEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
@@ -105,17 +95,6 @@ public class App {
                             .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
                             .build());
         }
-        if (isIntakeEnabled()) {
-            metricExporters.add(
-                    OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/intake/otlp/v1/metrics")  // port is defined in utils/proxy/ports.py
-                            .addHeader("dd-protocol", "otlp")
-                            .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
-                            .addHeader("dd-otlp-path", "intake-metrics")
-                            .addHeader("dd-otel-metric-config", "{\"histograms\": {\"send_aggregation_metrics\": true}}")
-                            .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
-                            .build());
-        }
         if (isCollectorEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
@@ -144,18 +123,6 @@ public class App {
                             .addHeader("dd-otlp-path", "agent")
                             .build());
         }
-        if (isIntakeEnabled()) {
-            logRecordExporters.add(
-                    OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/v2/logs")  // port is defined in utils/proxy/ports.py
-                            .addHeader("dd-protocol", "otlp")
-                            .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
-                            .addHeader("dd-otlp-path", "intake-logs")
-                            .build());
-            logRecordExporters.add(
-                    OtlpJsonLoggingLogRecordExporter.create()
-            );
-        }
         if (isCollectorEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
@@ -181,9 +148,5 @@ public class App {
 
     private static boolean isCollectorEnabled() {
         return "true".equalsIgnoreCase(System.getenv("OTEL_SYSTEST_INCLUDE_COLLECTOR"));
-    }
-
-    private static boolean isIntakeEnabled() {
-        return "true".equalsIgnoreCase(System.getenv("OTEL_SYSTEST_INCLUDE_INTAKE"));
     }
 }

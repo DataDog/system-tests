@@ -721,12 +721,7 @@ class ProxyContainer(TestedContainer):
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
-            environment={
-                "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY"),
-                "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-            },
+            environment={"SYSTEM_TESTS_IPV6": str(enable_ipv6)},
             working_dir="/app",
             volumes={
                 "./utils/proxy": {"bind": "/app/proxy", "mode": "ro"},
