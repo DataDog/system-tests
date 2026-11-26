@@ -116,6 +116,8 @@ refs:
   - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
   - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
   - &ref_6_26_0 '>=6.26.0 || ^5.137.0'
+  - &ref_6_27_0 '>=6.27.0 || ^5.138.0'
+  - &ref_6_28_0 '>=6.28.0 || ^5.139.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -358,35 +360,62 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
-  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
-  : incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      component_version: <6.26.0
-      weblog: [express5]
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      excluded_weblog: [express5]
-  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
-  : - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
     - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      component_version: <6.26.0
-      weblog: [express5]
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      excluded_weblog: [express5]
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Node.js weblogs)
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0

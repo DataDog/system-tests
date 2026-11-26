@@ -5,3 +5,5 @@ rules:
   - require: commit-signatures
     excluded_emails:
       - 'github-actions@github.com' # default committer in actions
+  # DDCI Status fails if any GitLab job fails. GitHub Actions jobs are gated by all-jobs-are-green (.github/workflows/ci.yml)
+  - require: ddci

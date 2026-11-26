@@ -348,6 +348,7 @@ class EndToEndScenario(DockerScenario):
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_java_tracer.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
             interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
@@ -461,6 +462,7 @@ class EndToEndScenario(DockerScenario):
             self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
+        interfaces.library_java_tracer.load_data()
 
     def _wait_and_stop_containers(self, *, is_empty_test_run: bool):
         if self.replay:

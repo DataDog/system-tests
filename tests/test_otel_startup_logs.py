@@ -63,7 +63,9 @@ _RATIO_SAMPLERS = frozenset(("traceidratio", "parentbased_traceidratio"))
 
 
 def _get_startup_configurations() -> list[dict[str, object]]:
-    log_interface = interfaces.library_dotnet_managed if context.library == "dotnet" else interfaces.library_stdout
+    log_interface = {"dotnet": interfaces.library_dotnet_managed, "java": interfaces.library_java_tracer}.get(
+        context.library.name, interfaces.library_stdout
+    )
     # Join raw records to also support pretty-printed JSON split by the log interface.
     logs = "\n".join(record["raw"] for record in log_interface.get_data())
     if context.library == "golang":
