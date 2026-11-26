@@ -420,6 +420,34 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	// RFC-1125 normalized route endpoints (see docs/understand/weblogs/end-to-end_weblog.md).
+	// chi has no optional parameters, so optional parts are declared as separate routes.
+	for _, route := range []string{
+		"/api_security/multi-params-in-segment/{id}.{format}",
+		"/api_security/three-params/{a}-{b}-{c}",
+		"/api_security/optional-params/{id}",
+		"/api_security/optional-params/{id}.{format}",
+		"/api_security/static-text/user-{id}",
+		"/api_security/version/v{version}/items",
+		"/api_security/files/{name}.json",
+		"/api_security/optional-segment/{id}",
+		"/api_security/optional-segment/{id}/{tab}",
+		"/api_security/catch-all/*",
+		"/api_security/search",
+		"/api_security/search.{format}",
+		"/api_security/optional-chain",
+		"/api_security/optional-chain/{x}",
+		"/api_security/optional-chain/{x}/{y}",
+		"/api_security/encoded/café",
+		"/api_security/param-names/{user-id}/{user_id}",
+		"/api_security/drafts",
+		"/api_security/drafts/preview",
+	} {
+		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("ok"))
+		})
+	}
+
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
@@ -461,7 +489,7 @@ func main() {
 func headers(w http.ResponseWriter, r *http.Request) {
 	//Data used for header content is irrelevant here, only header presence is checked
 	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Set("Content-Length", "42")
+	w.Header().Set("Content-Length", "15")
 	w.Header().Set("Content-Language", "en-US")
 	w.Write([]byte("Hello, headers!"))
 }

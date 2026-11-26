@@ -376,6 +376,32 @@ func main() {
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
 	r.Any("/ffe", ginHandleFunc(common.FFeEval()))
 
+	// RFC-1125 normalized route endpoints (see docs/understand/weblogs/end-to-end_weblog.md).
+	// gin allows one parameter per segment, named up to the next "/", and has no optional
+	// parameters: optional parts are separate routes, and multi-param segments and static
+	// text after a parameter are not declared.
+	for _, route := range []string{
+		"/api_security/optional-params/:id",
+		"/api_security/static-text/user-:id",
+		"/api_security/version/v:version/items",
+		"/api_security/optional-segment/:id",
+		"/api_security/optional-segment/:id/:tab",
+		"/api_security/catch-all/*path",
+		"/api_security/search",
+		"/api_security/search.:format",
+		"/api_security/optional-chain",
+		"/api_security/optional-chain/:x",
+		"/api_security/optional-chain/:x/:y",
+		"/api_security/encoded/café",
+		"/api_security/param-names/:user-id/:user_id",
+		"/api_security/drafts",
+		"/api_security/drafts/preview",
+	} {
+		r.Any(route, func(ctx *gin.Context) {
+			ctx.String(http.StatusOK, "ok")
+		})
+	}
+
 	var d DebuggerController
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
@@ -423,7 +449,7 @@ func ginHandleFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
 func headers(ctx *gin.Context) {
 	//Data used for header content is irrelevant here, only header presence is checked
 	ctx.Writer.Header().Set("content-type", "text/plain")
-	ctx.Writer.Header().Set("content-length", "42")
+	ctx.Writer.Header().Set("content-length", "15")
 	ctx.Writer.Header().Set("content-language", "en-US")
 	ctx.Writer.Write([]byte("Hello, headers!"))
 }

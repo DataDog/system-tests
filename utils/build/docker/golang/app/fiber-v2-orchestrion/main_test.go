@@ -60,6 +60,10 @@ func TestRoutes(t *testing.T) {
 		{http.MethodGet, "/inferred-proxy/span-creation?status_code=404", "", "", 404, "ok"},
 		{http.MethodGet, "/debugger/log", "", "", 200, "Log probe"},
 		{http.MethodGet, "/debugger/budgets/2", "", "", 200, "Budgets"},
+		{http.MethodGet, "/api_security/optional-params/123.json", "", "", 200, "ok"},
+		{http.MethodGet, "/api_security/optional-chain", "", "", 200, "ok"},
+		{http.MethodGet, "/api_security/param-names/1/2", "", "", 200, "ok"},
+		{http.MethodGet, "/api_security/encoded/caf%C3%A9", "", "", 200, "ok"},
 	} {
 		t.Run(tc.method+" "+tc.path, func(t *testing.T) {
 			res, body := request(t, app, tc.method, tc.path, tc.body, tc.contentType)

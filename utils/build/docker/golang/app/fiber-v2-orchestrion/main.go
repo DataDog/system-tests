@@ -215,6 +215,35 @@ func newApp() *fiber.App {
 	app.All("/returnheaders", httpHandler(common.Returnheaders))
 	app.All("/ffe", httpHandler(common.FFeEval()))
 
+	// RFC-1125 normalized route endpoints (see docs/understand/weblogs/end-to-end_weblog.md).
+	// Fiber matches routes in registration order, so the longer optional-params route
+	// comes first. In "/:id.:format?" the "." is not optional, so optional static text is
+	// declared as separate routes. A "-" ends a parameter name, so the param-names route
+	// uses "~" as its non-word character. Fiber matches routes with the path as the
+	// client sent it, still escaped, so the encoded route is declared escaped.
+	for _, route := range []string{
+		"/api_security/encoded/caf%C3%A9",
+		"/api_security/multi-params-in-segment/:id.:format",
+		"/api_security/three-params/:a-:b-:c",
+		"/api_security/optional-params/:id.:format",
+		"/api_security/optional-params/:id",
+		"/api_security/static-text/user-:id",
+		"/api_security/version/v:version/items",
+		"/api_security/files/:name.json",
+		"/api_security/optional-segment/:id/:tab?",
+		"/api_security/catch-all/*",
+		"/api_security/search",
+		"/api_security/search.:format",
+		"/api_security/optional-chain/:x?/:y?",
+		"/api_security/param-names/:user~id/:user_id",
+		"/api_security/drafts",
+		"/api_security/drafts/preview",
+	} {
+		app.All(route, func(c *fiber.Ctx) error {
+			return c.SendString("ok")
+		})
+	}
+
 	var debugger DebuggerController
 	app.All("/debugger/log", httpHandler(debugger.logProbe))
 	app.All("/debugger/mix", httpHandler(debugger.mixProbe))
