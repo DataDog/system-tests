@@ -3,9 +3,9 @@ Note there's likely a more up-to-date version in [Confluence](https://datadoghq.
 Please check that for more information.
 
 ### Prerequisites
-To run locally, make sure you have valid `DD_API_KEY` and `DD_APPLICATION_KEY` in your environment.
-They must belong to the allow-listed [org](https://github.com/DataDog/consul-config/blob/b84d79f702961414b6d262b1190ff04bb5efd0a2/datadog/us1.prod.dog/features/event_platform_unstable_analytics_endpoint#L4).
-Check this site-to-host for easier [navigation](https://github.com/DataDog/system-tests/blob/1219af3e6bdfb16c939a687ffeff2123aa41b52b/utils/interfaces/_backend.py#L35).
+No Datadog API or APP key is needed: end-to-end scenarios send their data to a mocked backend. Do not export
+`DD_API_KEY` or `DD_APPLICATION_KEY`: in CI, the test runner fails if it finds a secret in its environment (see
+[troubleshooting](./troubleshooting.md#environment-variables-look-like-secrets)).
 
 ### Instructions
 

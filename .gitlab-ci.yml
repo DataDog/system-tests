@@ -66,7 +66,7 @@ compute_pipeline:
         echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
         SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
         source venv/bin/activate
-        ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+        utils/ci/without_ci_secrets.sh ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         git clone https://github.com/DataDog/system-tests.git original
         git fetch --all  # Ensure all branches are available
         git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
@@ -447,7 +447,7 @@ system_tests_param:
     - git fetch origin main
     - mkdir -p original && git archive origin/main -- manifests/ | tar -xC original/
     - git diff origin/main...HEAD --name-only > modified_files.txt
-    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+    - utils/ci/without_ci_secrets.sh ./run.sh MOCK_THE_TEST --collect-only --scenario-report
     - python3 utils/scripts/compute_libraries_and_scenarios.py --output raw_params.txt
     - |
       python3 -c "

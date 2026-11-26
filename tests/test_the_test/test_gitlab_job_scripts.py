@@ -13,7 +13,7 @@ from utils.ci.gitlab.jobs import _common, build_weblog, push_to_test_optimizatio
 
 def _trace(name: str, tags: list[str], *command: str) -> list[str]:
     tag_args = [arg for tag in tags for arg in ("--tags", tag)]
-    return ["datadog-ci", "trace", "--name", name, *tag_args, "--", *command]
+    return ["datadog-ci", "trace", "--name", name, *tag_args, "--", "utils/ci/without_ci_secrets.sh", *command]
 
 
 TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_type:run"]
@@ -166,6 +166,31 @@ class Test_GitlabRunHelper:
         assert run_calls == [
             (_trace("run python DEFAULT", ["system-tests.library:python"], "./run.sh", "DEFAULT"), {"check": True})
         ]
+
+    def test_traced_command_does_not_get_ci_secrets(self) -> None:
+        """The test runner fails in CI if it finds a secret in its environment (see utils/proxy/scrubber.py)"""
+        ci_secrets = {
+            "CI_JOB_TOKEN": "glcbt-0123456789",
+            "CI_REGISTRY_PASSWORD": "0123456789",
+            "CI_DEPENDENCY_PROXY_PASSWORD": "0123456789",
+            "CI_RUNNER_SHORT_TOKEN": "t1_01234567",
+            "DD_STS_OIDC_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOi",
+            "DD_API_KEY": "0123456789abcdef0123456789abcdef",
+            "ACTIONS_ID_TOKEN_REQUEST_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOi",
+            "ACTIONS_ID_TOKEN_REQUEST_URL": "https://token.actions.githubusercontent.com/x",
+        }
+
+        result = subprocess.run(
+            ["utils/ci/without_ci_secrets.sh", "env"],
+            env={"PATH": "/usr/bin:/bin", **ci_secrets},
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+
+        names = {line.split("=", 1)[0] for line in result.stdout.splitlines()}
+        assert names.isdisjoint(ci_secrets)
+        assert "PATH" in names
 
     def test_junit_upload_is_bounded(self, run_calls: list[tuple[list[str], dict[str, object]]]) -> None:
         Path("logs_default").mkdir()

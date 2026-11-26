@@ -113,6 +113,9 @@ def tag_job(job_type: str) -> None:
 def traced(name: str, command: list[str], *, scenario: str | None = None, check: bool = True) -> int:
     """Run a command wrapped in a datadog-ci span, tagged with the library/weblog/scenario of the job.
 
+    The command gets neither the DD_API_KEY of datadog-ci nor the secrets of the GitLab job: the test runner fails
+    if it finds one in its environment (see utils/ci/without_ci_secrets.sh).
+
     Return its return code, see run() for check.
     """
     tags = [f"system-tests.library:{env('TEST_LIBRARY')}"]
@@ -122,7 +125,10 @@ def traced(name: str, command: list[str], *, scenario: str | None = None, check:
         tags.append(f"system-tests.scenario:{scenario}")
 
     tag_args = [arg for tag in tags for arg in ("--tags", tag)]
-    return run(["datadog-ci", "trace", "--name", name, *tag_args, "--", *command], check=check)
+    return run(
+        ["datadog-ci", "trace", "--name", name, *tag_args, "--", "utils/ci/without_ci_secrets.sh", *command],
+        check=check,
+    )
 
 
 def copy_upstream_binaries() -> None:

@@ -98,13 +98,11 @@ For some purposes, secrets are used in the workflow:
 
 | Name                                   | Description
 | -------------------------------------- | ----------------------------------------------------------------------------------
-| DD_API_KEY                             | Some scenarios requires valid API and APP keys
-| DD_APPLICATION_KEY                     |
-| DD_API_KEY_2                           |
-| DD_APP_KEY_2                           |
-| DD_API_KEY_3                           |
-| DD_APP_KEY_3                           |
 | DOCKERHUB_USERNAME and DOCKERHUB_TOKEN | If both are set, all docker pull are authenticated, which offer higher rate limit
+| DD_API_KEY, DD_APPLICATION_KEY, DD_API_KEY_2, DD_APP_KEY_2, DD_API_KEY_3, DD_APP_KEY_3 | Not used anymore: scenarios send their data to a mocked backend. Still accepted, so that existing callers don't break
+
+Secrets never reach the test runner: it fails if it finds one in its environment (see
+[troubleshooting](../execute/troubleshooting.md#environment-variables-look-like-secrets)).
 
 
 You can sends them ,either by using `secrets: inherit` ([doc](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretsinherit)), or [use explicit secret ids](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretssecret_id)

@@ -1,6 +1,3 @@
-# keep this import in first
-from . import scrubber  # noqa: F401
-
 import asyncio
 from collections import defaultdict
 import io
@@ -21,6 +18,7 @@ from mitmproxy.http import HTTPFlow, Request
 from ._flow_writer import FlowWriter
 from .ports import ProxyPorts
 from .mocked_response import MOCKED_TRACER_RESPONSES_PATH, MockedTracerResponse
+from .scrubber import install_write_scrubber
 from .utils import logger
 
 if TYPE_CHECKING:
@@ -354,4 +352,7 @@ def start_proxy() -> None:
 
 
 if __name__ == "__main__":
+    # Real API keys may reach the proxy (env, and request headers forwarded to the backend): redact them
+    # from everything it writes. Must run before any file is opened.
+    install_write_scrubber()
     start_proxy()
