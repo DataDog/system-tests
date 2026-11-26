@@ -32,3 +32,10 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Do not tie exact counts to flush timing.
+- Severity: P0
+- Flag: Stats and telemetry can arrive on a timer, in several flushes. Do not assert an exact count of these requests or points. Read all the requests, and check their merged content. To prove that no extra item arrives, wait for the full flush window before counting. Do not compare a scenario-wide count with the requests of one test.
+- Detect: A test asserts that exactly one stats or telemetry request arrived. A wait helper returns once it sees N items. The test then asserts exactly N. A test compares a scenario-wide metric count with its own request count.
+- ✅ Accept several stats requests and merge them before checking the counts.
+- ❌ `assert len(requests) == 1, "Only one stats request is expected"`
