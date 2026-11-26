@@ -98,6 +98,7 @@ class _OpenTelemetryScenario(DockerScenario):
 
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_java_tracer.configure(self.host_log_folder, replay=self.replay)
 
         if not self.replay:
             self.warmups.insert(0, self._start_interface_watchdog)
@@ -178,6 +179,7 @@ class _OpenTelemetryScenario(DockerScenario):
             interfaces.mocked_backend.check_deserialization_errors()
 
         interfaces.library_dotnet_managed.load_data()
+        interfaces.library_java_tracer.load_data()
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
