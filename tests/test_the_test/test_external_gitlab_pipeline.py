@@ -59,7 +59,7 @@ class Test_ExternalGitlabPipeline:
         assert result["stages"] == ["configure", "java", "pipeline-status"]
         assert "java_ssi_pipeline" in result
         assert "nodejs_ssi_pipeline" not in result
-        assert result["compute_pipeline"]["image"] == ("registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169")
+        assert result["compute_pipeline"]["image"] == "registry.ddbuild.io/ci/libdatadog-build/system-tests:156603395"
         assert result["compute_pipeline"]["needs"] == [
             {"job": "resolve_ssi_pr_title", "artifacts": True, "optional": True}
         ]
