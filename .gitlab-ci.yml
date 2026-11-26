@@ -131,7 +131,7 @@ compute_pipeline:
           -s "$selected_scenarios" \
           -g "$selected_scenario_groups" \
           --parametric-job-count 1 \
-          --ci-environment "${CI_ENVIRONMENT}" \
+          --ci-environment "${SYSTEM_TESTS_CI_ENVIRONMENT:-$CI_ENVIRONMENT}" \
           --format gitlab
       done
     - |

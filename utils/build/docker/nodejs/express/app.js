@@ -160,6 +160,29 @@ app.get('/api_security/optional-params/:id', (req, res) => {
   res.send('ok')
 })
 
+// RFC-1125 routes, using path-to-regexp v8 syntax (Express 5)
+if (!unnamedWildcard) {
+  const rfc1125Routes = [
+    '/api_security/three-params/:a-:b-:c',
+    '/api_security/static-text/user-:id',
+    '/api_security/version/v:version/items',
+    '/api_security/files/:name.json',
+    '/api_security/optional-segment/:id{/:tab}',
+    '/api_security/search{.:format}',
+    '/api_security/optional-chain{/:x}{/:y}',
+    '/api_security/catch-all/*path',
+    // Express matches the raw request path, so the non-ASCII literal is declared percent-encoded
+    '/api_security/encoded/caf%C3%A9',
+    '/api_security/param-names/:"user-id"/:user_id',
+    '/api_security/drafts{/preview}'
+  ]
+  for (const route of rfc1125Routes) {
+    app.get(route, (req, res) => {
+      res.send('ok')
+    })
+  }
+}
+
 app.get('/params/:value', (req, res) => {
   res.send('OK')
 })

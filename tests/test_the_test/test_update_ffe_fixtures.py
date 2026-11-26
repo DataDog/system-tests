@@ -53,9 +53,10 @@ def test_validate_fixture_ref_rejects_unsafe_refs(fixture_ref: str) -> None:
 
 
 @scenarios.test_the_test
-def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path) -> None:
+def test_copy_fixture_snapshot_discovers_evaluation_suites(tmp_path: Path) -> None:
     source = tmp_path / "source"
     snapshot = tmp_path / "snapshot"
+    suite_names = ("dependent-flags", "flag-selection", "future-feature")
     (source / "evaluation-cases").mkdir(parents=True)
     snapshot.mkdir()
     (source / "evaluation-cases" / "case.json").write_text("[]", encoding="utf-8")
@@ -63,11 +64,16 @@ def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path
     (source / "README.md").write_text("upstream documentation", encoding="utf-8")
     (source / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
     (source / "precomputed-assignments").mkdir()
-    suite = source / "evaluation-suites" / "feature"
-    (suite / "cases").mkdir(parents=True)
-    (suite / "ufc-config.json").write_text('{"flags": {"flag": {}}}', encoding="utf-8")
-    (suite / "cases" / "case.json").write_text('[{"flag": "flag"}]', encoding="utf-8")
-    (suite / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
+    for suite_name in suite_names:
+        suite = source / "evaluation-suites" / suite_name
+        (suite / "cases").mkdir(parents=True)
+        (suite / "ufc-config.json").write_text('{"flags": {"flag": {}}}', encoding="utf-8")
+        (suite / "cases" / "case.json").write_text('[{"flag": "flag"}]', encoding="utf-8")
+        (suite / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
+        (suite / "README.md").write_text("upstream documentation", encoding="utf-8")
+    (source / "evaluation-suites" / "flag-selection" / "flag-tags.json").write_text(
+        '{"flags": [{"key": "flag", "tags": []}]}', encoding="utf-8"
+    )
     _write_selection_vectors(source)
     (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
     (source / "flag-selection" / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
@@ -76,9 +82,16 @@ def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path
 
     assert (snapshot / "ufc-config.json").is_file()
     assert (snapshot / "evaluation-cases" / "case.json").is_file()
-    for path in (Path("ufc-config.json"), Path("cases/case.json")):
-        assert (snapshot / "evaluation-suites" / "feature" / path).read_bytes() == (suite / path).read_bytes()
-    assert not (snapshot / "evaluation-suites" / "feature" / "AGENTS.md").exists()
+    for suite_name in suite_names:
+        source_suite = source / "evaluation-suites" / suite_name
+        snapshot_suite = snapshot / "evaluation-suites" / suite_name
+        for path in (Path("ufc-config.json"), Path("cases/case.json")):
+            assert (snapshot_suite / path).read_bytes() == (source_suite / path).read_bytes()
+        assert not (snapshot_suite / "AGENTS.md").exists()
+        assert not (snapshot_suite / "README.md").exists()
+    assert (snapshot / "evaluation-suites" / "flag-selection" / "flag-tags.json").read_bytes() == (
+        source / "evaluation-suites" / "flag-selection" / "flag-tags.json"
+    ).read_bytes()
     assert not (snapshot / "README.md").exists()
     assert not (snapshot / "AGENTS.md").exists()
     assert not (snapshot / "precomputed-assignments").exists()
@@ -87,6 +100,49 @@ def test_copy_fixture_snapshot_imports_only_consumed_fixture_data(tmp_path: Path
     ).read_bytes()
     assert not (snapshot / "flag-selection" / "README.md").exists()
     assert not (snapshot / "flag-selection" / "AGENTS.md").exists()
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("entry_name", ["notes.md", "notes.json"])
+def test_copy_evaluation_suite_rejects_unknown_entries(tmp_path: Path, entry_name: str) -> None:
+    source = tmp_path / "source"
+    destination = tmp_path / "destination"
+    (source / "cases").mkdir(parents=True)
+    (source / "ufc-config.json").write_text("{}", encoding="utf-8")
+    (source / entry_name).write_text("unexpected", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Unexpected entry in FFE evaluation suite"):
+        update_ffe_fixtures._copy_evaluation_suite(source, destination)
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("guide_name", ["AGENTS.md", "README.md"])
+def test_copy_evaluation_suite_rejects_guide_symlinks(tmp_path: Path, guide_name: str) -> None:
+    assert guide_name in update_ffe_fixtures.SUITE_GUIDE_FILES
+    source = tmp_path / "source"
+    destination = tmp_path / "destination"
+    (source / "cases").mkdir(parents=True)
+    (source / "ufc-config.json").write_text("{}", encoding="utf-8")
+    target = tmp_path / "guide"
+    target.write_text("guide", encoding="utf-8")
+    (source / guide_name).symlink_to(target)
+
+    with pytest.raises(ValueError, match="Refusing to copy symbolic link"):
+        update_ffe_fixtures._copy_evaluation_suite(source, destination)
+
+
+@scenarios.test_the_test
+def test_copy_fixture_snapshot_rejects_empty_evaluation_suites(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    snapshot = tmp_path / "snapshot"
+    (source / "evaluation-cases").mkdir(parents=True)
+    (source / "evaluation-suites").mkdir()
+    (source / "ufc-config.json").write_text("{}", encoding="utf-8")
+    _write_selection_vectors(source)
+    snapshot.mkdir()
+
+    with pytest.raises(ValueError, match="must contain at least one feature suite"):
+        update_ffe_fixtures._copy_fixture_snapshot(source, snapshot)
 
 
 @scenarios.test_the_test

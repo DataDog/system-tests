@@ -1155,3 +1155,30 @@ class Test_GitLabMode:
         assert 'scenarios_groups="all"' in output
         assert not any(line.startswith("ssi_libraries=") for line in output)
         assert not any(line.startswith("libraries=") for line in output)
+
+
+def get_run_nix(inputs: Inputs) -> str:
+    output = dict(line.split("=", 1) for line in process(inputs))
+    return output["run_nix"]
+
+
+@scenarios.test_the_test
+class Test_ComputeRunNix:
+    @pytest.mark.parametrize(
+        "file",
+        # the paths that used to be the paths filter of .github/workflows/nix.yml
+        ["flake.nix", "shell.nix", "flake.lock", ".github/workflows/nix.yml", "tests/test_the_test/test_foo.py"],
+    )
+    def test_nix_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "true"
+
+    @pytest.mark.parametrize("file", ["README.md", "utils/build/docker/python/flask.Dockerfile", "manifests/java.yml"])
+    def test_other_files(self, file: str) -> None:
+        assert get_run_nix(build_inputs([file])) == "false"
+
+    def test_any_nix_file(self) -> None:
+        assert get_run_nix(build_inputs(["README.md", "flake.lock"])) == "true"
+
+    @set_env("GITHUB_REF", "refs/heads/main")
+    def test_ref_main(self) -> None:
+        assert get_run_nix(build_inputs(["README.md"])) == "true"

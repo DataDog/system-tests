@@ -536,7 +536,12 @@ def view_cmdi_secure(request):
 @csrf_exempt
 def view_iast_path_traversal_insecure(request):
     path = request.POST.get("path", "")
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        # Still exercise mkdir on every request, including for the pre-mounted smoke directory.
+        if not os.path.isdir(path):
+            raise
     return HttpResponse("OK")
 
 

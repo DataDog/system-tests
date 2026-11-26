@@ -572,6 +572,8 @@ manifest:
         "*": v2.29.0-dev
         "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
+    - declaration: 'irrelevant (asserts the first redirect target, Ruby reports the last one since libddwaf 2.0, see DataDog/dd-trace-rb#6707)'
+      component_version: '>=2.50.0-dev'
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
@@ -1296,7 +1298,9 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py: v2.30.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:
@@ -1951,7 +1955,11 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.19.0
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - weblog_declaration:
+        "*": incomplete_test_app (missing /security/thread_context_sharing endpoint)
+        rails80: v2.47.0
+        uds-rails: v2.49.0  # TODO: a lower version might be supported
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant

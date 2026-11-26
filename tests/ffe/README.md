@@ -27,11 +27,16 @@ first, then refresh the snapshot:
 python3 utils/scripts/update_ffe_fixtures.py --ref <branch-tag-or-commit>
 ```
 
-The updater imports `ufc-config.json`, `evaluation-cases/*.json`, and
-`flag-selection/selection-vectors.json`. Ordinary test runs use those checked-in files without submodules or network access. A
-weekly/manual workflow opens a signed draft PR when their contents change and
-leaves any existing fixture update PR untouched. Review and resolve newly exposed
-SDK failures before merging an update.
+The updater imports `ufc-config.json`, `evaluation-cases/*.json`,
+`flag-selection/selection-vectors.json`, and every self-contained suite under
+`evaluation-suites/`. Suite discovery is structural, so adding a suite or a case
+file does not require an importer change. Importing a suite does not select it
+for execution: each test harness separately decides whether suite existence or
+explicit opt-in controls execution. Ordinary test runs use those checked-in
+files without submodules or network access. A weekly/manual workflow opens a
+signed draft PR when their contents change and leaves any existing fixture
+update PR untouched. Review and resolve newly exposed SDK failures before
+merging an update.
 
 Dynamic evaluation checks each case's value, reason, and explicit error code.
 `Test_Feature_Flag_Split_Features` additionally checks every canonical case with
