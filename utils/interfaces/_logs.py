@@ -217,13 +217,17 @@ class _LibraryJavaTracer(_LogsInterfaceValidator):
         weblog_folder = Path(f"{self.host_log_folder}/docker/weblog")
         tracer_log_file = weblog_folder / "logs" / JAVA_TRACER_LOG_FILENAME
 
-        # The file is created empty by the framework before the weblog starts
-        if tracer_log_file.is_file() and tracer_log_file.stat().st_size > 0:
+        # The file is created empty by the framework before a Java weblog starts
+        if not tracer_log_file.is_file():
+            # Not a Java weblog: the console output belongs to another tracer
+            return []
+
+        if tracer_log_file.stat().st_size > 0:
             return [tracer_log_file]
 
         # Weblogs not started by the java launcher (native images) don't read JDK_JAVA_OPTIONS,
         # so their tracer keeps logging to the console
-        logger.info(f"{tracer_log_file} is missing or empty, reading Java tracer logs from the weblog console output")
+        logger.info(f"{tracer_log_file} is empty, reading Java tracer logs from the weblog console output")
         return [weblog_folder / "stdout.log", weblog_folder / "stderr.log"]
 
 
