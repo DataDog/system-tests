@@ -21,6 +21,22 @@ fi
 
 output="$(orchestrion version)"
 version="${output#"orchestrion "}"
-echo "$version" > /app/SYSTEM_TESTS_ORCHESTRION_VERSION
+echo "${version}" > /app/SYSTEM_TESTS_ORCHESTRION_VERSION
 
 echo "orchestrion version: $(cat /app/SYSTEM_TESTS_ORCHESTRION_VERSION)"
+
+################################################################################
+###                           Managing dd-iast-go                            ###
+################################################################################
+
+if [ -e "/binaries/dd-iast-go" ]; then
+    echo "Install dd-iast-go from folder /binaries/dd-iast-go"
+    go mod edit "$(go -C /binaries/dd-iast-go list -m -f '-replace={{.Path}}={{.Dir}}')"
+elif [ -e "/binaries/dd-iast-go-load-from-go-get" ]; then
+    echo "Install from go get -d $(cat /binaries/dd-iast-go-load-from-go-get)"
+    go mod edit -replace "github.com/DataDog/dd-iast-go=$(cat /binaries/dd-iast-go-load-from-go-get)"
+else
+    echo "Installing production dd-iast-go"
+    go mod edit -replace github.com/DataDog/dd-iast-go=github.com/DataDog/dd-iast-go@latest
+fi
+go mod tidy
