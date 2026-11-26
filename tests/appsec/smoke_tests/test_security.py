@@ -2,6 +2,7 @@
 
 from utils import features, scenarios
 from tests.appsec.smoke_tests.utils import (
+    BaseAiGuardSmokeTests,
     BaseApiSecuritySmokeTests,
     BaseIastSmokeTests,
     BaseRaspSmokeTests,
@@ -59,4 +60,10 @@ class Test_SecuritySmoke_UserEvents(BaseUserEventsSmokeTests):
 @features.iast_stack_trace
 @scenarios.security_smoke
 class Test_SecuritySmoke_Iast(BaseIastSmokeTests):
+    pass
+
+
+@features.ai_guard
+@scenarios.security_smoke
+class Test_SecuritySmoke_AiGuard(BaseAiGuardSmokeTests):
     pass

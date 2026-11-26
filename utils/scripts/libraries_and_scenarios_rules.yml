@@ -429,6 +429,10 @@ patterns:
         scenarios: PARAMETRIC
     utils/build/docker/*/parametric/*:  # fallback for a new parametric app
         scenarios: PARAMETRIC
+    # Also replayed by BaseAiGuardSmokeTests in the security smoke scenarios.
+    utils/build/docker/vcr/cassettes/aiguard/aiguard_evaluate_post_8919fde6.json:
+      scenario_groups: ai_guard
+      scenarios: [SECURITY_SMOKE, APPSEC_APM_STANDALONE, APPSEC_STANDALONE_APM_STANDALONE]
     utils/build/docker/vcr/cassettes/aiguard/*:
       scenario_groups: ai_guard
 

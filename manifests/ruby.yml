@@ -1297,8 +1297,16 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_AiGuard:
+    - weblog_declaration:
+        "*": v2.40.0-dev
+        rails42, rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra: irrelevant
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py: v2.30.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_AiGuard:
+    - weblog_declaration:
+        "*": v2.33.0
+        rails42, rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra: irrelevant
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature

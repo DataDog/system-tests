@@ -10,9 +10,9 @@ from typing import Any
 import jsonschema
 
 from tests.appsec.utils import IAST_VULNERABILITY_SCHEMA_PATH
-from utils import context, interfaces, remote_config as rc, weblog
+from utils import context, interfaces, remote_config as rc, scenarios, weblog
 from utils._weblog import HttpResponse
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
 from utils.dd_types import DataDogAgentSpan, is_same_boolean
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
@@ -548,3 +548,67 @@ class BaseIastSmokeTests:
         assert _has_executed_sink_metric(), (
             "Backend did not receive positive IAST executed.sink telemetry for path traversal"
         )
+
+
+# ---------------------------------------------------------------------------
+# AI Guard
+# ---------------------------------------------------------------------------
+
+# Replays the ALLOW cassette (aiguard_evaluate_post_8919fde6.json). Benign on purpose: AppSec is on
+# in smoke scenarios, and an attack-like body could make AppSec keep the trace instead of AI Guard.
+_AI_GUARD_SMOKE_MESSAGES = [{"role": "user", "content": "What is the weather like today?"}]
+
+
+def _attributed_to_ai_guard(span: DataDogAgentSpan, *, allow_trace_source: bool = False) -> bool:
+    # With APM on (or AppSec off), AI Guard is the decision maker. With APM off and AppSec on,
+    # an SDK may keep the trace as AppSec and record AI Guard in the trace source bitmask.
+    if span.get_tag("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD):
+        return True
+    if not allow_trace_source:
+        return False
+    trace_source = span.get_tag(TRACE_SOURCE_PROPAGATION_KEY)
+    if not isinstance(trace_source, str):
+        return False
+    try:
+        return bool(int(trace_source, 16) & TraceSource.AI_GUARD)
+    except ValueError:
+        return False
+
+
+class BaseAiGuardSmokeTests:
+    """Verify that an AI Guard evaluation reaches intake, kept and attributed to AI Guard, with its decision and messages."""
+
+    def setup_ai_guard_smoke(self) -> None:
+        self.r = weblog.post("/ai_guard/evaluate", json=_AI_GUARD_SMOKE_MESSAGES)
+
+    def test_ai_guard_smoke(self) -> None:
+        assert self.r.status_code == 200
+        # Only the server span carries the request ID; the evaluation span can arrive in another chunk.
+        request_spans = interfaces.mocked_backend.get_spans_list(self.r)
+        assert request_spans, "No trace for the evaluation request reached backend intake"
+        kept = [span for span in request_spans if span.get_sampling_priority() == SamplingPriority.USER_KEEP]
+        assert kept, "AI Guard request lost its USER_KEEP priority at intake"
+        allow_trace_source = context.scenario is scenarios.appsec_standalone_apm_standalone
+        attributed = [span for span in kept if _attributed_to_ai_guard(span, allow_trace_source=allow_trace_source)]
+        assert attributed, "AI Guard request lost its AI Guard attribution"
+        event_spans = [span for span in attributed if span.get_tag("ai_guard.event") in (True, "true")]
+        assert event_spans, "AI Guard request lost its ai_guard.event tag at intake"
+
+        trace_ids = {span.trace.trace_id_as_int for span in event_spans}
+        evaluation_spans = [
+            span
+            for _, trace in interfaces.mocked_backend.get_traces()
+            if trace.trace_id_as_int in trace_ids
+            for span in trace.spans
+            if span.get_span_resource() == "ai_guard"
+        ]
+        assert evaluation_spans, "Request trace reached intake without its AI Guard evaluation"
+        for span in evaluation_spans:
+            assert span.get_sampling_priority() == SamplingPriority.USER_KEEP, (
+                "AI Guard evaluation chunk lost its USER_KEEP priority at intake"
+            )
+            assert span.get_tag("ai_guard.action") == "ALLOW"
+            payloads = span.get_structured_payloads("ai_guard")
+            assert payloads, "AI Guard evaluation lost its structured payload at intake"
+            for payload in payloads:
+                assert payload.get("messages") == _AI_GUARD_SMOKE_MESSAGES, "AI Guard messages changed in transit"
