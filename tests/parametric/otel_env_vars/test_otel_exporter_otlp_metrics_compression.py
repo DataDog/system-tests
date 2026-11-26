@@ -50,6 +50,19 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION:
     def test_stable_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         _assert_compression(test_agent, test_library, expected)
 
+    @pytest.mark.parametrize(
+        "compression_env",
+        [
+            pytest.param(
+                {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json", "OTEL_EXPORTER_OTLP_METRICS_COMPRESSION": "gzip"},
+                id="http-json-gzip",
+            )
+        ],
+    )
+    def test_http_json_gzip(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        # Compression applies to the HTTP/JSON encoding as well as to HTTP/protobuf.
+        _assert_compression(test_agent, test_library, "gzip")
+
     @pytest.mark.parametrize("compression_env", [pytest.param({}, id="unset")])
     def test_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         # The specification permits SDK-specific defaults; Java and Python default to no compression.

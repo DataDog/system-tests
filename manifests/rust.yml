@@ -87,6 +87,7 @@ manifest:
       component_version: <0.5.3-dev+5da7ebc
     - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
       component_version: '>0.5.4-dev'
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_http_json_gzip: missing_feature (OTLP HTTP JSON exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid:  # TODO: a lower version might be supported
     - declaration: missing_feature
       component_version: <0.5.3-dev+5da7ebc
@@ -103,6 +104,8 @@ manifest:
       component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_http_json_gzip
+  : missing_feature (OTLP HTTP JSON exporter is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_invalid
   :  # TODO: a lower version might be supported
     - declaration: missing_feature
@@ -133,6 +136,8 @@ manifest:
       component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
   : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_http_json_gzip
+  : missing_feature (OTLP HTTP JSON exporter is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_invalid
   :  # TODO: a lower version might be supported
     - declaration: missing_feature
