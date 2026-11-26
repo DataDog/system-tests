@@ -10,7 +10,7 @@ system-tests has no formal boundary between its internals (`utils/`) and the cod
 
 - **Tests** are supposed to use `from utils import ...` and the `utils.pytest` facade, but outside `tests/test_the_test/` about 400 import lines in 209 test files reach into `utils.<submodule>` directly, private ones included (`utils._weblog`, `utils._context.containers`, `utils.docker_fixtures._test_agent`...).
 - **Scenario definitions** (`utils/_context/_scenarios/*.py`) import the containers, the Docker layer, constants, ports and the logger from wherever they live.
-- **Build tooling** (`build.sh`, `utils/scripts`, `utils/ci`, and external consumers such as the Nix package in `dd-trace-ops`) picks whatever internal it needs (`utils.const.COMPONENT_GROUPS`, `utils.base_images.base_image.base_image_contexts`, `utils._context.containers.dockerfile_image_list`...).
+- **Build tooling** (`build.sh`, `utils/scripts`, `utils/ci`, and any external tool that builds or runs system-tests) picks whatever internal it needs (`utils.const.COMPONENT_GROUPS`, `utils.base_images.base_image.base_image_contexts`, `utils._context.containers.dockerfile_image_list`...).
 - **`context`** is both the global state scenarios write to and the object tests read from. Tests mostly use it for `context.library` (about 400 uses) and `context.weblog_variant`, but also for `context._scenarios`, `context.containers` and `context.get_container_by_dd_integration_name`.
 
 Import-linter contracts have started to draw lines: tests only import the `utils` root (`utils-public-interface`), `utils` never imports `tests` (`utils-no-tests`), and Docker is fenced into a runtime layer (`docker-sdk-runtime-layer`, `container-layer-orchestration`). Each of them ratchets the existing violations. This RFC describes the target those contracts converge to.
@@ -161,7 +161,7 @@ Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_im
 | runtime info written only by the scenario core | protected (internal setter module) | to do |
 | build tooling → build API only | protected | to do |
 
-External consumers (the Nix package in `dd-trace-ops`) can't be enforced from this repo. The build API is documented as the only supported surface for them.
+External tools can't be enforced from this repo. The build API is documented as the only supported surface for them.
 
 ### Migration plan
 
