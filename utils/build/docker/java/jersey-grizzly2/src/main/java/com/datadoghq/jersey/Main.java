@@ -46,6 +46,7 @@ public class Main {
         rc.register(org.glassfish.jersey.media.multipart.MultiPartFeature.class);
         rc.register(MyResource.class);
         rc.register(RaspResource.class);
+        rc.register(NormalizedRouteResource.class);
         rc.register(IastSinkResource.class);
         rc.register(IastSourceResource.class);
         rc.register(IastSamplingResource.class);

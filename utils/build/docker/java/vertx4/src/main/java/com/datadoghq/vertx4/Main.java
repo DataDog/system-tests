@@ -537,6 +537,7 @@ public class Main {
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
+        new NormalizedRouteProvider().accept(router);
         server.requestHandler(router).listen(7777);
     }
 

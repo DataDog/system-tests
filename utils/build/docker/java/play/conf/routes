@@ -6,6 +6,24 @@ POST /tag_value/:tag_value/:status_code   controllers.AppSecController.tagValueP
 GET  /sample_rate_route/:i     controllers.MainController.sampleRateRoute(i: Int)
 GET  /api_security/sampling/:i controllers.AppSecController.apiSecuritySamplingWithStatus(i: Int)
 GET  /api_security_sampling/:i controllers.AppSecController.apiSecuritySampling(i: Int)
+GET  /api_security/multi-params-in-segment/:id.:format  controllers.NormalizedRouteController.twoParams(id: String, format: String)
+GET  /api_security/three-params/:a-:b-:c                controllers.NormalizedRouteController.threeParams(a: String, b: String, c: String)
+GET  /api_security/optional-params/$id<[^.]+>           controllers.NormalizedRouteController.oneParam(id: String)
+GET  /api_security/optional-params/:id.:format          controllers.NormalizedRouteController.twoParams(id: String, format: String)
+GET  /api_security/static-text/user-:id                 controllers.NormalizedRouteController.oneParam(id: String)
+GET  /api_security/version/v:version/items              controllers.NormalizedRouteController.oneParam(version: String)
+GET  /api_security/files/:name.json                     controllers.NormalizedRouteController.oneParam(name: String)
+GET  /api_security/optional-segment/:id                 controllers.NormalizedRouteController.oneParam(id: String)
+GET  /api_security/optional-segment/:id/:tab            controllers.NormalizedRouteController.twoParams(id: String, tab: String)
+GET  /api_security/search                               controllers.NormalizedRouteController.noParam
+GET  /api_security/search.:format                       controllers.NormalizedRouteController.oneParam(format: String)
+GET  /api_security/optional-chain                       controllers.NormalizedRouteController.noParam
+GET  /api_security/optional-chain/:x                    controllers.NormalizedRouteController.oneParam(x: String)
+GET  /api_security/optional-chain/:x/:y                 controllers.NormalizedRouteController.twoParams(x: String, y: String)
+GET  /api_security/catch-all/*path                      controllers.NormalizedRouteController.oneParam(path: String)
+GET  /api_security/encoded/caf%C3%A9                       controllers.NormalizedRouteController.noParam
+GET  /api_security/drafts                               controllers.NormalizedRouteController.noParam
+GET  /api_security/drafts/preview                       controllers.NormalizedRouteController.noParam
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
 GET  /resource_renaming/*path  controllers.MainController.resourceRenaming(path: String)
 GET  /waf                      controllers.AppSecController.waf

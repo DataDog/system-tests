@@ -104,6 +104,7 @@ public class Main {
                         .port(7777)
                 ).handlers(chain -> {
                     chain
+                            .insert(NormalizedRouteHandlers::register)
                             .get("", ctx -> {
                                 var tracer = GlobalTracer.get();
                                 Span span = tracer.buildSpan("test-span").start();

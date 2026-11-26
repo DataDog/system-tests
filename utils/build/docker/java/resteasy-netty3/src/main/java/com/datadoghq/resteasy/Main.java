@@ -56,7 +56,8 @@ public class Main {
                     new MyResource(),
                     new IastSinkResource(),
                     new IastSourceResource(),
-                    new RaspResource()
+                    new RaspResource(),
+                    new NormalizedRouteResource()
             ).collect(Collectors.toSet());
 
             @Override

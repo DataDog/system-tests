@@ -393,22 +393,165 @@ manifest:
         ratpack: v1.66.0  # TODO: a lower version might be supported
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: incomplete_test_app (/api_security/optional-params not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll::test_empty_catch_all:
+    - weblog_declaration:
+        resteasy-netty3: irrelevant (RESTEasy returns 404 for a path with '//')
+        spring-boot: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        spring-boot-jetty: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        spring-boot-openliberty: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        spring-boot-payara: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        spring-boot-undertow: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        spring-boot-wildfly: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+        uds-spring-boot: incomplete_test_app (the weblog's Spring Security StrictHttpFirewall rejects '//' with a 400)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: irrelevant (Ratpack path tokens take a whole segment)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: irrelevant (Ratpack path tokens take a whole segment)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: irrelevant (Ratpack path tokens take a whole segment)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        play: irrelevant (parameter names cannot contain '-')
+        ratpack: incomplete_test_app (endpoint not implemented)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+        vertx3: irrelevant (parameter names cannot contain '-')
+        vertx4: irrelevant (parameter names cannot contain '-')
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
     - weblog_declaration:
         '*': missing_feature
         akka-http: '>=1.69.1'
         play: '>=1.69.1'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Java weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Java weblogs)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        '*': missing_feature (only Spring MVC sets the normalized route)
+        akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: irrelevant (Ratpack path tokens take a whole segment)
+        spring-boot: v1.70.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.70.0-SNAPSHOT
+        spring-boot-openliberty: v1.70.0-SNAPSHOT
+        spring-boot-payara: v1.70.0-SNAPSHOT
+        spring-boot-undertow: v1.70.0-SNAPSHOT
+        spring-boot-wildfly: v1.70.0-SNAPSHOT
+        uds-spring-boot: v1.70.0-SNAPSHOT
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": v1.66.0-SNAPSHOT
