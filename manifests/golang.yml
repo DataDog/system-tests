@@ -170,51 +170,69 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": missing_feature
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/catch-all not implemented in Go weblogs)
+        "*": v2.14.0-dev
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll::test_empty_catch_all:
+    - weblog_declaration:
+        net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (ServeMux redirects /api_security/catch-all// to a cleaned path)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Go weblogs)
+        "*": incomplete_test_app (router allows one parameter per segment)
+        chi, fiber-v2-orchestrion: v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/optional-chain not implemented in Go weblogs)
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/search not implemented in Go weblogs)
+        "*": v2.14.0-dev
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText::test_optional_after_static_text_present
+  : - weblog_declaration:
+        net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (ServeMux wildcards must be whole segments)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/optional-params not implemented in Go weblogs)
+        "*": v2.14.0-dev
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
+  : - weblog_declaration:
+        echo, gin, uds-echo, net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (router allows one parameter per segment)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
+    - weblog_declaration:
+        echo, gin, uds-echo, net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (router allows one parameter per segment)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/optional-segment not implemented in Go weblogs)
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/drafts[/preview] not implemented in Go weblogs)
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/param-names not implemented in Go weblogs)
+        "*": v2.14.0-dev
+        net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (ServeMux wildcard names must be Go identifiers)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": missing_feature
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/encoded not implemented in Go weblogs)
+        "*": v2.14.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        "*": incomplete_test_app (/api_security/static-text, /version, /files not implemented in Go weblogs)
+        "*": v2.14.0-dev
+        net-http, net-http-orchestrion, net-http-span-pool: incomplete_test_app (ServeMux wildcards must be whole segments)
+  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment::test_static_text_after_param
+  : - weblog_declaration:
+        echo, gin, uds-echo: incomplete_test_app (parameter name runs to the next slash)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature

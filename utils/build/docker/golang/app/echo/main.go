@@ -390,6 +390,32 @@ func main() {
 	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
 	r.Any("/ffe", echoHandleFunc(common.FFeEval()))
 
+	// RFC-1125 normalized route endpoints (see docs/understand/weblogs/end-to-end_weblog.md).
+	// echo names a parameter up to the next "/" and has no optional parameters: optional
+	// parts are separate routes, and multi-param segments and static text after a
+	// parameter are not declared.
+	for _, route := range []string{
+		"/api_security/optional-params/:id",
+		"/api_security/static-text/user-:id",
+		"/api_security/version/v:version/items",
+		"/api_security/optional-segment/:id",
+		"/api_security/optional-segment/:id/:tab",
+		"/api_security/catch-all/*",
+		"/api_security/search",
+		"/api_security/search.:format",
+		"/api_security/optional-chain",
+		"/api_security/optional-chain/:x",
+		"/api_security/optional-chain/:x/:y",
+		"/api_security/encoded/café",
+		"/api_security/param-names/:user-id/:user_id",
+		"/api_security/drafts",
+		"/api_security/drafts/preview",
+	} {
+		r.Any(route, func(c echo.Context) error {
+			return c.String(http.StatusOK, "ok")
+		})
+	}
+
 	var d DebuggerController
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
@@ -436,7 +462,7 @@ func echoHandleFunc(handlerFunc http.HandlerFunc) echo.HandlerFunc {
 func headers(c echo.Context) error {
 	//Data used for header content is irrelevant here, only header presence is checked
 	c.Response().Writer.Header().Set("content-type", "text/plain")
-	c.Response().Writer.Header().Set("content-length", "42")
+	c.Response().Writer.Header().Set("content-length", "15")
 	c.Response().Writer.Header().Set("content-language", "en-US")
 
 	return c.String(http.StatusOK, "Hello, headers!")

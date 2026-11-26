@@ -773,6 +773,28 @@ func main() {
 
 	mux.HandleFunc("/ffe", common.FFeEval())
 
+	// RFC-1125 normalized route endpoints (see docs/understand/weblogs/end-to-end_weblog.md).
+	// ServeMux wildcards must be whole segments named with Go identifiers, and it has no
+	// optional parameters: optional parts are separate routes, and multi-param segments,
+	// static text around a parameter and non-identifier names are not declared.
+	for _, route := range []string{
+		"/api_security/optional-params/{id}",
+		"/api_security/optional-segment/{id}",
+		"/api_security/optional-segment/{id}/{tab}",
+		"/api_security/catch-all/{path...}",
+		"/api_security/search",
+		"/api_security/optional-chain",
+		"/api_security/optional-chain/{x}",
+		"/api_security/optional-chain/{x}/{y}",
+		"/api_security/encoded/café",
+		"/api_security/drafts",
+		"/api_security/drafts/preview",
+	} {
+		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("ok"))
+		})
+	}
+
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
@@ -868,7 +890,7 @@ func write(w http.ResponseWriter, r *http.Request, d []byte) {
 func headers(w http.ResponseWriter, r *http.Request) {
 	//Data used for header content is irrelevant here, only header presence is checked
 	w.Header().Set("content-type", "text/plain")
-	w.Header().Set("content-length", "42")
+	w.Header().Set("content-length", "15")
 	w.Header().Set("content-language", "en-US")
 	w.Write([]byte("Hello, headers!"))
 }
