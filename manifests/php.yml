@@ -136,6 +136,10 @@ manifest:
         '*': missing_feature
         laravel11x: '>=2.1.0-dev'
         symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll::test_empty_catch_all:
+    - weblog_declaration:
+        laravel11x: incomplete_test_app (Laravel route requirement '.+' cannot match an empty catch-all)
+        symfony7x: incomplete_test_app (Symfony route requirement '.+' cannot match an empty catch-all)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         '*': missing_feature
