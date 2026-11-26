@@ -10,7 +10,6 @@ import sys
 import typing
 from pathlib import Path
 
-import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
 from fastapi import Form
@@ -48,15 +47,10 @@ from ddtrace.openfeature import DataDogProvider
 from openfeature.evaluation_context import EvaluationContext
 
 try:
-    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    try:
-        from ddtrace.trace import Pin
-        from ddtrace.trace import tracer
-    except ImportError:
-        from ddtrace import Pin
-        from ddtrace import tracer
+    from ddtrace import tracer
+
 
 ddtrace.patch_all(urllib3=True)
 
@@ -1323,7 +1317,7 @@ async def view_iast_xss_secure(param: typing.Annotated[str, Form()]):
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName)
+        tracer.trace("extra.service", service=serviceName).finish()
     return "OK"
 
 

@@ -10,7 +10,6 @@ import xmltodict
 import sys
 from pathlib import Path
 import boto3
-import django
 import httpx
 import requests
 import stripe
@@ -57,13 +56,9 @@ except ImportError:
     track_user_sdk = TUS()
 
 try:
-    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    try:
-        from ddtrace.trace import Pin, tracer
-    except ImportError:
-        from ddtrace import tracer, Pin
+    from ddtrace import tracer
 
 
 ddtrace.patch_all(urllib3=True)
@@ -1099,7 +1094,7 @@ def get_value(request):
 def create_extra_service(request):
     new_service_name = request.GET.get("serviceName", default="")
     if new_service_name:
-        Pin.override(django, service=new_service_name)
+        tracer.trace("extra.service", service=new_service_name).finish()
     return HttpResponse("OK")
 
 
