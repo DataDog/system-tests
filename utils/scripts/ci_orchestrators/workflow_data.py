@@ -338,7 +338,12 @@ def get_endtoend_definitions(
     *,
     include_scenarios_times: bool = False,
 ) -> dict:
-    scenarios: list[Scenario] = scenario_map.get("endtoend", [])
+    scenarios: list[Scenario] = [
+        scenario
+        for scenario in scenario_map.get("endtoend", [])
+        # some scenarios are valid only with a subset of libraries
+        if (libraries := scenario.get_libraries()) is None or library in libraries
+    ]
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
