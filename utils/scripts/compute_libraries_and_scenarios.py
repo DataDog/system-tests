@@ -43,8 +43,7 @@ scenarios_by_definition_file = _get_scenarios_by_definition_file()
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
-OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
-ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
+ALL_LIBRARIES = COMPONENT_GROUPS.all
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 
 GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
@@ -98,6 +97,7 @@ class Param:
         parameters: dict,
     ):
         self.libraries = _setify(parameters.get("libraries", LIBRARIES))
+        self.nix: bool = parameters.get("nix", False)
 
         if "scenario_groups" not in parameters and "scenarios" not in parameters:  # no instruction -> run all
             self.scenario_groups = {all_scenario_groups.all.name}
@@ -490,6 +490,7 @@ def process(inputs: Inputs) -> list[str]:
         logging.disable()
 
     rebuild_lambda_proxy = False
+    run_nix = True  # without a diff, run everything
 
     if not inputs.selects_scenarios_from_diff():
         scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
@@ -498,6 +499,7 @@ def process(inputs: Inputs) -> list[str]:
     else:
         scenario_processor = ScenarioProcessor()
         library_processor = LibraryProcessor()
+        run_nix = False
 
         scenario_processor.process_manifests(inputs)
         scenario_processor.compute_scenarios_by_files(inputs)
@@ -508,6 +510,7 @@ def process(inputs: Inputs) -> list[str]:
         assert inputs.modified_files is not None
         for file in inputs.modified_files:
             param = match_patterns(file, inputs.impacts)
+            run_nix |= param is not None and param.nix
             scenario_processor.add(file, param)
             library_processor.add(file, param)
 
@@ -547,6 +550,7 @@ def process(inputs: Inputs) -> list[str]:
             library_processor.get_outputs()
             | {"rebuild_lambda_proxy": rebuild_lambda_proxy}
             | scenario_processor.get_outputs()
+            | {"run_nix": run_nix}
         )
 
     return stringify_outputs(outputs)

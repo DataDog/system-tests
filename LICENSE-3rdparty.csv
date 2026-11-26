@@ -4,7 +4,6 @@ click,PyPI,BSD-3-Clause,Armin Ronacher
 requests,PyPI,Apache-2.0,Kenneth Reitz
 Werkzeug,PyPI,BSD-3-Clause,Armin Ronacher
 pytest,PyPI,MIT,"Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Florian Bruhin and others"
-pytest-json-report,PyPI,MIT,numirias
 black,PyPI,MIT,Łukasz Langa
 python-dateutil,PyPI,Apache-2.0,Gustavo Niemeyer
 packaging,PyPI,Apache-2.0,Donald Stufft and individual contributors

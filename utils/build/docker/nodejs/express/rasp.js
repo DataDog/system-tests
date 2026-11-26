@@ -9,7 +9,8 @@ function initRaspEndpoints (app) {
   const pool = new pg.Pool()
 
   app.get('/rasp/ssrf', (req, res) => {
-    const clientRequest = http.get(`http://${req.query.domain}`, () => {
+    const clientRequest = http.get(`http://${req.query.domain}`, (response) => {
+      response.resume()
       res.end('end')
     })
     clientRequest.on('error', (e) => {
@@ -22,7 +23,8 @@ function initRaspEndpoints (app) {
   })
 
   app.post('/rasp/ssrf', (req, res) => {
-    const clientRequest = http.get(`http://${req.body.domain}`, () => {
+    const clientRequest = http.get(`http://${req.body.domain}`, (response) => {
+      response.resume()
       res.end('end')
     })
     clientRequest.on('error', (e) => {

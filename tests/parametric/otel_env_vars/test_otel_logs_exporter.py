@@ -64,6 +64,11 @@ class Test_OTEL_LOGS_EXPORTER:
     def test_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         self._assert_exporter(test_agent, test_library, "otlp")
 
+    # The spec defines the value as a list: unsupported entries are ignored, so otlp still exports.
+    @pytest.mark.parametrize("exporter_env", [pytest.param({"OTEL_LOGS_EXPORTER": "otlp,console"}, id="otlp-console")])
+    def test_otlp_in_list(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_exporter(test_agent, test_library, "otlp")
+
     def _assert_exporter(self, test_agent: TestAgentAPI, test_library: APMLibrary, exporter: str) -> None:
         logger_name = "exporter_selection_probe"
         message = "Test log for OTEL_LOGS_EXPORTER"

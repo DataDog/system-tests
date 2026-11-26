@@ -394,8 +394,21 @@ manifest:
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: incomplete_test_app (/api_security/multi-params-in-segment, /three-params not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: incomplete_test_app (/api_security/optional-params not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        akka-http: '>=1.69.1'
+        play: '>=1.69.1'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Java weblogs)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Java weblogs)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": v1.66.0-SNAPSHOT
@@ -1682,10 +1695,16 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        play, ratpack: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py:
     - weblog_declaration:
         "*": v1.60.3
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        play, ratpack: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         spring-boot-payara: v1.66.0
@@ -4052,11 +4071,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v1.62.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  :  # Easy win for all weblogs and version 1.69.0
-    - component_version: <1.62.0
-      declaration: missing_feature
-    - component_version: '>=1.62.0'
-      declaration: bug (APMAPI-2471)
+  : v1.69.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
   :  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2471)
@@ -4206,6 +4221,9 @@ manifest:
       component_version: ">=1.62.0"
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_none: v1.62.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_otlp: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_otlp_in_list:
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_spec_default: v1.62.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
@@ -4223,6 +4241,9 @@ manifest:
     - declaration: bug (APMAPI-2485)
       component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_otlp_in_list:
     - declaration: bug (APMAPI-2485)
       component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
@@ -4280,6 +4301,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: bug (APMAPI-2485)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2485)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list:
+    - declaration: bug (APMAPI-2485)
+      component_version: <1.69.0
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v1.57.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -4371,6 +4395,8 @@ manifest:
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
   : v1.65.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: v1.69.0-SNAPSHOT
@@ -5534,8 +5560,8 @@ manifest:
         spring-boot: '>=1.60.3'
         vertx4: '>=1.60.3'
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
-  tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
-  tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
+  tests/test_the_test/test_junit_report.py::Test_Mock: v0.2.1
+  tests/test_the_test/test_junit_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature

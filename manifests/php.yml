@@ -127,8 +127,44 @@ manifest:
   tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v1.21.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (Laravel and Symfony route parsers reject non-word chars in parameter names)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        php-fpm-8.5: '>=2.0.0'
+        apache-mod-8.2: '>=2.0.0'
+        apache-mod-7.3-zts: '>=2.0.0'
+        apache-mod-7.4-zts: '>=2.0.0'
+        apache-mod-8.0: '>=2.0.0'
+        apache-mod-8.1-zts: '>=2.0.0'
+        apache-mod-7.0: '>=2.0.0'
+        php-fpm-7.1: '>=2.0.0'
+        php-fpm-7.2: '>=2.0.0'
+        apache-mod-7.1: '>=2.0.0'
+        php-fpm-7.4: '>=2.0.0'
+        apache-mod-7.2-zts: '>=2.0.0'
+        php-fpm-8.0: '>=2.0.0'
+        php-fpm-7.3: '>=2.0.0'
+        apache-mod-7.4: '>=2.0.0'
+        apache-mod-7.0-zts: '>=2.0.0'
+        php-fpm-8.1: '>=2.0.0'
+        apache-mod-7.3: '>=2.0.0'
+        php-fpm-8.2: '>=2.0.0'
+        php-fpm-7.0: '>=2.0.0'
+        apache-mod-8.0-zts: '>=2.0.0'
+        apache-mod-8.2-zts: '>=2.0.0'
+        apache-mod-7.1-zts: '>=2.0.0'
+        apache-mod-7.2: '>=2.0.0'
+        apache-mod-8.1: '>=2.0.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -454,7 +490,9 @@ manifest:
       weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
       excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py: v1.18.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast: missing_feature (IAST path reports and vulnerability stacks are not supported)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp::test_sqli_smoke:
     - weblog_declaration:
@@ -1405,7 +1443,12 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:  # TODO: a lower version might be supported
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      component_version: <2.0.0
+      weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      excluded_weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
@@ -1414,7 +1457,12 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:  # TODO: a lower version might be supported
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      component_version: <2.0.0
+      weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
+    - declaration: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+      excluded_weblog: [apache-mod-7.3, laravel11x, apache-mod-8.0, apache-mod-7.1, apache-mod-7.4-zts, php-fpm-7.0, apache-mod-8.2-zts, symfony7x, apache-mod-7.2-zts, php-fpm-7.1, php-fpm-7.3, apache-mod-8.2, php-fpm-7.4, php-fpm-7.2, php-fpm-8.5, php-fpm-8.1, apache-mod-7.0-zts, apache-mod-8.1-zts, apache-mod-7.2, php-fpm-8.2, php-fpm-8.0, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.3-zts, apache-mod-8.1]
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
@@ -1632,6 +1680,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v1.23.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Deprecated logging exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_invalid: bug (APMAPI-2507)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_otlp_in_list: bug (APMAPI-2693)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: missing_feature (The PHP metrics SDK does not implement a periodic reader)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: bug (APMAPI-2492)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER: v1.23.0
@@ -1640,6 +1689,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: v1.25.1
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2507)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_otlp_case_insensitive: bug (APMAPI-2507)
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_otlp_in_list: bug (APMAPI-2693)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (The prometheus exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v1.17.0
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
@@ -1667,6 +1717,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter: missing_feature (OTLP trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: bug (APMAPI-2693)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v1.23.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
@@ -1742,6 +1793,8 @@ manifest:
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release)
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC: irrelevant (Requires a known legacy build without dependent flag support)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)

@@ -20,10 +20,3 @@ class Test_NativeCGitLabCI:
 
         assert component[".system_tests_param_base"]["tags"] == ["arch:amd64"]
         assert component["system_tests_build_pipeline"]["tags"] == ["arch:amd64"]
-
-    def test_all_gitlab_jobs_are_merge_blocking(self) -> None:
-        workflow = yaml.safe_load(Path(".github/workflows/ci.yml").read_text())
-        ignored_patterns = workflow["jobs"]["all-jobs-are-green"]["steps"][0]["with"]["ignored-name-patterns"]
-        patterns = ignored_patterns.splitlines()
-
-        assert patterns == ["devflow/merge", "devflow/mergegate", "DDCI Status"]

@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 import importlib.util
 import os
+import shutil
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -82,6 +83,8 @@ class McpCreateRequest(BaseModel):
     messages: list[dict[str, Any]]
     parameters: dict[str, Any]
     tools: list[dict[str, Any]] = []
+    # Start the echo server with the absolute path of the interpreter instead of "python".
+    command_path: bool = False
 
 
 @app.post("/mcp/create")
@@ -90,7 +93,13 @@ async def mcp_create(request: McpCreateRequest):  # no return type: FastAPI woul
     if not MCP_HELPERS:
         raise HTTPException(status_code=501, detail="this anthropic version has no MCP helpers")
 
-    async with stdio_client(StdioServerParameters(**MCP_ECHO_SERVER)) as (read_stream, write_stream):
+    server = dict(MCP_ECHO_SERVER)
+    if request.command_path:
+        command = shutil.which("python")
+        if command is None or not os.path.isabs(command):
+            raise HTTPException(status_code=500, detail="no absolute path to the python interpreter")
+        server["command"] = command
+    async with stdio_client(StdioServerParameters(**server)) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
             mcp_tools = {tool.name: async_mcp_tool(tool, session) for tool in (await session.list_tools()).tools}

@@ -30,6 +30,7 @@ from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import yaml
 import graphene
 
 
@@ -1510,6 +1511,19 @@ def view_iast_code_injection_secure():
     _ = safe_eval(code_string)
     resp = Response("OK")
     return resp
+
+
+@app.route("/iast/untrusted_deserialization/test_insecure", methods=["GET"])
+def view_iast_untrusted_deserialization_insecure():
+    name = flask_request.args.get("name")
+    _ = yaml.unsafe_load(name)
+    return Response("OK")
+
+
+@app.route("/iast/untrusted_deserialization/test_secure", methods=["GET"])
+def view_iast_untrusted_deserialization_secure():
+    _ = yaml.unsafe_load("name: example")
+    return Response("OK")
 
 
 @app.route("/iast/xss/test_insecure", methods=["POST"])
