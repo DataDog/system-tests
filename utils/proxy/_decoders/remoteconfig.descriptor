@@ -1,6 +1,13 @@
 
-Ö
-(utils/proxy/_decoders/remoteconfig.protodatadog.config"¬
+‡
+
+(utils/proxy/_decoders/remoteconfig.protodatadog.config"U
+LatestConfigsRequest=
+active_clients (2.datadog.config.ClientRactiveClients"X
+Client
+id (	Rid
+products (	Rproducts"
+capabilities (Rcapabilities"¬
 ConfigMetas-
 roots (2.datadog.config.TopMetaRroots5
 	timestamp (2.datadog.config.TopMetaR	timestamp3

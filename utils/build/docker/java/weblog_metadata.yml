@@ -16,6 +16,7 @@ resteasy-netty3:
   categories: [dd_trace]
 spring-boot:
   categories: [dd_trace]
+  supported_scenarios: [FEATURE_FLAGGING_CAPABILITY_REFRESH, FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED]
 spring-boot-3-native:
   categories: [dd_trace]
 spring-boot-jetty:

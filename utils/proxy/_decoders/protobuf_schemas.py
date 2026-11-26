@@ -28,6 +28,7 @@ _metrics_v3_messages = _get_mesages("metrics_v3.descriptor")
 MetricsV3Payload = _metrics_v3_messages["datadog.dogstatsdhttp.Payload"]
 
 _remoteconfig_messages = _get_mesages("remoteconfig.descriptor")
+LatestConfigsRequest = _remoteconfig_messages["datadog.config.LatestConfigsRequest"]
 LatestConfigsResponse = _remoteconfig_messages["datadog.config.LatestConfigsResponse"]
 ConfigMetas = _remoteconfig_messages["datadog.config.ConfigMetas"]
 DirectorMetas = _remoteconfig_messages["datadog.config.DirectorMetas"]
