@@ -20,7 +20,7 @@ object Main extends App {
   private val parserSettings = settings.parserSettings.withCustomMethods(HttpMethod.custom("PROPFIND"))
 
   private val bindingFuture: Future[Http.ServerBinding] =
-    Http().newServerAt("0.0.0.0", 7777).withSettings(settings.withParserSettings(parserSettings)).bindFlow(MainRoutes.route ~ AppSecRoutes.route ~ IastRoutes.route ~ RaspRoutes.route ~ HealthcheckRoutes.route)
+    Http().newServerAt("0.0.0.0", 7777).withSettings(settings.withParserSettings(parserSettings)).bindFlow(MainRoutes.route ~ AppSecRoutes.route ~ IastRoutes.route ~ RaspRoutes.route ~ NormalizedRoutes.route ~ HealthcheckRoutes.route)
 
   LoggerFactory.getLogger(this.getClass).info("Server online at port 7777")
 }
