@@ -18,6 +18,7 @@ from tests.ffe.utils.evp import (
     assert_no_evp_proxy_requests,
     expected_evp_origin,
 )
+from tests.parametric.test_ffe import utils as ffe_parametric_utils
 from utils import context, interfaces, scenarios
 from utils._context.component_version import ComponentVersion, Version
 from utils._context._scenarios.agentless_endtoend import (
@@ -34,6 +35,73 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
+
+
+@pytest.mark.parametrize(
+    ("expectations", "message"),
+    [
+        ({"noUnmatchedEvent": True}, "unknown expectation fields"),
+        ({"noUnmatchedEvents": "true"}, "noUnmatchedEvents must be a boolean"),
+        ({"exposure": []}, "unknown expectation fields"),
+        ({"exposures": [{"unknown": "value"}]}, "unknown exposures matcher fields"),
+        ({"evaluationEvents": [{"_count": True}]}, "matcher count must be an integer"),
+        ({"evaluationEvents": [{"_count": 0}]}, "matcher count must be positive"),
+    ],
+)
+@scenarios.test_the_test
+def test_ffe_telemetry_expectations_reject_ambiguous_contracts(expectations: object, message: str) -> None:
+    with pytest.raises(AssertionError, match=message):
+        ffe_parametric_utils.validate_ffe_telemetry_expectations(expectations)
+
+
+@scenarios.test_the_test
+def test_ffe_telemetry_expectations_accept_canonical_fields() -> None:
+    expectations = {
+        "exposures": [{"_count": 1, "allocation": "allocation", "flag": "flag", "variant": "on"}],
+        "evaluationEvents": [{"errorCode": None, "flag": "flag", "runtimeDefaultUsed": False}],
+        "noUnmatchedEvents": True,
+    }
+
+    assert ffe_parametric_utils.validate_ffe_telemetry_expectations(expectations) is expectations
+
+
+@scenarios.test_the_test
+def test_unclaimed_ffe_events_reject_missing_or_unknown_identifiers() -> None:
+    targeting_key = "known-target"
+    hashed_targeting_key = f"sha256_{ffe_parametric_utils.hash_targeting_key(targeting_key)}"
+    raw_exposure = {"subject": {"id": targeting_key}}
+    missing_subject_exposure = {"flag": {"key": "prerequisite"}}
+    hashed_evaluation = {"targeting_key": hashed_targeting_key}
+    unknown_evaluation = {"targeting_key": "unexpected-target"}
+    events: dict[str, list[dict[str, Any]]] = {
+        "EXPOSURE": [raw_exposure, missing_subject_exposure],
+        "EVALUATION": [hashed_evaluation, unknown_evaluation],
+    }
+
+    assert ffe_parametric_utils.unclaimed_ffe_events(events, {targeting_key}) == {
+        "EXPOSURE": [missing_subject_exposure],
+        "EVALUATION": [unknown_evaluation],
+    }
+
+
+@pytest.mark.parametrize("variants", [("on", "off"), ("off", "on")])
+@scenarios.test_the_test
+def test_ffe_events_match_finds_complete_assignment_for_overlapping_matchers(variants: tuple[str, str]) -> None:
+    events = [{"flag": {"key": "flag"}, "variant": {"key": variant}} for variant in variants]
+    matchers = [{"flag": "flag"}, {"flag": "flag", "variant": "on"}]
+
+    assert ffe_parametric_utils.events_match(events, matchers, exact=True)
+
+
+@scenarios.test_the_test
+def test_ffe_events_match_rejects_when_no_complete_assignment_exists() -> None:
+    events = [
+        {"flag": {"key": "flag"}, "variant": {"key": "off"}},
+        {"flag": {"key": "flag"}, "variant": {"key": "off"}},
+    ]
+    matchers = [{"flag": "flag"}, {"flag": "flag", "variant": "on"}]
+
+    assert not ffe_parametric_utils.events_match(events, matchers, exact=True)
 
 
 @pytest.mark.parametrize("has_capture", [True, False])
