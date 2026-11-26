@@ -1,0 +1,226 @@
+'use strict'
+
+const { channel } = require('node:diagnostics_channel')
+const { writeFileSync } = require('node:fs')
+const { createRequire } = require('node:module')
+
+async function main () {
+  const { operation, wire, replacementWire, contexts, fetchOptions, format, clientFingerprint, invalidWires } = JSON.parse(process.argv[2])
+  let httpRequests = 0
+  let exposureEvents = 0
+  let outcome
+  const observeHttp = () => { httpRequests++ }
+  const observeExposure = () => { exposureEvents++ }
+  const subscriptions = [
+    ['undici:request:create', observeHttp],
+    ['http.client.request.start', observeHttp],
+    ['ffe:exposure:submit', observeExposure]
+  ]
+  for (const [name, listener] of subscriptions) channel(name).subscribe(listener)
+
+  // Load the bundle shipped by the tracer, without importing or initializing the tracer.
+  const requireLibrary = createRequire(require.resolve('dd-trace/package.json'))
+  const {
+    ConfigurationFetchError,
+    configurationFromString,
+    configurationToString,
+    createExposureTracking,
+    DatadogCoreProvider,
+    fetchRulesConfiguration,
+    precomputeConfiguration
+  } = requireLibrary('./vendor/dist/@datadog/openfeature-node-server/rules-based')
+  const { OpenFeature, ProviderEvents } = require('@openfeature/server-sdk')
+  OpenFeature.setLogger({ error () {}, warn () {}, info () {}, debug () {} })
+  const tracking = ['tracking', 'overlap'].includes(operation)
+    ? createExposureTracking({ collectDependencyEvaluations: true })
+    : undefined
+  const exposures = []
+  const sink = channel('ffe:exposure:submit')
+  const captureExposure = event => exposures.push(event)
+  sink.subscribe(captureExposure)
+  let configuration = configurationFromString(wire)
+  let serialized
+  if (operation === 'roundtrip') {
+    if (format !== 'rules') configuration = precomputeConfiguration(configuration, contexts[0], { clientFingerprint })
+    serialized = configurationToString(configuration)
+    configuration = configurationFromString(serialized)
+  }
+  const provider = new DatadogCoreProvider(configuration, { ...tracking?.providerOptions })
+  if (operation === 'overlap') provider.hooks.push(tracking.createHook(sink))
+  let readyEvents = 0
+  OpenFeature.addHandler(ProviderEvents.Ready, () => { readyEvents++ })
+  OpenFeature.setProvider('offline-provider', provider)
+  let client = OpenFeature.getClient('offline-provider')
+  const startup = { status: client.providerStatus, readyEvents, hooks: provider.hooks.length, httpRequests }
+  const evaluate = (context, options) => client.getBooleanDetails('test-flag', false, context, options)
+
+  try {
+    if (operation === 'roundtrip') {
+      outcome = {
+        startup,
+        serialized,
+        restored: configurationToString(provider.getConfiguration()),
+        results: await Promise.all(contexts.map(context => evaluate(context)))
+      }
+    } else if (operation === 'invalid-codec') {
+      const snapshot = configurationToString(provider.getConfiguration())
+      const rejected = []
+      for (const input of invalidWires) {
+        const invalid = configurationFromString(input)
+        let errorName
+        try {
+          provider.setConfiguration(invalid)
+        } catch (error) {
+          if (!(error instanceof TypeError)) throw error
+          errorName = error.name
+        }
+        rejected.push({
+          errorName,
+          diagnostics: Object.fromEntries(['configurationError', 'rulesError', 'precomputedError']
+            .map(key => [key, typeof invalid[key] === 'string'])),
+          unchanged: configurationToString(provider.getConfiguration()) === snapshot,
+          result: await evaluate(contexts[0])
+        })
+      }
+      outcome = { startup, rejected }
+    } else if (operation === 'bootstrap') {
+      outcome = { startup, results: await Promise.all(contexts.map(context => evaluate(context))) }
+    } else if (operation === 'overlap') {
+      const observations = []
+      let arrivals = 0
+      let release
+      const barrier = new Promise(resolve => { release = resolve })
+      const arrive = async () => {
+        if (++arrivals === contexts.length) release()
+        await barrier
+      }
+      client.addHooks({
+        after: async (hookContext, details) => {
+          await arrive()
+          const sidecar = tracking.providerOptions.dependencyTelemetrySidecar
+          const dependencies = sidecar.takeDependencyEvaluations(undefined, undefined, hookContext.context)
+          observations.push({
+            subject: hookContext.context.targetingKey,
+            value: details.value,
+            dependencies: dependencies.map(item => ({ flag: item.flagKey, value: item.details.value })),
+            consumed: sidecar.takeDependencyEvaluations(details.flagMetadata, undefined, hookContext.context)
+          })
+        },
+        error: arrive
+      })
+      outcome = { startup, results: await Promise.all(contexts.map(context => evaluate(context))), observations, exposures }
+    } else if (operation === 'refresh') {
+      const initial = await evaluate(contexts[0])
+      const notifications = []
+      client.addHandler(ProviderEvents.ConfigurationChanged, () => {
+        notifications.push({ status: client.providerStatus, result: evaluate(contexts[0]) })
+      })
+      let allowFetch
+      let fetchEntered
+      const entered = new Promise(resolve => { fetchEntered = resolve })
+      const proceed = new Promise(resolve => { allowFetch = resolve })
+      const refresh = fetchRulesConfiguration({
+        ...fetchOptions,
+        fetch: async (url, init) => {
+          fetchEntered()
+          await proceed
+          const { pathname, search } = new URL(url)
+          return fetch(`${process.env.SYSTEM_TESTS_FFE_RULES_BASE_URL}${pathname}${search}`, init)
+        }
+      })
+      await entered
+      const duringRefresh = await evaluate(contexts[0])
+      allowFetch()
+      let fetchError
+      try {
+        provider.setConfiguration(await refresh)
+      } catch (error) {
+        if (!(error instanceof ConfigurationFetchError)) throw error
+        fetchError = { name: error.name, code: error.code, status: error.status }
+      }
+      const afterFetch = await evaluate(contexts[0])
+      const snapshot = configurationToString(provider.getConfiguration())
+      let invalidUpdateError
+      try {
+        provider.setConfiguration(configurationFromString('invalid wire'))
+      } catch (error) {
+        if (!(error instanceof TypeError)) throw error
+        invalidUpdateError = error.name
+      }
+      const unchanged = configurationToString(provider.getConfiguration()) === snapshot
+      const afterInvalid = await evaluate(contexts[0])
+      provider.setConfiguration(configurationFromString(replacementWire))
+      outcome = {
+        startup,
+        initial,
+        duringRefresh,
+        fetchError,
+        afterFetch,
+        invalidUpdateError,
+        unchanged,
+        afterInvalid,
+        afterReplacement: await evaluate(contexts[0]),
+        notifications: await Promise.all(notifications.map(async event => ({ ...event, result: await event.result })))
+      }
+    } else if (operation === 'tracking') {
+      await evaluate(contexts[0])
+      const beforeHook = exposures.length
+      provider.hooks.push(tracking.createHook(sink))
+      await Promise.all([evaluate(contexts[0]), evaluate(contexts[0])])
+      const deduplicated = exposures.length
+      const failed = await evaluate(contexts[1], { hooks: [{ after () { throw new Error('rejected by application') } }] })
+      const afterFailure = exposures.length
+      await evaluate(contexts[1])
+      const afterRetry = exposures.length
+      await OpenFeature.clearProviders()
+      const restarted = new DatadogCoreProvider(configurationFromString(wire), { ...tracking.providerOptions })
+      restarted.hooks.push(tracking.createHook(sink))
+      OpenFeature.setProvider('offline-provider', restarted)
+      client = OpenFeature.getClient('offline-provider')
+      await evaluate(contexts[0])
+      const afterClose = exposures.length
+      restarted.setConfiguration(restarted.getConfiguration())
+      await evaluate(contexts[0])
+      const afterSameGeneration = exposures.length
+      const nextGeneration = restarted.getConfiguration()
+      nextGeneration.rules.response.createdAt.seconds += 1n
+      restarted.setConfiguration(nextGeneration)
+      await evaluate(contexts[0])
+      const afterNewGeneration = exposures.length
+      tracking.clear()
+      await evaluate(contexts[0])
+      outcome = { startup, beforeHook, deduplicated, failed, afterFailure, afterRetry, afterClose, afterSameGeneration, afterNewGeneration, exposures }
+    } else {
+      throw new Error(`Unknown provider operation: ${operation}`)
+    }
+    outcome.status = client.providerStatus
+    outcome.versions = {
+      node: process.version,
+      tracer: requireLibrary('./package.json').version
+    }
+  } finally {
+    await OpenFeature.clearProviders()
+    tracking?.clear()
+    // Observe deferred activity until exit; a leaked worker hits the endpoint's process deadline.
+    process.once('exit', () => {
+      if (outcome !== undefined) writeFileSync(1, JSON.stringify({ ...outcome, httpRequests, exposureEvents }))
+      sink.unsubscribe(captureExposure)
+      for (const [name, listener] of subscriptions) channel(name).unsubscribe(listener)
+    })
+  }
+}
+
+let settled = false
+process.once('beforeExit', () => {
+  if (!settled) {
+    console.error('Standalone FFE provider operation did not settle')
+    process.exitCode = 1
+  }
+})
+
+main().catch(error => {
+  console.error(error)
+  process.exitCode = 1
+}).finally(() => {
+  settled = true
+})

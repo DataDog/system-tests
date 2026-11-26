@@ -68,7 +68,33 @@ configuration copies are needed.
 
 Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe/test_rules_configuration.py` (Node.js only for now). These tests use `dd-trace/openfeature/rules-based` in a fresh process without initializing a tracer or provider, fetch protobuf over HTTP, and validate the portable wire output, channel credentials, typed errors, deadlines and cancellation during headers/body delivery, transport failures, invalid options, and redirect protection. They do not initialize a browser SDK or contact Datadog.
 
-These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
+These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562).
+
+`tests/parametric/test_ffe/test_core_provider.py` separately exercises the built Node
+`DatadogCoreProvider` through the real OpenFeature SDK in fresh processes. It covers
+synchronous READY registration, zero-request local evaluation, overlapping contexts
+with different root/dependency values, explicit server-channel refresh, rejected
+replacement retention, configuration-change events, and opt-in exposure sinks with
+deduplication, a hook attached after startup, rollback when a later application
+hook fails, and cache retention/reset for unchanged/changed configuration generations.
+It also covers semantic codec round-trips for rules and plaintext/hashed precomputed
+snapshots, metadata and context binding, and malformed/versioned input rejection.
+These are bundled-SDK integration checks, not tracer evaluation-upload or intake-delivery tests.
+The adapter loads the provider bundle that `dd-trace` ships under
+`vendor/dist/@datadog/openfeature-node-server/rules-based`, without importing the
+tracer; no public `dd-trace` wrapper exports are required. The Node manifest remains
+`missing_feature` until a tracer release contains that provider in its vendor bundle;
+other libraries are gated too.
+With a custom containing Node build, select this file and force it with `-F`:
+
+```sh
+PYTEST_XDIST_AUTO_NUM_WORKERS=1 TEST_LIBRARY=nodejs ./run.sh PARAMETRIC \
+  tests/parametric/test_ffe/test_core_provider.py -F tests/parametric/test_ffe/test_core_provider.py
+```
+
+Fixture provenance and deterministic expected behavior are documented in
+[`core-provider-rules-wire.md`](../parametric/test_ffe/core-provider-rules-wire.md).
+Standalone precomputation helper coverage is a separate change in [#8267](https://github.com/DataDog/system-tests/pull/8267).
 
 `Test_FFE_Rules_Configuration_Selection` covers tag/key-pattern query parameters on both distribution channels, invalid/URL-overflow selections dropped with diagnostics, quiet empty-selection omission, and retention of the full response when the backend ignores selection. It also checks diagnostics for nonempty `DD-Flag-Selection-Ignored` response headers, including unknown reasons. The mock does not implement backend filtering. These cases require [openfeature-js-client #445](https://github.com/DataDog/openfeature-js-client/pull/445) in the `dd-trace` dependency and remain gated in the Node manifest until a containing build is available. Other SDKs retain the existing file-level gate.
 

@@ -3235,6 +3235,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
   : 'missing_feature (Requires a release containing dd-trace-py#21548)'
+  tests/parametric/test_ffe/test_core_provider.py: incomplete_test_app (Standalone portable-provider endpoint is only implemented in Node.js)
   tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC: missing_feature (Dependent flag support must be enabled with the SDK release; dd-trace-py PR 21346)
   tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Without_Dependent_Flags_RC:
     - declaration: irrelevant (Legacy coverage is pinned to Python 4.16.0)
