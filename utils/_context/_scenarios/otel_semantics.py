@@ -35,7 +35,9 @@ class OtelStartupLogs(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "OTEL_STARTUP_LOGS",
-            weblog_env={**OTEL_STARTUP_LOGS_ENV},
+            # Not part of the operator example: some tracers, like Python, do not log their startup
+            # configuration by default.
+            weblog_env={**OTEL_STARTUP_LOGS_ENV, "DD_TRACE_STARTUP_LOGS": "true"},
             library_interface_timeout=0,
             agent_interface_timeout=0,
             appsec_enabled=False,
