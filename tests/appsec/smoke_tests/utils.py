@@ -14,7 +14,6 @@ from utils import context, interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
 from utils.dd_constants import SamplingPriority
 from utils.dd_types import DataDogAgentSpan, is_same_boolean
-from utils.interfaces._open_telemetry import otlp_trace_id_to_hex
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
 SMOKE_RC_RASP_RULE_ID = "rasp-930-100"
@@ -102,7 +101,7 @@ def assert_ddot_export(request: HttpResponse) -> None:
     accepted_ids = {
         f"0x{hex_id}"
         for tid in interfaces.open_telemetry.get_otel_trace_id(request, accepted_by="agent")
-        if (hex_id := otlp_trace_id_to_hex(tid))
+        if (hex_id := interfaces.otlp_trace_id_to_hex(tid))
     }
     assert accepted_ids, "DDOT must accept an OTLP trace for this request"
     # Match by trace ID even if a native chunk lacks the root span, and by

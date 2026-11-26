@@ -941,8 +941,14 @@ class AgentContainer(TestedContainer):
         rc_backend_enabled: bool = False,
         mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
+        agent_image_variant: Literal["classic", "full"] = "classic",
     ) -> None:
-        environment = environment or {}
+        self.agent_image_variant: Literal["classic", "full"] = agent_image_variant
+        """'classic': datadog/agent:latest (core/trace agent with built-in OTLP receiver, binaries/agent-image).
+        'full': datadog/agent:latest-full (adds bundled DDOT Collector otel-agent, binaries/agent-image-full).
+        """
+
+        environment = dict(environment) if environment else {}
         environment.update(
             {
                 "DD_ENV": "system-tests",
@@ -964,24 +970,56 @@ class AgentContainer(TestedContainer):
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
+        apm_healthcheck = (
+            f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info"
+        )
+        volumes = {
+            # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
+            "./utils/build/docker/agent/ca-certificates.crt": {
+                "bind": "/etc/ssl/certs/ca-certificates.crt",
+                "mode": "ro",
+            },
+        }
+
+        if agent_image_variant == "classic":
+            image_name = "datadog/agent:latest"
+            binary_file_name = "agent-image"
+            healthcheck_test = apm_healthcheck
+            volumes["./utils/build/docker/agent/datadog.yaml"] = {
+                "bind": "/etc/datadog-agent/datadog.yaml",
+                "mode": "ro",
+            }
+        elif agent_image_variant == "full":
+            image_name = "datadog/agent:latest-full"
+            binary_file_name = "agent-image-full"
+            environment["DD_OTELCOLLECTOR_ENABLED"] = "true"
+            healthcheck_test = (
+                "sh -c 'curl --fail --silent --show-error --max-time 2 --output /dev/null "
+                '--header "Content-Type: application/json" --data "{}" http://localhost:4318/v1/traces && '
+                f"{apm_healthcheck}'"
+            )
+            volumes["./utils/build/docker/agent/ddot-datadog.yaml"] = {
+                "bind": "/etc/datadog-agent/datadog.yaml",
+                "mode": "ro",
+            }
+            volumes["./utils/build/docker/agent/ddot-otel-config.yaml"] = {
+                "bind": "/etc/datadog-agent/otel-config.yaml",
+                "mode": "ro",
+            }
+        else:
+            raise ValueError(f"Unsupported agent_image_variant: {agent_image_variant!r}")
+
         super().__init__(
             name="agent",
-            image_name="datadog/agent:latest",
-            binary_file_name="agent-image",
+            image_name=image_name,
+            binary_file_name=binary_file_name,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
+                "test": healthcheck_test,
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,
-            volumes={
-                # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
-                "./utils/build/docker/agent/ca-certificates.crt": {
-                    "bind": "/etc/ssl/certs/ca-certificates.crt",
-                    "mode": "ro",
-                },
-                "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
-            },
+            volumes=volumes,
         )
 
     def configure(self, *, host_log_folder: str, replay: bool):
@@ -1020,46 +1058,6 @@ class AgentContainer(TestedContainer):
     @property
     def dd_site(self) -> str:
         return str(self.environment["DD_SITE"])
-
-
-class DdotAgentContainer(AgentContainer):
-    """Full Agent image with the bundled DDOT Collector owning the OTLP receiver."""
-
-    def __init__(
-        self,
-        *,
-        dd_api_key: str,
-        rc_backend_enabled: bool = False,
-        mocked_backend: bool = False,
-        environment: dict[str, str | None] | None = None,
-    ) -> None:
-        super().__init__(
-            dd_api_key=dd_api_key,
-            rc_backend_enabled=rc_backend_enabled,
-            mocked_backend=mocked_backend,
-            environment=environment,
-        )
-        self.image = ImageInfo(
-            self._get_image_name("ddot-agent-image", default_name="datadog/agent:latest-full"), local_image_only=False
-        )
-        self.environment["DD_OTELCOLLECTOR_ENABLED"] = "true"
-        # Verify both listeners, but only emit /info for AgentContainer.post_start().
-        assert self.healthcheck is not None
-        self.healthcheck["test"] = (
-            "sh -c 'curl --fail --silent --show-error --max-time 2 --output /dev/null "
-            '--header "Content-Type: application/json" --data "{}" http://localhost:4318/v1/traces && '
-            f"{self.healthcheck['test']}'"
-        )
-        # The regular Agent OTLP receiver must not also bind the Collector's port.
-        del self.volumes["./utils/build/docker/agent/datadog.yaml"]
-        self.volumes["./utils/build/docker/agent/ddot-datadog.yaml"] = {
-            "bind": "/etc/datadog-agent/datadog.yaml",
-            "mode": "ro",
-        }
-        self.volumes["./utils/build/docker/agent/ddot-otel-config.yaml"] = {
-            "bind": "/etc/datadog-agent/otel-config.yaml",
-            "mode": "ro",
-        }
 
 
 class ServerlessInitContainer(TestedContainer):

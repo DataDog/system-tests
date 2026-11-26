@@ -1,6 +1,5 @@
 """AAP smoke coverage with native trace export and OTLP through bundled DDOT."""
 
-from utils._context.containers import DdotAgentContainer
 from utils.proxy.ports import ProxyPorts
 
 from ._core import DdTraceEndToEndScenario, scenario_groups
@@ -34,7 +33,7 @@ class SecuritySmokeOtlp(DdTraceEndToEndScenario):
             "SECURITY_SMOKE_OTLP",
             # Keep the native smoke suite's Remote Config fixture; only traces go through DDOT.
             rc_api_enabled=True,
-            agent_container_class=DdotAgentContainer,
+            agent_image_variant="full",
             include_opentelemetry=True,
             open_telemetry_interface_timeout=5,
             weblog_env={

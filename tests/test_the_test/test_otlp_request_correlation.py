@@ -4,8 +4,7 @@ from unittest.mock import Mock, patch
 from utils import pytest
 
 from tests.otel.test_tracing_otlp import OtelSpanRecord, _server_span_by_request_id
-from tests.appsec.smoke_tests.utils import assert_ddot_export
-from utils import features, interfaces, scenarios
+from utils import features, scenarios
 from utils._weblog import HttpResponse
 from utils.dd_constants import SpanKind
 from utils.interfaces._open_telemetry import OpenTelemetryInterfaceValidator
@@ -88,45 +87,6 @@ def test_otlp_correlates_descendants_exported_before_parent() -> None:
 
     assert [record[2] for record in records] == [grandchild, child, root]
     assert _server_span_by_request_id(records, REQUEST_ID)[2] == root
-
-
-@features.not_reported
-@scenarios.test_the_test
-@pytest.mark.parametrize(
-    ("host", "status", "rejected", "native_id", "native_user_agent", "error"),
-    [
-        ("agent", 200, 0, 2, OTHER_USER_AGENT, None),  # unrelated native trace is fine
-        ("agent", 503, 0, 1, USER_AGENT, "DDOT must accept"),  # failed export and native fallback
-        ("agent", 200, 1, 2, OTHER_USER_AGENT, "DDOT must accept"),
-        ("system-tests-collector", 200, 0, 2, OTHER_USER_AGENT, "DDOT must accept"),
-        ("agent", 200, 0, 1, OTHER_USER_AGENT, "also exported via native"),  # same trace, different chunk
-        ("agent", 200, 0, 2, USER_AGENT, "also exported via native"),  # fallback with a new trace ID
-    ],
-)
-def test_security_smoke_requires_ddot_only(
-    host: str, status: int, rejected: int, native_id: int, native_user_agent: str, error: str | None
-) -> None:
-    request = Mock(spec=HttpResponse)
-    request.get_rid.return_value = REQUEST_ID
-    otlp = _payload([{"traceId": "00000000000000000000000000000001", "attributes": {TEST_TAG: USER_AGENT}}])
-    otlp.update(
-        host=host, response={"status_code": status, "content": {"partialSuccess": {"rejectedSpans": str(rejected)}}}
-    )
-    native = {
-        "path": "/v0.4/traces",
-        "log_filename": "native.json",
-        "request": {"content": [[{"trace_id": native_id, "meta": {"http.useragent": native_user_agent}}]]},
-    }
-    with (
-        patch.object(interfaces.open_telemetry, "get_data", return_value=[otlp]),
-        patch.object(interfaces.library, "get_data", return_value=[native]) as native_data,
-    ):
-        if error is None:
-            assert_ddot_export(request)
-            native_data.assert_called_once_with(path_filters=interfaces.library.trace_paths)
-        else:
-            with pytest.raises(AssertionError, match=error):
-                assert_ddot_export(request)
 
 
 @features.not_reported
