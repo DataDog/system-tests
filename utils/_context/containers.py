@@ -1308,6 +1308,14 @@ class WeblogContainer(TestedContainer):
                 f"{existing_options} {log_file_option}" if existing_options else log_file_option
             )
 
+            if not replay:
+                # Created by the tracer, the file would get the umask of the app server: Liberty's server script
+                # removes all permissions for others (umask o=), so the host user could not read it
+                log_file = Path(f"{self.log_folder_path}/logs/{interfaces.JAVA_TRACER_LOG_FILENAME}")
+                log_file.unlink(missing_ok=True)
+                log_file.touch()
+                log_file.chmod(0o666)
+
         if library == "ruby" and "rails" in self.weblog_variant:
             # Ensure ruby on rails apps log to stdout
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
