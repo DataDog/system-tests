@@ -5,9 +5,9 @@ Run from a system-tests checkout, with the runner venv active:
     python utils/scripts/update_mirror_images.py
 
 It unions every Docker image required by the CI-run ``DockerScenario`` instances
-(across the full library x weblog matrix), records them in ``mirror_images.yaml``
-via the dd-repo-tools ``mirror_images.py add`` command, then resolves digests
-into ``mirror_images.lock.yaml`` via ``lock``.
+(across the full library x weblog matrix) and by the ``format.sh`` Node.js linters,
+records them in ``mirror_images.yaml`` via the dd-repo-tools ``mirror_images.py add``
+command, then resolves digests into ``mirror_images.lock.yaml`` via ``lock``.
 
 ``mirror_images.yaml`` is rebuilt from scratch on every run: images no longer
 required by any scenario (e.g. an image whose tag was replaced) are
@@ -24,6 +24,7 @@ docker-free for the enumeration step and covers *all* CI scenarios at once.
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -51,6 +52,7 @@ DEFAULT_DEST_REGISTRY = "registry.ddbuild.io/system-tests/mirror"
 MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
 LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
+FORMAT_SH = REPO_ROOT / "format.sh"
 
 # Canonical header for mirror_images.yaml. The mirror_images.py `add` command
 # rewrites the file through a YAML parser and drops comments, so the script
@@ -119,9 +121,21 @@ def _parametric_images() -> set[str]:
     return images
 
 
+def _format_sh_images() -> set[str]:
+    """Image the format.sh Node.js linters run in.
+
+    No scenario requires it, but format.sh pulls it through mirror_image, like the
+    scenarios: it must stay mirrored even once no weblog builds FROM it anymore.
+    """
+    match = re.search(r'^NODEJS_LINT_IMAGE="([^"$]+)"$', FORMAT_SH.read_text(encoding="utf-8"), re.MULTILINE)
+    if match is None:
+        sys.exit(f"error: no literal NODEJS_LINT_IMAGE assignment found in {FORMAT_SH}")
+    return {match.group(1)}
+
+
 def collect_images(excluded: set[str]) -> list[str]:
     pairs = _library_weblog_pairs()
-    images: set[str] = set()
+    images: set[str] = _format_sh_images()
     for scenario in get_all_scenarios():
         if scenario.name in excluded:
             continue
