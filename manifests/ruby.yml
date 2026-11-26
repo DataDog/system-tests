@@ -571,6 +571,8 @@ manifest:
         "*": v2.29.0-dev
         "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
+    - declaration: 'irrelevant (asserts the first redirect target, Ruby reports the last one since libddwaf 2.0, see DataDog/dd-trace-rb#6707)'
+      component_version: '>=2.50.0-dev'
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
