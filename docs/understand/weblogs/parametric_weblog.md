@@ -695,8 +695,8 @@ Response:
 
 _not declared by the reference server_
 
-If the SDK rejected the counter at creation (see `create_counter`), the reference server returns a `400` with an `error`
-message, and records nothing.
+If [`create_counter`](#post-metricsotelcreate_counter) rejected the counter, the reference server returns a `400` and
+records nothing.
 
 #### `POST /metrics/otel/create_asynchronous_counter`
 
@@ -772,8 +772,10 @@ Response:
 
 _not declared by the reference server_
 
-If the SDK rejects the counter (for instance, an invalid instrument name), the reference server returns a `400` with an
-`error` message, instead of raising and dropping the connection. The client does not check the status.
+If the SDK rejects the counter because its name breaks the
+[instrument name syntax](https://opentelemetry.io/docs/specs/otel/metrics/api/#instrument-name-syntax), the reference
+server returns a `400` with an `error` message, instead of raising and dropping the connection. Other SDK errors are
+still raised. The client does not check the status.
 
 #### `POST /metrics/otel/create_gauge`
 
