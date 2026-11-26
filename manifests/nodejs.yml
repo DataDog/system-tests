@@ -1578,6 +1578,8 @@ manifest:
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection:
     - declaration: bug (APPSEC-57432)
       component_version: <5.57.0
+    - weblog_declaration:
+        nextjs: irrelevant (Next.js >=16.4.5 strips content-length from route handler responses)
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v2.6.0
@@ -1602,6 +1604,7 @@ manifest:
     - weblog_declaration:
         "*": v2.0.0
         fastify: *ref_5_57_0
+        nextjs: irrelevant (Next.js >=16.4.5 strips content-length from route handler responses)
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: *ref_5_7_0
   tests/appsec/test_traces.py::Test_RetainTraces: v2.0.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
