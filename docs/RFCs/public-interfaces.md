@@ -60,7 +60,7 @@ build.sh, CI, tools ──▶ Build API ── builds images of
 
 #### Components
 
-A component is anything a scenario starts next to the library under test: the weblog, the parametric app, the agent, the test agent, the proxy, the mocked backend, postgres, kafka... End-to-end and parametric tests are not two frameworks: they are scenarios that start different components. They all have the same shape:
+A component is anything the test driver starts, the library under test included: the library is the **target component**, and it runs inside the weblog or the parametric app. The others are the agent, the test agent, the proxy, the mocked backend, postgres, kafka... End-to-end and parametric tests are not two frameworks: they are scenarios that start different components. They all have the same shape:
 
 - a **definition**: image, configuration, lifecycle (build, start, healthcheck, stop), logs. Scenarios use it. A component lives either for a whole scenario (end-to-end) or for a single test (parametric fixtures), and the component API supports both.
 - an optional **test handle**, split by lifecycle (next section). Postgres has none. The proxy has a rich one (`interfaces.library`, `interfaces.agent`, mocked tracer responses), and so do the mocked backend, the weblog, the parametric app and the test agent.
