@@ -118,6 +118,31 @@ EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
         "jvm.file_descriptor.count": {"all": []},
         "jvm.file_descriptor.limit": {"all": []},
     },
+    # Each process reports its runtime metrics under its own datadog.runtime_id.
+    "python": {
+        "cpython.gc.collected_objects": {"all": ["cpython.gc.generation", "datadog.runtime_id"]},
+        "cpython.gc.collections": {
+            "all": ["cpython.gc.generation", "datadog.runtime_id"],
+            "present_values": {"cpython.gc.generation": ["0", "1", "2"]},
+        },
+        "cpython.gc.uncollectable_objects": {"all": ["cpython.gc.generation", "datadog.runtime_id"]},
+        "process.context_switches": {
+            "all": ["process.context_switch.type", "datadog.runtime_id"],
+            "present_values": {"process.context_switch.type": ["involuntary", "voluntary"]},
+        },
+        "process.cpu.time": {
+            "all": ["cpu.mode", "datadog.runtime_id"],
+            "present_values": {"cpu.mode": ["system", "user"]},
+        },
+        "process.cpu.utilization": {"all": ["datadog.runtime_id"]},
+        "process.memory.usage": {"all": ["datadog.runtime_id"]},
+        # The name and attribute of the OpenTelemetry system metrics instrumentation.
+        "process.runtime.cpython.gc_count": {
+            "all": ["count", "datadog.runtime_id"],
+            "present_values": {"count": ["0", "1", "2"]},
+        },
+        "process.thread.count": {"all": ["datadog.runtime_id"]},
+    },
 }
 
 # Valid value domains for attributes. For closed enums (jvm.memory.type, jvm.thread.*,
@@ -228,6 +253,15 @@ EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
         ),
         "jvm.gc.action": frozenset({"end of minor GC", "end of major GC", "end of GC cycle"}),
     },
+    "python": {
+        # CPython has three GC generations, reported by gc.get_stats().
+        "cpython.gc.generation": frozenset({"0", "1", "2"}),
+        # The CPU modes of process.cpu.time in the OpenTelemetry semantic conventions.
+        "cpu.mode": frozenset({"system", "user", "wait"}),
+        "process.context_switch.type": frozenset({"involuntary", "voluntary"}),
+        # The generation of gc.get_count().
+        "count": frozenset({"0", "1", "2"}),
+    },
 }
 
 # DD-proprietary prefixes that should NOT appear when OTLP metrics are active.
@@ -236,6 +270,7 @@ DD_PROPRIETARY_PREFIXES: dict[str, str] = {
     "golang": "runtime.go.",
     "nodejs": "runtime.node.",
     "java": "jvm.heap_memory",
+    "python": "runtime.python.",
 }
 
 # Hit an endpoint that deliberately throws instead of relying on incidental exceptions that may not happen
@@ -256,6 +291,16 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
         tags: dict[str, str] = dict(tag.split(":", 1) for tag in metric.get("tags", []) if ":" in tag)
         result.setdefault(name, []).append(tags)
     return result
+
+
+def get_metric_and_sketch_names() -> set[str]:
+    """Return the names of the series and sketches the agent sent to the mocked backend.
+
+    DogStatsD distributions, such as the DogStatsD runtime metrics of Python, reach the backend as sketches.
+    """
+    names = set(get_runtime_metrics_by_name())
+    names.update(sketch["metric"] for _, sketch in interfaces.mocked_backend.get_sketches())
+    return names
 
 
 RUNTIME_METRICS_WAIT_TIMEOUT = 60
@@ -357,8 +402,8 @@ class Test_OtlpRuntimeMetrics:
         )
         dd_prefix = DD_PROPRIETARY_PREFIXES[library]
 
-        observed = get_runtime_metrics_by_name()
-        dd_named_metrics = [n for n in observed if n.startswith(dd_prefix)]
+        observed = get_metric_and_sketch_names()
+        dd_named_metrics = sorted(n for n in observed if n.startswith(dd_prefix))
         assert len(dd_named_metrics) == 0, (
             f"Found DD-proprietary metric names for {library}: {dd_named_metrics}. Expected OTel-native names only."
         )
