@@ -396,6 +396,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -407,6 +408,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -442,6 +444,7 @@ manifest:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
         akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -480,6 +483,7 @@ manifest:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
         akka-http: irrelevant (akka-http path matchers do not name the values they extract)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -491,6 +495,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -504,7 +509,7 @@ manifest:
         '*': missing_feature (only Spring MVC sets the normalized route)
         akka-http: irrelevant (akka-http path matchers do not name the values they extract)
         play: irrelevant (parameter names cannot contain '-')
-        ratpack: incomplete_test_app (endpoint not implemented)
+        ratpack: irrelevant (parameter names cannot contain '-')
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -520,6 +525,7 @@ manifest:
         '*': missing_feature
         akka-http: '>=1.69.1'
         play: '>=1.69.1'
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
@@ -531,6 +537,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
     - weblog_declaration:
         '*': missing_feature (only Spring MVC sets the normalized route)
+        ratpack: v1.70.0-SNAPSHOT
         spring-boot: v1.70.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.70.0-SNAPSHOT
