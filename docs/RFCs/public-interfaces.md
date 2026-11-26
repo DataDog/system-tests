@@ -77,12 +77,14 @@ A test handle has up to two parts, in separate modules:
 
 | Component | Live | Record |
 |-----------|------|--------|
-| weblog | HTTP and gRPC requests | its stdout, the requests and responses seen by the test runner |
-| proxy | mocked responses, `wait_for` | captured library and agent payloads (`interfaces.library`, `interfaces.agent`) |
+| weblog | HTTP and gRPC requests | the requests and responses seen by the test runner |
+| library (target) | what it has sent so far, waits (`wait_for`) | what it sent, captured by the proxy (`interfaces.library` today), its stdout |
+| agent | remote config, mocked responses to the library | what it sent, captured by the proxy (`interfaces.agent` today) |
 | mocked backend | mocked responses | captured backend payloads |
+| proxy | none: it captures and mocks on behalf of the library and agent handles | none |
 | parametric app | tracer API calls | none |
 | test agent | queries and waits (`wait_for_num_traces`...), remote config | none |
-| postgres | none | none |
+| postgres | SQL statements | none |
 
 The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Data helpers, constants, enums, types and `context` belong to no phase and stay at the root. Parametric tests apply the same data helpers to data fetched live.
 
@@ -99,9 +101,128 @@ What a setup method keeps for its tests (`self.r = ...`) is part of the record: 
 
 **Replay.** What the checker can't see (`getattr`, handles passed as values) fails in replay mode, where tests only have the record. Running some scenarios in replay mode in CI replaces a runtime guard (`utils/scripts/replay_scenarios.sh` exists, CI doesn't run it).
 
+#### Examples
+
+The names below are illustrative.
+
+**Everyday case: a request, then an assertion.** Most end-to-end tests look like this, and the change is just the import:
+
+```python
+# today
+from utils import weblog, interfaces
+
+    def setup_main(self):
+        self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_main(self):
+        interfaces.library.assert_waf_attack(self.r, rule="ua0-600-12x")
+
+# proposed
+from utils.components import weblog, library
+
+    def setup_main(self):
+        self.r = weblog.live.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_main(self):
+        library.record.assert_waf_attack(self.r, rule="ua0-600-12x")
+```
+
+**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module and builds one mock per trace endpoint, because it has to know which endpoint each tracer uses:
+
+```python
+# today
+from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send_mocked_tracer_responses
+
+        mocked_json = {"rate_by_service": {"service:,env:": AGENT_RATE}}
+        send_mocked_tracer_responses([
+            SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=[mocked_json]),
+            SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=[mocked_json]),
+            SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=[mocked_json]),
+        ])
+
+# proposed: the agent handle knows its trace endpoints
+from utils.components import agent
+
+        agent.live.mock_rates_by_service({"service:,env:": AGENT_RATE})
+```
+
+**Driving a side container** (`tests/otel_postgres_metrics_e2e/test_postgres_metrics.py`). Today the test casts the scenario to reach the container object, then shells into it:
+
+```python
+# today
+        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+        container = scenario.postgres_container
+        container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
+
+# proposed: postgres gets a live handle
+from utils.components import postgres
+
+        postgres.live.execute("SELECT 1;")
+```
+
+**Interleaved actions and checks in parametric tests** (`tests/parametric/test_dynamic_configuration.py`). These tests act, observe, then act again depending on what they saw. Everything is live, fixtures return the live handles, and nothing changes but the types:
+
+```python
+    def test_rc_overrides_env(self, test_agent, test_library):
+        trace = get_sampled_trace(test_library, test_agent, name="env_name")
+        assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
+        set_and_wait_rc(test_agent, test_library, config_overrides={...})
+        trace = get_sampled_trace(test_library, test_agent, name="env_name")
+        assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE)
+```
+
+**Less well fitted: reading collected data during setup.** The same test (`test_sampling_rules_agent_rate.py`) sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup reads collected spans, which is record data, to decide whether to act again:
+
+```python
+# today
+        def has_agent_rate(_data) -> bool:
+            for _, span in interfaces.library.get_root_spans():
+                if abs(span.get("metrics", {}).get("_dd.agent_psr", -1) - AGENT_RATE) < 0.01:
+                    return True
+            return False
+
+        for _ in range(5):
+            if interfaces.library.wait_for(has_agent_rate, timeout=0):
+                break
+            for _ in range(20):
+                weblog.get(f"/sample_rate_route/{request_idx}")
+            time.sleep(2)
+```
+
+The record can't be used here, since the data isn't complete. The live part needs its own access to what was collected so far: `wait_for` and polling pass it to the predicate, and the predicate is a neutral data helper, shared with the test method:
+
+```python
+# proposed
+def has_agent_rate(spans) -> bool:  # neutral: works on live or recorded data
+    return any(abs(s.metrics.get("_dd.agent_psr", -1) - AGENT_RATE) < 0.01 for s in spans)
+
+    def setup_main(self):
+        for _ in range(5):
+            if library.live.poll_root_spans(has_agent_rate):
+                break
+            ...
+
+    def test_main(self):
+        assert has_agent_rate(library.record.get_root_spans())
+```
+
+`tests/test_config_consistency.py` does the same on a smaller scale: a helper filters runtime metrics, and it's used both in a `wait_for` during setup and in the test method. So the live parts of components that capture data expose it, the same data the record holds later. The split is still clear at the call site, but some methods exist on both sides.
+
+**Less well fitted: component configuration** (`tests/integrations/test_db_integrations_sql.py`). The test methods compare span tags to the credentials of the database container:
+
+```python
+# today
+    def test_db_user(self):
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
+        for _, span_meta in self.get_spans_meta():
+            assert span_meta["db.user"].casefold() == db_container.db_user.casefold()
+```
+
+The database user is neither live nor record: it's configuration, fixed before the container starts and valid in both phases and in replay. It belongs to runtime info, like the library version: `context.components[self.db_service].db_user`.
+
 #### `context`
 
-`context` becomes runtime info, re-exported by the root under its current name. Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
+`context` becomes runtime info, re-exported by the root under its current name. Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields (including component configuration, see the examples) or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
 
 #### Build API
 
@@ -148,7 +269,7 @@ Every step ships on its own and leaves CI green.
 
 1. **Boundaries only.** Add the contracts above with today's violations as ratchets, and the import side-effect test with today's effects allow-listed. No code moves.
 2. **Centralise re-exports**, each move removing ratchet lines:
-   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; remote config, mocked responses and `wait_for` to `proxy.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
+   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; remote config and mocked agent responses to `agent.live`; `wait_for` to `library.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
    - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
    - side effects: make singletons lazy and move resource allocation to scenario setup;
