@@ -2942,6 +2942,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: *ref_5_72_0
   tests/parametric/test_otel_metrics.py: *ref_5_81_0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter::test_otel_create_instruments_with_invalid_names: bug (APMAPI-2930)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=6.8.0'  # TODO: a lower version might be supported
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
   : missing_feature (Does not support grpc)

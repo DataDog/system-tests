@@ -695,6 +695,9 @@ Response:
 
 _not declared by the reference server_
 
+If [`create_counter`](#post-metricsotelcreate_counter) rejected the counter, the reference server returns a `400` and
+records nothing.
+
 #### `POST /metrics/otel/create_asynchronous_counter`
 
 Called by `ParametricTestClientApi.otel_create_asynchronous_counter()`.
@@ -768,6 +771,11 @@ Request body:
 Response:
 
 _not declared by the reference server_
+
+If the SDK rejects the counter because its name breaks the
+[instrument name syntax](https://opentelemetry.io/docs/specs/otel/metrics/api/#instrument-name-syntax), the reference
+server returns a `400` with an `error` message, instead of raising and dropping the connection. Other SDK errors are
+still raised. The client does not check the status.
 
 #### `POST /metrics/otel/create_gauge`
 

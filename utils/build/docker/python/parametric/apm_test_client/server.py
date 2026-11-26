@@ -8,6 +8,7 @@ from typing import Any
 from typing import Union
 import logging
 import os
+import re
 import enum
 import threading
 
@@ -105,6 +106,11 @@ ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 otel_meters: Dict[str, Meter] = {}
 otel_meter_instruments: Dict[str, Instrument] = {}
+# Instruments the SDK refused to create because of an invalid name, so measurements on them are rejected cleanly.
+# Keyed on the raw name: create_instrument_key normalizes it, so a rejected "foo " would shadow a valid "foo"
+otel_rejected_instruments: set = set()
+# OTel instrument name syntax: https://opentelemetry.io/docs/specs/otel/metrics/api/#instrument-name-syntax
+OTEL_INSTRUMENT_NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9_.\-/]{0,254}")
 logger_dict: Dict[str, Any] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
@@ -1047,9 +1053,21 @@ def otel_create_counter(args: OtelCreateCounterArgs):
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     meter = otel_meters[args.meter_name]
-    counter = meter.create_counter(args.name, args.unit, args.description)
-
     instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+    rejected_key = (args.meter_name, args.name, "counter", args.unit, args.description)
+    try:
+        counter = meter.create_counter(args.name, args.unit, args.description)
+    except Exception as e:
+        # The SDK raises a bare Exception for an invalid name. Only absorb it when the name really breaks the syntax,
+        # so any other failure still surfaces. Return it instead of raising: an unhandled exception makes uvicorn drop
+        # the connection
+        if OTEL_INSTRUMENT_NAME_RE.fullmatch(args.name):
+            raise
+        log.warning("create_counter rejected by the SDK for invalid name %r: %s", args.name, e)
+        otel_rejected_instruments.add(rejected_key)
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+    otel_rejected_instruments.discard(rejected_key)
     otel_meter_instruments[instrument_key] = counter
     return OtelCreateCounterReturn()
 
@@ -1073,6 +1091,10 @@ def otel_counter_add(args: OtelCounterAddArgs):
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+
+    rejected_key = (args.meter_name, args.name, "counter", args.unit, args.description)
+    if instrument_key not in otel_meter_instruments and rejected_key in otel_rejected_instruments:
+        return JSONResponse({"error": f"Counter {args.name} was rejected at creation"}, status_code=400)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(

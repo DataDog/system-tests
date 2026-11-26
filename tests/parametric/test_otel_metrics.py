@@ -276,6 +276,7 @@ class Test_Otel_Metrics_Api_Meter:
     This class validates the behavior of the Meter, which is responsible for:
     - Creating each type of synchronous and asynchronous instruments through the Meter API
     - Handling instrument creation based on identifying fields (only name is case-insensitive)
+    - Not exporting instruments whose name breaks the instrument name syntax (non-ASCII, bad characters, too long)
 
     Note: This class doesn't exhaustively test every combination of mismatching fields.
     """
@@ -475,6 +476,61 @@ class Test_Otel_Metrics_Api_Meter:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_create_instruments_with_invalid_names(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Instruments with names that break the OTel instrument name syntax are not exported.
+
+        Spec: an instrument name is an ASCII letter followed by up to 254 ASCII letters, digits,
+        "_", ".", "-" or "/". The SDK should report an invalid name as an error. It may return
+        an instrument anyway, so the test checks the outcome: no metric is exported under that name.
+        A valid instrument created on the same meter shows that the export itself worked.
+        """
+        valid_name = "test_otel_valid_instrument_name"
+        invalid_names = [
+            "compteur_é",  # non-ASCII letter
+            "计数器",  # non-ASCII only
+            "counter_\u00a0nbsp",  # non-ASCII whitespace
+            "1_starts_with_digit",
+            "_starts_with_underscore",
+            "has space",
+            "has*star",
+            "a" * 256,  # longer than 255 characters
+        ]
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            for name in [valid_name, *invalid_names]:
+                t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+                t.otel_counter_add(
+                    DEFAULT_METER_NAME,
+                    name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+            t.otel_metrics_force_flush()
+
+        metric_requests = test_agent.wait_for_num_otlp_metrics(num=1)
+
+        valid_metrics = find_metrics_by_name(metric_requests, valid_name)
+        assert len(valid_metrics) == 1, f"The valid instrument {valid_name!r} was not exported"
+        assert_metric_info(valid_metrics[0], valid_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+
+        exported_invalid_names = [name for name in invalid_names if find_metrics_by_name(metric_requests, name)]
+        assert exported_invalid_names == [], f"Instruments with invalid names were exported: {exported_invalid_names}"
+
+        # Also catches an invalid name exported under another name (e.g. truncated or with characters replaced)
+        exported_names = [
+            metric["name"]
+            for metric_request in metric_requests
+            for resource_metrics in metric_request["resource_metrics"]
+            for scope_metrics in resource_metrics["scope_metrics"]
+            if scope_metrics["scope"]["name"] == DEFAULT_METER_NAME
+            for metric in scope_metrics["metrics"]
+        ]
+        assert exported_names == [valid_name], f"Unexpected metrics exported by the test meter: {exported_names}"
 
 
 @scenarios.parametric
