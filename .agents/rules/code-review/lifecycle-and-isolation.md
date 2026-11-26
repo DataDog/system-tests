@@ -32,3 +32,10 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Do not tie exact counts to flush timing.
+- Severity: P0
+- Flag: Tracers can flush stats, metrics, and spans on an interval. Their time buckets do not align with the test. Do not assert an exact number of requests, buckets, or points from one flush. Merge all captured requests and buckets before counting. Do not compare a scenario-wide metric total with a request count unless every point flushes before teardown. If the test expects an exact count, wait past the next flush so a late extra item fails.
+- Detect: A test asserts exactly one stats request or bucket, or reads only bucket [0]. A test compares an interval-flushed metric total with the number of requests. A wait returns as soon as the expected count appears, and the test then asserts that exact count.
+- ✅ Merge the stats of all requests and buckets by aggregation key, then assert on the merged counters.
+- ❌ assert len(buckets) == 1
