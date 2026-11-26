@@ -2319,6 +2319,9 @@ manifest:
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: v2.11.0
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_telemetry_timeout: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE: missing_feature
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_explicit_tracing_api_setting_takes_precedence: irrelevant (DD_TRACE_OTEL_ENABLED only applies to Orchestrion builds, and the test app registers the TracerProvider itself)
+  tests/parametric/test_dd_sdk_mode.py::Test_DD_SDK_MODE::test_otel_enables_otel_tracing_api: irrelevant (DD_TRACE_OTEL_ENABLED only applies to Orchestrion builds, and the test app registers the TracerProvider itself)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.64.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.61.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant
@@ -3105,6 +3108,7 @@ manifest:
         fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v2.12.0-dev
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: irrelevant (DD_TRACE_OTEL_ENABLED and the shared OTLP settings are not reported)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_dd_sdk_mode: missing_feature
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
     - declaration: incomplete_test_app (weblog does not import ddtrace/opentelemetry/metric)
       weblog: [net-http-span-pool]
