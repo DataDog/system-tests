@@ -126,18 +126,52 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
   tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v1.21.0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (Laravel and Symfony route parsers reject non-word chars in parameter names)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
         php-fpm-8.5: '>=2.0.0'
         apache-mod-8.2: '>=2.0.0'
         apache-mod-7.3-zts: '>=2.0.0'
@@ -163,8 +197,16 @@ manifest:
         apache-mod-7.1-zts: '>=2.0.0'
         apache-mod-7.2: '>=2.0.0'
         apache-mod-8.1: '>=2.0.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=2.1.0-dev'
+        symfony7x: '>=2.1.0-dev'
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
