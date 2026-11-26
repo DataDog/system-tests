@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 import pytest
 
 from ._core import DdTraceEndToEndScenario, EndToEndScenario, scenario_groups
@@ -150,38 +147,6 @@ class AppsecRuntimeActivation(DdTraceEndToEndScenario):
         )
 
 
-# Inline fixtures so edits select this scenario in CI.
-_SCA_ADVISORIES = {
-    "java": {
-        "version": 1,
-        "entries": [
-            {
-                "vuln_id": "system-tests-sca",
-                "artifact": "com.github.junrar:junrar",
-                "version_ranges": [">=0"],
-                "symbols": [{"class": "com/github/junrar/LocalFolderExtractor", "method": "createDirectory"}],
-            }
-        ],
-    },
-    "python": {
-        "targets": [
-            {
-                "id": "system-tests-sca",
-                "lang": "python",
-                "dependency_name": "requests",
-                "package_versions": [">=0"],
-                "targets": ["requests.sessions:Session.send"],
-                "vulnerability": {
-                    "id": "system-tests-sca",
-                    "severity": "LOW",
-                    "description": "Synthetic requests target for system-tests SCA reachability coverage.",
-                },
-            }
-        ]
-    },
-}
-
-
 class RuntimeScaReachability(DdTraceEndToEndScenario):
     """Scenario to test SCA telemetry events"""
 
@@ -190,26 +155,15 @@ class RuntimeScaReachability(DdTraceEndToEndScenario):
             "RUNTIME_SCA_REACHABILITY",
             weblog_env={
                 "DD_APPSEC_SCA_ENABLED": "true",
+                # the weblog container mounts there the synthetic advisories of the library
+                "_DD_APPSEC_SCA_CVE_FILE": "/sca/advisories.json",
             },
             scenario_groups=[scenario_groups.appsec],
         )
 
-    def configure(self, config: pytest.Config) -> None:
-        super().configure(config)
-        if self.replay:
-            return
-
-        container = self.weblog_infra.library_container
-        advisory = _SCA_ADVISORIES.get(container.image.labels["system-tests-library"])
-        if advisory is None:
-            return
-
-        catalog = Path(container.log_folder_path) / "sca-advisories.json"
-        catalog.write_text(json.dumps(advisory), encoding="utf-8")
-
-        container_path = "/sca/advisories.json"
-        container.volumes[str(catalog)] = {"bind": container_path, "mode": "ro"}
-        container.environment["_DD_APPSEC_SCA_CVE_FILE"] = container_path
+    def get_libraries(self) -> set[str]:
+        # only these libraries have synthetic advisories (utils/build/docker/<library>/sca_advisories.json)
+        return {"java", "python"}
 
 
 class IastDeduplication(DdTraceEndToEndScenario):

@@ -1265,6 +1265,19 @@ class WeblogContainer(TestedContainer):
 
         return dockerfile_image_list(Path(f"utils/build/docker/{library}/{weblog}.Dockerfile"))
 
+    def _mount_sca_cve_file(self, library: str) -> None:
+        """When the scenario sets _DD_APPSEC_SCA_CVE_FILE, mount there the synthetic SCA advisories of the library"""
+        container_path = self.environment.get("_DD_APPSEC_SCA_CVE_FILE")
+        if container_path is None:
+            return
+
+        # Lambda tracers read the same advisory format as their regular counterpart
+        host_path = Path("utils/build/docker") / library.removesuffix("_lambda") / "sca_advisories.json"
+        if not host_path.is_file():
+            raise FileNotFoundError(f"_DD_APPSEC_SCA_CVE_FILE is set, but {host_path} does not exist for {library}")
+
+        self.volumes[f"./{host_path}"] = {"bind": container_path, "mode": "ro"}
+
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -1280,6 +1293,7 @@ class WeblogContainer(TestedContainer):
             weblog.set_request_default_retry(5)
 
         self._set_aws_auth_environment()
+        self._mount_sca_cve_file(library)
 
         metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
         if metadata is not None and metadata.request_timeout is not None:
