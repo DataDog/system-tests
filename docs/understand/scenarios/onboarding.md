@@ -2,8 +2,8 @@
 
 ## Quick start
 
-AWS SSI runs library injection tests on EC2 virtual machines. It sends the
-test telemetry to the system-tests Datadog organization.
+AWS SSI runs library injection tests on EC2 virtual machines. It checks what
+the agent sends to the mocked backend.
 
 First, complete the
 [AWS access steps](../../execute/ssi-access.md#configure-aws-access) and the
@@ -67,7 +67,7 @@ For Kubernetes, use the
 ## Prerequisites
 
 Complete the [AWS SSI access guide](../../execute/ssi-access.md). It covers
-Docker, Python 3.12, AWS access, aws-vault, AppGate, Pulumi, and Datadog keys.
+Docker, Python 3.12, AWS access, aws-vault, AppGate, and Pulumi.
 
 ### Optional legacy Vagrant provider
 
@@ -90,8 +90,9 @@ For a manual run, set:
 
 - **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet ID.
 - **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security group ID.
-- **DD_API_KEY_ONBOARDING:** Datadog API key.
-- **DD_APP_KEY_ONBOARDING:** Datadog application key.
+
+AWS SSI scenarios need no Datadog keys. See
+[Configure Datadog keys](../../execute/ssi-access.md#configure-datadog-keys).
 
 An EC2 key pair is optional. You need one only for an SSH debugging session.
 See the
@@ -140,8 +141,6 @@ Example:
 ```bash
 export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
-export DD_API_KEY_ONBOARDING="your-api-key"
-export DD_APP_KEY_ONBOARDING="your-application-key"
 export ONBOARDING_LOCAL_TEST="true"
 
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
@@ -890,8 +889,6 @@ You can do that using the environment variables. For example:
 #Mandatory env variables
 export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
-export DD_API_KEY_ONBOARDING=apikey
-export DD_APP_KEY_ONBOARDING=appkey
 
 #The key pair configuration
 export ONBOARDING_AWS_INFRA_KEYPAIR_NAME="my_key_pair"
@@ -1000,7 +997,7 @@ Waited too long for the port 5985 on host [MACHINE_IP] to start accepting connec
 
 ---
 
-## Case 4 — App is serving and sending traces, but **no traces appear in the Datadog backend**
+## Case 4 — App is serving and sending traces, but **no traces appear in the mocked backend**
 
 **Symptom**
 
@@ -1017,7 +1014,7 @@ Exception during trace in backend verification
 /var/log/datadog
 - **Docker daemon issue** (if containerized) — review:
 /var/log/datadog_weblog/journalctl_docker.log
-- **Backend intake/processing** — manually locate the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and verify ingestion.
+- **Mocked backend** — `tests.log` lists the requests and trace IDs the mocked backend received. The requests are recorded in `logs_<scenario>/interfaces/mocked_backend/`.
 
 ---
 
@@ -1026,7 +1023,7 @@ Exception during trace in backend verification
 **Symptom**
 
 ~~~
-Exception during trace in backend verification: Reached overall timeout of 300 for POST https://dd.datadoghq.com/api/unstable/profiles/list
+Exception during trace in backend verification: Profile for runtime-id ... not found in the mocked backend after 180s
 ~~~
 
 **Possible causes & what to check**
@@ -1036,7 +1033,7 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 /var/log/datadog_weblog/docker_logs.log
 - **Agent issue** — verify Agent is healthy and APM/profile intake is enabled; check:
 /var/log/datadog
-- **Backend processing** — in the Datadog UI (system-tests org), locate the trace ID `{request_uuid}` and verify associated profiling data is present or delayed.
+- **Mocked backend** — check for `/api/v2/profile` requests in `logs_<scenario>/interfaces/mocked_backend/`.
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
 
@@ -1059,7 +1056,7 @@ expected '_dd.appsec.enabled' to be 1 in trace span metrics but found ...
 /var/log/datadog_weblog/docker_logs.log
 - **Agent issue** — verify Agent logs and AppSec configuration:
 /var/log/datadog
-- **Backend processing** — manually look up the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and confirm AppSec data.
+- **Mocked backend** — look up the trace ID `{request_uuid}` in the requests recorded in `logs_<scenario>/interfaces/mocked_backend/`, and check its AppSec data.
 
 ---
 

@@ -32,7 +32,7 @@ docker info
 | Test suite | Extra tools | Access |
 | --- | --- | --- |
 | Docker SSI | None for most tests | Private ECR access only for `websphere-app` and `jboss-app` |
-| AWS SSI | AWS CLI, aws-vault, and Pulumi 3.69 or later | AWS account, AppGate, and Datadog keys |
+| AWS SSI | AWS CLI, aws-vault, and Pulumi 3.69 or later | AWS account and AppGate |
 | K8s library injection | AWS CLI, aws-vault, kubectl, Kind or Minikube, and Helm | Private ECR |
 | K8s injector-dev | `injector-dev`, Colima, Minikube, Helm, kubectl | A private registry. Datadog ECR is the default |
 
@@ -125,7 +125,11 @@ Connect to the Datadog private network before you run the AWS SSI wizard.
 
 ## Configure Datadog keys
 
-AWS SSI uses the real Datadog backend. It needs:
+AWS SSI scenarios use the mocked backend, and need no Datadog keys: the agent
+gets a fake API key. The agent still sends some payloads to the real intake,
+such as the tracer telemetry, and the intake rejects them.
+
+`LOCAL_AUTO_INJECTION_INSTALL_SCRIPT` uses the real Datadog backend. It needs:
 
 - `DD_API_KEY_ONBOARDING`
 - `DD_APP_KEY_ONBOARDING`
@@ -138,11 +142,10 @@ If you cannot create or read these keys, ask in
 `K8S_LIB_INJECTION_OPERATOR` uses the mocked backend, and needs no Datadog
 keys.
 
-The AWS SSI wizard asks for these keys. It also asks for
-`PULUMI_CONFIG_PASSPHRASE`. The wizard can save all three values in the local
-`.env` file.
+The AWS SSI wizard asks for `PULUMI_CONFIG_PASSPHRASE`. The wizard can save it
+in the local `.env` file.
 
-Git ignores `.env`. Never add these values to source files or commits.
+Git ignores `.env`. Never add this value to source files or commits.
 
 The wizard provides working defaults for the subnet, security group, and IAM
 instance profile. Use those defaults for a normal local run.
