@@ -1,6 +1,7 @@
 """Opt-in unit coverage for the shared Feature Flags EVP test contract."""
 
 from copy import deepcopy
+from datetime import datetime, timedelta
 from typing import Any, Literal
 from unittest.mock import MagicMock
 
@@ -166,6 +167,7 @@ def _direct_shutdown_evidence() -> dict[str, Any]:
         "flag_key": "empty-targeting-key-flag",
         "flush_window_primed": True,
         "priming_capture_files": ["direct-prime-0001.json"],
+        "priming_capture_observed_at": "2026-09-09T11:59:59.950000+00:00",
         "priming_capture_request_started_at": ["2026-09-09T11:59:59.800000+00:00"],
         "priming_evaluation_finished_at": "2026-09-09T11:59:59.900000+00:00",
         "priming_evaluation_started_at": "2026-09-09T11:59:59.700000+00:00",
@@ -479,6 +481,21 @@ def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_del
     assert_direct_evp_shutdown_evidence(_direct_shutdown_evidence())
 
 
+@pytest.mark.parametrize("offset_seconds", [-2, 2])
+@scenarios.test_the_test
+def test_feature_flagging_direct_shutdown_evidence_accepts_vm_clock_offset(offset_seconds: int) -> None:
+    evidence = _direct_shutdown_evidence()
+
+    def shifted(timestamp: str) -> str:
+        return (datetime.fromisoformat(timestamp) + timedelta(seconds=offset_seconds)).isoformat()
+
+    for key in ("priming_capture_request_started_at", "capture_request_started_at"):
+        evidence[key] = [shifted(timestamp) for timestamp in evidence[key]]
+    evidence["shutdown_markers"][0]["timestamp"] = shifted(evidence["shutdown_markers"][0]["timestamp"])
+    evidence["stopped_container"]["finished_at"] = shifted(evidence["stopped_container"]["finished_at"])
+    assert_direct_evp_shutdown_evidence(evidence)
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
@@ -495,6 +512,8 @@ def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_del
         ("missing_prime", "fresh flush window"),
         ("duplicate_prime", "exactly one capture"),
         ("same_prime_subject", "subject distinct"),
+        ("prime_after_target", "out of order"),
+        ("marker_after_exit", "Server closure followed container exit"),
     ],
 )
 @scenarios.test_the_test
@@ -529,6 +548,10 @@ def test_feature_flagging_direct_shutdown_evidence_rejects_false_proofs(
         evidence["priming_capture_files"].append("direct-prime-0002.json")
     elif mutation == "same_prime_subject":
         evidence["priming_subject_id"] = evidence["subject_id"]
+    elif mutation == "prime_after_target":
+        evidence["priming_capture_observed_at"] = "2026-09-09T12:00:02+00:00"
+    elif mutation == "marker_after_exit":
+        evidence["shutdown_markers"][0]["timestamp"] = "2026-09-09T12:00:01.550000+00:00"
     else:
         raise AssertionError(f"Unhandled mutation {mutation}")
 
