@@ -633,3 +633,54 @@ build_base_images:
       artifacts: false
   script:
     - python3 utils/base_images/build_base_images.py --changed-only --merge
+
+# ──────────────────────────────────────────────
+# Publish the datadog/system-tests images to registry.datadoghq.com.
+#
+# CI pulls these images from Docker Hub, where anonymous pulls are rate limited.
+# registry.datadoghq.com has no pull rate limit, but only the DataDog/public-images
+# pipeline can push to it. On every push to main, generate_public_registry_pipeline
+# lists the tags that registry.datadoghq.com does not have yet, and
+# publish_public_registry runs one DataDog/public-images pipeline per tag
+# (IMG_REGISTRIES=prod: registry.datadoghq.com only). A published tag is never
+# published again: push new content with a new tag. The source is the
+# system-tests mirror, which mirror_images and build_base_images fill first.
+# Only main runs it: public-images refuses to publish from untrusted branches.
+# ──────────────────────────────────────────────
+
+.public_registry_rules:
+  rules:
+    - if: '($SCHEDULED_JOB == "" || $SCHEDULED_JOB == null) && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+
+generate_public_registry_pipeline:
+  extends: .public_registry_rules
+  image: $CI_IMAGE
+  stage: system-tests-utils
+  tags:
+    - arch:amd64
+  needs:
+    - job: mirror_images
+      artifacts: false
+    - job: build_base_images
+      artifacts: false
+  script:
+    - source /system-tests/venv/bin/activate
+    - python utils/scripts/generate_public_registry_pipeline.py --output public-registry-pipeline.yml
+  artifacts:
+    paths:
+      - public-registry-pipeline.yml
+
+publish_public_registry:
+  extends: .public_registry_rules
+  stage: system-tests-utils
+  needs:
+    - job: generate_public_registry_pipeline
+      artifacts: true
+  # Do not forward the global variables of this file to the public-images pipelines.
+  inherit:
+    variables: false
+  trigger:
+    include:
+      - artifact: public-registry-pipeline.yml
+        job: generate_public_registry_pipeline
+    strategy: depend
