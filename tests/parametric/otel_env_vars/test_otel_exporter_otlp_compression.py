@@ -20,7 +20,9 @@ def library_env(compression_env: dict[str, str]) -> dict[str, str]:
     }
 
 
-def _assert_compression(test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
+def _assert_compression(
+    test_agent: TestAgentAPI, test_library: APMLibrary, expected: str, content_type: str | None = None
+) -> None:
     # A single exported artifact proves that the effective compressor is in use.
     with test_library as library:
         generate_default_counter_data_point(library, "compression_probe")
@@ -30,6 +32,8 @@ def _assert_compression(test_agent: TestAgentAPI, test_library: APMLibrary, expe
     assert requests, "No OTLP metrics request was captured"
     for request in requests:
         headers = {name.lower(): value.lower() for name, value in request["headers"].items()}
+        if content_type is not None:
+            assert headers.get("content-type", "").split(";")[0] == content_type, headers
         encoding = headers.get("content-encoding", "identity")
         if expected == "gzip":
             assert encoding == "gzip", headers
@@ -60,8 +64,8 @@ class Test_OTEL_EXPORTER_OTLP_COMPRESSION:
         ],
     )
     def test_http_json_gzip(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        # Compression applies to the HTTP/JSON encoding as well as to HTTP/protobuf.
-        _assert_compression(test_agent, test_library, "gzip")
+        # The content type proves the request was JSON, not a protobuf fallback that is gzipped anyway.
+        _assert_compression(test_agent, test_library, "gzip", content_type="application/json")
 
     @pytest.mark.parametrize("compression_env", [pytest.param({}, id="unset")])
     def test_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
