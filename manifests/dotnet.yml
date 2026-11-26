@@ -1438,6 +1438,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (No public Datadog meter-provider shutdown operation)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: v3.54.0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Synchronous_Cumulative_Carry_Forward: bug (APMAPI-2719)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations:  # Modified by easy win activation script
     - declaration: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
       component_version: <3.36.0
