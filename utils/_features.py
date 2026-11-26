@@ -2762,6 +2762,11 @@ class _Features:
         return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_evaluation_telemetry_and_exposures_switches(test_object):
+        """Feature Flags provider options that turn off evaluation telemetry and exposures"""
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
