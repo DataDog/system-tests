@@ -110,9 +110,19 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
+  nix:
+    name: Nix
+    needs:
+      - compute_libraries_and_scenarios
+    if: fromJson(needs.compute_libraries_and_scenarios.outputs.run_nix)
+    uses: ./.github/workflows/nix.yml
+    permissions:
+      contents: read
+      id-token: write
+
   all-jobs-are-green:
     # name: All jobs are green  # DO NOT SET A NAME: it's a required check, its name must stay the job id
-    # Only covers this workflow: GitLab jobs are gated by the DDCI Status check
+    # Only covers this workflow: GitLab jobs are gated by the `require: ddci` rule of repository.datadog.yml
     runs-on: ubuntu-latest
     permissions: {}
     needs:
@@ -122,6 +132,7 @@ jobs:
     - fail-if-target-branch
     - system_tests
     - exotics
+    - nix
     # always(): otherwise a failed, skipped or cancelled need skips this job, and a skipped required check counts
     # as passing (even a cancelled workflow could be merged). Only on PRs: it's a merge gate
     if: ${{ always() && github.event_name == 'pull_request' }}

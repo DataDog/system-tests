@@ -116,6 +116,8 @@ refs:
   - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
   - &ref_6_25_0 '>=6.25.0 || ^5.136.0'
   - &ref_6_26_0 '>=6.26.0 || ^5.137.0'
+  - &ref_6_27_0 '>=6.27.0 || ^5.138.0'
+  - &ref_6_28_0 '>=6.28.0 || ^5.139.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -358,35 +360,62 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_10_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll: incomplete_test_app (/api_security/catch-all not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature (RFC-1125 not implemented yet)
-  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment::test_three_params_in_segment
-  : incomplete_test_app (/api_security/three-params not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals: incomplete_test_app (/api_security/optional-chain not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText: incomplete_test_app (/api_security/search not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      component_version: <6.26.0
-      weblog: [express5]
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      excluded_weblog: [express5]
-  ? tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_optional_routes_are_distinct
-  : - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams::test_with_optional:
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteCatchAll:
     - weblog_declaration:
-        express5: missing_feature (RFC-1125 not implemented yet)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment: incomplete_test_app (/api_security/optional-segment not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText: incomplete_test_app (/api_security/drafts[/preview] not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames: incomplete_test_app (/api_security/param-names not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:  # TODO: a lower version might be supported
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      component_version: <6.26.0
-      weblog: [express5]
-    - declaration: missing_feature (RFC-1125 not implemented yet)
-      excluded_weblog: [express5]
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding: incomplete_test_app (/api_security/encoded not implemented in Node.js weblogs)
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: incomplete_test_app (/api_security/static-text, /version, /files not implemented in Node.js weblogs)
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultipleOptionals:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalAfterStaticText:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalStaticText:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteParamNames:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteRoot:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticEncoding:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_27_0
+        fastify: *ref_6_28_0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
@@ -1132,7 +1161,13 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py: v5.92.0
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        nextjs: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         nextjs: v6.19.0
@@ -2358,7 +2393,10 @@ manifest:
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64::test_dsmcontext_injection_base64: irrelevant (fixing node hashing)
-  tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmHttp:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express5: '>=6.27.0'
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": *ref_5_62_0
@@ -2503,7 +2541,7 @@ manifest:
   : - component_version: <5.88.0
       declaration: missing_feature
     - component_version: '>=5.88.0'
-      declaration: bug (APMAPI-2475)
+      declaration: bug (APMAPI-2707)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_default_headers
   : v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
@@ -2542,7 +2580,7 @@ manifest:
   : - component_version: <5.83.0
       declaration: missing_feature
     - component_version: '>=5.83.0'
-      declaration: bug (APMAPI-2475)
+      declaration: bug (APMAPI-2707)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
@@ -2602,9 +2640,9 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_http_protocol_is_used_for_trace_export
-  : missing_feature
+  : '>=6.27.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_unset_uses_specification_default
-  : missing_feature
+  : '>=6.27.0'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v6.0.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_empty_is_treated_as_unset
   : - declaration: bug (APMAPI-2591)
@@ -2633,7 +2671,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_duplicate_propagators: bug (APMAPI-2581)
-  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_empty_is_treated_as_unset: bug (APMAPI-2475)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_empty_is_treated_as_unset: '>=6.27.0 || ^5.138.0'
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v5.83.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2434)

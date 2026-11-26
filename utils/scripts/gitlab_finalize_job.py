@@ -62,7 +62,12 @@ class Job:
     @property
     def ci_environment(self) -> str:
         """Environment of the run (prod, dev...): each kind of generated job passes it in its own variable."""
-        return self.env.get(self.profile.environment_variable) or self.env.get("CI_ENVIRONMENT") or "prod"
+        return (
+            self.env.get(self.profile.environment_variable)
+            or self.env.get("SYSTEM_TESTS_CI_ENVIRONMENT")
+            or self.env.get("CI_ENVIRONMENT")
+            or "prod"
+        )
 
     @property
     def logs_pattern(self) -> str:

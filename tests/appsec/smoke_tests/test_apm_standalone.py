@@ -8,6 +8,7 @@ from utils import features, scenarios
 
 from tests.appsec.smoke_tests.utils import (
     BaseApiSecuritySmokeTests,
+    BaseIastSmokeTests,
     BaseRaspSmokeTests,
     BaseRemoteConfigSmokeTests,
     BaseTelemetrySmokeTests,
@@ -107,4 +108,17 @@ class Test_AppSecStandaloneAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
 @features.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
 class Test_AppSecStandaloneAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
+    pass
+
+
+# --- IAST across all standalone scenarios ---------------------------------
+
+
+@apm_standalone_rfc
+@features.appsec_apm_standalone
+@features.iast_standalone
+@scenarios.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+@scenarios.iast_standalone
+class Test_Standalone_Iast(BaseIastSmokeTests):
     pass

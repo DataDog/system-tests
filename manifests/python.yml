@@ -1183,10 +1183,18 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_Standalone_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py: v4.6.0
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_ApiSecurity:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Iast:
+    - weblog_declaration:
+        aiohttp: v4.18.0-rc1
+        tornado: incomplete_test_app (The weblog does not implement the IAST path endpoint)
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_Rasp:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1

@@ -22,6 +22,9 @@ on:
       rebuild_lambda_proxy:
         description: "Should the lambda-proxy image be rebuilt"
         value: ${{ jobs.main.outputs.rebuild_lambda_proxy }}
+      run_nix:
+        description: "Should the Nix workflow run"
+        value: ${{ jobs.main.outputs.run_nix }}
       # Scenario outputs
       scenarios:
         description: "Comma-separated list of scenarios to run"
@@ -40,6 +43,7 @@ jobs:
       target-branch-map: ${{ steps.get-target-branch.outputs.target-branch-map }}
       has-target-branch: ${{ steps.get-target-branch.outputs.has-target-branch }}
       rebuild_lambda_proxy: ${{ steps.compute.outputs.rebuild_lambda_proxy }}
+      run_nix: ${{ steps.compute.outputs.run_nix }}
       scenarios: ${{ steps.compute.outputs.scenarios }}
       scenarios_groups: ${{ steps.compute.outputs.scenarios_groups }}
     steps:
