@@ -147,7 +147,7 @@ class Test_Mock_FFE_Rules_Backend:
                 timeout=5,
             )
             assert response.status_code == 400
-            assert response.json() == {"error": "response_format must be json or protobuf"}
+            assert response.json() == {"error": "response_format must be json, protobuf, or precomputed"}
             assert server.ffe_get_requests() == []
         finally:
             server.close()
