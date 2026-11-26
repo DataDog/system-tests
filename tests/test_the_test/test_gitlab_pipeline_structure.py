@@ -5,8 +5,8 @@ from pathlib import Path
 
 import yaml
 
-from utils import scenarios
-from utils.ci.gitlab.build_pipeline import build
+from utils import pytest, scenarios
+from utils.ci.gitlab.build_pipeline import build, main
 
 
 MINIMAL_PARAMS = {
@@ -79,3 +79,45 @@ def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
                 continue
             has_stage = "stage" in job or "extends" in job
             assert has_stage, f"job '{name}' in chunk {i} has no stage or extends"
+
+
+GOLDEN_DIR = Path("tests/test_the_test/gitlab_pipeline_golden")
+# component inputs (arguments) and pipeline variables of each golden case, with the fixed params of GOLDEN_DIR
+GOLDEN_CASES: dict[str, tuple[list[str], dict[str, str]]] = {
+    "default": (
+        [
+            "--push-to-test-optimization",
+            "true",
+            "--force-execute",
+            "tests/a.py::Test_A",
+            "--pipeline-start-time",
+            "1000",
+        ],
+        {"LIBRARIES": "python php"},
+    ),
+    "upstream_grouped_split": (
+        ["--binaries-artifacts", "build_a;build b", "--binaries-artifact-path", "out/bin", "--split-pipeline", "true"],
+        {"LIBRARIES": "python php", "SYSTEM_TESTS_ENDTOEND_JOB_COUNT": "3"},
+    ),
+}
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("case", sorted(GOLDEN_CASES))
+@pytest.mark.parametrize("dev_mode", [{}, {"SYSTEM_TESTS_E2E_DEV_MODE": "false"}])
+def test_generated_chunks_match_golden_files(tmp_path: Path, case: str, dev_mode: dict[str, str]) -> None:
+    """Without dev mode, the generated chunks are byte-identical to the golden files.
+
+    The golden files were generated before the dev mode was added. When the generated pipeline is meant to change,
+    regenerate them: run main() with the arguments of GOLDEN_CASES, --stage e2e --ci-image img --ref abc
+    --params-dir tests/test_the_test/gitlab_pipeline_golden, and CI_PIPELINE_ID=42 in the environment.
+    """
+    args, environ = GOLDEN_CASES[case]
+    out = tmp_path / case
+    argv = ["--stage", "e2e", "--ci-image", "img", "--ref", "abc", "--output-dir", str(out), "--params-dir"]
+    assert main([*argv, str(GOLDEN_DIR), *args], environ={"CI_PIPELINE_ID": "42", **environ, **dev_mode}) == 0
+
+    golden = sorted(path.name for path in (GOLDEN_DIR / case).iterdir())
+    assert sorted(path.name for path in out.glob("*.yml")) == golden
+    for name in golden:
+        assert (out / name).read_bytes() == (GOLDEN_DIR / case / name).read_bytes(), name

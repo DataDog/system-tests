@@ -131,6 +131,31 @@ def validate_library_weblog_scenarios(name: str, value: str) -> list[str]:
     return errors
 
 
+def validate_target_branch_map(name: str, value: str) -> list[str]:
+    """JSON object {library or "agent": branch}, e.g. '{"python": "my-branch", "agent": "7.70.x"}'.
+
+    Only the format is checked here: which libraries can have a target branch is checked by build_pipeline.py.
+    """
+    expected = 'expected a JSON object like {"python": "my-branch"}'
+    try:
+        data = json.loads(value)
+    except json.JSONDecodeError as e:
+        return [_error(name, value, f"invalid JSON ({e}), {expected}")]
+
+    if not isinstance(data, dict):
+        return [_error(name, value, expected)]
+
+    errors = []
+    for library, branch in data.items():
+        if not re.match(r"^[a-z][a-z0-9_]*$", library):
+            errors.append(_error(name, library, "invalid library name"))
+        # same pattern as TARGET_BRANCH_PATTERN in build_pipeline.py: no character GitLab would expand ($)
+        if not isinstance(branch, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/+-]*", branch):
+            errors.append(_error(name, str(branch), f"invalid branch name for {library}"))
+    return errors
+
+
+# Variables written to param.env, read by build_pipeline.py (see its MERGED_LIST_VARIABLES and OVERRIDE_VARIABLES)
 CHECKS: list[tuple[str, object]] = [
     ("LIBRARIES", validate_space_lower),
     ("SCENARIOS", validate_comma_upper),
@@ -148,7 +173,12 @@ CHECKS: list[tuple[str, object]] = [
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),
     ("BINARIES_ARTIFACT_PATH", validate_path),
     ("SYSTEM_TESTS_PIPELINE_START_TIME", validate_positive_int),
+    ("SYSTEM_TESTS_E2E_DEV_MODE", validate_bool),
+    ("SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP", validate_target_branch_map),
 ]
+
+# JSON values: dotenv reports do not support multiline values, they are written on a single line
+JSON_VARIABLES = ("LIBRARY_WEBLOG_SCENARIOS", "SYSTEM_TESTS_E2E_TARGET_BRANCH_MAP")
 
 PARAM_ENV = "param.env"
 
@@ -170,8 +200,7 @@ def main() -> None:
         for name, _ in CHECKS:
             value = os.environ.get(name, "")
             if value:
-                if name == "LIBRARY_WEBLOG_SCENARIOS":
-                    # dotenv reports do not support multiline values
+                if name in JSON_VARIABLES:
                     value = json.dumps(json.loads(value), separators=(",", ":"))
                 f.write(f"{name}={value}\n")
 
