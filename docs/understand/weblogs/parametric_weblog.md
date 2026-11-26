@@ -695,6 +695,9 @@ Response:
 
 _not declared by the reference server_
 
+If the SDK rejected the counter at creation (see `create_counter`), the reference server returns a `400` with an `error`
+message, and records nothing.
+
 #### `POST /metrics/otel/create_asynchronous_counter`
 
 Called by `ParametricTestClientApi.otel_create_asynchronous_counter()`.
@@ -768,6 +771,9 @@ Request body:
 Response:
 
 _not declared by the reference server_
+
+If the SDK rejects the counter (for instance, an invalid instrument name), the server must not crash or drop the
+connection: the reference server returns a `400` with an `error` message. The client does not check the status.
 
 #### `POST /metrics/otel/create_gauge`
 

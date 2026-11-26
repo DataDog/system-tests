@@ -105,6 +105,8 @@ ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 otel_meters: Dict[str, Meter] = {}
 otel_meter_instruments: Dict[str, Instrument] = {}
+# Keys of instruments the SDK refused to create (e.g. invalid name), so measurements on them are rejected cleanly
+otel_rejected_instrument_keys: set = set()
 logger_dict: Dict[str, Any] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
@@ -1047,9 +1049,14 @@ def otel_create_counter(args: OtelCreateCounterArgs):
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     meter = otel_meters[args.meter_name]
-    counter = meter.create_counter(args.name, args.unit, args.description)
-
     instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+    try:
+        counter = meter.create_counter(args.name, args.unit, args.description)
+    except Exception as e:
+        # Return the SDK error instead of raising: an unhandled exception makes uvicorn drop the connection
+        otel_rejected_instrument_keys.add(instrument_key)
+        return JSONResponse({"error": str(e)}, status_code=400)
+
     otel_meter_instruments[instrument_key] = counter
     return OtelCreateCounterReturn()
 
@@ -1073,6 +1080,9 @@ def otel_counter_add(args: OtelCounterAddArgs):
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
     instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+
+    if instrument_key in otel_rejected_instrument_keys:
+        return JSONResponse({"error": f"Counter {args.name} was rejected at creation"}, status_code=400)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(
