@@ -948,7 +948,7 @@ class AgentContainer(TestedContainer):
         'full': datadog/agent:latest-full (adds bundled DDOT Collector otel-agent, binaries/agent-image-full).
         """
 
-        environment = dict(environment) if environment else {}
+        environment = environment or {}
         environment.update(
             {
                 "DD_ENV": "system-tests",
@@ -979,6 +979,7 @@ class AgentContainer(TestedContainer):
         if agent_image_variant == "full":
             image_name = "datadog/agent:latest-full"
             binary_file_name = "agent-image-full"
+            # Enable DDOT's otel-agent OTLP endpoint instead of the core Agent OTLP endpoint.
             environment.update(
                 {
                     "DD_OTELCOLLECTOR_ENABLED": "true",
