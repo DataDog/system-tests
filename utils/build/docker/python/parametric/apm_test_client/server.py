@@ -1053,10 +1053,14 @@ def otel_create_counter(args: OtelCreateCounterArgs):
     try:
         counter = meter.create_counter(args.name, args.unit, args.description)
     except Exception as e:
-        # Return the SDK error instead of raising: an unhandled exception makes uvicorn drop the connection
+        # The SDK raises a bare Exception for an invalid name, so it can't be caught more narrowly. Log it, so other
+        # failures stay visible, and return it instead of raising: an unhandled exception makes uvicorn drop the
+        # connection
+        log.exception("create_counter rejected by the SDK: name=%r", args.name)
         otel_rejected_instrument_keys.add(instrument_key)
         return JSONResponse({"error": str(e)}, status_code=400)
 
+    otel_rejected_instrument_keys.discard(instrument_key)
     otel_meter_instruments[instrument_key] = counter
     return OtelCreateCounterReturn()
 

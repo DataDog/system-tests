@@ -772,8 +772,8 @@ Response:
 
 _not declared by the reference server_
 
-If the SDK rejects the counter (for instance, an invalid instrument name), the server must not crash or drop the
-connection: the reference server returns a `400` with an `error` message. The client does not check the status.
+If the SDK rejects the counter (for instance, an invalid instrument name), the reference server returns a `400` with an
+`error` message, instead of raising and dropping the connection. The client does not check the status.
 
 #### `POST /metrics/otel/create_gauge`
 

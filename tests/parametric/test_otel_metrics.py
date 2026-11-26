@@ -521,6 +521,17 @@ class Test_Otel_Metrics_Api_Meter:
         exported_invalid_names = [name for name in invalid_names if find_metrics_by_name(metric_requests, name)]
         assert exported_invalid_names == [], f"Instruments with invalid names were exported: {exported_invalid_names}"
 
+        # Also catches an invalid name exported under another name (e.g. truncated or with characters replaced)
+        exported_names = [
+            metric["name"]
+            for metric_request in metric_requests
+            for resource_metrics in metric_request["resource_metrics"]
+            for scope_metrics in resource_metrics["scope_metrics"]
+            if scope_metrics["scope"]["name"] == DEFAULT_METER_NAME
+            for metric in scope_metrics["metrics"]
+        ]
+        assert exported_names == [valid_name], f"Unexpected metrics exported by the test meter: {exported_names}"
+
 
 @scenarios.parametric
 @features.otel_metrics_api
