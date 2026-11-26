@@ -970,43 +970,29 @@ class AgentContainer(TestedContainer):
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
-        apm_healthcheck = (
+        image_name = "datadog/agent:latest"
+        binary_file_name = "agent-image"
+        healthcheck_test = (
             f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info"
         )
-        volumes = {
-            # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
-            "./utils/build/docker/agent/ca-certificates.crt": {
-                "bind": "/etc/ssl/certs/ca-certificates.crt",
-                "mode": "ro",
-            },
-        }
 
-        if agent_image_variant == "classic":
-            image_name = "datadog/agent:latest"
-            binary_file_name = "agent-image"
-            healthcheck_test = apm_healthcheck
-            volumes["./utils/build/docker/agent/datadog.yaml"] = {
-                "bind": "/etc/datadog-agent/datadog.yaml",
-                "mode": "ro",
-            }
-        elif agent_image_variant == "full":
+        if agent_image_variant == "full":
             image_name = "datadog/agent:latest-full"
             binary_file_name = "agent-image-full"
-            environment["DD_OTELCOLLECTOR_ENABLED"] = "true"
+            environment.update(
+                {
+                    "DD_OTELCOLLECTOR_ENABLED": "true",
+                    "DD_OTLP_CONFIG_TRACES_ENABLED": "false",
+                    "DD_OTLP_CONFIG_METRICS_ENABLED": "false",
+                    "DD_OTLP_CONFIG_LOGS_ENABLED": "false",
+                }
+            )
             healthcheck_test = (
                 "sh -c 'curl --fail --silent --show-error --max-time 2 --output /dev/null "
                 '--header "Content-Type: application/json" --data "{}" http://localhost:4318/v1/traces && '
-                f"{apm_healthcheck}'"
+                f"{healthcheck_test}'"
             )
-            volumes["./utils/build/docker/agent/ddot-datadog.yaml"] = {
-                "bind": "/etc/datadog-agent/datadog.yaml",
-                "mode": "ro",
-            }
-            volumes["./utils/build/docker/agent/ddot-otel-config.yaml"] = {
-                "bind": "/etc/datadog-agent/otel-config.yaml",
-                "mode": "ro",
-            }
-        else:
+        elif agent_image_variant != "classic":
             raise ValueError(f"Unsupported agent_image_variant: {agent_image_variant!r}")
 
         super().__init__(
@@ -1019,7 +1005,14 @@ class AgentContainer(TestedContainer):
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,
-            volumes=volumes,
+            volumes={
+                # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
+            },
         )
 
     def configure(self, *, host_log_folder: str, replay: bool):
