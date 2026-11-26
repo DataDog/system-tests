@@ -48,6 +48,7 @@ from .appsec_auto_events import (
 )
 from .appsec_blocking import (
     AppsecBlocking,
+    AppsecBlockingOtelSemantics,
     AppsecBlockingFullDenylist,
 )
 from .aws_lambda import (
@@ -284,6 +285,7 @@ class _Scenarios:
     appsec_corrupted_rules = AppsecCorruptedRules()
     appsec_custom_rules = AppsecCustomRules()
     appsec_blocking = AppsecBlocking()
+    appsec_blocking_otel_semantics = AppsecBlockingOtelSemantics()
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = GraphqlAppsec()
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
