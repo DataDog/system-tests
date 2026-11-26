@@ -110,26 +110,35 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
-    # name: All jobs are green  # DO NOT SET A NAME
-    runs-on: ubuntu-latest
-    permissions:
-      checks: read
-      statuses: read
-      actions: read
+  nix:
+    name: Nix
     needs:
-    - system_tests
-    if: '!cancelled()'
-    steps:
-    - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e
-      with:
-        # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
-        polling-interval-seconds: '60'
-        max-retries: '120'
-        # Every GitLab job must pass. Ignore the merge-queue checks that wait
-        # for this gate and the aggregate DDCI status.
+      - compute_libraries_and_scenarios
+    if: fromJson(needs.compute_libraries_and_scenarios.outputs.run_nix)
+    uses: ./.github/workflows/nix.yml
+    permissions:
+      contents: read
+      id-token: write
 
-        ignored-name-patterns: |
-          devflow/merge
-          devflow/mergegate
-          DDCI Status
+  all-jobs-are-green:
+    # name: All jobs are green  # DO NOT SET A NAME: it's a required check, its name must stay the job id
+    # Only covers this workflow: GitLab jobs are gated by the `require: ddci` rule of repository.datadog.yml
+    runs-on: ubuntu-latest
+    permissions: {}
+    needs:
+    - lint
+    - test_the_test
+    - compute_libraries_and_scenarios
+    - fail-if-target-branch
+    - system_tests
+    - exotics
+    - nix
+    # always(): otherwise a failed, skipped or cancelled need skips this job, and a skipped required check counts
+    # as passing (even a cancelled workflow could be merged). Only on PRs: it's a merge gate
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    steps:
+    - name: Fail if any job failed or was cancelled
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: |
+        echo "At least one job failed or was cancelled"
+        exit 1

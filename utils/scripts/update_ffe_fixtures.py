@@ -17,6 +17,7 @@ FIXTURE_REF_PATTERN = re.compile(r"[A-Za-z0-9._/-]+")
 SELECTION_VECTORS_PATH = Path("flag-selection/selection-vectors.json")
 SELECTION_DROP_REASONS = frozenset({"malformed_selection", "too_many_values", "invalid_key_pattern", "invalid_tag"})
 SUITE_FLAG_TAGS_FILE = "flag-tags.json"
+SUITE_GUIDE_FILES = frozenset({"AGENTS.md", "README.md"})
 
 
 def _validate_fixture_ref(fixture_ref: str) -> None:
@@ -63,10 +64,30 @@ def _copy_entry(source: Path, destination: Path) -> None:
 
     destination.mkdir(parents=True, exist_ok=True)
     for child in sorted(source.iterdir()):
-        # Upstream documentation, such as a suite's AGENTS.md, is not fixture data.
-        if child.suffix == ".md" and not child.is_dir():
-            continue
         _copy_entry(child, destination / child.name)
+
+
+def _copy_evaluation_suite(source: Path, destination: Path) -> None:
+    if source.is_symlink() or not source.is_dir():
+        msg = f"Refusing to copy unsupported FFE evaluation suite: {source}"
+        raise ValueError(msg)
+
+    runtime_entries = {"ufc-config.json", "cases", SUITE_FLAG_TAGS_FILE}
+    for entry in source.iterdir():
+        if entry.is_symlink():
+            msg = f"Refusing to copy symbolic link from FFE fixture repository: {entry}"
+            raise ValueError(msg)
+        if entry.name in SUITE_GUIDE_FILES and entry.is_file():
+            continue
+        if entry.name not in runtime_entries:
+            msg = f"Unexpected entry in FFE evaluation suite {source.name}: {entry}"
+            raise ValueError(msg)
+
+    for name in ("ufc-config.json", "cases"):
+        _copy_entry(source / name, destination / name)
+    flag_tags = source / SUITE_FLAG_TAGS_FILE
+    if flag_tags.exists() or flag_tags.is_symlink():
+        _copy_entry(flag_tags, destination / SUITE_FLAG_TAGS_FILE)
 
 
 def _copy_fixture_snapshot(source: Path, snapshot: Path) -> None:
@@ -80,7 +101,15 @@ def _copy_fixture_snapshot(source: Path, snapshot: Path) -> None:
 
     feature_suites = source / "evaluation-suites"
     if feature_suites.exists() or feature_suites.is_symlink():
-        _copy_entry(feature_suites, snapshot / feature_suites.name)
+        if feature_suites.is_symlink() or not feature_suites.is_dir():
+            msg = f"Refusing to copy unsupported FFE evaluation suites: {feature_suites}"
+            raise ValueError(msg)
+        suites = sorted(feature_suites.iterdir())
+        if not suites:
+            msg = "FFE evaluation-suites must contain at least one feature suite"
+            raise ValueError(msg)
+        for suite in suites:
+            _copy_evaluation_suite(suite, snapshot / feature_suites.name / suite.name)
 
 
 def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:

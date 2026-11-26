@@ -5,7 +5,9 @@
 from utils import weblog, context, interfaces, features
 
 # get the default log output
-stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+stdout = {"dotnet": interfaces.library_dotnet_managed, "java": interfaces.library_java_tracer}.get(
+    context.library.name, interfaces.library_stdout
+)
 
 
 @features.appsec_logs
