@@ -72,6 +72,8 @@ const hasBaggageAPI = typeof tracer.getAllBaggageItems === 'function' &&
 const otelSpans = new Map()
 const otelMeters = new Map()
 const otelMeterInstruments = new Map()
+// Observations reported by asynchronous instrument callbacks, keyed by instrument key
+const otelAsynchronousObservations = new Map()
 const loggerDict = {}
 
 // Helper function to create instrument keys
@@ -869,17 +871,20 @@ app.post('/metrics/otel/create_asynchronous_counter', (req, res) => {
   }
 
   const meter = otelMeters.get(meter_name);
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_counter', unit, description);
   const observableCounter = meter.createObservableCounter(name, {
     unit,
     description
   });
 
-  // Add the callback
+  // The callback reports the observations currently stored for this instrument
+  otelAsynchronousObservations.set(instrumentKey, [{ value, attributes }]);
   observableCounter.addCallback((observableResult) => {
-    observableResult.observe(value, attributes);
+    for (const observation of otelAsynchronousObservations.get(instrumentKey) || []) {
+      observableResult.observe(observation.value, observation.attributes);
+    }
   });
 
-  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_counter', unit, description);
   otelMeterInstruments.set(instrumentKey, observableCounter);
   res.json({});
 });
@@ -893,17 +898,20 @@ app.post('/metrics/otel/create_asynchronous_updowncounter', (req, res) => {
   }
 
   const meter = otelMeters.get(meter_name);
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_updowncounter', unit, description);
   const observableUpDownCounter = meter.createObservableUpDownCounter(name, {
     unit,
     description
   });
 
-  // Add the callback
+  // The callback reports the observations currently stored for this instrument
+  otelAsynchronousObservations.set(instrumentKey, [{ value, attributes }]);
   observableUpDownCounter.addCallback((observableResult) => {
-    observableResult.observe(value, attributes);
+    for (const observation of otelAsynchronousObservations.get(instrumentKey) || []) {
+      observableResult.observe(observation.value, observation.attributes);
+    }
   });
 
-  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_updowncounter', unit, description);
   otelMeterInstruments.set(instrumentKey, observableUpDownCounter);
   res.json({});
 });
@@ -917,18 +925,28 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
   }
 
   const meter = otelMeters.get(meter_name);
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_gauge', unit, description);
   const observableGauge = meter.createObservableGauge(name, {
     unit,
     description
   });
 
-  // Add the callback
+  // The callback reports the observations currently stored for this instrument
+  otelAsynchronousObservations.set(instrumentKey, [{ value, attributes }]);
   observableGauge.addCallback((observableResult) => {
-    observableResult.observe(value, attributes);
+    for (const observation of otelAsynchronousObservations.get(instrumentKey) || []) {
+      observableResult.observe(observation.value, observation.attributes);
+    }
   });
 
-  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_gauge', unit, description);
   otelMeterInstruments.set(instrumentKey, observableGauge);
+  res.json({});
+});
+
+app.post('/metrics/otel/set_asynchronous_observations', (req, res) => {
+  const { meter_name, kind, name, unit, description, observations } = req.body;
+  const instrumentKey = createInstrumentKey(meter_name, name, `observable_${kind}`, unit, description);
+  otelAsynchronousObservations.set(instrumentKey, observations);
   res.json({});
 });
 

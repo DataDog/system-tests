@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/DataDog/dd-trace-go/v2/crashtracker"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
@@ -36,6 +37,8 @@ type apmClientServer struct {
 	meters              map[string]metric.Meter
 	instruments         map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
 	metricConfiguration *metricReaderConfiguration
+	// Observations reported by asynchronous instrument callbacks: instrument key -> []OtelAsynchronousObservation
+	asynchronousObservations sync.Map
 }
 
 type spanContext struct {
@@ -186,6 +189,7 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_counter", s.otelCreateAsynchronousCounterHandler)
 	http.HandleFunc("/metrics/otel/create_asynchronous_updowncounter", s.otelCreateAsynchronousUpDownCounterHandler)
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
+	http.HandleFunc("/metrics/otel/set_asynchronous_observations", s.otelSetAsynchronousObservationsHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
 	http.HandleFunc("/metrics/otel/shutdown", s.otelMetricsShutdownHandler)
 

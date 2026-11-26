@@ -887,6 +887,28 @@ Response:
 
 _not declared by the reference server_
 
+#### `POST /metrics/otel/set_asynchronous_observations`
+
+Called by `ParametricTestClientApi.otel_set_asynchronous_observations()`.
+Replace the observations reported by the callback of an asynchronous instrument created by a `create_asynchronous_*`
+endpoint. `kind` is `counter`, `updowncounter` or `gauge`. Each observation has a `value` (integer \| number) and
+`attributes` (object).
+
+Request body:
+
+| Field | Type | Required |
+|--|--|--|
+| `meter_name` | string | yes |
+| `kind` | string | yes |
+| `name` | string | yes |
+| `unit` | string | yes |
+| `description` | string | yes |
+| `observations` | list[OtelAsynchronousObservation] | yes |
+
+Response:
+
+_not declared by the reference server_
+
 #### `POST /metrics/otel/shutdown`
 
 Called by `ParametricTestClientApi.otel_metrics_shutdown()`.
