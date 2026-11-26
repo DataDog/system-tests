@@ -40,12 +40,16 @@ Specification: https://opentelemetry.io/docs/specs/semconv/http/http-spans/
 RFC: https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit
 """
 
-from collections.abc import Iterator
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 
 from utils import features, interfaces, rfc, scenarios, weblog
-from utils._weblog import HttpResponse
 from utils.dd_constants import SpanKind, StatusCode
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
+    from collections.abc import Iterator
 
 
 type HttpSpan = dict[str, Any]

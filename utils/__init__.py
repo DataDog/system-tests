@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from typing import TYPE_CHECKING
+
 # singletons
 from utils._weblog import weblog, HttpResponse
 from utils._context.core import context
@@ -21,6 +23,22 @@ from utils._logger import logger
 from utils import interfaces, _remote_config as remote_config
 from utils.interfaces._core import ValidationError
 from utils._features import features
+
+if TYPE_CHECKING:
+    # Exposed for type annotations only: these are not available at runtime, so tests
+    # must import them under `if TYPE_CHECKING:` (with `from __future__ import annotations`)
+    from utils.docker_fixtures import (
+        FrameworkTestClientApi as FrameworkTestClientApi,
+        ParametricTestClientApi as ParametricTestClientApi,
+        TestAgentAPI as TestAgentAPI,
+    )
+    from utils.docker_fixtures._test_agent import AgentRequest as AgentRequest
+    from utils.docker_fixtures.spec.trace import Span as Span
+    from utils.dd_types import (
+        DataDogAgentSpan as DataDogAgentSpan,
+        DataDogLibrarySpan as DataDogLibrarySpan,
+        DataDogLibraryTrace as DataDogLibraryTrace,
+    )
 
 __all__ = [
     "HttpResponse",

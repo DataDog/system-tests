@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import json
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
 from utils import context, features, scenarios
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from utils import pytest
 from unittest import mock
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from .utils import BaseGoogleGenaiTest
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 @pytest.fixture

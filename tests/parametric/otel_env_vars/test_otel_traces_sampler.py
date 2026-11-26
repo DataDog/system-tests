@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from tests.parametric.conftest import APMLibrary, nodejs_telemetry_value
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
 
 
 SAMPLER_ENV = {

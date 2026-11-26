@@ -1,10 +1,15 @@
 """Route-neutral Feature Flags exposure expectations."""
 
-from collections.abc import Iterable
-import json
+from __future__ import annotations
 
-from utils._weblog import HttpResponse
+import json
+from typing import TYPE_CHECKING
+
 from utils import interfaces
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
+    from collections.abc import Iterable
 
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30

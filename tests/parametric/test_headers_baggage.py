@@ -1,10 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils.docker_fixtures.spec.trace import find_only_span, span_has_no_parent
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
 
 from utils import pytest
 
-from .conftest import APMLibrary
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 

@@ -1,10 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_span, find_trace, retrieve_span_links, span_has_no_parent
 
-from .conftest import APMLibrary
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 # Parametric analog of tests/test_library_conf.py::Test_ExtractBehavior_*.
 # Kept in sync manually - if the e2e fixtures/assertions change, check both.

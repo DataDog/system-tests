@@ -1,9 +1,14 @@
-from collections.abc import Generator, Sequence
+from __future__ import annotations
+
 import hashlib
 import struct
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, logger, HttpResponse
-from utils.dd_types import DataDogAgentSpan, DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan, DataDogLibrarySpan
+    from collections.abc import Generator, Sequence
 
 
 class BaseDbIntegrationsTestClass:

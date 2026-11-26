@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 from utils import pytest
 
 from utils import scenarios, features, rfc
 from utils.docker_fixtures.spec.trace import find_span, find_trace
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")

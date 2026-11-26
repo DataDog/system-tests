@@ -1,17 +1,21 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 import json
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
-from utils.dd_types import DataDogLibrarySpan
 
 from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant_v2_exists,
 )
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 API10_TAGS = [

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 from utils import pytest
 
 from utils.docker_fixtures.spec.trace import ORIGIN
@@ -8,8 +11,10 @@ from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 @scenarios.parametric

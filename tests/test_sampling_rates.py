@@ -1,17 +1,20 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Generator
 import csv
 from random import randint, seed
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
-from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan, DataDogLibraryTrace
+    from collections.abc import Generator
 
 """Those are the constants used by the sampling algorithm in all the tracers
 

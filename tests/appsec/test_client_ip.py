@@ -1,9 +1,14 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, scenarios, features
-from utils.dd_types import DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 @scenarios.everything_disabled

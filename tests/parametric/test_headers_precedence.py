@@ -1,10 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import scenarios, features
-from utils.docker_fixtures import TestAgentAPI
 
-from .conftest import APMLibrary
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 

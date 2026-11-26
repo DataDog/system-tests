@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 from utils import pytest
 
-from .conftest import APMLibrary
 from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
-from utils.docker_fixtures import TestAgentAPI
 from utils import scenarios, features
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from .conftest import APMLibrary
 
 
 def enable_trace_filters(

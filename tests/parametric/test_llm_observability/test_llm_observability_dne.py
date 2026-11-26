@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from utils import pytest
 
 from tests.parametric.test_llm_observability.utils import check_and_get_api_key
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from ..conftest import APMLibrary  # noqa: TID252
 
 if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from ..conftest import APMLibrary  # noqa: TID252
     from utils.docker_fixtures.spec.llm_observability import DatasetCreateRequest
 
 

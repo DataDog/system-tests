@@ -1,12 +1,17 @@
 """Internal SDK logger configuration, not the severity of exported application logs."""
 
+from __future__ import annotations
+
 import time
+from typing import TYPE_CHECKING
 
 from utils import features, pytest, scenarios
 from tests.parametric.conftest import APMLibrary, nodejs_startup_config
-from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
-from utils.docker_fixtures import TestAgentAPI
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
 
 
 VARIABLE = "OTEL_LOG_LEVEL"

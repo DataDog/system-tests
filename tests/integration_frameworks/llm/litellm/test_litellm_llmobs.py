@@ -1,11 +1,15 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 from unittest import mock
 
 from tests.integration_frameworks.llm.utils import LlmObsSpanEvent, assert_llmobs_span_event
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import BaseLitellmTest, assert_gateway_marker, span_kind, wait_for_llmobs_span_events
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 MODEL = "gpt-4o-mini"

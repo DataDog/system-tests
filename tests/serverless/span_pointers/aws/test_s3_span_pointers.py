@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, rfc, features, logger
-from utils._weblog import HttpResponse
 from tests.serverless.span_pointers.utils import (
     POINTER_DIRECTION_DOWNSTREAM,
     make_single_span_link_validator,
     standard_hashing_function,
 )
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def _validate_s3_object_pointer(r: HttpResponse, resource: str):

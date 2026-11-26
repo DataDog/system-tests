@@ -1,14 +1,18 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.otel_env_vars.utils import generate_default_counter_data_point
 from tests.parametric.utils import find_log_components
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures.spec.trace import find_span_in_traces
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 def _service_name(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:

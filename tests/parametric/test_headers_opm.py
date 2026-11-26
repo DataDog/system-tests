@@ -20,12 +20,17 @@ parametric harness pins `ddapm-test-agent` >= v1.54.1, which reads the
 RFC: https://docs.google.com/document/d/1SzZWivVWT79lJe80ZulEra6AARszjEYVEwWJ7IhJ6Xo/edit?tab=t.0
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios, rfc
-from utils.docker_fixtures import TestAgentAPI
 
-from .conftest import APMLibrary
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 parametrize = pytest.mark.parametrize

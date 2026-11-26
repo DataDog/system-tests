@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 from collections.abc import Callable
 import re
 import time
-from typing import Any, Final
+from typing import Any, Final, TYPE_CHECKING
 
 from utils import pytest
 
 from utils import context
 
-from tests.parametric.conftest import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.parametric import LogLevel
+
+if TYPE_CHECKING:
+    from utils import AgentRequest, TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 BLRP_LIBRARY_ENV: Final = {

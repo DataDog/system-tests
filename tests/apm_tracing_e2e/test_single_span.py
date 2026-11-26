@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import weblog, interfaces, rfc, scenarios, features
 from utils.dd_constants import (
     SAMPLING_PRIORITY_KEY,
@@ -6,7 +10,9 @@ from utils.dd_constants import (
     SINGLE_SPAN_SAMPLING_RATE,
     SINGLE_SPAN_SAMPLING_MAX_PER_SEC,
 )
-from utils.dd_types import DataDogAgentSpan
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan
 
 
 @rfc("ATI-2419")

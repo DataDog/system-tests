@@ -10,8 +10,14 @@ This tests the fallback chain for determining the sampling key when http.route i
 3. If both absent, compute endpoint from http.url (don't set it on span)
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import interfaces, rfc, scenarios, weblog, features
-from utils._weblog import HttpResponse
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def get_schema(request: HttpResponse, address: str):

@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils._weblog import HttpResponse
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}

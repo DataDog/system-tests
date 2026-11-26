@@ -1,12 +1,16 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
+from __future__ import annotations
 
-from collections.abc import Callable
 import re
+from typing import TYPE_CHECKING
 
 from utils import interfaces, rfc, weblog, features, scenarios, logger
-from utils.dd_types import DataDogLibraryTrace
+
+if TYPE_CHECKING:
+    from utils import DataDogLibraryTrace
+    from collections.abc import Callable
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:

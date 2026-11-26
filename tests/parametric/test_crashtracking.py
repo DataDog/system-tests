@@ -1,13 +1,18 @@
 """Test the crashtracking (RC) feature of the APM libraries."""
 
+from __future__ import annotations
+
 import base64
 import json
 import time
+from typing import TYPE_CHECKING
 
 from utils import pytest
 
 from utils import features, scenarios, logger
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 @scenarios.parametric

@@ -4,10 +4,11 @@ Supported and legacy builds have separate manifest-controlled expectations. Neve
 infer support from the advertised bit: doing so would hide a missing-bit regression.
 """
 
-import time
-from typing import Any
+from __future__ import annotations
 
-from tests.parametric.conftest import APMLibrary
+import time
+from typing import Any, TYPE_CHECKING
+
 from tests.parametric.test_ffe.utils import (
     assert_dependent_flag_capability,
     deliver,
@@ -16,7 +17,10 @@ from tests.parametric.test_ffe.utils import (
     start_and_deliver,
 )
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 ENV = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",

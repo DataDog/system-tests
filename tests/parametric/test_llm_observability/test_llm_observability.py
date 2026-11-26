@@ -1,13 +1,19 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import scenarios, features
-from utils.docker_fixtures import TestAgentAPI
-from ..conftest import APMLibrary  # noqa: TID252
 from utils.docker_fixtures.spec.llm_observability import (
     LlmObsSpanRequest,
     LlmObsAnnotationRequest,
     LlmObsAnnotationContextRequest,
 )
+
+if TYPE_CHECKING:
+    from ..conftest import APMLibrary  # noqa: TID252
+    from utils import TestAgentAPI
 
 
 @pytest.fixture

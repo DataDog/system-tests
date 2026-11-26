@@ -1,11 +1,16 @@
 """Observe exporter selection with one counter rather than an environment echo."""
 
+from __future__ import annotations
+
 import json
 import re
+from typing import TYPE_CHECKING
 
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from tests.parametric.conftest import APMLibrary
+    from utils import TestAgentAPI
 
 
 VARIABLE = "OTEL_METRICS_EXPORTER"

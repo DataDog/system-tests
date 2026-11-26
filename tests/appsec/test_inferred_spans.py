@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import json
 import time
+from typing import TYPE_CHECKING
 
 from utils import weblog, interfaces, scenarios, features
-from utils.dd_types import DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 INFERRED_SPAN_NAMES = {"aws.apigateway", "aws.httpapi"}
 

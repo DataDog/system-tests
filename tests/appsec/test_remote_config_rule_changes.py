@@ -1,11 +1,12 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 from utils.dd_constants import Capabilities
-from utils.dd_types import DataDogLibrarySpan
 from tests.appsec.utils import find_series
 from utils import features
 from utils import interfaces
@@ -13,6 +14,9 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 CONFIG_ENABLED = (
     "datadog/2/ASM_FEATURES/asm_features_activation/config",

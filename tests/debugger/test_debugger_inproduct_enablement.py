@@ -1,13 +1,17 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
-from collections.abc import Callable
 import tests.debugger.utils as debugger
 from utils import context, features, interfaces, logger, remote_config, scenarios, slow, HttpResponse
-from utils.dd_types import DataDogAgentSpan
 import json
 import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan
+    from collections.abc import Callable
 
 TIMEOUT = 5
 DEFAULT_ENVVARS = {

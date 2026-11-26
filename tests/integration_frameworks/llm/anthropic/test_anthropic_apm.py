@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import context, scenarios, features
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from utils import pytest
 
 from .utils import BaseAnthropicTest
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 @features.apm_anthropic_messages

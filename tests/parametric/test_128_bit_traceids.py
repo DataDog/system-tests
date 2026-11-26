@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import scenarios, features
-from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+
+if TYPE_CHECKING:
+    from .conftest import APMLibrary
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616

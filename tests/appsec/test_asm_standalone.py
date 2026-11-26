@@ -1,16 +1,22 @@
-from collections.abc import Callable
+from __future__ import annotations
+
 import json
 from abc import ABC, abstractmethod
 import time
+from typing import TYPE_CHECKING
 
 from requests.structures import CaseInsensitiveDict
 
 from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SAMPLING_PRIORITY_KEY, SamplingPriority, TraceSource
 from utils.telemetry_utils import TelemetryUtils
-from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, logger
-from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat, is_same_boolean
+from utils.dd_types import LibraryTraceFormat, is_same_boolean
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan, DataDogLibraryTrace, HttpResponse
+    from utils._weblog import _Weblog
+    from collections.abc import Callable
 
 USER = "test"
 NEW_USER = "testnew"

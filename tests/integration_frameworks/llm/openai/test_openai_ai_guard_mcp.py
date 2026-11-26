@@ -15,13 +15,14 @@ and, when the evaluation references MCP servers, the same mcp_servers list sent 
 every mcp.server_id of the reported messages resolves to a server.
 """
 
+from __future__ import annotations
+
 import json
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import pytest
 
 from utils import features, scenarios
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from tests.integration_frameworks.llm.utils import (
     AI_GUARD_LIBRARY_ENV,
@@ -36,6 +37,9 @@ from tests.integration_frameworks.llm.utils import (
     wait_for_spans,
 )
 from .utils import BaseOpenaiTest
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 # Cross-tracer contract: "mcp_" + sha256(key).hexdigest()[:16], key as documented next to each ID.

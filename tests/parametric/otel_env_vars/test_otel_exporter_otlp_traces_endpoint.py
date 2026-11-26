@@ -1,8 +1,13 @@
-import time
+from __future__ import annotations
 
-from tests.parametric.conftest import APMLibrary
+import time
+from typing import TYPE_CHECKING
+
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 
 VARIABLE_NAME = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"

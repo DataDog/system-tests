@@ -1,6 +1,11 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 from utils import weblog, interfaces, context, logger
-from utils._weblog import HttpResponse
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def _get_expectation(d: str | dict | None) -> str | None:

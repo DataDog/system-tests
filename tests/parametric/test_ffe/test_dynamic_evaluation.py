@@ -1,10 +1,12 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
+from __future__ import annotations
+
 import json
 from utils import pytest
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from utils import (
     context,
@@ -13,9 +15,11 @@ from utils import (
     slow,
 )
 from utils.dd_constants import RemoteConfigApplyState
-from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import assert_feature_map, ffe_events_from_requests
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
+    from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"

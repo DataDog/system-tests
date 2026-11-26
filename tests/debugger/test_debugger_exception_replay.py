@@ -1,17 +1,22 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
 
-from collections.abc import Callable
 import copy
 import re
 import os
+from typing import TYPE_CHECKING
 import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
 from utils import features, logger, scenarios, slow
-from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
+from utils.dd_types import AgentTraceFormat
+
+if TYPE_CHECKING:
+    from utils import DataDogAgentSpan
+    from collections.abc import Callable
 
 
 def get_span_meta(span: dict, span_format: AgentTraceFormat) -> dict[str, str]:

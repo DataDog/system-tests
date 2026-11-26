@@ -2,10 +2,13 @@
 /chat/completions request and its tool calls. After-model needs the stream path: not yet cross-language.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import pytest
 
 from utils import features, scenarios
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from tests.integration_frameworks.llm.utils import (
     AI_GUARD_LIBRARY_ENV,
@@ -13,6 +16,9 @@ from tests.integration_frameworks.llm.utils import (
     assert_assistant_tool_calls_forwarded,
 )
 from .utils import TOOLS, BaseOpenaiTest
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 @pytest.fixture

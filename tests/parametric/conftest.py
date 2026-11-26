@@ -1,20 +1,26 @@
+from __future__ import annotations
+
 import base64
-from collections.abc import Generator
 import json
 from pathlib import Path
 import shutil
 import subprocess
 import uuid
+from typing import TYPE_CHECKING
 
 from utils import pytest
 import yaml
 
 from utils import scenarios, logger
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, docker_run, new_test_id
+from utils.docker_fixtures import ParametricTestClientApi as APMLibrary, docker_run, new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._core import get_host_port
-from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 from utils.mocked_backend import MockedBackendServer
+
+if TYPE_CHECKING:
+    from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
+    from utils import TestAgentAPI
+    from collections.abc import Generator
 
 
 # Max timeout in seconds to keep a container running

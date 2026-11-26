@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import features, scenarios
 from .utils import TOOLS, BaseOpenaiTest
 
 from utils import pytest
 
-from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
 
 
 @features.apm_openai_completions

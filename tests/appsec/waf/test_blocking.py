@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from utils import interfaces, scenarios, weblog, rfc, features
-from utils.dd_types import DataDogLibrarySpan
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
     extract_security_response_id_from_json,
     extract_security_response_id_from_html,
 )
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"

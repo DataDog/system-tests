@@ -1,13 +1,14 @@
-from collections.abc import Generator
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 from utils import pytest
 
-from utils.docker_fixtures import (
-    FrameworkTestClientApi,
-    TestAgentAPI,
-    new_test_id,
-)
+from utils.docker_fixtures import new_test_id
 from utils import context, scenarios, logger
+
+if TYPE_CHECKING:
+    from utils import FrameworkTestClientApi, TestAgentAPI
+    from collections.abc import Generator
 
 
 @pytest.hookimpl(hookwrapper=True)

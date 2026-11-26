@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, context, logger
-from utils.dd_types import DataDogLibrarySpan
+
+if TYPE_CHECKING:
+    from utils import DataDogLibrarySpan
 
 
 class _BaseKinesis:

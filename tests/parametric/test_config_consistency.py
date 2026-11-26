@@ -1,6 +1,9 @@
 """Test configuration consistency for features across supported APM SDKs."""
 
+from __future__ import annotations
+
 from urllib.parse import urlparse
+from typing import TYPE_CHECKING
 
 from utils import pytest
 import yaml
@@ -12,7 +15,6 @@ from utils import (
     logger,
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
-from utils.docker_fixtures import TestAgentAPI
 from .conftest import (
     APMLibrary,
     StableConfigWriter,
@@ -20,6 +22,9 @@ from .conftest import (
     nodejs_startup_config,
     restart_and_get_runtime_id,
 )
+
+if TYPE_CHECKING:
+    from utils import TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 

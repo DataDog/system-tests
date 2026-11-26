@@ -18,12 +18,17 @@ The "cookie, no JWT" case is omitted on purpose: request cookie schema extractio
 baseline extract-content processor (covered by Test_Schema_Request_Cookies), not by this PR.
 """
 
+from __future__ import annotations
+
 import base64
 import json
+from typing import TYPE_CHECKING
 
 from utils import interfaces, rfc, scenarios, weblog, features
-from utils._weblog import HttpResponse
 from tests.appsec.api_security.utils import get_sampled_response, send_until_schema
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 RFC_LINK = "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"

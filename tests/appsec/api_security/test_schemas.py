@@ -1,11 +1,16 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from utils import interfaces, rfc, scenarios, weblog, features, logger
-from utils._weblog import HttpResponse
 from tests.appsec.api_security.utils import send_until_schema, get_sampled_response
-from types import EllipsisType
+
+if TYPE_CHECKING:
+    from types import EllipsisType
+    from utils import HttpResponse
 
 
 def get_schema(request: HttpResponse, address: str):

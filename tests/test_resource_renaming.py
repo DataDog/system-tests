@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from utils import scenarios, weblog, interfaces, features
-from utils._weblog import HttpResponse
+
+if TYPE_CHECKING:
+    from utils import HttpResponse
 
 
 def get_endpoint_tag(response: HttpResponse) -> str | None:
