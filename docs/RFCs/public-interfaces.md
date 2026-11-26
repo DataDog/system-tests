@@ -56,7 +56,7 @@ build.sh, CI, tools ──▶ Build API ── builds images of
 
 #### Components
 
-A component is anything the test driver starts. The library under test is the **target component**, running inside the weblog or the parametric app. The others are the agent, the test agent, the proxy, the mocked backend, postgres, kafka... Mocks are components like any other. End-to-end and parametric tests are not two frameworks, but scenarios that start different components.
+A component is anything the test driver starts. The **target component** is the app that embeds the library under test: the weblog in end-to-end scenarios, the parametric app in parametric ones, plus the buddies (other-language weblogs used for distributed tracing). The library is not a component of its own, since nothing starts it separately. The others are the agent, the test agent, the proxy, the mocked backend, postgres, kafka... Mocks are components like any other. End-to-end and parametric tests are not two frameworks, but scenarios that start different components.
 
 A component has:
 
@@ -77,16 +77,15 @@ A test handle has up to two parts, in separate modules:
 
 | Component | Live | Record |
 |-----------|------|--------|
-| weblog | HTTP and gRPC requests | the requests and responses seen by the test runner |
-| library (target) | what it has sent so far, waits (`wait_for`) | what it sent, captured by the proxy (`interfaces.library` today), its stdout |
+| weblog (target) | HTTP and gRPC requests; what its library has sent so far, waits (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
 | agent | remote config, mocked responses to the library | what it sent, captured by the proxy (`interfaces.agent` today) |
 | mocked backend | mocked responses | captured backend payloads |
-| proxy | none: it captures and mocks on behalf of the library and agent handles | none |
-| parametric app | tracer API calls | none |
+| proxy | none: it captures and mocks on behalf of the weblog and agent handles | none |
+| parametric app (target) | tracer API calls | none |
 | test agent | queries and waits (`wait_for_num_traces`...), remote config | none |
 | postgres | SQL statements | none |
 
-The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Data helpers, constants, enums, types and `context` belong to no phase and stay at the root. Parametric tests apply the same data helpers to data fetched live.
+The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Large parts are grouped by product: the weblog's record carries everything its library sends (traces, AppSec, telemetry, remote config, profiling: 39 methods on `interfaces.library` today), so it reads `weblog.record.appsec.assert_waf_attack(...)`, `weblog.record.telemetry...`. Authors know the product they test as well as the components. Data helpers, constants, enums, types and `context` belong to no phase and stay at the root. Parametric tests apply the same data helpers to data fetched live.
 
 End-to-end tests run in two phases: `setup_*` methods run while the scenario is up, then `post_setup` stops every container, then `test_*` methods run. `--replay` skips the setup and loads the same data from the log folder. So:
 
@@ -118,13 +117,13 @@ from utils import weblog, interfaces
         interfaces.library.assert_waf_attack(self.r, rule="ua0-600-12x")
 
 # proposed
-from utils.components import weblog, library
+from utils.components import weblog
 
     def setup_main(self):
         self.r = weblog.live.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_main(self):
-        library.record.assert_waf_attack(self.r, rule="ua0-600-12x")
+        weblog.record.appsec.assert_waf_attack(self.r, rule="ua0-600-12x")
 ```
 
 **Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module and builds one mock per trace endpoint, because it has to know which endpoint each tracer uses:
@@ -198,12 +197,12 @@ def has_agent_rate(spans) -> bool:  # neutral: works on live or recorded data
 
     def setup_main(self):
         for _ in range(5):
-            if library.live.poll_root_spans(has_agent_rate):
+            if weblog.live.traces.poll_root_spans(has_agent_rate):
                 break
             ...
 
     def test_main(self):
-        assert has_agent_rate(library.record.get_root_spans())
+        assert has_agent_rate(weblog.record.traces.get_root_spans())
 ```
 
 `tests/test_config_consistency.py` does the same on a smaller scale: a helper filters runtime metrics, and it's used both in a `wait_for` during setup and in the test method. So the live parts of components that capture data expose it, the same data the record holds later. The split is still clear at the call site, but some methods exist on both sides.
@@ -269,7 +268,7 @@ Every step ships on its own and leaves CI green.
 
 1. **Boundaries only.** Add the contracts above with today's violations as ratchets, and the import side-effect test with today's effects allow-listed. No code moves.
 2. **Centralise re-exports**, each move removing ratchet lines:
-   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; remote config and mocked agent responses to `agent.live`; `wait_for` to `library.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
+   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; remote config and mocked agent responses to `agent.live`; `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
    - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
    - side effects: make singletons lazy and move resource allocation to scenario setup;
@@ -285,4 +284,5 @@ Every step ships on its own and leaves CI green.
 - Module names and layout: modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
 - Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one format?
 - Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
+- In parametric tests, what the library sent is read from the test agent. Should the parametric app's live part expose it instead (backed by the test agent), mirroring `weblog.live`?
 - Should `tests/test_the_test/` keep unrestricted access to internals?
