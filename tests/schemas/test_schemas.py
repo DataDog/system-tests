@@ -96,7 +96,7 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/debugger/v2/input",
                 data_path="$[].debugger.snapshot.stack",
-                condition=context.library == "python"
+                condition=context.library < "python@4.17.0-rc1"
                 and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
@@ -268,7 +268,7 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
-                condition=context.library == "python"
+                condition=context.library < "python@4.17.0-rc1"
                 and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
