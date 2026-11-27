@@ -59,3 +59,10 @@
 - Not when: The test intentionally validates a deliberately broken response.
 - ✅ Return the real backend envelope under `data.attributes`, and derive the check from the real contract.
 - ❌ Return the flag config as the whole body and make the self-test expect that same body.
+
+### TEST-009: Fail when a helper command fails.
+- Severity: P0
+- Flag: A helper that runs a container command must tell a failure from an empty result. On a failed command, the helper must fail the test. It must not drop the result without a failure.
+- Detect: A helper treats a failed `container_exec_run` call like a command with no match and drops its output.
+- ✅ `assert rc, f"pgrep -P {parent} exec failed: {out}"`.
+- ❌ `if rc: candidates.extend(int(p) for p in out.split())`.
