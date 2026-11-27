@@ -918,11 +918,16 @@ You can also use SCP to upload and download files to/from the remote machine:
 scp -i "/home/my_user/key_pairs/my_key_pair.pem" ubuntu@99.99.99.99:/home/ubuntu/javaagent-example/hola.txt .
 ```
 
-Remember destroy the pulumi stack to shutdown and remove the ec2 instance:
+Remember destroy the pulumi stack to shutdown and remove the ec2 instance. Run this script from the root of the repository:
 
 ```bash
-pulumi destroy
+utils/scripts/ssi_wizards/destroy_aws_stack.sh
 ```
+
+A plain `pulumi destroy` from the root of the repository fails (`provided project name "system-tests-vms" doesn't match Pulumi.yaml` or `no stack named ... found`).
+The stack belongs to the Pulumi project `system-tests-vms`, and the `Pulumi.yaml` file of the repository is the project `main`.
+The script runs the destroy from a temporary Pulumi project with the right name, with the passphrase stored in `.env`.
+It uses the `aws-vault` profile `sso-dev-apm-dcs-system-tests-account-admin`; set `AWS_VAULT_PROFILE` to use another one, or to an empty value to not use `aws-vault`.
 # Troubleshooting
 
 When running an **AWS SSI** test, failures usually fall into one of the cases below. For each case, check the **Symptoms** first, then follow the **What to do** steps.

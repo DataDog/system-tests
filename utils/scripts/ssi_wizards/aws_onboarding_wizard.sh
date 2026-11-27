@@ -117,7 +117,13 @@ check_and_set_env_var() {
 
 wizard_usage_begin aws
 welcome "AWS/Onboarding Tests"
-ask_load_requirements
+
+# The next steps need the virtual environment created by the build, so this step is not optional
+spacer
+echo -e "${YELLOW}📌 Step: system-tests requirements${NC}"
+echo "🔧 Running ./build.sh -i runner (mandatory: it creates the virtual environment used by the next steps)"
+load_requirements
+
 wizard_usage_step pulumi
 echo -e "${YELLOW}📌 Step: Check the Pulumi installation${NC}"
 check_pulumi_installed
@@ -479,22 +485,24 @@ run_test_command() {
         # Check if the command was successful
         if [[ ${rc} -eq 0 ]]; then
             echo "🎉 ✅ TESTS COMPLETED SUCCESSFULLY! 🎉"
-
-            # If ONBOARDING_KEEP_VMS is set, remind the user to destroy the stack
-            if [[ -n "$ONBOARDING_KEEP_VMS" ]]; then
-                echo ""
-                echo "⚠️  🔥 **REMINDER: YOU MUST MANUALLY DESTROY THE PULUMI STACK!** 🔥 ⚠️"
-                echo "🖥️  Run the following command to stop your EC2 instance:"
-                echo ""
-                echo "   🛑 aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- pulumi destroy"
-                echo ""
-                echo "📝 **Why?** Since ONBOARDING_KEEP_VMS is set, your virtual machine will stay running."
-                echo "💡 **To avoid extra AWS costs, remember to manually destroy the stack when finished.**"
-                echo "🚀 Have a great debugging session! 🖥️"
-                echo ""
-            fi
         else
             echo "❌ There was an error running the tests. Please check the logs above."
+        fi
+
+        # The VM stays running whatever the result of the tests: remind the user to destroy the stack
+        if [[ -n "${ONBOARDING_KEEP_VMS:-}" ]]; then
+            echo ""
+            echo "⚠️  🔥 **REMINDER: YOU MUST MANUALLY DESTROY THE PULUMI STACK!** 🔥 ⚠️"
+            echo "🖥️  Run the following command from the root of the repository to stop your EC2 instance:"
+            echo ""
+            echo "   🛑 utils/scripts/ssi_wizards/destroy_aws_stack.sh"
+            echo ""
+            echo "📝 **Why?** Since ONBOARDING_KEEP_VMS is set, your virtual machine will stay running."
+            echo "ℹ️  A plain 'pulumi destroy' does not work from this repository: the stack belongs to the Pulumi project"
+            echo "   'system-tests-vms', not to the project of the Pulumi.yaml file of the repository."
+            echo "💡 **To avoid extra AWS costs, remember to manually destroy the stack when finished.**"
+            echo "🚀 Have a great debugging session! 🖥️"
+            echo ""
         fi
     else
         wizard_usage_finish wizard.canceled "library=${TEST_LIBRARY}" "scenario=${SCENARIO}" "weblog=${WEBLOG}" "outcome=canceled"

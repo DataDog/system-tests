@@ -73,12 +73,17 @@ Run the wizard:
 ./utils/scripts/ssi_wizards/aws_onboarding_wizard.sh
 ```
 
-The wizard checks Pulumi and AWS access. It also configures the local `.env`
-file. You then select a language, scenario, weblog, virtual machine, and
+The wizard first builds the system-tests runner (`./build.sh -i runner`). This
+step is not optional: the next steps need the virtual environment it creates.
+The wizard then checks Pulumi and AWS access. It also configures the local
+`.env` file. You then select a language, scenario, weblog, virtual machine, and
 released or development components.
 
 The wizard shuts down the EC2 instance after the run. If you keep the instance
-for debugging, follow its `pulumi destroy` reminder.
+for debugging, destroy it with
+`utils/scripts/ssi_wizards/destroy_aws_stack.sh`. The wizard prints this command
+at the end of the run. A plain `pulumi destroy` does not work from the
+repository.
 
 See the [AWS SSI reference](../understand/scenarios/onboarding.md) for manual
 execution, logs, and troubleshooting.
