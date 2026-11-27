@@ -27,6 +27,7 @@ manifest:
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature
   tests/test_library_conf.py: irrelevant
+  tests/test_library_logs.py: irrelevant (These assertions target Java and .NET logs)
   tests/test_miscs.py: irrelevant
   tests/test_otel_http_semantics.py: missing_feature (The Kong plugin does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature

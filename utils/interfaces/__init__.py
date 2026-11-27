@@ -8,6 +8,8 @@ from ._core import ProxyBasedInterfaceValidator
 from ._logs import (
     _LibraryStdout,
     _LibraryDotnetManaged,
+    _LibraryJavaTracer,
+    JAVA_TRACER_LOG_FILENAME,
     _AgentStdout,
     _PostgresStdout,
     _LibraryStdout as LibraryStdoutInterface,
@@ -21,6 +23,7 @@ library = LibraryInterfaceValidator("library")
 library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
+library_java_tracer = _LibraryJavaTracer()
 mocked_backend = _MockedBackendInterfaceValidator()
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
@@ -34,6 +37,7 @@ ruby_buddy = LibraryInterfaceValidator("ruby_buddy")
 golang_buddy = LibraryInterfaceValidator("golang_buddy")
 
 __all__ = [
+    "JAVA_TRACER_LOG_FILENAME",
     "LibraryStdoutInterface",
     "StdoutLogsInterface",
     "agent_stdout",
@@ -41,6 +45,7 @@ __all__ = [
     "java_buddy",
     "library",
     "library_dotnet_managed",
+    "library_java_tracer",
     "library_stdout",
     "mocked_backend",
     "nodejs_buddy",
