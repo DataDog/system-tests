@@ -74,3 +74,10 @@
 - ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
 - ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
+
+### META-010: Lower a version gate only for the validated weblogs.
+- Severity: P1
+- Flag: A lowered manifest version must apply only to the weblogs that the PR validates at that version. Use `weblog_declaration` to keep the higher version for the other weblogs.
+- Detect: A manifest entry moves to a lower version for every weblog, but the change validates only some weblogs.
+- ✅ Use `weblog_declaration` with `"*": v1.68.0` and set `v1.67.0` only for the validated weblog.
+- ❌ Move `Test_Lfi_StackTrace` from `v1.68.0` to `v1.67.0` for every weblog, ALB included.
