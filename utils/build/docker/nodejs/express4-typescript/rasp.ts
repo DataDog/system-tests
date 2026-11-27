@@ -2,7 +2,7 @@
 
 import http from 'node:http';
 
-import type { Express, Request, Response } from 'express';
+import type { Express, NextFunction, Request, Response } from 'express';
 
 const pg = require('pg')
 const { statSync } = require('fs')
@@ -11,38 +11,38 @@ const { execFileSync, execSync } = require('child_process')
 function initRaspEndpoints (app: Express) {
     const pool = new pg.Pool()
 
-    app.get('/rasp/ssrf', (req: Request, res: Response) => {
+    app.get('/rasp/ssrf', (req: Request, res: Response, next: NextFunction) => {
         const clientRequest = http.get(`http://${req.query.domain}`, (response) => {
             response.resume()
             res.end('end')
         })
-        clientRequest.on('error', (e: any) => {
-            if (e.name === 'DatadogRaspAbortError') {
-                throw e
+        clientRequest.on('error', (error: Error) => {
+            if (error.name === 'DatadogRaspAbortError') {
+                return next(error)
             }
-            res.writeHead(500).end(e.message)
+            res.writeHead(500).end(error.message)
         })
     })
 
-    app.post('/rasp/ssrf', (req: Request, res: Response) => {
+    app.post('/rasp/ssrf', (req: Request, res: Response, next: NextFunction) => {
         const clientRequest = http.get(`http://${req.body.domain}`, (response) => {
             response.resume()
             res.end('end')
         })
-        clientRequest.on('error', (e: any) => {
-            if (e.name === 'DatadogRaspAbortError') {
-                throw e
+        clientRequest.on('error', (error: Error) => {
+            if (error.name === 'DatadogRaspAbortError') {
+                return next(error)
             }
-            res.writeHead(500).end(e.message)
+            res.writeHead(500).end(error.message)
         })
     })
 
-    app.get('/rasp/sqli', async (req: Request, res: Response) => {
+    app.get('/rasp/sqli', async (req: Request, res: Response, next: NextFunction) => {
         try {
             await pool.query(`SELECT * FROM users WHERE id='${req.query.user_id}'`)
         } catch (e: any) {
             if (e.name === 'DatadogRaspAbortError') {
-                throw e
+                return next(e)
             }
 
             res.writeHead(500).end(e.message)
@@ -52,12 +52,12 @@ function initRaspEndpoints (app: Express) {
         res.end('end')
     })
 
-    app.post('/rasp/sqli', async (req: Request, res: Response) => {
+    app.post('/rasp/sqli', async (req: Request, res: Response, next: NextFunction) => {
         try {
             await pool.query(`SELECT * FROM users WHERE id='${req.body.user_id}'`)
         } catch (e: any) {
             if (e.name === 'DatadogRaspAbortError') {
-                throw e
+                return next(e)
             }
 
             res.writeHead(500).end(e.message)

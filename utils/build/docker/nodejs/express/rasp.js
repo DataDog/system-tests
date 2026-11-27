@@ -8,40 +8,38 @@ const pg = require('pg')
 function initRaspEndpoints (app) {
   const pool = new pg.Pool()
 
-  app.get('/rasp/ssrf', (req, res) => {
+  app.get('/rasp/ssrf', (req, res, next) => {
     const clientRequest = http.get(`http://${req.query.domain}`, (response) => {
       response.resume()
       res.end('end')
     })
-    clientRequest.on('error', (e) => {
-      if (e.name === 'DatadogRaspAbortError') {
-        // throwing in event emitter will bubble up to the process unhandled error handler
-        throw e
+    clientRequest.on('error', (error) => {
+      if (error.name === 'DatadogRaspAbortError') {
+        return next(error)
       }
-      res.writeHead(500).end(e.message)
+      res.writeHead(500).end(error.message)
     })
   })
 
-  app.post('/rasp/ssrf', (req, res) => {
+  app.post('/rasp/ssrf', (req, res, next) => {
     const clientRequest = http.get(`http://${req.body.domain}`, (response) => {
       response.resume()
       res.end('end')
     })
-    clientRequest.on('error', (e) => {
-      if (e.name === 'DatadogRaspAbortError') {
-        // throwing in event emitter will bubble up to the process unhandled error handler
-        throw e
+    clientRequest.on('error', (error) => {
+      if (error.name === 'DatadogRaspAbortError') {
+        return next(error)
       }
-      res.writeHead(500).end(e.message)
+      res.writeHead(500).end(error.message)
     })
   })
 
-  app.get('/rasp/sqli', async (req, res) => {
+  app.get('/rasp/sqli', async (req, res, next) => {
     try {
       await pool.query(`SELECT * FROM users WHERE id='${req.query.user_id}'`)
     } catch (e) {
       if (e.name === 'DatadogRaspAbortError') {
-        throw e
+        return next(e)
       }
 
       res.writeHead(500).end(e.message)
@@ -51,12 +49,12 @@ function initRaspEndpoints (app) {
     res.end('end')
   })
 
-  app.post('/rasp/sqli', async (req, res) => {
+  app.post('/rasp/sqli', async (req, res, next) => {
     try {
       await pool.query(`SELECT * FROM users WHERE id='${req.body.user_id}'`)
     } catch (e) {
       if (e.name === 'DatadogRaspAbortError') {
-        throw e
+        return next(e)
       }
 
       res.writeHead(500).end(e.message)
