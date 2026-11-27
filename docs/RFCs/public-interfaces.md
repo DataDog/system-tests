@@ -325,4 +325,12 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
             assert span_meta["db.user"].casefold() == db_container.db_user.casefold()
 ```
 
-The database user is neither live nor record: it's configuration, fixed before the container starts and valid in both phases and in replay. It belongs to runtime info, like the library version: `context.components[self.db_service].db_user`.
+The database user is neither live nor record: it's configuration, fixed before the container starts and valid in both phases and in replay. It belongs to runtime info, like the library version. Tests get a read-only description of the component instead of the container object, which today also lets them act on the running container:
+
+```python
+# proposed
+    def test_db_user(self):
+        db = context.components[self.db_service]
+        for _, span_meta in self.get_spans_meta():
+            assert span_meta["db.user"].casefold() == db.db_user.casefold()
+```
