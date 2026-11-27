@@ -161,6 +161,17 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
+        # Keep only the wildcard config with ER=true. The two previous steps rely on the absence of the multiframe
+        # snapshot, so check that it is captured once the service name override is gone. Ignore snapshots emitted
+        # before this step, and keep the previous RC states so that they are still checked for errors.
+        rc_states = self.rc_states
+        self.start_time = int(time.time() * 1000)
+        self._send_config(enabled=True, service_name="*", env="*")
+        self.rc_states = rc_states + self.rc_states
+        self.er_enabled_after_service_name_override_removed = self._wait_for_exception_snapshot_received(
+            "/exceptionreplay/multiframe", "multiple stack frames exception"
+        )
+
     @slow
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):
         self.assert_rc_state_not_error()
@@ -170,6 +181,9 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         assert self.er_apm_multiconfig_enabled, "Expected snapshots to be emitting after enabling exception replay"
         assert self.er_disabled_by_service_name, "Expected snapshots to stop emitting after service name override"
         assert self.er_apm_multiconfig_enabled_2, "Expected snapshots to not be emitting after service name override"
+        assert self.er_enabled_after_service_name_override_removed, (
+            "Expected snapshots to be emitting after removing the service name override"
+        )
 
 
 @features.debugger_inproduct_enablement
