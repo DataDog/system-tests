@@ -4,13 +4,12 @@
     "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
     "headers": {
       "Content-Type": "application/json",
-      "dd-ai-guard-version": "4.17.0rc1",
+      "dd-ai-guard-version": "4.18.0rc1",
       "dd-ai-guard-source": "SDK",
       "dd-ai-guard-language": "python",
-      "datadog-entity-id": "in-28262",
-      "Content-Length": "447"
+      "Content-Length": "472"
     },
-    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"<normalized>\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_1\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_1\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"tools\": {\"echo\": \"echo\"}, \"command\": \"python\", \"args\": [\"integration_frameworks.mcp_echo_server\"]}]}}}"
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_80ef184a11de44d1929a14f91214c9ff\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_1\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_1\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"tools\": {\"echo\": \"echo\"}, \"command\": \"python\", \"args\": [\"integration_frameworks.mcp_echo_server\"]}]}}}"
   },
   "response": {
     "status": {
@@ -22,16 +21,16 @@
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
-      "content-length": "464",
-      "date": "Wed, 11 Nov 2026 09:50:22 GMT",
+      "content-length": "307",
+      "date": "Fri, 27 Nov 2026 08:32:18 GMT",
       "x-ratelimit-limit": "700",
       "x-ratelimit-period": "60",
-      "x-ratelimit-remaining": "695",
-      "x-ratelimit-reset": "39",
+      "x-ratelimit-remaining": "696",
+      "x-ratelimit-reset": "42",
       "x-ratelimit-name": "ai_guard_evaluate_per_org",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },
-    "body": "{\"data\":{\"id\":\"ecdade5e-c5bb-4faf-b956-0d4c905afaeb\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"ecdade5e-c5bb-4faf-b956-0d4c905afaeb\"}],\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":{\"data-exfiltration\":0,\"destructive-or-resource-abuse\":0.00004577531946559077,\"indirect-prompt-injection\":0,\"malicious-execution\":0,\"policy-evasion\":0,\"system-and-capability-discovery\":0},\"tags\":[]}}}"
+    "body": "{\"data\":{\"id\":\"22499059-4360-5e29-a6d2-eac5f621be38\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"22499059-4360-5e29-a6d2-eac5f621be38\"}],\"global_prob\":0.146484375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
   }
 }
