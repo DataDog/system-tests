@@ -245,15 +245,37 @@ from utils.components import postgres
         postgres.live.execute("SELECT 1;")
 ```
 
-**Interleaved actions and checks in parametric tests** (`tests/parametric/test_dynamic_configuration.py`). These tests act, observe, then act again depending on what they saw. Everything is live, fixtures return the live handles, and nothing changes but the types:
+**Interleaved actions and checks in parametric tests** (`tests/parametric/test_dynamic_configuration.py`). These tests act, observe, then act again depending on what they saw. Everything is live and fixtures return the live handles, so the body doesn't change. Only the imports do: today they reach into `utils.docker_fixtures`, `utils.dd_constants` and the parametric `conftest`:
 
 ```python
-    def test_rc_overrides_env(self, test_agent, test_library):
-        trace = get_sampled_trace(test_library, test_agent, name="env_name")
+# today
+from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import find_trace
+from utils.dd_constants import RemoteConfigApplyState
+from .conftest import APMLibrary
+
+    def test_rc_overrides_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library.dd_start_span(name="env_name") as span:
+            pass
+        test_library.dd_flush()
+        trace = find_trace(test_agent.wait_for_num_traces(num=1, clear=True), span.trace_id)
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
-        set_and_wait_rc(test_agent, test_library, config_overrides={...})
-        trace = get_sampled_trace(test_library, test_agent, name="env_name")
+
+        test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=rc_config)
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
+
+        with test_library.dd_start_span(name="env_name") as span:
+            pass
+        ...
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE)
+
+# proposed: same body
+from utils import find_trace
+from utils.components.parametric_app.live import ParametricApp
+from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent
+
+    def test_rc_overrides_env(self, test_agent: TestAgent, test_library: ParametricApp) -> None:
+        ...
 ```
 
 **Less well fitted: reading collected data during setup.** The same test (`test_sampling_rules_agent_rate.py`) sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup reads collected spans, which is record data, to decide whether to act again:
