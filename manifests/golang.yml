@@ -2172,6 +2172,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.12.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_http_json_gzip:
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v2.6.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
@@ -2179,6 +2182,9 @@ manifest:
     - declaration: bug (APMAPI-2497)
       component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_http_json_gzip
+  : - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.7.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v2.7.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
@@ -2186,23 +2192,28 @@ manifest:
     - declaration: bug (APMAPI-2497)
       component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v2.7.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
-  : bug (APMAPI-2501)
+  : irrelevant (Go logs default to http/protobuf)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2501)
       component_version: <2.11.2
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json:
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2501)
       component_version: <2.11.2
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_http_json_gzip
+  : - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v2.6.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
-  : missing_feature (OTLP HTTP JSON exporter is not implemented)
+  : - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
   : v2.5.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
@@ -2213,15 +2224,18 @@ manifest:
   : missing_feature (LowMemory temporality is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v2.5.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json:
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v2.7.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
-  : bug (APMAPI-2501)
+  : irrelevant (Go logs default to http/protobuf)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2501)
       component_version: <2.11.2
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json:
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not released yet)
+      component_version: <2.14.0-dev
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-2501)
       component_version: <2.11.2
