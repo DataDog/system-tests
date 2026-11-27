@@ -10,7 +10,7 @@ const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
 ])
 
 async function handleBodyLimit (request, { params }) {
-  const { failureReason } = params
+  const { failureReason } = await params
   if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
     return NextResponse.json({ error: 'unknown failure reason' }, { status: 404 })
   }

@@ -11,21 +11,22 @@ export async function GET (request, { params }) {
   // always read body for API sec, before processing the request as the other weblogs do: a blocked body must not set
   // the tag below
   const body = await getBody(request)
+  const { tag, status } = await params
 
   const tracer = global._ddtrace
   const rootSpan = tracer?.scope().active()?.context()._trace.started[0]
 
-  rootSpan?.setTag('appsec.events.system_tests_appsec_event.value', params.tag)
+  rootSpan?.setTag('appsec.events.system_tests_appsec_event.value', tag)
 
   // read querystring
   const query = Object.fromEntries(new URL(request.url).searchParams)
 
   const init = {
-    status: params.status || 200,
+    status: status || 200,
     headers: new Headers(query)
   }
 
-  if (params?.tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
+  if (tag?.startsWith?.('payload_in_response_body') && request.method === 'POST') {
     return NextResponse.json({ payload: body }, init)
   }
 
@@ -35,7 +36,7 @@ export const OPTIONS = GET
 export const POST = GET
 
 async function getBody (request) {
-  const contentType = headers().get('content-type')
+  const contentType = (await headers()).get('content-type')
   if (contentType?.toLowerCase() === 'application/json') {
     return await request.json()
   }
