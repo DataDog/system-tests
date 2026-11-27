@@ -126,7 +126,7 @@ from utils.components import weblog
         weblog.record.appsec.assert_waf_attack(self.r, rule="ua0-600-12x")
 ```
 
-**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module and builds one mock per trace endpoint, because it has to know which endpoint each tracer uses:
+**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module of the proxy. The code stays the same, only the access path changes: the mocks are responses the library receives from the agent, so they go through the agent handle, and the mock types come from the agent module:
 
 ```python
 # today
@@ -139,10 +139,16 @@ from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send
             SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=[mocked_json]),
         ])
 
-# proposed: the agent handle knows its trace endpoints
+# proposed
 from utils.components import agent
+from utils.components.agent import SequentialJsonMockedTracerResponse
 
-        agent.live.mock_rates_by_service({"service:,env:": AGENT_RATE})
+        mocked_json = {"rate_by_service": {"service:,env:": AGENT_RATE}}
+        agent.live.send_mocked_responses([
+            SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=[mocked_json]),
+            SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=[mocked_json]),
+            SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=[mocked_json]),
+        ])
 ```
 
 **Driving a side container** (`tests/otel_postgres_metrics_e2e/test_postgres_metrics.py`). Today the test casts the scenario to reach the container object, then shells into it:
