@@ -73,14 +73,16 @@ Components keep their own vocabulary: the weblog drives user-level behaviour ove
 A test handle has up to two parts, in separate modules:
 
 - **live** (`utils.components.<component>.live`) needs the component running: requests, remote config, mocked responses, test agent queries, waiting for data;
-- **record** (`utils.components.<component>.record`) only reads what the component persisted to the log folder, so it works after the component stopped and in replay mode.
+- **record** (`utils.components.<component>.record`) only reads what the component captured or persisted. It's complete once the component stopped, works in replay mode, and during setup holds what was captured so far.
+
+A query gets a live version only when its retrieval differs from the record's, such as querying a running container where the record reads a persisted file. Reading the same data partially and completely is the same record method.
 
 Everything sits next to what uses it: mock classes and payload builders in `live`, rule ids and record-only helpers in `record`. Little is really shared between the two parts, so there is no common module for types.
 
 | Component | Live | Record |
 |-----------|------|--------|
-| weblog (target) | HTTP and gRPC requests; what its library has sent so far, waits (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
-| agent | what it has sent so far, waits | what it sent, captured by the proxy (`interfaces.agent` today) |
+| weblog (target) | HTTP and gRPC requests, waits on what its library sends (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
+| agent | waits on what it sends | what it sent, captured by the proxy (`interfaces.agent` today) |
 | mocked backend | mocked responses, including remote config served to the agent | captured backend payloads |
 | proxy | mocked responses to the library in the agent's place, including remote config on `/v0.7/config` | none: its captures are the weblog's and the agent's records |
 | parametric app (target) | tracer API calls | none |
@@ -93,8 +95,10 @@ The API is organised by component, then phase, because authors know which compon
 
 End-to-end tests run in two phases: `setup_*` methods run while the scenario is up, then `post_setup` stops every container, then `test_*` methods run. `--replay` skips the setup and loads the same data from the log folder. So:
 
-- `setup_*` methods use **live**. Reading the record there sees incomplete data;
-- `test_*` methods use **record** only. An action there happens after the components stopped, and not at all in replay.
+- `test_*` methods use the **record** only. An action there happens after the components stopped, and not at all in replay;
+- `setup_*` methods use **live** and may read the **record**, which then holds what was captured so far. Polling it to decide whether to act again is legitimate (see the appendix).
+
+Some records only exist once the component stopped: stdout is read from log files that are complete only then. Those record members raise an explicit error when called before the component stopped, rather than returning partial or missing data.
 
 Parametric tests run while their containers are up and use live only, so there is nothing to check.
 
@@ -106,7 +110,7 @@ What a setup method keeps for its test (`self.r = ...`) is handed from `setup_x`
 - usable as a selector by any component's record (`weblog.record.appsec.assert_waf_attack(self.r)`, `agent.record.traces.get_spans(self.r)`);
 - serialized through a common protocol (`to_json`, `from_json`, key), so a component adds a result type without changing the whitelist in `_PropertiesEncoder`.
 
-**Static check.** An AST checker run by `./format.sh`, with a ratchet. It classifies `setup_*` and `test_*` methods by name and resolves each name to its module, through the import or the attribute chain. A live name in a `test_*` method or a record name in a `setup_*` method is a violation. Helpers in the same file inherit the phase of their callers, and tests can't import each other (`no-cross-test-imports`). On today's tests (1,102 setup and 1,446 test methods), a name-level prototype found no weblog call in a test method. Its 12 hits were `wait_for` (live) and an enum (neutral), both resolved by this layout.
+**Static check.** An AST checker run by `./format.sh`, with a ratchet. It classifies `setup_*` and `test_*` methods by name and resolves each name to its module, through the import or the attribute chain. A live name in a `test_*` method is a violation; that is the only rule. Helpers in the same file inherit the phase of their callers, and tests can't import each other (`no-cross-test-imports`). On today's tests (1,102 setup and 1,446 test methods), a name-level prototype found no weblog call in a test method. Its 12 hits were `wait_for` (live) and an enum (neutral), both resolved by this layout.
 
 **Replay.** What the checker can't see (`getattr`, handles passed as values) fails in replay mode, where tests only have the record. Running some scenarios in replay mode in CI replaces a runtime guard (`utils/scripts/replay_scenarios.sh` exists, CI doesn't run it).
 
@@ -277,10 +281,10 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
         ...
 ```
 
-**Less well fitted: reading collected data during setup.** The same test (`test_sampling_rules_agent_rate.py`) sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup deliberately reads the spans received so far to decide whether to send more traffic. The logic doesn't change, only the paths do:
+**Polling captured data during setup** (`test_sampling_rules_agent_rate.py`). The same test sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup deliberately reads the spans captured so far to decide whether to send more traffic. Setup may read the record, so only the paths change:
 
 ```python
-# today: setup and test both read interfaces.library.get_root_spans()
+# today
     def setup_agent_rate_applies_to_rule_miss(self):
         def has_agent_rate(_data) -> bool:
             for _, span in interfaces.library.get_root_spans():
@@ -297,7 +301,7 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
 # proposed
     def setup_agent_rate_applies_to_rule_miss(self):
         def has_agent_rate(_data) -> bool:
-            for _, span in weblog.live.traces.get_root_spans():  # received so far
+            for _, span in weblog.record.traces.get_root_spans():  # captured so far
                 ...
 
         for _ in range(5):
@@ -306,10 +310,10 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
             ...
 
     def test_agent_rate_applies_to_rule_miss(self):
-        agent_psr_values = {... for _, span in weblog.record.traces.get_root_spans() ...}  # everything
+        agent_psr_values = {... for _, span in weblog.record.traces.get_root_spans() ...}
 ```
 
-It fits less well because the same query exists on both sides: `get_root_spans` on `live` returns what was received so far, on `record` everything the run captured. The split can't assign it to one phase, so components that capture data expose their queries twice. In exchange, the call site says which one it reads, where today both phases read the same way. `tests/test_config_consistency.py` has the same shape with runtime metrics.
+`tests/test_config_consistency.py` does the same with runtime metrics.
 
 **Less well fitted: component configuration** (`tests/integrations/test_db_integrations_sql.py`). The test methods compare span tags to the credentials of the database container:
 
