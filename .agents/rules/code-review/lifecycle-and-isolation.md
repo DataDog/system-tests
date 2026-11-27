@@ -32,3 +32,11 @@
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
 - Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)
+
+### LIFE-005: Do not count periodically flushed data before it settles.
+- Severity: P0
+- Flag: Tracers flush spans, stats, and metrics on a timer. This includes telemetry metrics. An exact count of this data depends on timing. A late flush or an extra empty payload can change it. Assert that the expected item is present, or use a bounded wait. If the test must prove that no extra item arrives, use a settle window. Keep polling for that window after the count arrives.
+- Detect: A test asserts an exact count of flushed metrics, stats, or spans. A wait returns when the expected count arrives, and the test then counts without a settle window.
+- Not when: The test waits for the full flush window before it counts the data.
+- ✅ Assert `any(...)` over the metric series. Or wait with `interfaces.library.wait_for(condition, timeout=...)`.
+- ❌ Assert that exactly one telemetry count metric arrived.

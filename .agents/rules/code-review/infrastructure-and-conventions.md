@@ -5,7 +5,7 @@
 
 ### INFRA-002: Use Existing Utilities
 - Severity: P1
-- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`.
+- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`. This also applies to the shared helper module of a test folder, such as `tests/integration_frameworks/llm/utils.py`.
 - Ref: [Datadog constants](../../../utils/dd_constants.py), [Features](../../../utils/_features.py), [Using logger](../../../docs/edit/README.md#using-logger)
 
 ### INFRA-003: Unique Weblog Names
@@ -51,7 +51,7 @@
 - Old_id: claude-15
 - Severity: P0
 - Flag: A weblog or test-app image must install the dependencies it does not test from a committed lockfile or from exact pins. This also applies to transitive packages that the app uses directly. When the dependency inputs are unchanged, the build must not resolve new versions. A PR that adds or updates a dependency resolves it and commits the updated lock.
-- Detect: A Dockerfile runs `bundle lock --update` or `npm update`. A manifest pins a package but leaves a related package open, and the lockfile does not lock it.
+- Detect: A Dockerfile runs `bundle lock --update` or `npm update`. A manifest pins a package but leaves a related package open, and the lockfile does not lock it. A weblog replays recorded cassettes, and the Dockerfile leaves open a transitive package that can change the recorded request bodies.
 - Not when: A package follows the version of the SDK under test, or a range stays open on purpose to detect upstream drift, and a comment explains the exception.
 - ✅ Lock both `opentelemetry-sdk` and `opentelemetry-metrics-sdk`.
 - ❌ Pin `opentelemetry-sdk`, leave `opentelemetry-metrics-sdk` open, and omit it from the lockfile.
@@ -59,7 +59,7 @@
 ### INFRA-009: Give new tooling paths a CI selection rule.
 - Severity: P1
 - Flag: A new folder or file that no test uses needs a rule in `utils/scripts/libraries_and_scenarios_rules.yml`. Without a rule, the CI selects every library and every scenario group for that path.
-- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups.
+- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups. A test reads a data file, such as a JSON schema, from a folder that the selection rules do not watch. Then a change to that file does not run the scenarios that use it. Move the file to a watched folder, such as `tests/appsec/utils/`.
 - Not when: The new files are framework code that tests use, such as `utils/_context/` or `utils/interfaces/`. Then the full run is the intended behavior.
 - ✅ Add `utils/scripts/<tool>/*` with `scenario_groups: null` and `libraries: null`, and add a test in `tests/test_the_test/test_compute_libraries_and_scenarios.py`.
 - ❌ Add `utils/scripts/<tool>/` with no rule, so the pull request runs the whole end-to-end CI.
@@ -86,8 +86,15 @@
 ### INFRA-012: Put fixed weblog installs in a base image.
 - Severity: P1
 - Flag: A new weblog must keep third-party installs out of the main CI build. Put OS packages and fixed app dependencies in a base image. A base image is a Docker image that CI builds once and reuses. Add `<name>.base.Dockerfile` and a target in the library `docker-bake.hcl`. The weblog Dockerfile must start with `FROM system_tests_base_`. Fixed packages do not change when the tested library version changes. Leave the tested library version, and `install_ddtrace.sh`, in the weblog Dockerfile. Update `base-images.lock.json` only after the GitLab publish job finishes.
-- Detect: Report a new weblog Dockerfile under `utils/build/docker/` when it runs a fixed install. A fixed install uses apt-get, apk, yum, or dnf. It also uses pip install, npm install, pnpm, yarn, or bundle install. It also uses composer install, mvn, gradle, go mod download, or dotnet restore. A curl or wget of a remote URL is a fixed install too. Also report a new `<name>.base.Dockerfile` when the library `docker-bake.hcl` has no target for it.
+- Detect: Report a new weblog Dockerfile under `utils/build/docker/` when it runs a fixed install. A fixed install uses apt-get, apk, yum, or dnf. It also uses pip install, npm install, pnpm, yarn, or bundle install. It also uses composer install, mvn, gradle, go mod download, or dotnet restore. A curl or wget of a remote URL is a fixed install too. Also report a new `<name>.base.Dockerfile` when the library `docker-bake.hcl` has no target for it. Also report a Dockerfile that moves to `FROM system_tests_base_` when another script builds it without the base-image build contexts. An example is `utils/build/build_tracer_buddies.sh`, which must call `utils/scripts/resolve-base-images-contexts.py --build-contexts` like `build.sh`.
 - Not when: If the install is only the framework version under test, do not report it. If the command only runs the tracer installer `install_ddtrace.sh`, do not report it. If the Dockerfile installs nothing, do not report it.
 - ✅ See `utils/build/docker/python/openai-py.base.Dockerfile`. It installs curl and the pinned Python packages. `utils/build/docker/python/docker-bake.hcl` has an `openai-py` target. `openai-py.Dockerfile` starts with `FROM system_tests_base_python_openai_py`. That file only installs the OpenAI version under test.
 - ❌ A new weblog Dockerfile starts with `FROM python:3.11-slim`. The same file runs `apt-get` and `pip install`.
 - Ref: [Update Docker images](../../../docs/edit/update-docker-images.md), [Base image dependencies](../../../docs/understand/weblogs/weblog-metadata.md#base-image-dependencies)
+
+### INFRA-016: Discover upstream fixtures by structure, not by name.
+- Severity: P1
+- Flag: A script that imports upstream fixtures must discover them by structure. A list of fixture names omits new upstream suites silently. The README and the tests of the script must describe what it imports.
+- Detect: A fixture importer under `utils/scripts/`, such as `update_ffe_fixtures.py`, lists specific suite or feature names. Its tests do not cover a new upstream entry.
+- ✅ Import every self-contained directory under `evaluation-suites/`, reject unknown entries, and test with a synthetic future suite.
+- ❌ Copy only named suites, and document only those files in the README.
