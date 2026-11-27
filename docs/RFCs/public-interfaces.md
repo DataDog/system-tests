@@ -79,8 +79,8 @@ Everything sits next to what uses it: mock classes and payload builders in `live
 
 | Component | Live | Record |
 |-----------|------|--------|
-| weblog (target) | HTTP and gRPC requests; what its library has sent so far, waits (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
-| agent | what it has sent so far, waits | what it sent, captured by the proxy (`interfaces.agent` today) |
+| weblog (target) | HTTP and gRPC requests; waits on what its library sends (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
+| agent | waits on what it sends | what it sent, captured by the proxy (`interfaces.agent` today) |
 | mocked backend | mocked responses, including remote config served to the agent | captured backend payloads |
 | proxy | mocked responses to the library in the agent's place, including remote config on `/v0.7/config` | none: its captures are the weblog's and the agent's records |
 | parametric app (target) | tracer API calls | none |
@@ -277,7 +277,7 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
         ...
 ```
 
-**Less well fitted: reading collected data during setup.** The same test (`test_sampling_rules_agent_rate.py`) sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup reads collected spans, which is record data, to decide whether to act again:
+**Less well fitted: waiting on collected data during setup.** The same test (`test_sampling_rules_agent_rate.py`) sends bursts of requests until a span carries the mocked rate, because the rate only reaches the tracer in the response to a flush. Its setup has to look at what the library sent before the run is over:
 
 ```python
 # today
@@ -287,32 +287,40 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
                     return True
             return False
 
+        request_idx = 0
         for _ in range(5):
             if interfaces.library.wait_for(has_agent_rate, timeout=0):
                 break
             for _ in range(20):
                 weblog.get(f"/sample_rate_route/{request_idx}")
+                request_idx += 1
             time.sleep(2)
 ```
 
-The record can't be used here, since the data isn't complete. The live part needs its own access to what was collected so far: `wait_for` and polling pass it to the predicate, and the predicate is a neutral data helper, shared with the test method:
+The record can't be used in setup, since the data isn't complete. The live part doesn't need to expose the collected data either: a wait with a predicate on each span received is enough. The predicate is the only thing shared with the test method:
 
 ```python
 # proposed
-def has_agent_rate(spans) -> bool:  # neutral: works on live or recorded data
-    return any(abs(s.metrics.get("_dd.agent_psr", -1) - AGENT_RATE) < 0.01 for s in spans)
+from utils.components import weblog
+
+def has_agent_rate(span) -> bool:
+    return abs(span.metrics.get("_dd.agent_psr", -1) - AGENT_RATE) < 0.01
 
     def setup_main(self):
+        request_idx = 0
         for _ in range(5):
-            if weblog.live.traces.poll_root_spans(has_agent_rate):
+            if weblog.live.traces.wait_for_root_span(has_agent_rate, timeout=0):
                 break
-            ...
+            for _ in range(20):
+                weblog.live.get(f"/sample_rate_route/{request_idx}")
+                request_idx += 1
+            time.sleep(2)
 
     def test_main(self):
-        assert has_agent_rate(weblog.record.traces.get_root_spans())
+        assert any(has_agent_rate(span) for span in weblog.record.traces.get_root_spans())
 ```
 
-`tests/test_config_consistency.py` does the same on a smaller scale: a helper filters runtime metrics, and it's used both in a `wait_for` during setup and in the test method. So the live parts of components that capture data expose it, the same data the record holds later. The split is still clear at the call site, but some methods exist on both sides.
+It fits less well because the same data is reached two ways, a wait on the live side and a query on the record side, and the author has to know which phase they are in. `tests/test_config_consistency.py` has the same shape: a helper on runtime metrics is used in a `wait_for` during setup and on the record in the test method.
 
 **Less well fitted: component configuration** (`tests/integrations/test_db_integrations_sql.py`). The test methods compare span tags to the credentials of the database container:
 
