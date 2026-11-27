@@ -213,6 +213,7 @@ class EndToEndScenario(DockerScenario):
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str | None] | None = None,
+        agent_image_variant: Literal["classic", "full"] = "classic",
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
@@ -277,6 +278,7 @@ class EndToEndScenario(DockerScenario):
             rc_backend_enabled=True,
             mocked_backend=True,
             environment=agent_env,
+            agent_image_variant=agent_image_variant,
         )
         if include_agent:
             self._containers.append(self.agent_container)
@@ -586,6 +588,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         *,
         additional_trace_header_tags: tuple[str, ...] = (),
         agent_env: dict[str, str | None] | None = None,
+        agent_image_variant: Literal["classic", "full"] = "classic",
         agent_interface_timeout: int = 5,
         appsec_enabled: bool = True,
         client_drop_p0s: bool | None = None,
@@ -611,6 +614,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             name,
             additional_trace_header_tags=additional_trace_header_tags,
             agent_env=agent_env,
+            agent_image_variant=agent_image_variant,
             agent_interface_timeout=agent_interface_timeout,
             appsec_enabled=appsec_enabled,
             client_drop_p0s=client_drop_p0s,

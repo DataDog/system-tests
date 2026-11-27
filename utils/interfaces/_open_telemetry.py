@@ -4,12 +4,40 @@
 
 """Validate data flow between agent and backend"""
 
+import base64
+import binascii
+from collections.abc import Iterator
+from http import HTTPStatus
+import re
 import threading
 from typing import Any
 
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._weblog import HttpResponse
+
+
+_OTLP_TRACE_ID_BYTES = 16
+
+
+def otlp_trace_id_to_hex(tid: str | None) -> str:
+    """Normalize an OTLP traceId field to a 32-char lowercase hex string.
+
+    JSON Protobuf encoding emits the field as a hex string. Binary Protobuf encoding emits
+    16 raw bytes, which the proxy renders as a standard-base64 string. Returns "" if the
+    input is empty or doesn't decode to a 16-byte ID.
+    """
+    if not tid:
+        return ""
+    if re.fullmatch(r"[0-9a-fA-F]{32}", tid):
+        return tid.lower()
+    try:
+        decoded = base64.b64decode(tid, validate=True)
+    except (ValueError, binascii.Error):
+        return ""
+    if len(decoded) != _OTLP_TRACE_ID_BYTES:
+        return ""
+    return decoded.hex()
 
 
 def is_otel_span_for_request(span: dict[str, Any], request_id: str) -> bool:
@@ -39,7 +67,8 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_otel_trace_id(self, request: HttpResponse):
+    def get_otel_trace_id(self, request: HttpResponse, *, accepted_by: str | None = None) -> Iterator[str | None]:
+        """Yield matching trace IDs, optionally requiring successful delivery to a specific host."""
         # Paths filter intercepted OTLP export requests (weblog → proxy), not weblog or backend URLs.
         paths = ["/api/v0.2/traces", "/v1/traces"]
         rid = request.get_rid()
@@ -48,6 +77,15 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
+            if accepted_by is not None:
+                response = data.get("response") or {}
+                if data["host"] != accepted_by or response.get("status_code") != HTTPStatus.OK:
+                    continue
+                # OTLP uses HTTP 200 even for partial success. A rejected batch does
+                # not tell us which individual spans the collector accepted.
+                partial = (response.get("content") or {}).get("partialSuccess", {})
+                if int(partial.get("rejectedSpans", 0)):
+                    continue
             content = data.get("request").get("content")
             resource_spans = content.get("resourceSpans") or []
             for resource_span in resource_spans:

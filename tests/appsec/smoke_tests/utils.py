@@ -97,6 +97,22 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
+def assert_ddot_export(request: HttpResponse) -> None:
+    accepted_ids = {
+        f"0x{hex_id}"
+        for tid in interfaces.open_telemetry.get_otel_trace_id(request, accepted_by="agent")
+        if (hex_id := interfaces.otlp_trace_id_to_hex(tid))
+    }
+    assert accepted_ids, "DDOT must accept an OTLP trace for this request"
+    # Match by trace ID even if a native chunk lacks the root span, and by
+    # request ID in case a fallback produced a new trace. Ignore non-trace traffic.
+    rid = request.get_rid()
+    for _, trace in interfaces.library.get_traces():
+        message = f"Request {rid} was also exported via native trace intake ({trace.log_filename})"
+        assert not any(trace.trace_id_equals(tid) for tid in accepted_ids), message
+        assert not any(span.get_rid() == rid for span in trace), message
+
+
 def _assert_numeric_metric(span: DataDogAgentSpan, name: str) -> float:
     value = span.metrics.get(name)
     assert isinstance(value, (int, float)), f"Backend should receive numeric {name}"

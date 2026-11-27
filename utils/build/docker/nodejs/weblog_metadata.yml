@@ -52,6 +52,7 @@ fastify:
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
     - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTLP
     - THREAD_CONTEXT_SHARING
 nextjs:
   build_mode: local
@@ -81,6 +82,7 @@ nextjs:
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
     - SECURITY_SMOKE
+    - SECURITY_SMOKE_OTLP
 uds-express4:
   build_mode: local
   supported_scenarios:

@@ -15,7 +15,7 @@ from ._logs import (
     _LibraryStdout as LibraryStdoutInterface,
     _StdoutLogsInterfaceValidator as StdoutLogsInterface,
 )
-from ._open_telemetry import OpenTelemetryInterfaceValidator
+from ._open_telemetry import OpenTelemetryInterfaceValidator, otlp_trace_id_to_hex
 from ._test_agent import _TestAgentInterfaceValidator
 
 # singletons
@@ -50,6 +50,7 @@ __all__ = [
     "mocked_backend",
     "nodejs_buddy",
     "open_telemetry",
+    "otlp_trace_id_to_hex",
     "postgres",
     "python_buddy",
     "ruby_buddy",

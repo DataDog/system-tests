@@ -18,6 +18,10 @@ images:
     digest: sha256:161a43ad2b290f7527a70e70c8880c1b3d65b39411552a8cb41398049546daf5
     target: registry.ddbuild.io/system-tests/mirror/datadog/agent:latest
     tag: 7.84.1
+  datadog/agent:latest-full:
+    digest: sha256:0d2b73ea08a6f4a0d7f9b4fe8516a31164fe8ec26116394579eaaa6cf0d0560f
+    target: registry.ddbuild.io/system-tests/mirror/datadog/agent:latest-full
+    tag: latest-full
   datadog/serverless-init:1.10.4:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4

@@ -1178,6 +1178,17 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/smoke_tests/test_security_otlp.py: *ref_5_98_0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp:
+    - declaration: missing_feature (The Node.js exporter encodes structured reports as JSON bytes rather than MessagePack)
+    - weblog_declaration:
+        nextjs: v6.19.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_UserEvents:
+    - weblog_declaration:
+        fastify, nextjs: incomplete_test_app (The weblog does not implement the /login endpoint)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: *ref_6_5_0
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:

@@ -941,7 +941,13 @@ class AgentContainer(TestedContainer):
         rc_backend_enabled: bool = False,
         mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
+        agent_image_variant: Literal["classic", "full"] = "classic",
     ) -> None:
+        self.agent_image_variant: Literal["classic", "full"] = agent_image_variant
+        """'classic': datadog/agent:latest (core/trace agent with built-in OTLP receiver, binaries/agent-image).
+        'full': datadog/agent:latest-full (adds bundled DDOT Collector otel-agent, binaries/agent-image-full).
+        """
+
         environment = environment or {}
         environment.update(
             {
@@ -964,13 +970,39 @@ class AgentContainer(TestedContainer):
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
+        image_name = "datadog/agent:latest"
+        binary_file_name = "agent-image"
+        healthcheck_test = (
+            f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info"
+        )
+
+        if agent_image_variant == "full":
+            image_name = "datadog/agent:latest-full"
+            binary_file_name = "agent-image-full"
+            # Enable DDOT's otel-agent OTLP endpoint instead of the core Agent OTLP endpoint.
+            environment.update(
+                {
+                    "DD_OTELCOLLECTOR_ENABLED": "true",
+                    "DD_OTLP_CONFIG_TRACES_ENABLED": "false",
+                    "DD_OTLP_CONFIG_METRICS_ENABLED": "false",
+                    "DD_OTLP_CONFIG_LOGS_ENABLED": "false",
+                }
+            )
+            healthcheck_test = (
+                "sh -c 'curl --fail --silent --show-error --max-time 2 --output /dev/null "
+                '--header "Content-Type: application/json" --data "{}" http://localhost:4318/v1/traces && '
+                f"{healthcheck_test}'"
+            )
+        elif agent_image_variant != "classic":
+            raise ValueError(f"Unsupported agent_image_variant: {agent_image_variant!r}")
+
         super().__init__(
             name="agent",
-            image_name="datadog/agent:latest",
-            binary_file_name="agent-image",
+            image_name=image_name,
+            binary_file_name=binary_file_name,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
+                "test": healthcheck_test,
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,

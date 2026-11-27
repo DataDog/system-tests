@@ -768,6 +768,29 @@ manifest:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_security.py::Test_SecuritySmoke_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_security_otlp.py:
+    - weblog_declaration:
+        "*": v2.8.0
+        fiber-v2-orchestrion: v2.12.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp: missing_feature (The Go exporter does not encode structured reports as MessagePack byte attributes)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        '*': irrelevant (LFI detection requires Orchestrion)
+        fiber-v2-orchestrion: missing_feature (The Fiber weblog does not report the LFI rule match)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig:
+    - declaration: "missing_feature (Go does not export the AppSec JSON fallback over OTLP; dd-trace-go#5678)"
+      component_version: '<2.13.0-dev.1'
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        '*': irrelevant (LFI detection requires Orchestrion)
+        fiber-v2-orchestrion: missing_feature (The Fiber weblog does not block LFI after the RC rule update)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_Threats::test_attack_detection_smoke:
+    - declaration: "missing_feature (Go does not export the AppSec JSON fallback over OTLP; dd-trace-go#5678)"
+      component_version: '<2.13.0-dev.1'
+  tests/appsec/smoke_tests/test_security_otlp.py::Test_SecuritySmokeOtlp_UserEvents: incomplete_test_app (The Go weblogs do not implement the /login endpoint)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v2.11.0-dev
