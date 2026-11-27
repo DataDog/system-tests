@@ -135,6 +135,18 @@ def test_fiber_v2_orchestrion_weblog() -> None:
 
 
 @scenarios.test_the_test
+def test_get_endtoend_definitions_filters_scenarios_by_library():
+    # OTEL_INTEGRATIONS.get_libraries() is {"python_otel", "java_otel"}
+    scenario_map = {"endtoend": [scenarios.otel_integrations]}
+
+    defs = get_endtoend_definitions("python_otel", scenario_map, [], "dev", 200000, 256, "123", "")
+    assert len(defs["endtoend_defs"]["parallel_jobs"]) > 0
+
+    defs = get_endtoend_definitions("nodejs_otel", scenario_map, [], "dev", 200000, 256, "123", "")
+    assert defs["endtoend_defs"]["parallel_jobs"] == []
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
