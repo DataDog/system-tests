@@ -91,3 +91,10 @@
 - ✅ See `utils/build/docker/python/openai-py.base.Dockerfile`. It installs curl and the pinned Python packages. `utils/build/docker/python/docker-bake.hcl` has an `openai-py` target. `openai-py.Dockerfile` starts with `FROM system_tests_base_python_openai_py`. That file only installs the OpenAI version under test.
 - ❌ A new weblog Dockerfile starts with `FROM python:3.11-slim`. The same file runs `apt-get` and `pip install`.
 - Ref: [Update Docker images](../../../docs/edit/update-docker-images.md), [Base image dependencies](../../../docs/understand/weblogs/weblog-metadata.md#base-image-dependencies)
+
+### INFRA-013: Do not let a weblog skip an optional dependency silently.
+- Severity: P1
+- Flag: Gate an optional weblog dependency on a feature check of the module. This applies to a dependency that only some versions need. A broken install must fail the build or the startup with a clear error. It must not turn into 501 responses.
+- Detect: A Dockerfile decides to install a package from the path of a file inside an installed library. A weblog app wraps optional imports in a broad `try` and `except ImportError` that also hides a broken install.
+- ✅ Gate the install on `importlib.util.find_spec("anthropic.lib.tools.mcp")`, and import without a broad `except ImportError`.
+- ❌ `RUN if [ -f ".../lib/tools/mcp.py" ]; then pip install mcp; fi`
