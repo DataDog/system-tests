@@ -59,7 +59,7 @@
 ### INFRA-009: Give new tooling paths a CI selection rule.
 - Severity: P1
 - Flag: A new folder or file that no test uses needs a rule in `utils/scripts/libraries_and_scenarios_rules.yml`. Without a rule, the CI selects every library and every scenario group for that path.
-- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups.
+- Detect: The change adds a new path under `utils/scripts/` or at the repository root. No pattern in `libraries_and_scenarios_rules.yml` matches it, so the CI selects all scenario groups. A test reads a data file, such as a JSON schema, from a folder that the selection rules do not watch. Then a change to that file does not run the scenarios that use it. Move the file to a watched folder, such as `tests/appsec/utils/`.
 - Not when: The new files are framework code that tests use, such as `utils/_context/` or `utils/interfaces/`. Then the full run is the intended behavior.
 - ✅ Add `utils/scripts/<tool>/*` with `scenario_groups: null` and `libraries: null`, and add a test in `tests/test_the_test/test_compute_libraries_and_scenarios.py`.
 - ❌ Add `utils/scripts/<tool>/` with no rule, so the pull request runs the whole end-to-end CI.
@@ -98,3 +98,10 @@
 - Detect: A Dockerfile decides to install a package from the path of a file inside an installed library. A weblog app wraps optional imports in a broad `try` and `except ImportError` that also hides a broken install.
 - ✅ Gate the install on `importlib.util.find_spec("anthropic.lib.tools.mcp")`, and import without a broad `except ImportError`.
 - ❌ `RUN if [ -f ".../lib/tools/mcp.py" ]; then pip install mcp; fi`
+
+### INFRA-016: Discover upstream fixtures by structure, not by name.
+- Severity: P1
+- Flag: A script that imports upstream fixtures must discover them by structure. A list of fixture names omits new upstream suites silently. The README and the tests of the script must describe what it imports.
+- Detect: A fixture importer under `utils/scripts/`, such as `update_ffe_fixtures.py`, lists specific suite or feature names. Its tests do not cover a new upstream entry.
+- ✅ Import every self-contained directory under `evaluation-suites/`, reject unknown entries, and test with a synthetic future suite.
+- ❌ Copy only named suites, and document only those files in the README.
