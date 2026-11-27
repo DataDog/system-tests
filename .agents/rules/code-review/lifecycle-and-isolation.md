@@ -35,8 +35,8 @@
 
 ### LIFE-005: Do not count periodically flushed data before it settles.
 - Severity: P0
-- Flag: Tracers flush metrics, stats, and spans on a timer. An exact count of such data depends on timing. A flush can land after the wait ends, or send an extra empty payload. Assert that the expected item is present, or use a bounded wait for the condition. If the test must prove that no extra item arrives, use a settle window. Keep polling for that window after the expected count arrives.
-- Detect: A test asserts an exact count of flushed metrics, stats requests, or spans. A wait returns when the expected count arrives. The test then asserts that no other item exists.
+- Flag: Tracers flush spans, stats, and metrics on a timer. This includes telemetry metrics. An exact count of such data depends on timing. A flush can land after the wait ends, or send an extra empty payload. Assert that the expected item is present, or use a bounded wait for the condition. If the test must prove that no extra item arrives, use a settle window. Keep polling for that window after the expected count arrives.
+- Detect: A test asserts an exact count of flushed metrics, telemetry metrics, stats requests, or spans. A wait returns when the expected count arrives. The test then asserts that no other item exists.
 - Not when: The test waits for the full flush window before it counts the data.
 - ✅ Assert `any(...)` over the metric series, or wait with `interfaces.library.wait_for(condition, timeout=...)`.
 - ❌ Assert that exactly one stats request arrived.
