@@ -75,7 +75,7 @@ A test handle has up to two parts, in separate modules:
 - **live** (`utils.components.<component>.live`) needs the component running: requests, remote config, mocked responses, test agent queries, waiting for data;
 - **record** (`utils.components.<component>.record`) only reads what the component persisted to the log folder, so it works after the component stopped and in replay mode.
 
-The types of a component's interfaces (argument and return types, such as the proxy's mocked response classes or the span type that both a live poll and the record return) are factored one step up, in the component root `utils.components.<component>`. Both parts share them, and they are neutral for the phase check. The component root holds types and constants only, never a handle.
+Everything sits next to what uses it: mock classes and payload builders in `live`, rule ids and record-only helpers in `record`. Little is really shared between the two parts, so there is no common module for types.
 
 | Component | Live | Record |
 |-----------|------|--------|
@@ -98,7 +98,13 @@ End-to-end tests run in two phases: `setup_*` methods run while the scenario is 
 
 Parametric tests run while their containers are up and use live only, so there is nothing to check.
 
-What a setup method keeps for its tests (`self.r = ...`) is part of the record: `SetupProperties` already dumps it to `setup_properties.json`, and replay restores it. It's mostly what no component captures: responses seen by the test runner, remote config apply states, values computed in setup.
+What a setup method keeps for its test (`self.r = ...`) is handed from `setup_x` to `test_x` on the same test instance, not shared with other tests. `SetupProperties` persists it per test item in `setup_properties.json`, and replay restores it. Besides plain JSON values computed in setup, only three types cross today: `HttpResponse`, `GrpcResponse` and `RemoteConfigStateResults`.
+
+**Results.** These are the only things shared by the two parts, and the only content of the component root (`utils.components.weblog` for the responses, the component applying remote config for its results):
+
+- frozen data with no behaviour: what the live action observed, plus the key that identifies it in the records (the request id the weblog sends today). Holding one in a test method can't reach a live component;
+- usable as a selector by any component's record (`weblog.record.appsec.assert_waf_attack(self.r)`, `agent.record.traces.get_spans(self.r)`);
+- serialized through a common protocol (`to_json`, `from_json`, key), so a component adds a result type without changing the whitelist in `_PropertiesEncoder`.
 
 **Static check.** An AST checker run by `./format.sh`, with a ratchet. It classifies `setup_*` and `test_*` methods by name and resolves each name to its module, through the import or the attribute chain. A live name in a `test_*` method or a record name in a `setup_*` method is a violation. Helpers in the same file inherit the phase of their callers, and tests can't import each other (`no-cross-test-imports`). On today's tests (1,102 setup and 1,446 test methods), a name-level prototype found no weblog call in a test method. Its 12 hits were `wait_for` (live) and an enum (neutral), both resolved by this layout.
 
@@ -167,7 +173,7 @@ Every step ships on its own and leaves CI green.
 ## Open questions
 
 - Which scenarios should run in replay mode in CI, and is that enough without a runtime guard?
-- Should the weblog's record hold the requests and responses seen by the test runner, so that setup results become references into it?
+- Should the weblog's record hold the requests and responses seen by the test runner, so that live actions return only a reference and tests read everything from the record (`weblog.record.response(self.r).status_code`)? Only a key would cross the boundary, at the cost of more verbose reads. Tests that only use results as selectors wouldn't change.
 - Module names and layout: modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
 - Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one format?
 - Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
@@ -200,7 +206,7 @@ from utils.components import weblog
         weblog.record.appsec.assert_waf_attack(self.r, rule="ua0-600-12x")
 ```
 
-**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module of the proxy. The code stays the same, only the access path changes: the proxy is the component that answers the library in the agent's place, so the mocks go through its handle, and the mock types come from its module:
+**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module of the proxy. The code stays the same, only the access path changes: the proxy is the component that answers the library in the agent's place, so the mocks go through its live handle, next to their types:
 
 ```python
 # today
@@ -214,11 +220,11 @@ from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send
         ])
 
 # proposed
-from utils.components import proxy
-from utils.components.proxy import SequentialJsonMockedTracerResponse
+from utils.components.proxy import live as proxy
+from utils.components.proxy.live import SequentialJsonMockedTracerResponse
 
         mocked_json = {"rate_by_service": {"service:,env:": AGENT_RATE}}
-        proxy.live.send_mocked_responses([
+        proxy.send_mocked_responses([
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=[mocked_json]),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=[mocked_json]),
             SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=[mocked_json]),
