@@ -43,8 +43,7 @@ scenarios_by_definition_file = _get_scenarios_by_definition_file()
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
-OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
-ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
+ALL_LIBRARIES = COMPONENT_GROUPS.all
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 
 GITLAB_SSI_LIBRARIES = tuple(sorted(COMPONENT_GROUPS.ssi & COMPONENT_GROUPS.lib_injection))
