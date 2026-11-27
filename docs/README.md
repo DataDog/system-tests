@@ -100,6 +100,7 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 ## RFCs
 
 - [Manifest RFC](RFCs/manifest.md) -- the original manifest design proposal
+- [Public interfaces RFC](RFCs/public-interfaces.md) -- public Python interfaces of system-tests (test, metadata, scenario, component, build) and the migration plan
 
 ## AI tooling
 
