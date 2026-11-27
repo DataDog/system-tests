@@ -27,7 +27,7 @@ Six public interfaces, each with an audience and an explicit `__all__`. Everythi
 
 | Interface | Audience | Content |
 |-----------|----------|---------|
-| **Test API** | test authors | `utils.components.<component>.live` and `.record` (see below). At the `utils` root: helpers on collected data, `ValidationError`, `utils.pytest`, re-exports of the metadata API and runtime info |
+| **Test API** | test authors | `utils.components.<component>.live` and `.record` (see below). At the `utils` root: helpers on data that several components actually use, `ValidationError`, `utils.pytest`, re-exports of the metadata API and runtime info |
 | **Metadata API** | test authors, tooling | decorators (`bug`, `missing_feature`...), `features`, read-only scenario registry |
 | **Runtime info** | test and metadata APIs | read-only view of what is running (library, weblog variant, scenario, component versions), exposed as `context` |
 | **Scenario API** | scenario authors | scenario base classes, component definitions, constants, ports |
@@ -89,7 +89,7 @@ Everything sits next to what uses it: mock classes and payload builders in `live
 
 A mock belongs to the component that performs it, a capture to the component whose output it is. So remote config sits on the proxy or on the mocked backend depending on how the scenario serves it, as authors already choose between `tracer_rc_state` and `backend_rc_state` today.
 
-The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Large parts are grouped by product: the weblog's record carries everything its library sends (traces, AppSec, telemetry, remote config, profiling: 39 methods on `interfaces.library` today), so it reads `weblog.record.appsec.assert_waf_attack(...)`, `weblog.record.telemetry...`. Authors know the product they test as well as the components. Data helpers, constants, enums and types shared by several components, and `context`, belong to no phase and stay at the `utils` root. Parametric tests apply the same data helpers to data fetched live.
+The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Large parts are grouped by product: the weblog's record carries everything its library sends (traces, AppSec, telemetry, remote config, profiling: 39 methods on `interfaces.library` today), so it reads `weblog.record.appsec.assert_waf_attack(...)`, `weblog.record.telemetry...`. Authors know the product they test as well as the components. A data helper, constant, enum or type moves to the `utils` root only once several components actually use it. Until then it stays with its only user: `find_trace` works on what the test agent returns, and no end-to-end test uses it (their records hold a different data model), so it lives in `utils.components.test_agent.live`. `context` is at the root too.
 
 End-to-end tests run in two phases: `setup_*` methods run while the scenario is up, then `post_setup` stops every container, then `test_*` methods run. `--replay` skips the setup and loads the same data from the log folder. So:
 
@@ -270,9 +270,8 @@ from .conftest import APMLibrary
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE)
 
 # proposed: same body
-from utils import find_trace
 from utils.components.parametric_app.live import ParametricApp
-from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent
+from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, find_trace
 
     def test_rc_overrides_env(self, test_agent: TestAgent, test_library: ParametricApp) -> None:
         ...
