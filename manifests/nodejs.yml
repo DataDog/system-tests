@@ -2797,7 +2797,9 @@ manifest:
     - declaration: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
       component_version: <6.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: *ref_5_56_0
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+      component_version: <6.27.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
