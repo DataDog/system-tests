@@ -78,12 +78,14 @@ A test handle has up to two parts, in separate modules:
 | Component | Live | Record |
 |-----------|------|--------|
 | weblog (target) | HTTP and gRPC requests; what its library has sent so far, waits (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
-| agent | remote config, mocked responses to the library | what it sent, captured by the proxy (`interfaces.agent` today) |
-| mocked backend | mocked responses | captured backend payloads |
-| proxy | none: it captures and mocks on behalf of the weblog and agent handles | none |
+| agent | what it has sent so far, waits | what it sent, captured by the proxy (`interfaces.agent` today) |
+| mocked backend | mocked responses, including remote config served to the agent | captured backend payloads |
+| proxy | mocked responses to the library in the agent's place, including remote config on `/v0.7/config` | none: its captures are the weblog's and the agent's records |
 | parametric app (target) | tracer API calls | none |
 | test agent | queries and waits (`wait_for_num_traces`...), remote config | none |
 | postgres | SQL statements | none |
+
+A mock belongs to the component that performs it, a capture to the component whose output it is. So remote config sits on the proxy or on the mocked backend depending on how the scenario serves it, as authors already choose between `tracer_rc_state` and `backend_rc_state` today.
 
 The API is organised by component, then phase, because authors know which components their scenario starts but not each component's interface. Completion goes from what they know to what they don't: `utils.components.` lists the components, then `agent.` gives `live` and `record`, then the methods. A flat module would list every method of every component. The dedicated package keeps that first list short (the `utils` root has about 40 entries) and avoids clashes with implementation packages (`utils.proxy`). The import style (`from utils.components.agent.record import get_traces`, or `agent.record.get_traces(...)`) is up to authors. Large parts are grouped by product: the weblog's record carries everything its library sends (traces, AppSec, telemetry, remote config, profiling: 39 methods on `interfaces.library` today), so it reads `weblog.record.appsec.assert_waf_attack(...)`, `weblog.record.telemetry...`. Authors know the product they test as well as the components. Data helpers, constants, enums, types and `context` belong to no phase and stay at the root. Parametric tests apply the same data helpers to data fetched live.
 
@@ -126,7 +128,7 @@ from utils.components import weblog
         weblog.record.appsec.assert_waf_attack(self.r, rule="ua0-600-12x")
 ```
 
-**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module of the proxy. The code stays the same, only the access path changes: the mocks are responses the library receives from the agent, so they go through the agent handle, and the mock types come from the agent module:
+**Mocked agent responses** (`tests/test_sampling_rules_agent_rate.py`). Today the test imports an internal module of the proxy. The code stays the same, only the access path changes: the proxy is the component that answers the library in the agent's place, so the mocks go through its handle, and the mock types come from its module:
 
 ```python
 # today
@@ -140,11 +142,11 @@ from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send
         ])
 
 # proposed
-from utils.components import agent
-from utils.components.agent import SequentialJsonMockedTracerResponse
+from utils.components import proxy
+from utils.components.proxy import SequentialJsonMockedTracerResponse
 
         mocked_json = {"rate_by_service": {"service:,env:": AGENT_RATE}}
-        agent.live.send_mocked_responses([
+        proxy.live.send_mocked_responses([
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=[mocked_json]),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=[mocked_json]),
             SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=[mocked_json]),
@@ -274,7 +276,7 @@ Every step ships on its own and leaves CI green.
 
 1. **Boundaries only.** Add the contracts above with today's violations as ratchets, and the import side-effect test with today's effects allow-listed. No code moves.
 2. **Centralise re-exports**, each move removing ratchet lines:
-   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; remote config and mocked agent responses to `agent.live`; `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
+   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; mocked responses to `proxy.live` and `mocked_backend.live`, remote config to whichever of the two serves it (`tracer_rc_state` and `backend_rc_state` today); `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
    - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
    - runtime info: split `context` into the read-only view and the internal setter;
    - side effects: make singletons lazy and move resource allocation to scenario setup;
