@@ -299,9 +299,6 @@ patterns:
         scenarios: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
-    utils/scripts/review_learning/*:
-        scenario_groups: null
-        libraries: null
     utils/scripts/slack/send_changelog.sh:
         scenario_groups: null
         libraries: null
