@@ -1310,6 +1310,26 @@ class WeblogContainer(TestedContainer):
         else:
             header_tags = ""
 
+        if library == "java":
+            # The tracer logs to a dedicated file, so that the other loggers of the weblog can't interleave
+            # their lines with its multi-line logs. JDK_JAVA_OPTIONS is read by the java launcher only, so it
+            # does not replace the JAVA_TOOL_OPTIONS set by the weblogs
+            log_file_option = (
+                f"-Ddatadog.slf4j.simpleLogger.logFile=/var/log/system-tests/{interfaces.JAVA_TRACER_LOG_FILENAME}"
+            )
+            existing_options = self.environment.get("JDK_JAVA_OPTIONS")
+            self.environment["JDK_JAVA_OPTIONS"] = (
+                f"{existing_options} {log_file_option}" if existing_options else log_file_option
+            )
+
+            if not replay:
+                # Created by the tracer, the file would get the umask of the app server: Liberty's server script
+                # removes all permissions for others (umask o=), so the host user could not read it
+                log_file = Path(f"{self.log_folder_path}/logs/{interfaces.JAVA_TRACER_LOG_FILENAME}")
+                log_file.unlink(missing_ok=True)
+                log_file.touch()
+                log_file.chmod(0o666)
+
         if library == "ruby" and "rails" in self.weblog_variant:
             # Ensure ruby on rails apps log to stdout
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
