@@ -13,12 +13,11 @@ function initRaspEndpoints (fastify) {
       response.resume()
       reply.send('end')
     })
-    clientRequest.on('error', (e) => {
-      if (e.name === 'DatadogRaspAbortError') {
-        // throwing in event emitter will bubble up to the process unhandled error handler
-        throw e
+    clientRequest.on('error', (error) => {
+      if (error.name === 'DatadogRaspAbortError') {
+        return reply.send(error)
       }
-      reply.code(500).send(e.message)
+      reply.code(500).send(error.message)
     })
   })
 
@@ -27,12 +26,11 @@ function initRaspEndpoints (fastify) {
       response.resume()
       reply.send('end')
     })
-    clientRequest.on('error', (e) => {
-      if (e.name === 'DatadogRaspAbortError') {
-        // throwing in event emitter will bubble up to the process unhandled error handler
-        throw e
+    clientRequest.on('error', (error) => {
+      if (error.name === 'DatadogRaspAbortError') {
+        return reply.send(error)
       }
-      reply.code(500).send(e.message)
+      reply.code(500).send(error.message)
     })
   })
 
