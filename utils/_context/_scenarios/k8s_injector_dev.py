@@ -10,9 +10,7 @@ from utils.k8s.k8s_component_image import (
     extract_cluster_agent_version,
 )
 from utils._logger import logger
-from utils.injector_dev.injector_client import InjectorDevClient
 from utils.injector_dev.scenario_provision_parser import ScenarioProvisionParser
-from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 from ._core import Scenario, scenario_groups
 
 
@@ -79,6 +77,8 @@ class K8sInjectorDevSingleService(Scenario):
                 f"Scenario provision file not found at {scenario_provision_path}. Please build it first."
             )
 
+        from utils.injector_dev.injector_client import InjectorDevClient  # noqa: PLC0415
+
         # Initialize the injector client
         self.injector_client = InjectorDevClient()
 
@@ -120,6 +120,8 @@ class K8sInjectorDevSingleService(Scenario):
         # Create a ScenarioProvisionParser instance pointing to the logs directory
         logs_dir = Path(f"logs_{self.name}")
         scenario_provision_parser = ScenarioProvisionParser(logs_dir=logs_dir)
+
+        from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig  # noqa: PLC0415
 
         # Create a secret to access to the internal registry
         if PrivateRegistryConfig.is_configured():

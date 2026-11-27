@@ -11,7 +11,7 @@ from jsonschema import validate
 
 from utils._context.core import context
 
-from .parser import _load_file
+from .parser import YAML_LOADER, _load_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -253,7 +253,7 @@ def validate_manifest_files(path: Path = Path("manifests/"), *, assume_sorted: b
             continue
         if file.suffix == ".yml":
             with open(file, encoding="utf-8") as f:
-                data = yaml.safe_load(f)
+                data = yaml.load(f, Loader=YAML_LOADER)  # noqa: S506
 
             for name, validation in validations:
                 try:

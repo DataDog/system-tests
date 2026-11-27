@@ -37,19 +37,23 @@ def match_condition(
     return ret
 
 
+def rule_elements(rule: str) -> tuple[str, ...]:
+    # replace "::" with "/" to have a uniform separator, and remove leading/trailing slashes
+    return tuple(rule.strip("/").replace("::", "/").split("/"))
+
+
+def nodeid_elements(nodeid: str) -> tuple[str, ...]:
+    # some node ids may contain arguments after the method name, enclosed in square brackets
+    return tuple(nodeid.split("[", 1)[0].replace("::", "/").split("/"))
+
+
 def match_rule(rule: str, nodeid: str) -> bool:
-    # replace "::" with "/" to have a uniform separator, and removes leading/trailing slashes
-    rule_elements = rule.strip("/").replace("::", "/").split("/")
+    r_elements = rule_elements(rule)
+    n_elements = nodeid_elements(nodeid)
 
-    # some node id may contains argument after the method name, enclosed in square brackets
-    # clean them before matching
-    nodeid = nodeid.split("[")[0]
-
-    nodeid_elements = nodeid.replace("::", "/").split("/")
-
-    if len(rule_elements) > len(nodeid_elements):
+    if len(r_elements) > len(n_elements):
         return False
-    return nodeid_elements[: len(rule_elements)] == rule_elements
+    return n_elements[: len(r_elements)] == r_elements
 
 
 def get_rules(

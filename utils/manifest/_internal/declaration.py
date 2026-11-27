@@ -7,6 +7,10 @@ from .types import SemverRange
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
+_skip_declaration_pattern = re.compile(skip_declaration_regex, re.ASCII)
+_full_pattern = re.compile(full_regex, re.ASCII)
+_parse_skip_pattern = re.compile(r"^(\w+)( \((.*)\))?$")
+_test_declaration_prefixes = tuple(TestDeclaration)
 
 
 def validate_declaration_reason(declaration: TestDeclaration, reason: str | None) -> None:
@@ -51,7 +55,7 @@ class Declaration:
         self.parse_declaration()
 
     def parse_declaration(self) -> None:
-        elements = re.fullmatch(skip_declaration_regex, self.raw, re.ASCII)
+        elements = _skip_declaration_pattern.fullmatch(self.raw)
         if elements:
             self.is_skip = True
             self.value, self.reason = _parse_skip_declaration(self.raw)
@@ -60,7 +64,7 @@ class Declaration:
         if not self.is_inline:
             raise ValueError(f"Wrong declaration format: {self.raw} (is inline: {self.is_inline})")
 
-        elements = re.fullmatch(full_regex, self.raw, re.ASCII)
+        elements = _full_pattern.fullmatch(self.raw)
 
         if not elements:
             raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")
@@ -86,10 +90,10 @@ def _parse_skip_declaration(skip_declaration: str) -> tuple[TestDeclaration, str
     returns the corresponding TestDeclaration, and if it exists, de declaration details
     """
 
-    if not skip_declaration.startswith(tuple(TestDeclaration)):
+    if not skip_declaration.startswith(_test_declaration_prefixes):
         raise ValueError(f"The declaration must be a skip declaration: {skip_declaration}")
 
-    match = re.match(r"^(\w+)( \((.*)\))?$", skip_declaration)
+    match = _parse_skip_pattern.match(skip_declaration)
     assert match is not None
     declaration, _, declaration_details = match.groups()
 

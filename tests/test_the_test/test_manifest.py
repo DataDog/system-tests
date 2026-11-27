@@ -578,3 +578,48 @@ class Test_VersionsNotAheadOfCurrent:
         )
         errors = manifest.assert_versions_not_ahead_of_current()
         assert len(errors) == 1
+
+    def test_prefix_index_matches_match_rule(self) -> None:
+        from utils.manifest._internal.rule import match_rule  # noqa: PLC0415
+
+        components = {"agent": Version("7.86.0"), "python": Version("3.10.0"), "library": Version("3.10.0")}
+        manifest = Manifest(components, weblog="flask-poc")
+        assert manifest.rules is not None
+
+        sample_nodeids = [
+            *list(manifest.rules.keys())[:200],
+            "tests/appsec/waf/test_rules.py::Test_SQLI::test_sqli[param1]",
+            "tests/nonexistent/test_fake.py::TestFake::test_nothing",
+        ]
+        for nodeid in sample_nodeids:
+            fast_sources: list[tuple[str, list[tuple[int, int]]]] = []
+            fast = manifest.get_declarations(nodeid, declaration_sources=fast_sources)
+
+            ref_sources: list[tuple[str, list[tuple[int, int]]]] = []
+            ref: list[SkipDeclaration] = []
+            for rule, decls in manifest.rules.items():
+                if match_rule(rule, nodeid):
+                    ref += decls
+                    ref_sources.append((rule, manifest.condition_tracker[rule]))
+
+            assert fast == ref, f"Declaration mismatch for {nodeid}"
+            assert fast_sources == ref_sources, f"Source mismatch for {nodeid}"
+
+    def test_component_filtered_load_and_update_rules(self) -> None:
+        from utils.manifest._internal.parser import load  # noqa: PLC0415
+
+        path = Path("tests/test_the_test/manifests/manifests_parser_test/")
+        full = load(path)
+        filtered = load(path, components={"python"})
+        expected = {
+            nodeid: [c for c in conds if c["component"] == "python"]
+            for nodeid, conds in full.items()
+            if any(c["component"] == "python" for c in conds)
+        }
+        assert filtered == expected
+
+        manifest = Manifest({"python": Version("3.0.0")}, weblog="flask-poc", path=path)
+        manifest.update_rules({"java": Version("1.0.0"), "python": Version("3.0.0")}, weblog="spring-boot")
+        fresh = Manifest({"java": Version("1.0.0"), "python": Version("3.0.0")}, weblog="spring-boot", path=path)
+        assert manifest.rules == fresh.rules
+        assert manifest.condition_tracker == fresh.condition_tracker

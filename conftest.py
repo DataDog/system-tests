@@ -7,6 +7,7 @@ from utils.proxy import scrubber  # noqa: F401
 
 import json
 import os
+from pathlib import Path
 import time
 import types
 import xml.etree.ElementTree as ET
@@ -20,6 +21,7 @@ from pluggy._result import _Result as Result
 from utils import context
 from utils._context.junit_parameters import fingerprint_parameters
 from utils._context._scenarios import Scenario, scenarios
+from utils._context._scenarios.test_the_test import _TestTheTestScenario
 from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
@@ -318,37 +320,35 @@ def _collect_item_metadata(item: pytest.Item):
     return metadata
 
 
+def pytest_ignore_collect(collection_path: Path, config: pytest.Config) -> bool | None:
+    if (
+        not config.option.scenario_report
+        and not config.option.declaration_report
+        and not isinstance(context.scenario, _TestTheTestScenario)
+        and collection_path.name == "test_the_test"
+        and collection_path.parent.name == "tests"
+    ):
+        return True
+    return None
+
+
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    manifest = Manifest(context.scenario.components, context.weblog_variant)
-
-    for item in items:
-        assert isinstance(item, pytest.Function)
-        declarations = manifest.get_declarations(item.nodeid)
-        for declaration in declarations:
-            add_pytest_marker(item, declaration.value, declaration.details)
 
     selected = []
     deselected = []
 
     all_declared_scenarios = {}
     all_declarations = {}
+    scenario_report = bool(config.option.scenario_report)
+    declaration_report = bool(config.option.declaration_report)
+    sleep_mode = bool(session.config.option.sleep)
+    current_scenario_name = context.scenario.name
 
-    def iter_markers(self: pytest.Item, name: str | None = None):
-        # declarations are also excluded: a forced test is executed, it must be reported as a normal test
-        excluded = ("skip", "skipif", "xfail", "declaration")
-        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in excluded)
-
-    must_pass_item_count = 0
     for item in items:
-        markers = {marker.name: marker for marker in item.iter_markers()}
-        if "skip_if_xfail" in markers and "declaration" in markers:
-            marker = markers["declaration"]
-            declaration, details = marker.kwargs["declaration"], marker.kwargs["details"]
-            # mark as inconditional skip and rebuild the skip message
-            item.add_marker(pytest.mark.skip(f"{declaration} ({details})"))
+        assert isinstance(item, pytest.Function)
 
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
@@ -359,33 +359,66 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         else:
             declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
-        all_declared_scenarios[item.nodeid] = declared_scenarios
-        all_declarations[item.nodeid] = [str(marker) for marker in item.own_markers if marker.name in ("xfail", "skip")]
+        if scenario_report:
+            all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep:
+        if sleep_mode:
             deselected.append(item)
             continue
 
-        if context.scenario.name in declared_scenarios:
+        if current_scenario_name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
-
-            for forced in config.option.force_execute:
-                if item.nodeid.startswith(forced):
-                    logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
-                    # when user specified a test to be forced, we need to run it if it is skipped/xfailed, but also
-                    # if any of it's parent is marked as skipped/xfailed. The trick is to monkey path the
-                    # iter_markers method (this method is used by pytest internally to get all markers of a test item,
-                    # including parent's markers) to exclude the skip, skipif and xfail markers.
-                    item.iter_markers = types.MethodType(iter_markers, item)
-
-            if _item_must_pass(item):
-                must_pass_item_count += 1
-
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
+
+    items_for_manifest = items if declaration_report else selected
+    if items_for_manifest:
+        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        for item in items_for_manifest:
+            declarations = manifest.get_declarations(item.nodeid)
+            for declaration in declarations:
+                add_pytest_marker(item, declaration.value, declaration.details)
+
+    if declaration_report:
+        for item in items:
+            markers = {marker.name: marker for marker in item.iter_markers()}
+            if "skip_if_xfail" in markers and "declaration" in markers:
+                marker = markers["declaration"]
+                declaration_val, details = marker.kwargs["declaration"], marker.kwargs["details"]
+                item.add_marker(pytest.mark.skip(f"{declaration_val} ({details})"))
+            all_declarations[item.nodeid] = [
+                str(marker) for marker in item.own_markers if marker.name in ("xfail", "skip")
+            ]
+
+    def iter_markers(self: pytest.Item, name: str | None = None):
+        # declarations are also excluded: a forced test is executed, it must be reported as a normal test
+        excluded = ("skip", "skipif", "xfail", "declaration")
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in excluded)
+
+    must_pass_item_count = 0
+    for item in selected:
+        if not declaration_report:
+            markers = {marker.name: marker for marker in item.iter_markers()}
+            if "skip_if_xfail" in markers and "declaration" in markers:
+                marker = markers["declaration"]
+                declaration_val, details = marker.kwargs["declaration"], marker.kwargs["details"]
+                # mark as inconditional skip and rebuild the skip message
+                item.add_marker(pytest.mark.skip(f"{declaration_val} ({details})"))
+
+        for forced in config.option.force_execute:
+            if item.nodeid.startswith(forced):
+                logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
+                # when user specified a test to be forced, we need to run it if it is skipped/xfailed, but also
+                # if any of it's parent is marked as skipped/xfailed. The trick is to monkey path the
+                # iter_markers method (this method is used by pytest internally to get all markers of a test item,
+                # including parent's markers) to exclude the skip, skipif and xfail markers.
+                item.iter_markers = types.MethodType(iter_markers, item)
+
+        if _item_must_pass(item):
+            must_pass_item_count += 1
 
     if must_pass_item_count == 0 and session.config.option.skip_empty_scenario:
         items[:] = []
@@ -394,10 +427,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         items[:] = selected
         config.hook.pytest_deselected(items=deselected)
 
-    if config.option.scenario_report:
+    if scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
-    if config.option.declaration_report:
+    if declaration_report:
         with open(f"{context.scenario.host_log_folder}/declarations.json", "w", encoding="utf-8") as f:
             json.dump(all_declarations, f, indent=2)
             pytest.exit("Declaration collection mode, not running the tests")

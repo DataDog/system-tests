@@ -42,7 +42,6 @@ from utils.proxy.mocked_response import (
 from utils._logger import logger
 from utils._weblog import weblog
 from utils import interfaces
-from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
@@ -1871,6 +1870,8 @@ class WeblogInjectionInitContainer(TestedContainer):
         )
 
     def set_environment_for_library(self, library: ComponentVersion):
+        from utils.k8s_lib_injection.k8s_weblog import K8sWeblog  # noqa: PLC0415
+
         lib_inject_props = {}
         for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.name == "nodejs" else library.name]:
             lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
