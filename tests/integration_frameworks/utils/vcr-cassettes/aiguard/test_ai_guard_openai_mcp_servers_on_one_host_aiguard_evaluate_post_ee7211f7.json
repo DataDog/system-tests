@@ -15,6 +15,6 @@
     "headers": {
       "content-type": "application/vnd.api+json"
     },
-    "body": "{\"data\": {\"id\": \"system-tests-test_ai_guard_openai_mcp_servers_sharing_an_id_merge\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"reason\": \"system-tests MCP prompt matched: test_ai_guard_openai_mcp_servers_sharing_an_id_merge\", \"tags\": [], \"tag_probs\": null, \"global_prob\": 0.001, \"is_blocking_enabled\": false}}}"
+    "body": "{\"data\": {\"id\": \"system-tests-test_ai_guard_openai_mcp_servers_on_one_host\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"reason\": \"system-tests MCP prompt matched: test_ai_guard_openai_mcp_servers_on_one_host\", \"tags\": [], \"tag_probs\": null, \"global_prob\": 0.001, \"is_blocking_enabled\": false}}}"
   }
 }

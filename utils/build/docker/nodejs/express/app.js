@@ -911,14 +911,16 @@ app.post('/ai_guard/evaluate', async (req, res) => {
     redaction_replacements
   })
   const block = req.headers['x-ai-guard-block'] === 'true'
-  const messages = req.body
+  // The body is a list of messages, or an object with the messages and the MCP servers they reference.
+  const messages = Array.isArray(req.body) ? req.body : req.body.messages
+  const mcpServers = Array.isArray(req.body) ? undefined : req.body.mcp_servers
   const userId = req.headers['x-user-id']
   const sessionId = req.headers['x-session-id']
   if (userId && sessionId) {
     tracer.setUser({ id: userId, session_id: sessionId })
   }
   try {
-    const evaluation = await tracer.aiguard.evaluate(messages, { block })
+    const evaluation = await tracer.aiguard.evaluate(messages, mcpServers ? { block, mcpServers } : { block })
     res.status(200).json(renameAttrs(evaluation))
   } catch (e) {
     if (e.name === 'AIGuardAbortError') {

@@ -2313,7 +2313,10 @@ def ai_guard_evaluate():
         from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
-        messages = flask_request.get_json()
+        # The body is a list of messages, or an object with the messages and the MCP servers they reference.
+        body = flask_request.get_json()
+        messages = body.get("messages") if isinstance(body, dict) else body
+        mcp_servers = body.get("mcp_servers") if isinstance(body, dict) else None
 
         user_id = flask_request.headers.get("X-User-Id")
         session_id = flask_request.headers.get("X-Session-Id")
@@ -2321,7 +2324,9 @@ def ai_guard_evaluate():
             track_user_id(user_id, session_id=session_id)
 
         client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
-        evaluation = client.evaluate(messages, Options(block=should_block))
+        # mcp_servers is only passed when sent, so tracers without the argument keep working.
+        kwargs = {"mcp_servers": mcp_servers} if mcp_servers is not None else {}
+        evaluation = client.evaluate(messages, Options(block=should_block), **kwargs)
         return jsonify(evaluation), 200
 
     except AIGuardAbortError as e:

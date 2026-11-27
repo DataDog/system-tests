@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json",
+      "dd-ai-guard-version": "4.18.0rc1",
+      "dd-ai-guard-source": "SDK",
+      "dd-ai-guard-language": "python",
+      "Content-Length": "355"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Use the echo tool to echo exactly this text: hello from system-tests\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_017L3c9psqNq3hGL1ZEBmma6\", \"function\": {\"name\": \"echo\", \"arguments\": \"{\\\"text\\\": \\\"hello from system-tests\\\"}\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "309",
+      "date": "Fri, 27 Nov 2026 08:32:25 GMT",
+      "x-ratelimit-limit": "700",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "695",
+      "x-ratelimit-reset": "35",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"2f339bae-e892-5440-b473-b636ddfb81b0\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"2f339bae-e892-5440-b473-b636ddfb81b0\"}],\"global_prob\":0.07958984375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

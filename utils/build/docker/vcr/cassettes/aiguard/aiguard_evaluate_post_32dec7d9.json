@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json",
+      "dd-ai-guard-version": "4.18.0rc1",
+      "dd-ai-guard-source": "SDK",
+      "dd-ai-guard-language": "python",
+      "Content-Length": "518"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Search the local docs for APPSEC issues.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_mcp_1\", \"function\": {\"name\": \"local_search\", \"arguments\": \"{\\\"query\\\":\\\"APPSEC\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_1\"}}]}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}, \"mcp_servers\": [{\"id\": \"mcp_1\", \"managed_by\": \"client\", \"transport\": \"stdio\", \"name\": \"local-docs\", \"command\": \"uvx\", \"args\": [\"mcp-example\"], \"tools\": {\"local_search\": \"search\"}}]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "314",
+      "date": "Mon, 23 Nov 2026 13:29:31 GMT",
+      "x-ratelimit-limit": "700",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "699",
+      "x-ratelimit-reset": "29",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"extra_tags\":[{\"key\":\"ai_guard.evaluate_id\",\"value\":\"00000000-0000-4000-8000-000000000001\"}],\"global_prob\":0.0037689208984375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

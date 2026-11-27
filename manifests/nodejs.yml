@@ -175,6 +175,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express5: *ref_5_81_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_MCP_ToolCalls:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express5: *ref_6_27_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

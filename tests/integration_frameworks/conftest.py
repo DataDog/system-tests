@@ -34,12 +34,19 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
+def agent_env() -> dict[str, str]:
+    """Extra env of the test agent, such as VCR settings: override it in a test module like library_env."""
+    return {}
+
+
+@pytest.fixture
 def test_agent(
     test_id: str,
     worker_id: str,
     request: pytest.FixtureRequest,
+    agent_env: dict[str, str],
 ) -> Generator[TestAgentAPI, None, None]:
-    agent_env = {}
+    agent_env = dict(agent_env)
     if not request.config.option.generate_cassettes:
         agent_env["VCR_CI_MODE"] = "1"
 

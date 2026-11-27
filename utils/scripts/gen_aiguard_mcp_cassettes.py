@@ -54,36 +54,34 @@ AI_GUARD_META = {"service": "openai", "env": None}
 LEAK_MARKER = "s3cr3t"
 
 
-def server_id(key: str) -> str:
-    """RFC server ID: mcp_ followed by the first 16 hex characters of sha256(key)."""
-    return "mcp_" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+def server_id(position: int) -> str:
+    """RFC server ID: it only joins the tool calls of one request to their mcp_servers entry, so the
+    tracer numbers the hosted servers of a request in the order they are declared.
+    """
+    return f"mcp_{position}"
 
 
-# The RFC reference vector, checked on every run.
-assert server_id("url|https://mcp.example.com") == "mcp_b77bc22583ac5006"
+# The hosted server of every scenario that declares a single MCP server, or declares it first.
+EXAMPLE_ID = server_id(1)
+DROPBOX_ID = server_id(1)
 
-EXAMPLE_ID = server_id("url|https://mcp.example.com")
-DROPBOX_ID = server_id("connector|connector_dropbox")
-
-# The host canonicalization vectors of the RFC: server_label, configured server_url, the url origin
-# reported in mcp_servers (None: omitted, the name key is used) and the expected ID. Every tracer
-# tests the same vectors, so the IDs are written out rather than derived from a tracer.
+# The RFC URL vectors: server_label, configured server_url and the url reported in mcp_servers, as
+# the WHATWG URL Standard serializes it, path included (None: omitted, because an IDN host has no url).
+# Each vector is a server of the same request, so its ID is its position.
 HOST_VECTORS: list[tuple[str, str, str | None, str]] = [
-    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1", "mcp_bb3842ff8c77d25d"),
-    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080", "mcp_b339e608ea2ddcc1"),
-    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000", "mcp_cc35033de8004f7e"),
-    ("percent_host", "http://%65xample.com/mcp", "http://example.com", "mcp_35da95b0ebe35a00"),
-    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example", "mcp_2607363cabc2eebc"),
-    ("idn_host", "http://bücher.example/mcp", None, "mcp_905c59cb4ec642b0"),
+    ("ipv4_number", "http://2130706433/mcp", "http://127.0.0.1/mcp", server_id(1)),
+    ("ipv4_port", "http://127.0.0.1:8080/mcp", "http://127.0.0.1:8080/mcp", server_id(2)),
+    ("ipv6", "http://[0:0::1]:9000/mcp", "http://[::1]:9000/mcp", server_id(3)),
+    ("percent_host", "http://%65xample.com/mcp", "http://example.com/mcp", server_id(4)),
+    ("underscore_host", "http://my_server.example/mcp", "http://my_server.example/mcp", server_id(5)),
+    ("idn_host", "http://bücher.example/mcp", None, server_id(6)),
 ]
-for _label, _url, _origin, _expected_id in HOST_VECTORS:
-    assert server_id(f"url|{_origin}" if _origin else f"name|{_label}") == _expected_id, _label
 
 EXAMPLE_SERVER = {
     "id": EXAMPLE_ID,
     "managed_by": "provider",
     "name": "example",
-    "url": "https://mcp.example.com",
+    "url": "https://mcp.example.com/mcp",
     "transport": "unknown",
     "tools": {"ask_question": "ask_question"},
 }
@@ -101,14 +99,12 @@ EXAMPLE_TOOL = {
     "server_url": "https://mcp.example.com/mcp",
     "require_approval": "never",
 }
-# Userinfo, a path token, a query and a fragment, plus credentials in headers and authorization:
-# none of it may reach AI Guard.
+# Userinfo, a query and a fragment, plus credentials in headers and authorization: none of it may
+# reach AI Guard. The path is part of the server URL and is sent.
 EXAMPLE_TOOL_WITH_SECRETS = {
     "type": "mcp",
     "server_label": "example",
-    "server_url": (
-        "https://user:s3cr3t-userinfo@MCP.Example.com:443/mcp/s3cr3t-path-token?token=s3cr3t-query#s3cr3t-fragment"
-    ),
+    "server_url": "https://user:s3cr3t-userinfo@MCP.Example.com:443/mcp?token=s3cr3t-query#s3cr3t-fragment",
     "require_approval": "never",
     "headers": {"Authorization": "Bearer s3cr3t-header"},
 }
@@ -211,17 +207,16 @@ def _vector_tool(label: str, url: str) -> dict:
     return {"type": "mcp", "server_label": label, "server_url": url, "require_approval": "never"}
 
 
-def _vector_server(label: str, origin: str | None, expected_id: str) -> dict:
+def _vector_server(label: str, url: str | None, expected_id: str) -> dict:
     server: dict = {"id": expected_id, "managed_by": "provider", "name": label}
-    if origin is not None:
-        server["url"] = origin
+    if url is not None:
+        server["url"] = url
     server["transport"] = "unknown"
     server["tools"] = {f"{label}_lookup": f"{label}_lookup"}
     return server
 
 
-# Same origin, different paths: one server ID, so one mcp_servers entry named after the first label,
-# with the tools of both labels.
+# Same host, another path: another server, with its own mcp_servers entry and ID.
 EXAMPLE_SSE_TOOL = {
     "type": "mcp",
     "server_label": "example_sse",
@@ -328,9 +323,8 @@ SCENARIOS: dict[str, dict] = {
         "mcp_servers": None,
         "verdict": "ALLOW",
     },
-    # One call per host vector: each server gets the RFC ID of its canonical origin, and the IDN host,
-    # which has no url, gets the ID of its name key.
-    "test_ai_guard_openai_mcp_server_id_host_vectors": {
+    # One call per URL vector: each server reports its canonical URL, and the IDN host has no url.
+    "test_ai_guard_openai_mcp_server_url_host_vectors": {
         "input": "Run the lookup tool of every MCP server.",
         "tools": [_vector_tool(label, url) for label, url, _, _ in HOST_VECTORS],
         "output": [
@@ -344,10 +338,10 @@ SCENARIOS: dict[str, dict] = {
                 f"mcp_system_tests_6_{index}", f"{label}_lookup", LOOKUP_ARGUMENTS, LOOKUP_OUTPUT, expected_id
             )
         ],
-        "mcp_servers": [_vector_server(label, origin, expected_id) for label, _, origin, expected_id in HOST_VECTORS],
+        "mcp_servers": [_vector_server(label, url, expected_id) for label, _, url, expected_id in HOST_VECTORS],
         "verdict": "ALLOW",
     },
-    "test_ai_guard_openai_mcp_servers_sharing_an_id_merge": {
+    "test_ai_guard_openai_mcp_servers_on_one_host": {
         "input": "Ask the example MCP server about the RFC, then read its docs.",
         "tools": [EXAMPLE_TOOL, EXAMPLE_SSE_TOOL],
         "output": [
@@ -358,9 +352,19 @@ SCENARIOS: dict[str, dict] = {
             *_mcp_call_turns(
                 "mcp_system_tests_7_0", "ask_question", ASK_QUESTION_ARGUMENTS, ASK_QUESTION_OUTPUT, EXAMPLE_ID
             ),
-            *_mcp_call_turns("mcp_system_tests_7_1", "read_docs", READ_DOCS_ARGUMENTS, READ_DOCS_OUTPUT, EXAMPLE_ID),
+            *_mcp_call_turns("mcp_system_tests_7_1", "read_docs", READ_DOCS_ARGUMENTS, READ_DOCS_OUTPUT, server_id(2)),
         ],
-        "mcp_servers": [{**EXAMPLE_SERVER, "tools": {"ask_question": "ask_question", "read_docs": "read_docs"}}],
+        "mcp_servers": [
+            EXAMPLE_SERVER,
+            {
+                "id": server_id(2),
+                "managed_by": "provider",
+                "name": "example_sse",
+                "url": "https://mcp.example.com/sse",
+                "transport": "unknown",
+                "tools": {"read_docs": "read_docs"},
+            },
+        ],
         "verdict": "ALLOW",
     },
 }

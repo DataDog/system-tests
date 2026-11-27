@@ -100,6 +100,7 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_MCP_ToolCalls: missing_feature (AI Guard SDK has no MCP servers option)
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
     - weblog_declaration:
         '*': irrelevant
