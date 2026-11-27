@@ -306,6 +306,8 @@ from utils.components import weblog
 def has_agent_rate(span) -> bool:
     return abs(span.metrics.get("_dd.agent_psr", -1) - AGENT_RATE) < 0.01
 
+
+class Test_SamplingRulesAgentRate:
     def setup_main(self):
         request_idx = 0
         for _ in range(5):
