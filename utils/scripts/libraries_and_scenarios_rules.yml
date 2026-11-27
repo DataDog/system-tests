@@ -540,6 +540,10 @@ patterns:
     utils/build/docker/java/parametric.base.Dockerfile:
         libraries: java
         scenarios: PARAMETRIC
+    utils/build/docker/java/sca_advisories.json:  # mounted by the weblog container in the SCA scenarios
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA, RUNTIME_SCA_REACHABILITY]
+        libraries: [java, java_lambda]
     utils/build/docker/java/*:
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
@@ -590,6 +594,10 @@ patterns:
     utils/build/docker/python/parametric.base.Dockerfile:
         libraries: python
         scenarios: PARAMETRIC
+    utils/build/docker/python/sca_advisories.json:  # mounted by the weblog container in the SCA scenarios
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA, RUNTIME_SCA_REACHABILITY]
+        libraries: [python, python_lambda]
     utils/build/docker/python/*:
         libraries: python
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]

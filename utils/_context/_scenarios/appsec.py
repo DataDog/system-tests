@@ -155,9 +155,15 @@ class RuntimeScaReachability(DdTraceEndToEndScenario):
             "RUNTIME_SCA_REACHABILITY",
             weblog_env={
                 "DD_APPSEC_SCA_ENABLED": "true",
+                # the weblog container mounts there the synthetic advisories of the library
+                "_DD_APPSEC_SCA_CVE_FILE": "/sca/advisories.json",
             },
             scenario_groups=[scenario_groups.appsec],
         )
+
+    def get_libraries(self) -> set[str]:
+        # only these libraries have synthetic advisories (utils/build/docker/<library>/sca_advisories.json)
+        return {"java", "python"}
 
 
 class IastDeduplication(DdTraceEndToEndScenario):

@@ -246,9 +246,17 @@ class AppsecLambdaSca(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_SCA",
-            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            weblog_env={
+                "DD_APPSEC_ENABLED": "false",
+                "DD_APPSEC_SCA_ENABLED": "true",
+                # the weblog container mounts there the synthetic advisories of the library
+                "_DD_APPSEC_SCA_CVE_FILE": "/sca/advisories.json",
+            },
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
+
+    def get_libraries(self) -> set[str]:
+        return {"java_lambda", "python_lambda"}
 
 
 class AppsecLambdaRasp(_LambdaScenario):
