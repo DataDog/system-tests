@@ -27,9 +27,9 @@ Six public interfaces, each with an audience and an explicit `__all__`. Everythi
 
 | Interface | Audience | Content |
 |-----------|----------|---------|
-| **Test API** | test authors | `utils.components.<component>.live` and `.record` (see below). At the `utils` root: helpers on data that several components actually use, `ValidationError`, `utils.pytest`, re-exports of the metadata API and runtime info |
+| **Test API** | test authors | `utils.components.<component>.live`, `.record` and `.info` (see below). At the `utils` root: helpers on data that several components actually use, `ValidationError`, `utils.pytest`, re-exports of the metadata API and runtime info |
 | **Metadata API** | test authors, tooling | decorators (`bug`, `missing_feature`...), `features`, read-only scenario registry |
-| **Runtime info** | test and metadata APIs | read-only view of what is running (library, weblog variant, scenario, component versions), exposed as `context` |
+| **Runtime info** | test and metadata APIs | read-only facts fixed for the run: scenario-level ones in `context` (scenario, weblog variant), per-component ones in each component's `info` (versions, library name, credentials) |
 | **Scenario API** | scenario authors | scenario base classes, component definitions, constants, ports |
 | **Component API** | component authors | lifecycle and optional test handle |
 | **Build API** | `build.sh`, CI, external tools | listing components, weblogs and scenarios, base images, building images |
@@ -49,7 +49,7 @@ scenario definitions ──▶ Scenario API ──────▶ components ─
 build.sh, CI, tools ──▶ Build API ── builds images of
 ```
 
-- The metadata API depends only on runtime info, so decorators evaluate conditions (`@bug(context.library < "java@1.2")`) without the test API.
+- The metadata API depends only on runtime info (`context` and the components' `info` parts), so decorators evaluate conditions (`@bug(context.library < "java@1.2")`) without the test API. `info` imports neither `live` nor `record`.
 - The `utils` root re-exports the metadata API and runtime info: `from utils import features, scenarios, context, bug` stays valid.
 - Scenario definitions import only the scenario API, never the test API.
 - Only the scenario core writes runtime info, through an internal module.
@@ -70,24 +70,25 @@ Components keep their own vocabulary: the weblog drives user-level behaviour ove
 
 #### Live and record
 
-A test handle has up to two parts, in separate modules:
+A test handle has up to three parts, in separate modules:
 
 - **live** (`utils.components.<component>.live`) needs the component running: requests, remote config, mocked responses, test agent queries, waiting for data;
-- **record** (`utils.components.<component>.record`) only reads what the component captured or persisted. It's complete once the component stopped, works in replay mode, and during setup holds what was captured so far.
+- **record** (`utils.components.<component>.record`) only reads what the component captured or persisted. It's complete once the component stopped, works in replay mode, and during setup holds what was captured so far;
+- **info** (`utils.components.<component>.info`) holds facts fixed for the whole run: credentials, versions, the library name on the target component. It's usable everywhere, decorators included. A value assigned to a running instance, such as the host of a parametric test agent taken from a pool, is live instead (`test_agent.host`): it only means something while that instance runs. The rule applies per component: a host fixed for the scenario is info.
 
 A query gets a live version only when its retrieval differs from the record's, such as querying a running container where the record reads a persisted file. Reading the same data partially and completely is the same record method.
 
 Everything sits next to what uses it: mock classes and payload builders in `live`, rule ids and record-only helpers in `record`. Little is really shared between the two parts, so there is no common module for types.
 
-| Component | Live | Record |
-|-----------|------|--------|
-| weblog (target) | HTTP and gRPC requests, waits on what its library sends (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout |
-| agent | waits on what it sends | what it sent, captured by the proxy (`interfaces.agent` today) |
-| mocked backend | mocked responses, including remote config served to the agent | captured backend payloads |
-| proxy | mocked responses to the library in the agent's place, including remote config on `/v0.7/config` | none: its captures are the weblog's and the agent's records |
-| parametric app (target) | tracer API calls | none |
-| test agent | queries and waits (`wait_for_num_traces`...), remote config | none |
-| postgres | SQL statements | none |
+| Component | Live | Record | Info |
+|-----------|------|--------|------|
+| weblog (target) | HTTP and gRPC requests, waits on what its library sends (`wait_for`) | the responses seen by the test runner; what its library sent, captured by the proxy (`interfaces.library` today); its stdout | library name and version, weblog variant |
+| agent | waits on what it sends | what it sent, captured by the proxy (`interfaces.agent` today) | version |
+| mocked backend | mocked responses, including remote config served to the agent | captured backend payloads | none |
+| proxy | mocked responses to the library in the agent's place, including remote config on `/v0.7/config` | none: its captures are the weblog's and the agent's records | none |
+| parametric app (target) | tracer API calls | none | library name and version |
+| test agent | queries and waits (`wait_for_num_traces`...), remote config, `host` | none | none |
+| postgresql | SQL statements | none | credentials, database name |
 
 A mock belongs to the component that performs it, a capture to the component whose output it is. So remote config sits on the proxy or on the mocked backend depending on how the scenario serves it, as authors already choose between `tracer_rc_state` and `backend_rc_state` today.
 
@@ -118,7 +119,7 @@ The appendix shows the API in use on today's tests, including cases it fits less
 
 #### `context`
 
-`context` becomes runtime info, re-exported by the root under its current name. Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields (including component configuration, see the appendix) or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
+`context` becomes the scenario-level part of runtime info (scenario, weblog variant), re-exported by the root under its current name. Per-component facts move to the components' `info`, and `context` keeps aliases to them for existing tests (`context.library` reads the target component's info). Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by component `info` (configuration, see the appendix) or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
 
 #### Build API
 
@@ -142,7 +143,7 @@ Singletons become lazy (PEP 562 module `__getattr__`, or accessors), and scenari
 
 An interface module contains only imports, re-exports and `__all__`. Names used only in annotations are re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py`.
 
-Working names (open, see below): `utils.components.<component>.live` and `.record`, `utils` (root re-exports), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+Working names (open, see below): `utils.components.<component>.live`, `.record` and `.info`, `utils` (root re-exports), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
 
 ### Enforcement with import-linter
 
@@ -155,7 +156,8 @@ Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_im
 | Docker only in the runtime layer | `docker-sdk-runtime-layer`, `container-layer-orchestration` | merged (#8679) |
 | scenario definitions → scenario API only | protected | in review (#8681) |
 | components → component API, never test or scenario APIs | forbidden | to do |
-| metadata API → runtime info only | forbidden | to do |
+| metadata API → runtime info only (`context`, `utils.components.*.info`) | forbidden | to do |
+| `info` never imports `live` or `record` | forbidden | to do |
 | runtime info written only by the scenario core | protected (internal setter module) | to do |
 | build tooling → build API only | protected | to do |
 
@@ -167,10 +169,10 @@ Every step ships on its own and leaves CI green.
 2. **Centralise re-exports**, each move removing ratchet lines:
    - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; mocked responses to `proxy.live` and `mocked_backend.live`, remote config to whichever of the two serves it (`tracer_rc_state` and `backend_rc_state` today); `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
    - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
-   - runtime info: split `context` into the read-only view and the internal setter;
+   - runtime info: split `context` into the read-only view and the internal setter, and move per-component facts to `info`, keeping aliases;
    - side effects: make singletons lazy and move resource allocation to scenario setup;
    - build API: create `utils.build_api` and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
-3. **Converge components** on the component API (lifecycle for a scenario or a single test, test handle with live and record parts), one at a time: proxy, mocked backend, agent, test agent, weblog, parametric app, side containers. Move their image builds to the build API.
+3. **Converge components** on the component API (lifecycle for a scenario or a single test, test handle with live, record and info parts), one at a time: proxy, mocked backend, agent, test agent, weblog, parametric app, side containers. Move their image builds to the build API.
 4. **Drop the root re-exports of handles** once their ratchet is empty.
 5. **Document** each interface for its audience (`docs/edit/`, `docs/internals/`) and point the AI rules (`docs/ai/`) at them.
 
@@ -243,10 +245,10 @@ from utils.components.proxy.live import SequentialJsonMockedTracerResponse
         container = scenario.postgres_container
         container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
 
-# proposed: postgres gets a live handle
-from utils.components import postgres
+# proposed: postgresql gets a live handle
+from utils.components import postgresql
 
-        postgres.live.execute("SELECT 1;")
+        postgresql.live.execute("SELECT 1;")
 ```
 
 **Interleaved actions and checks in parametric tests** (`tests/parametric/test_dynamic_configuration.py`). These tests act, observe, then act again depending on what they saw. Everything is live and fixtures return the live handles, so the body doesn't change. Only the imports do: today they reach into `utils.docker_fixtures`, `utils.dd_constants` and the parametric `conftest`:
@@ -315,22 +317,29 @@ from utils.components.test_agent.live import RemoteConfigApplyState, TestAgent, 
 
 `tests/test_config_consistency.py` does the same with runtime metrics.
 
-**Less well fitted: component configuration** (`tests/integrations/test_db_integrations_sql.py`). The test methods compare span tags to the credentials of the database container:
+**Component configuration** (`tests/integrations/test_db_integrations_sql.py`). The test methods compare span tags to the credentials of the database container. Today they look the container up by name, which gives them the container object, able to act on the running database:
 
 ```python
 # today
+class Test_Postgres(_BaseDbIntegrationsTestClass):
+    db_service = "postgresql"
+
     def test_db_user(self):
         db_container = context.get_container_by_dd_integration_name(self.db_service)
         for _, span_meta in self.get_spans_meta():
             assert span_meta["db.user"].casefold() == db_container.db_user.casefold()
 ```
 
-The database user is neither live nor record: it's configuration, fixed before the container starts and valid in both phases and in replay. It belongs to runtime info, like the library version. Tests get a read-only description of the component instead of the container object, which today also lets them act on the running container:
+The database user is fixed for the run, so it's info, usable in both phases and in replay. The class holds the component rather than a string, which the static check can resolve (`getattr(components, name)` also works, since `info` is neutral):
 
 ```python
 # proposed
+from utils import components
+
+class Test_Postgres(_BaseDbIntegrationsTestClass):
+    db = components.postgresql
+
     def test_db_user(self):
-        db = context.components[self.db_service]
         for _, span_meta in self.get_spans_meta():
-            assert span_meta["db.user"].casefold() == db.db_user.casefold()
+            assert span_meta["db.user"].casefold() == self.db.info.db_user.casefold()
 ```
