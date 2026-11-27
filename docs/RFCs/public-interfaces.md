@@ -102,7 +102,77 @@ What a setup method keeps for its tests (`self.r = ...`) is part of the record: 
 
 **Replay.** What the checker can't see (`getattr`, handles passed as values) fails in replay mode, where tests only have the record. Running some scenarios in replay mode in CI replaces a runtime guard (`utils/scripts/replay_scenarios.sh` exists, CI doesn't run it).
 
-#### Examples
+The appendix shows the API in use on today's tests, including cases it fits less well.
+
+#### `context`
+
+`context` becomes runtime info, re-exported by the root under its current name. Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields (including component configuration, see the appendix) or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
+
+#### Build API
+
+The build moves from shell to Python. `utils.build_api` has a single CLI (`python -m utils.build_api <command>`) that shell scripts and external tools call. It builds component images, so its consumers are components and CI, not scenarios. It must be importable without the test runtime.
+
+#### Imports have no side effects
+
+Importing a public interface, or anything behind it, only makes symbols available: no sockets, files, threads, processes, environment changes, logging setup, port allocation or runtime objects. Effects happen in explicit calls: scenario setup, fixtures, CLI commands.
+
+Today `import utils` builds the `weblog`, `context` and `scenarios` singletons, and through `scenarios` every scenario and container object. The Docker SSI scenarios bind a socket at import (`_get_free_port()` in `docker_ssi.py`), and `utils/const/__main__.py` avoids importing `utils` altogether.
+
+Singletons become lazy (PEP 562 module `__getattr__`, or accessors), and scenarios build their resources only when selected. A test imports each interface in a fresh interpreter under an audit hook (PEP 578) and fails on sockets, subprocesses, file writes, environment changes, new threads or logging handlers. Third-party effects and today's violations are allow-listed, and the list only shrinks.
+
+**Pro:** one reviewable list per audience; internals, components and the container backend can be refactored freely; enforced in CI by `./format.sh`.
+
+**Cost:** a mostly mechanical migration of about 400 test import lines and the scenario definitions, over several PRs; every new public helper needs a re-export.
+
+## Implementation
+
+### Interface modules
+
+An interface module contains only imports, re-exports and `__all__`. Names used only in annotations are re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py`.
+
+Working names (open, see below): `utils.components.<component>.live` and `.record`, `utils` (root re-exports), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
+
+### Enforcement with import-linter
+
+Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_imports_alerting = error`. Existing violations are `ignore_imports` with a `TODO`, and the list only shrinks. External tools can't be enforced from this repo, so the build API is documented as their only supported surface.
+
+| Boundary | Contract | Status |
+|----------|----------|--------|
+| tests → `utils` root and `utils.components.*` only | `utils-public-interface` (protected) | merged for the root (#8675), ratchet being reduced (#8676) |
+| `utils` never imports `tests` | `utils-no-tests` (forbidden) | merged (#8678) |
+| Docker only in the runtime layer | `docker-sdk-runtime-layer`, `container-layer-orchestration` | merged (#8679) |
+| scenario definitions → scenario API only | protected | in review (#8681) |
+| components → component API, never test or scenario APIs | forbidden | to do |
+| metadata API → runtime info only | forbidden | to do |
+| runtime info written only by the scenario core | protected (internal setter module) | to do |
+| build tooling → build API only | protected | to do |
+
+### Migration plan
+
+Every step ships on its own and leaves CI green.
+
+1. **Boundaries only.** Add the contracts above with today's violations as ratchets, and the import side-effect test with today's effects allow-listed. No code moves.
+2. **Centralise re-exports**, each move removing ratchet lines:
+   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; mocked responses to `proxy.live` and `mocked_backend.live`, remote config to whichever of the two serves it (`tracer_rc_state` and `backend_rc_state` today); `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
+   - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
+   - runtime info: split `context` into the read-only view and the internal setter;
+   - side effects: make singletons lazy and move resource allocation to scenario setup;
+   - build API: create `utils.build_api` and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
+3. **Converge components** on the component API (lifecycle for a scenario or a single test, test handle with live and record parts), one at a time: proxy, mocked backend, agent, test agent, weblog, parametric app, side containers. Move their image builds to the build API.
+4. **Drop the root re-exports of handles** once their ratchet is empty.
+5. **Document** each interface for its audience (`docs/edit/`, `docs/internals/`) and point the AI rules (`docs/ai/`) at them.
+
+## Open questions
+
+- Which scenarios should run in replay mode in CI, and is that enough without a runtime guard?
+- Should the weblog's record hold the requests and responses seen by the test runner, so that setup results become references into it?
+- Module names and layout: modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
+- Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one format?
+- Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
+- In parametric tests, what the library sent is read from the test agent. Should the parametric app's live part expose it instead (backed by the test agent), mirroring `weblog.live`?
+- Should `tests/test_the_test/` keep unrestricted access to internals?
+
+## Appendix: examples
 
 The names below are illustrative.
 
@@ -226,71 +296,3 @@ def has_agent_rate(spans) -> bool:  # neutral: works on live or recorded data
 ```
 
 The database user is neither live nor record: it's configuration, fixed before the container starts and valid in both phases and in replay. It belongs to runtime info, like the library version: `context.components[self.db_service].db_user`.
-
-#### `context`
-
-`context` becomes runtime info, re-exported by the root under its current name. Reads stay as they are. Writes go through an internal setter used only by the scenario core. Attributes exposing internals (`context._scenarios`, `context.containers`, `context.get_container_by_dd_integration_name`) are replaced by runtime info fields (including component configuration, see the examples) or component handles. Read-only is enforced by types (properties, frozen dataclasses), not at runtime.
-
-#### Build API
-
-The build moves from shell to Python. `utils.build_api` has a single CLI (`python -m utils.build_api <command>`) that shell scripts and external tools call. It builds component images, so its consumers are components and CI, not scenarios. It must be importable without the test runtime.
-
-#### Imports have no side effects
-
-Importing a public interface, or anything behind it, only makes symbols available: no sockets, files, threads, processes, environment changes, logging setup, port allocation or runtime objects. Effects happen in explicit calls: scenario setup, fixtures, CLI commands.
-
-Today `import utils` builds the `weblog`, `context` and `scenarios` singletons, and through `scenarios` every scenario and container object. The Docker SSI scenarios bind a socket at import (`_get_free_port()` in `docker_ssi.py`), and `utils/const/__main__.py` avoids importing `utils` altogether.
-
-Singletons become lazy (PEP 562 module `__getattr__`, or accessors), and scenarios build their resources only when selected. A test imports each interface in a fresh interpreter under an audit hook (PEP 578) and fails on sockets, subprocesses, file writes, environment changes, new threads or logging handlers. Third-party effects and today's violations are allow-listed, and the list only shrinks.
-
-**Pro:** one reviewable list per audience; internals, components and the container backend can be refactored freely; enforced in CI by `./format.sh`.
-
-**Cost:** a mostly mechanical migration of about 400 test import lines and the scenario definitions, over several PRs; every new public helper needs a re-export.
-
-## Implementation
-
-### Interface modules
-
-An interface module contains only imports, re-exports and `__all__`. Names used only in annotations are re-exported under `if TYPE_CHECKING:`, as #8676 does in `utils/__init__.py`.
-
-Working names (open, see below): `utils.components.<component>.live` and `.record`, `utils` (root re-exports), `utils.metadata`, `utils.runtime_info`, `utils.scenario_api`, `utils.component_api`, `utils.build_api`.
-
-### Enforcement with import-linter
-
-Each boundary is a `protected` or `forbidden` contract with `unmatched_ignore_imports_alerting = error`. Existing violations are `ignore_imports` with a `TODO`, and the list only shrinks. External tools can't be enforced from this repo, so the build API is documented as their only supported surface.
-
-| Boundary | Contract | Status |
-|----------|----------|--------|
-| tests → `utils` root and `utils.components.*` only | `utils-public-interface` (protected) | merged for the root (#8675), ratchet being reduced (#8676) |
-| `utils` never imports `tests` | `utils-no-tests` (forbidden) | merged (#8678) |
-| Docker only in the runtime layer | `docker-sdk-runtime-layer`, `container-layer-orchestration` | merged (#8679) |
-| scenario definitions → scenario API only | protected | in review (#8681) |
-| components → component API, never test or scenario APIs | forbidden | to do |
-| metadata API → runtime info only | forbidden | to do |
-| runtime info written only by the scenario core | protected (internal setter module) | to do |
-| build tooling → build API only | protected | to do |
-
-### Migration plan
-
-Every step ships on its own and leaves CI green.
-
-1. **Boundaries only.** Add the contracts above with today's violations as ratchets, and the import side-effect test with today's effects allow-listed. No code moves.
-2. **Centralise re-exports**, each move removing ratchet lines:
-   - test API: create the component modules and split today's handles between them (weblog requests to `weblog.live`; mocked responses to `proxy.live` and `mocked_backend.live`, remote config to whichever of the two serves it (`tracer_rc_state` and `backend_rc_state` today); `wait_for` to `weblog.live` and `agent.live`; `interfaces.*` queries to the record parts). Rewrite test imports with a codemod, area by area. `from utils import weblog, interfaces` stays valid for existing tests only, with a ratchet. Add the static check and run some scenarios in replay mode in CI;
-   - scenario API: re-export what definitions use most (`_logger`, `_context.constants`, `_context.containers`, `_context.component_version`, `interfaces`, `proxy.ports`). The infrastructure-heavy definitions (docker_ssi, k8s, VM, docker_fixtures) may get a sub-API per backend;
-   - runtime info: split `context` into the read-only view and the internal setter;
-   - side effects: make singletons lazy and move resource allocation to scenario setup;
-   - build API: create `utils.build_api` and move `build.sh`, `utils/scripts` and `utils/ci` onto it.
-3. **Converge components** on the component API (lifecycle for a scenario or a single test, test handle with live and record parts), one at a time: proxy, mocked backend, agent, test agent, weblog, parametric app, side containers. Move their image builds to the build API.
-4. **Drop the root re-exports of handles** once their ratchet is empty.
-5. **Document** each interface for its audience (`docs/edit/`, `docs/internals/`) and point the AI rules (`docs/ai/`) at them.
-
-## Open questions
-
-- Which scenarios should run in replay mode in CI, and is that enough without a runtime guard?
-- Should the weblog's record hold the requests and responses seen by the test runner, so that setup results become references into it?
-- Module names and layout: modules under `utils/`, or root packages (`scenarios/`, `components/`) next to `tests/`?
-- Should the metadata API also accept declarative conditions (`@bug(library="java@<1.2")`), so that decorators and manifests share one format?
-- Should the parametric clients (`TestAgentAPI`, `ParametricTestClientApi`) be public types, or only reachable through fixtures?
-- In parametric tests, what the library sent is read from the test agent. Should the parametric app's live part expose it instead (backed by the test agent), mirroring `weblog.live`?
-- Should `tests/test_the_test/` keep unrestricted access to internals?
