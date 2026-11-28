@@ -905,7 +905,56 @@ manifest:
       weblog: [poc, uds]
     - declaration: missing_feature (EX-3416)
       excluded_weblog: [poc, uds]
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <3.59.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [poc, uds]
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default:
+    - weblog_declaration:
+        poc: missing_feature (FFL-2446)
+        uds: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v3.44.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
@@ -1292,7 +1341,10 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
-  tests/parametric/test_ffe/test_flag_selection.py: missing_feature (The flag selection provider option is not implemented)
+  tests/parametric/test_ffe/test_flag_selection.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (The flag selection provider option is not implemented)
+      component_version: <3.59.0
+  tests/parametric/test_ffe/test_flag_selection.py::Test_FFE_Flag_Selection: missing_feature (The flag selection provider option is not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
