@@ -4616,7 +4616,9 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_all_baggage: incomplete_test_app (baggage endpoints are not implemented)  # Created by easy win activation script
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_baggage: incomplete_test_app (baggage endpoints are not implemented)  # Created by easy win activation script
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_set_baggage: incomplete_test_app (baggage endpoints are not implemented)  # Created by easy win activation script
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: bug (APMAPI-778)  # The crash endpoint does not kill the application
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash:  # The crash endpoint does not kill the application
+    - declaration: bug (APMAPI-778)
+      component_version: <1.69.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # Fails to retreive the current span after a span has finished
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v1.56.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
