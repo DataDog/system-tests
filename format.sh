@@ -1,4 +1,4 @@
-#!/bin/bash
+"!/bin/bash
 set -eu
 
 readonly CYAN='\033[0;36m'
@@ -201,6 +201,11 @@ else
       echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
       exit 1
     fi
+fi
+
+echo "Checking manifest YAML quoting on changed lines..."
+if ! python utils/manifest/check_new_quoting.py; then
+  exit 1
 fi
 
 echo "Checking AI Guard redaction fixtures..."
